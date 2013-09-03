@@ -168,3 +168,5 @@ rc_status() {
         echo "NotImplementedError"
     fi
 }
+
+source "git/git-completion.bash"
