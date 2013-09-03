@@ -1,28 +1,37 @@
 # Shortcuts
 
+_ls(){
+    clear
+    if ls --color > /dev/null 2>&1; then
+        # GNU `ls`
+        ls \
+            --almost-all \
+            --classify \
+            --color=always \
+            --group-directories-first \
+            --hide-control-chars \
+            --human-readable \
+            --ignore=*.pyc \
+            --ignore=.*.swp \
+            --ignore=.DS_Store \
+            --ignore=.git \
+            --ignore=.gitignore \
+            --ignore=.svn \
+            --literal \
+            --time-style=local \
+            -X \
+            -l \
+            -v
+    else
+        # OS X `ls`
+        ls -G
+    fi
+}
+
 alias h="history"
 alias j="jobs"
+alias l="_ls"
 alias m="mate ."
-alias l="clear && \
-ls \
---almost-all \
---color=always \
---classify \
---group-directories-first \
---human-readable \
--l \
---literal \
---hide-control-chars \
---time-style=local \
--v \
--X \
---ignore=*.pyc \
---ignore=.*.swp \
---ignore=.DS_Store \
---ignore=.git \
---ignore=.gitignore \
---ignore=.svn \
-"
 alias o="open"
 alias oo="open ."
 alias s="subl ."
