@@ -1,0 +1,1 @@
+export PATH="/Applications:${PATH}"

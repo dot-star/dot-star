@@ -6,6 +6,7 @@ cd ..
 source "bash/.behavior.sh"
 source "bash/.cd.sh"
 source "bash/.history.sh"
+source "bash/.path.sh"
 source "bash/.prompt.sh"
 source "bash/.shortcuts.sh"
 source "brew/.aliases.sh"
