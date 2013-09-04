@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+CWD="${PWD}"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "${DIR}"
 cd ..
@@ -16,3 +17,4 @@ source "git/.aliases.sh"
 source "ssh/.aliases.sh"
 source "vim/.aliases.sh"
 source "virtualenv/.aliases.sh"
+cd "${CWD}"
