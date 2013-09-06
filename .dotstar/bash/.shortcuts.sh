@@ -28,6 +28,7 @@ _ls(){
     fi
 }
 
+alias grep="grep --color --line-number"
 alias h="history"
 alias j="jobs"
 alias l="_ls"
