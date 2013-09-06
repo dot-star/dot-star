@@ -3,8 +3,9 @@
 set -e
 #set -x
 
+# Create symlink to project files in home directory.
 DOT_STAR_ROOT="$( dirname $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ))"
-ln -sf "${DOT_STAR_ROOT}" "${HOME}"
+[ ! -L "${HOME}/.dot-star" ] && ln -vs "${DOT_STAR_ROOT}/" "${HOME}/.dot-star"
 
 # Find existing bootstrap in bash profile.
 line_number=$(grep --line-number "# .dotstar bootstrap" "${HOME}/.bash_profile" | cut -d ":" -f "1")
@@ -16,4 +17,4 @@ if [ ! -z "${line_number}" ]; then
 fi
 
 # Add bootstrap to bash profile.
-echo -e "# .dotstar bootstrap\n[[ -r ~/.dotstar/bash/.bash_profile ]] && . ~/.dotstar/bash/.bash_profile" >> "$HOME/.bash_profile"
+echo -e "# .dotstar bootstrap\n[[ -r ~/.dot-star/bash/.bash_profile ]] && . ~/.dot-star/bash/.bash_profile" >> "$HOME/.bash_profile"
