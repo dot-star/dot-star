@@ -27,3 +27,9 @@ alias pub="public"
 alias tmp="cd /tmp"
 alias workspace="cd ~/workspace"
 alias www="cd /Library/WebServer/Documents"
+
+# Add aliases that cd to the project directory and list the files.
+for file in $(find ~/Projects -maxdepth 1 -mindepth 1 -type d); do
+    name=$(basename "${file}")
+    alias "${name}"="cd ~/Projects/${name} && l"
+done
