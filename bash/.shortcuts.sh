@@ -24,7 +24,7 @@ _ls(){
             -v
     else
         # OS X `ls`
-        ls -G
+        ls -l -F -G
     fi
 }
 
