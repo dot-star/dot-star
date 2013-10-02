@@ -12,10 +12,12 @@ _ls(){
             --hide-control-chars \
             --human-readable \
             --ignore=*.pyc \
+            --ignore=.swp \
             --ignore=.*.swp \
             --ignore=.DS_Store \
             --ignore=.git \
             --ignore=.gitignore \
+            --ignore=.sass-cache \
             --ignore=.svn \
             --literal \
             --time-style=local \
@@ -24,7 +26,7 @@ _ls(){
             -v
     else
         # OS X `ls`
-        ls -G
+        ls -l -F -G
     fi
 }
 
