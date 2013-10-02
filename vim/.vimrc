@@ -81,5 +81,8 @@ vmap <Right> >gv
 nnoremap <Space> @q
 
 " Remove trailing spaces on save for certain file types.
+autocmd BufWritePre *.css :%s/\s\+$//e
+autocmd BufWritePre *.html :%s/\s\+$//e
 autocmd BufWritePre *.php :%s/\s\+$//e
 autocmd BufWritePre *.py :%s/\s\+$//e
+autocmd BufWritePre *.scss :%s/\s\+$//e
