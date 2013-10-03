@@ -84,6 +84,14 @@ rc_diff() {
     # Revision Control diff
     clear
 
+    colordiff=$(which colordiff)
+    if [ -z "$colordiff" ]; then
+        echo "WARNING: colordiff does not seem to be installed."
+        colordiff_installed=false
+    else
+        colordiff_installed=true
+    fi
+
     if is_svn; then
         if [ $# == 0 ]; then
             svn diff . | colordiff | less -R
@@ -95,7 +103,11 @@ rc_diff() {
             fi
         fi
     elif is_hg; then
-        hg diff . | colordiff | less -R
+        if $colordiff_installed ; then
+            hg diff --git . | colordiff | less --RAW-CONTROL-CHARS
+        else
+            hg diff --git .
+        fi
     else
         if [ $# == 0 ]; then
             if [ "$(git diff --cached . | wc -l)" -gt 1 ]; then
