@@ -105,7 +105,9 @@ rc_diff() {
     elif is_hg; then
         if $colordiff_installed ; then
             hg diff --git . | colordiff | less --RAW-CONTROL-CHARS
+            echo "hg diff --git . | colordiff | less --RAW-CONTROL-CHARS"
         else
+            echo "hg diff --git ."
             hg diff --git .
         fi
     else
