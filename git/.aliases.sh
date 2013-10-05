@@ -3,6 +3,8 @@
 alias g="git"
 
 alias add="git add"
+alias addp="git add --patch"
+alias addu="git add --update"
 alias branch="rc_branch"
 alias checkout="rc_checkout"
 alias clone="git clone"
