@@ -2,6 +2,7 @@
 
 alias g="git"
 
+alias add.="git add ."
 alias add="git add"
 alias addp="git add --patch"
 alias addu="git add --update"
