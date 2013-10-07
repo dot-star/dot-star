@@ -6,6 +6,7 @@ alias add="git add"
 alias addp="git add --patch"
 alias addu="git add --update"
 alias branch="rc_branch"
+alias branches="rc_branches"
 alias checkout="rc_checkout"
 alias clone="git clone"
 alias commit="git commit"
@@ -65,6 +66,17 @@ rc_branch() {
     elif is_svn; then
         # TODO: svn ls svn://www.example.com/svn/branches/
         # svn branch
+        echo "NotImplementedError"
+    fi
+}
+
+rc_branches() {
+    # git and hg support
+    if is_git; then
+        git branch --all
+    elif is_hg; then
+        hg branches | sort
+    elif is_svn; then
         echo "NotImplementedError"
     fi
 }
