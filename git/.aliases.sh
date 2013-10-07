@@ -55,16 +55,15 @@ is_hg() {
 }
 
 rc_branch() {
-    # Revision Control diff
-    # git, svn, and hg support
+    # git and hg support
     if is_git; then
-        git branch --all
+        git branch
+    elif is_hg; then
+        hg branch
     elif is_svn; then
         # TODO: svn ls svn://www.example.com/svn/branches/
         # svn branch
-        return 1
-    elif is_hg; then
-        hg branch
+        echo "NotImplementedError"
     fi
 }
 
