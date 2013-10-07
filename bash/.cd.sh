@@ -25,7 +25,6 @@ alias pics="pictures"
 alias public="cd ~/Public"
 alias pub="public"
 alias tmp="cd /tmp"
-alias workspace="cd ~/workspace"
 alias www="cd /Library/WebServer/Documents"
 alias ww="www"
 
