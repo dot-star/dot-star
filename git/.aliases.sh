@@ -89,6 +89,12 @@ rc_checkout() {
         git checkout $@
     elif is_hg; then
         hg checkout $@
+        return_code="${?}"
+        # Display modified files when `hg checkout' fails with "abort: crosses
+        # branches (merge branches or use --clean to discard changes)".
+        if [ "${return_code}" -eq 255 ]; then
+            hg status | \grep '^M '
+        fi
     else
         echo "NotImplementedError"
     fi
