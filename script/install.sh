@@ -18,3 +18,6 @@ fi
 
 # Add bootstrap to bash profile.
 echo -e "# .dotstar bootstrap\n[[ -r ~/.dot-star/bash/.bash_profile ]] && . ~/.dot-star/bash/.bash_profile" >> "$HOME/.bash_profile"
+
+# Run post installation script.
+source "${DOT_STAR_ROOT}/script/post_install.sh"
