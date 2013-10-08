@@ -17,4 +17,4 @@ update
     dotstar
     ./update.sh
 
-The installation and update may be run repeatedly. Neither action will remove nor overwrite files outsite the dotstar directory.
+The installation and update may be run repeatedly. Neither action will remove nor overwrite files outside the dotstar directory.
