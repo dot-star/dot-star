@@ -22,7 +22,7 @@ alias log="git log"
 alias master="rc_master"
 alias pop="git stash pop"
 alias pull="rc_pull"
-alias push="git push"
+alias push="rc_push"
 alias st="rc_status"
 alias stash="git stash"
 alias tag="git tag"
@@ -170,6 +170,18 @@ rc_pull() {
         git pull $@
     elif is_hg; then
         hg pull $@
+    else
+        echo "NotImplementedError"
+    fi
+}
+
+rc_push() {
+    # Revision Control push
+    # git and hg support
+    if is_git; then
+        git push $@
+    elif is_hg; then
+        hg push --new-branch $@
     else
         echo "NotImplementedError"
     fi
