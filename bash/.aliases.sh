@@ -30,7 +30,15 @@ _ls(){
     fi
 }
 
-alias grep="grep --color --line-number"
+_grep() {
+    grep \
+        --color \
+        --exclude-dir=".git" \
+        --line-number \
+        $@
+}
+alias grep="_grep"
+
 alias h="history"
 alias j="jobs"
 alias l="_ls"
