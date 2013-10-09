@@ -40,7 +40,14 @@ alias oo="open ."
 alias s="subl ."
 alias t="tree"
 
-alias ip="ifconfig -a | grep -o 'inet6\? \(\([0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\)\|[a-fA-F0-9:]\+\)' | sed -e 's/inet6* //' | sort | sed 's/\('$(ipconfig getifaddr en1)'\)/\1 [LOCAL]/'"
+_ip() {
+    if [ -x /sbin/ifconfig ]; then
+        /sbin/ifconfig
+    else
+        ifconfig -a | grep -o 'inet6\? \(\([0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\)\|[a-fA-F0-9:]\+\)' | sed -e 's/inet6* //' | sort | sed 's/\('$(ipconfig getifaddr en1)'\)/\1 [LOCAL]/'
+    fi
+}
+alias ip="_ip"
 
 alias dotstar="cd ${HOME}/.dot-star && l"
 alias extra="vim ${HOME}/.dot-star/bash/extra.sh"
