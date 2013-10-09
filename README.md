@@ -18,3 +18,8 @@ update
     ./update.sh
 
 The installation and update may be run repeatedly. Neither action will remove nor overwrite files outside the dotstar directory.
+
+
+mission
+-------
+    There should be one-- and preferably only one --command to do it.
