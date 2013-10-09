@@ -3,4 +3,4 @@
 alias freeze="pip freeze"
 alias install="pip install"
 
-source "/usr/local/bin/virtualenvwrapper.sh"
+[[ -f "/usr/local/bin/virtualenvwrapper.sh" ]] && source "/usr/local/bin/virtualenvwrapper.sh"
