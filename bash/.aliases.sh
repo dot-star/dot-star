@@ -35,7 +35,7 @@ _grep() {
         --color \
         --exclude-dir=".git" \
         --line-number \
-        $@
+        "$@"
 }
 alias grep="_grep"
 
