@@ -1,6 +1,4 @@
-# Git Aliases
-
-alias g="git"
+# Version Control Aliases
 
 alias add.="git add ."
 alias add="git add"
@@ -17,6 +15,7 @@ alias df="rc_diff"
 alias drop="git_stash_drop"
 alias fetch="git fetch"
 alias filemode="git config core.filemode false"
+alias g="git"
 alias list="git stash list"
 alias log="rc_log"
 alias master="rc_master"
