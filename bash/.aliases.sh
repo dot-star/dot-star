@@ -23,7 +23,30 @@ _ls(){
             --time-style=local \
             -X \
             -l \
-            -v
+            -v \
+            2> /dev/null
+
+        if [[ $? -ne 0 ]]; then
+            ls \
+                --almost-all \
+                --classify \
+                --color=always \
+                --hide-control-chars \
+                --human-readable \
+                --ignore=*.pyc \
+                --ignore=.swp \
+                --ignore=.*.swp \
+                --ignore=.DS_Store \
+                --ignore=.git \
+                --ignore=.gitignore \
+                --ignore=.sass-cache \
+                --ignore=.svn \
+                --literal \
+                --time-style=local \
+                -X \
+                -l \
+                -v
+        fi
     else
         # OS X `ls`
         ls -l -F -G
