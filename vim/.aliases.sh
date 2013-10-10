@@ -20,7 +20,7 @@ _vim () {
     if which "mvim" &> /dev/null; then
         open -a MacVim "$@"
     else
-        vim -p "$@"
+        \vim -p "$@"
     fi
 }
 
