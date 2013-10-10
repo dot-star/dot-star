@@ -225,4 +225,4 @@ rc_status() {
     fi
 }
 
-source "git/git-completion.bash"
+source "version_control/git-completion.bash"
