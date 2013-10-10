@@ -18,7 +18,7 @@ alias drop="git_stash_drop"
 alias fetch="git fetch"
 alias filemode="git config core.filemode false"
 alias list="git stash list"
-alias log="git log"
+alias log="rc_log"
 alias master="rc_master"
 alias pop="git stash pop"
 alias pull="rc_pull"
@@ -148,6 +148,16 @@ rc_diff() {
                 git diff --cached $@
             fi
         fi
+    fi
+}
+
+rc_log() {
+    if is_git; then
+        git log
+    elif is_hg; then
+        hg log | less
+    else
+        echo "NotImplementedError"
     fi
 }
 
