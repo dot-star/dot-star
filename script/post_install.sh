@@ -1,3 +1,3 @@
 # Configure global gitignore.
-[[ ! -e "${HOME}/.gitignore" ]] && ln -vs "${DOT_STAR_ROOT}/git/.gitignore" "${HOME}"
+[[ ! -L "${HOME}/.gitignore" ]] && ln -vs "${DOT_STAR_ROOT}/version_control/.gitignore" "${HOME}"
 git config --global core.excludesfile "~/.gitignore"
