@@ -25,8 +25,20 @@ alias pics="pictures"
 alias public="cd ~/Public"
 alias pub="public"
 alias tmp="cd /tmp"
-alias www="cd /Library/WebServer/Documents"
-alias ww="www"
+
+_www() {
+    array=("/Library/WebServer/Documents/" "/var/www/")
+    for path in "${array[@]}"; do
+        if [ -d "${path}" ]; then
+            cd "${path}"
+            break
+        fi
+    done
+}
+
+alias ww="_www"
+alias www="_www"
+
 
 # Add aliases that cd to the project directory and list the files.
 for file in $(find ~/Projects -maxdepth 1 -mindepth 1 -type d); do

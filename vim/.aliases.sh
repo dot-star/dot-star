@@ -17,10 +17,10 @@ _vim () {
         done
     fi
 
-    if which "mvim" >/dev/null; then
+    if which "mvim" &> /dev/null; then
         open -a MacVim "$@"
     else
-        vim -p "$@"
+        \vim -p "$@"
     fi
 }
 
@@ -28,7 +28,7 @@ alias v="_vim"
 alias vi="_vim"
 alias vim="_vim"
 
-if which "mvim" >/dev/null; then
+if which "mvim" &> /dev/null; then
     alias mvim="open -a MacVim"
     alias v="_vim"
     alias vi="_vim"

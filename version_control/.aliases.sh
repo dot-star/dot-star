@@ -1,6 +1,4 @@
-# Git Aliases
-
-alias g="git"
+# Version Control Aliases
 
 alias add.="git add ."
 alias add="git add"
@@ -17,12 +15,13 @@ alias df="rc_diff"
 alias drop="git_stash_drop"
 alias fetch="git fetch"
 alias filemode="git config core.filemode false"
+alias g="git"
 alias list="git stash list"
-alias log="git log"
+alias log="rc_log"
 alias master="rc_master"
 alias pop="git stash pop"
 alias pull="rc_pull"
-alias push="git push"
+alias push="rc_push"
 alias st="rc_status"
 alias stash="git stash"
 alias tag="git tag"
@@ -151,6 +150,16 @@ rc_diff() {
     fi
 }
 
+rc_log() {
+    if is_git; then
+        git log
+    elif is_hg; then
+        hg log | less
+    else
+        echo "NotImplementedError"
+    fi
+}
+
 rc_master() {
     # Revision Control master / default (hg)
     # git and hg support
@@ -170,6 +179,18 @@ rc_pull() {
         git pull $@
     elif is_hg; then
         hg pull $@
+    else
+        echo "NotImplementedError"
+    fi
+}
+
+rc_push() {
+    # Revision Control push
+    # git and hg support
+    if is_git; then
+        git push $@
+    elif is_hg; then
+        hg push --new-branch $@
     else
         echo "NotImplementedError"
     fi
@@ -203,4 +224,4 @@ rc_status() {
     fi
 }
 
-source "git/git-completion.bash"
+source "version_control/git-completion.bash"
