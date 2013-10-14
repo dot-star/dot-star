@@ -16,7 +16,6 @@ _ls(){
             --ignore=.*.swp \
             --ignore=.DS_Store \
             --ignore=.git \
-            --ignore=.gitignore \
             --ignore=.sass-cache \
             --ignore=.svn \
             --literal \
@@ -38,7 +37,6 @@ _ls(){
                 --ignore=.*.swp \
                 --ignore=.DS_Store \
                 --ignore=.git \
-                --ignore=.gitignore \
                 --ignore=.sass-cache \
                 --ignore=.svn \
                 --literal \
