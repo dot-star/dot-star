@@ -1,5 +1,7 @@
 # Configure global gitignore.
-[[ ! -e "${HOME}/.gitignore" ]] && ln -vs "${DOT_STAR_ROOT}/git/.gitignore" "${HOME}"
+if [ ! -e "${HOME}/.gitignore" ]; then
+    ln -s -v "${DOT_STAR_ROOT}/version_control/.gitignore" "${HOME}"
+fi
 git config --global core.excludesfile "~/.gitignore"
 
 # Configure vimrc.
