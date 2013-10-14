@@ -1,3 +1,6 @@
+" Read the file as UTF-8.
+scriptencoding utf-8
+
 set nocompatible
 
 " Use a different view in the netrw directory listing.
