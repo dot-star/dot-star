@@ -115,3 +115,9 @@ autocmd BufRead,BufNewFile *.py,*.pyw match BadWhitespace /\s\+$/
 autocmd         BufNewFile *.py,*.pyw set fileformat=unix
 autocmd BufRead,BufNewFile *.py,*.pyw let b:comment_leader = '#'
 autocmd BufWritePre *.py :%s/\s\+$//e
+
+" Move the directory for the backup file.
+set backupdir=~/.vim/backup/
+
+" Move the directory for the swap file.
+set directory=~/.vim/swap/
