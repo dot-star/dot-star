@@ -86,7 +86,32 @@ nnoremap <Space> @q
 " Remove trailing spaces on save for certain file types.
 autocmd BufWritePre *.css :%s/\s\+$//e
 autocmd BufWritePre *.html :%s/\s\+$//e
-autocmd BufWritePre *.js :%s/\s\+$//e
 autocmd BufWritePre *.php :%s/\s\+$//e
-autocmd BufWritePre *.py :%s/\s\+$//e
 autocmd BufWritePre *.scss :%s/\s\+$//e
+
+highlight BadWhitespace ctermbg=red guibg=red
+
+" JavaScript
+autocmd BufRead,BufNewFile *.js set expandtab
+autocmd BufRead,BufNewFile *.js set tabstop=4
+autocmd BufRead,BufNewFile *.js set softtabstop=4
+autocmd BufRead,BufNewFile *.js set shiftwidth=4
+autocmd BufRead,BufNewFile *.js set autoindent
+autocmd BufRead,BufNewFile *.js match BadWhitespace /^\t\+/
+autocmd BufRead,BufNewFile *.js match BadWhitespace /\s\+$/
+autocmd         BufNewFile *.js set fileformat=unix
+autocmd BufRead,BufNewFile *.js let b:comment_leader = '//'
+autocmd BufWritePre *.js :%s/\s\+$//e
+
+" Python, PEP-008
+autocmd BufRead,BufNewFile *.py,*.pyw set expandtab
+autocmd BufRead,BufNewFile *.py,*.pyw set textwidth=79
+autocmd BufRead,BufNewFile *.py,*.pyw set tabstop=4
+autocmd BufRead,BufNewFile *.py,*.pyw set softtabstop=4
+autocmd BufRead,BufNewFile *.py,*.pyw set shiftwidth=4
+autocmd BufRead,BufNewFile *.py,*.pyw set autoindent
+autocmd BufRead,BufNewFile *.py,*.pyw match BadWhitespace /^\t\+/
+autocmd BufRead,BufNewFile *.py,*.pyw match BadWhitespace /\s\+$/
+autocmd         BufNewFile *.py,*.pyw set fileformat=unix
+autocmd BufRead,BufNewFile *.py,*.pyw let b:comment_leader = '#'
+autocmd BufWritePre *.py :%s/\s\+$//e
