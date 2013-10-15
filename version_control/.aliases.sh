@@ -129,7 +129,7 @@ rc_diff() {
             echo "hg diff --git ."
             hg diff --git .
         fi
-    else
+    elif is_git; then
         if [ $# == 0 ]; then
             if [ "$(git diff --cached . | wc -l)" -gt 1 ]; then
                 echo "git diff --cached ."
@@ -147,6 +147,8 @@ rc_diff() {
                 git diff --cached $@
             fi
         fi
+    else
+        \df $@
     fi
 }
 
