@@ -19,6 +19,7 @@ alias g="git"
 alias list="git stash list"
 alias log="rc_log"
 alias master="rc_master"
+alias merge="rc_merge"
 alias pop="git stash pop"
 alias pull="rc_pull"
 alias push="rc_push"
@@ -171,6 +172,17 @@ rc_master() {
         hg checkout default
     else
         echo "NotImplementedError"
+    fi
+}
+
+rc_merge() {
+    # Revision Control merge.
+    if is_git; then
+        git merge $@
+    elif is_hg; then
+        hg merge $@
+    else
+        \merge $@
     fi
 }
 
