@@ -111,25 +111,7 @@ rc_diff() {
         colordiff_installed=true
     fi
 
-    if is_svn; then
-        if [ $# == 0 ]; then
-            svn diff . | colordiff | less -R
-        else
-            if [ $# == 1 ]; then
-                svn diff "${1}" | colordiff | less -R
-            else
-                svn diff $@ | colordiff | less -R
-            fi
-        fi
-    elif is_hg; then
-        if $colordiff_installed ; then
-            hg diff --git . | colordiff | less --RAW-CONTROL-CHARS
-            echo "hg diff --git . | colordiff | less --RAW-CONTROL-CHARS"
-        else
-            echo "hg diff --git ."
-            hg diff --git .
-        fi
-    elif is_git; then
+    if is_git; then
         if [ $# == 0 ]; then
             if [ "$(git diff --cached . | wc -l)" -gt 1 ]; then
                 echo "git diff --cached ."
@@ -146,6 +128,24 @@ rc_diff() {
                 echo "git diff --cached $@"
                 git diff --cached $@
             fi
+        fi
+    elif is_svn; then
+        if [ $# == 0 ]; then
+            svn diff . | colordiff | less -R
+        else
+            if [ $# == 1 ]; then
+                svn diff "${1}" | colordiff | less -R
+            else
+                svn diff $@ | colordiff | less -R
+            fi
+        fi
+    elif is_hg; then
+        if $colordiff_installed ; then
+            hg diff --git . | colordiff | less --RAW-CONTROL-CHARS
+            echo "hg diff --git . | colordiff | less --RAW-CONTROL-CHARS"
+        else
+            echo "hg diff --git ."
+            hg diff --git .
         fi
     else
         \df $@
