@@ -43,7 +43,6 @@ is_git() {
     fi
     return 1
 }
-export -f "is_git"
 
 is_svn() {
     svn log --limit=1 &> /dev/null
@@ -60,7 +59,6 @@ is_hg() {
     fi
     return 1
 }
-export -f "is_hg"
 
 rc_branch() {
     # git and hg support
@@ -103,7 +101,6 @@ rc_checkout() {
         echo "NotImplementedError"
     fi
 }
-export -f "rc_checkout"
 
 rc_diff() {
     # Revision Control diff
