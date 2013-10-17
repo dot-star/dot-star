@@ -16,6 +16,7 @@ alias drop="git_stash_drop"
 alias fetch="git fetch"
 alias filemode="git config core.filemode false"
 alias g="git"
+alias gco="grep_checkout"
 alias list="git stash list"
 alias log="rc_log"
 alias master="rc_master"
@@ -41,6 +42,7 @@ is_git() {
     fi
     return 1
 }
+export -f "is_git"
 
 is_svn() {
     svn log --limit=1 &> /dev/null
@@ -57,6 +59,7 @@ is_hg() {
     fi
     return 1
 }
+export -f "is_hg"
 
 rc_branch() {
     # git and hg support
@@ -99,6 +102,7 @@ rc_checkout() {
         echo "NotImplementedError"
     fi
 }
+export -f "rc_checkout"
 
 rc_diff() {
     # Revision Control diff
@@ -236,6 +240,22 @@ rc_status() {
     else
         echo "NotImplementedError"
     fi
+}
+
+grep_checkout() {
+    branch_list=$(branches | \grep "${@}" | cut -d " " -f 1)
+    for branch in ${branch_list}; do
+        echo "${branch}"
+    done
+    for branch in ${branch_list}; do
+        read -p "Checkout ${branch}? " -n 1 -r
+        echo # Move to a new line.
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo "checking out ${branch}"
+            checkout "${branch}"
+            break
+        fi
+    done
 }
 
 source "version_control/git-completion.bash"
