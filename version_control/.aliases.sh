@@ -241,12 +241,17 @@ rc_status() {
 }
 
 grep_checkout() {
-    branch_list=$(branches | cut -d " " -f 1 | \grep "${@}")
+    find="${@}"
+    branch_list=$(branches | cut -d " " -f 1 | \grep "${find}")
     for branch in ${branch_list}; do
-        echo "${branch}"
+        replace="\033[38;5;160m${find}\033[39m"
+        line=${branch//$find/$replace}
+        echo -e "${line}"
     done
     for branch in ${branch_list}; do
-        read -p "Checkout ${branch}? " -n 1 -r
+        colorful_branch=$(echo -e "\033[38;5;141m${branch}\033[39m")
+        question="Checkout ${colorful_branch}?"
+        read -p "${question} " -n 1 -r
         echo # Move to a new line.
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             echo "checking out ${branch}"
