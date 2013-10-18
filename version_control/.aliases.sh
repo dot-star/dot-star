@@ -241,7 +241,7 @@ rc_status() {
 }
 
 grep_checkout() {
-    branch_list=$(branches | \grep "${@}" | cut -d " " -f 1)
+    branch_list=$(branches | cut -d " " -f 1 | \grep "${@}")
     for branch in ${branch_list}; do
         echo "${branch}"
     done
