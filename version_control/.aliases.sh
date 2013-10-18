@@ -78,7 +78,17 @@ rc_branches() {
     if is_git; then
         git branch --all
     elif is_hg; then
-        hg branches | sort
+        #hg branches | sort
+        current_branch=$(branch)
+        branch_list=$(hg branches | sort | cut -d " " -f 1)
+        for branch in ${branch_list}; do
+            active_branch=" "
+            if [ "${branch}" == "${current_branch}" ]; then
+                active_branch="*"
+            fi
+            line="${active_branch} ${branch}"
+            echo "${line}"
+        done
     elif is_svn; then
         echo "NotImplementedError"
     fi
