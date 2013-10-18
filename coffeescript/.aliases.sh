@@ -1,0 +1,6 @@
+coffeewatch() {
+    coffee \
+        --compile \
+        --watch \
+        "${@}"
+}
