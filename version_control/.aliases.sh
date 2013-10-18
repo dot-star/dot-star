@@ -252,7 +252,7 @@ rc_status() {
 
 grep_checkout() {
     find="${@}"
-    branch_list=$(branches | cut -d " " -f 1 | \grep "${find}")
+    branch_list=$(branches | sed 's/^[ *]*//g' | \grep "${find}")
     for branch in ${branch_list}; do
         replace="\033[38;5;160m${find}\033[39m"
         line=${branch//$find/$replace}
