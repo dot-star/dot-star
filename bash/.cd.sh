@@ -26,6 +26,16 @@ alias public="cd ~/Public"
 alias pub="public"
 alias tmp="cd /tmp"
 
+trash() {
+    array=("$HOME/.local/share/Trash/" "$HOME/.Trash/")
+    for path in "${array[@]}"; do
+        if [ -d "${path}" ]; then
+            cd "${path}"
+            break
+        fi
+    done
+}
+
 _www() {
     array=("/Library/WebServer/Documents/" "/var/www/")
     for path in "${array[@]}"; do
