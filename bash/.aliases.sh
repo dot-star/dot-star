@@ -55,6 +55,7 @@ _grep() {
     grep \
         --color \
         --exclude-dir=".git" \
+        --exclude-dir=".svn" \
         --line-number \
         "$@"
 }
