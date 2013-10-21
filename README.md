@@ -19,6 +19,11 @@ update
 
 The installation and update may be run repeatedly. Neither action will remove nor overwrite files outside the dotstar directory.
 
+compatibility
+-------------
+- OS X
+- Ubuntu
+- Red Hat Enterprise Linux
 
 mission
 -------
