@@ -17,7 +17,7 @@
     commit 53c68d554c14140065c18e933bd829a282475b53
     Author: User <user@example.com>
     Date:   Thu Oct 24 11:26:16 2013 -0700
-    
+
         Add foo
 
 #### Mercurial

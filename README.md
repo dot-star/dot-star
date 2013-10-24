@@ -13,7 +13,7 @@ installation
 examples
 --------
 Examples are in the [demo](https://github.com/dot-star/dot-star/blob/master/DEMO.md).
-    
+
 update
 ------
 
