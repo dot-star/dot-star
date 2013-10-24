@@ -40,7 +40,15 @@ is_git() {
     git log -1 &> /dev/null
     if [ $? -eq 0 ]; then
         return 0
+    else
+        # Check again in case this is a new repository that doesn't have
+        # history.
+        git status &> /dev/null
+        if [ $? -eq 0 ]; then
+            return 0
+        fi
     fi
+
     return 1
 }
 
