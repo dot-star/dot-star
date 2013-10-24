@@ -71,9 +71,9 @@ is_hg() {
 rc_add() {
     # git and hg support
     if is_git; then
-        git add $@
+        git add "$@"
     elif is_hg; then
-        hg add $@
+        hg add "$@"
     elif is_svn; then
         echo "NotImplementedError"
     fi
