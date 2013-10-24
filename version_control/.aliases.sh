@@ -9,7 +9,7 @@ alias branch="rc_branch"
 alias branches="rc_branches"
 alias checkout="rc_checkout"
 alias clone="git clone"
-alias commit="git commit"
+alias commit="rc_commit"
 alias dcommit="git svn dcommit"
 alias default="rc_master"
 alias df="rc_diff"
@@ -119,6 +119,17 @@ rc_checkout() {
             hg status | \grep '^M '
         fi
     else
+        echo "NotImplementedError"
+    fi
+}
+
+rc_commit() {
+    # git and hg support
+    if is_git; then
+        git commit "$@"
+    elif is_hg; then
+        hg commit "$@"
+    elif is_svn; then
         echo "NotImplementedError"
     fi
 }
