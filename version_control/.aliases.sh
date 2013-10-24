@@ -1,7 +1,7 @@
 # Version Control Aliases
 
 alias add.="git add ."
-alias add="git add"
+alias add="rc_add"
 alias addp="git add --patch"
 alias addu="git add --update"
 alias amend="git commit --amend"
@@ -58,6 +58,17 @@ is_hg() {
         return 0
     fi
     return 1
+}
+
+rc_add() {
+    # git and hg support
+    if is_git; then
+        git add $@
+    elif is_hg; then
+        hg add $@
+    elif is_svn; then
+        echo "NotImplementedError"
+    fi
 }
 
 rc_branch() {
