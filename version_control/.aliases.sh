@@ -18,6 +18,7 @@ alias fetch="git fetch"
 alias filemode="git config core.filemode false"
 alias g="git"
 alias gco="grep_checkout"
+alias gm="grep_merge"
 alias list="git stash list"
 alias log="rc_log"
 alias master="rc_master"
@@ -296,6 +297,27 @@ grep_checkout() {
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             echo "checking out ${branch}"
             checkout "${branch}"
+            break
+        fi
+    done
+}
+
+grep_merge() {
+    find="${@}"
+    branch_list=$(branches | sed 's/^[ *]*//g' | \grep "${find}")
+    for branch in ${branch_list}; do
+        replace="\033[38;5;160m${find}\033[39m"
+        line=${branch//$find/$replace}
+        echo -e "${line}"
+    done
+    for branch in ${branch_list}; do
+        colorful_branch=$(echo -e "\033[38;5;141m${branch}\033[39m")
+        question="Merge ${colorful_branch}?"
+        read -p "${question} " -n 1 -r
+        echo # Move to a new line.
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo "merging ${branch}"
+            merge "${branch}"
             break
         fi
     done
