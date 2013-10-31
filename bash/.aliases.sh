@@ -15,6 +15,7 @@ _ls(){
             --ignore=.*.swp \
             --ignore=.DS_Store \
             --ignore=.git \
+            --ignore=.hg \
             --ignore=.sass-cache \
             --ignore=.svn \
             --ignore=.swp \
@@ -36,6 +37,7 @@ _ls(){
                 --ignore=.*.swp \
                 --ignore=.DS_Store \
                 --ignore=.git \
+                --ignore=.hg \
                 --ignore=.sass-cache \
                 --ignore=.svn \
                 --ignore=.swp \
@@ -55,6 +57,7 @@ _grep() {
     grep \
         --color \
         --exclude-dir=".git" \
+        --exclude-dir=".hg" \
         --exclude-dir=".svn" \
         --line-number \
         "$@"
