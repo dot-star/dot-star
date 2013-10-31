@@ -12,12 +12,12 @@ _ls(){
             --hide-control-chars \
             --human-readable \
             --ignore=*.pyc \
-            --ignore=.swp \
             --ignore=.*.swp \
             --ignore=.DS_Store \
             --ignore=.git \
             --ignore=.sass-cache \
             --ignore=.svn \
+            --ignore=.swp \
             --literal \
             --time-style=local \
             -X \
@@ -33,12 +33,12 @@ _ls(){
                 --hide-control-chars \
                 --human-readable \
                 --ignore=*.pyc \
-                --ignore=.swp \
                 --ignore=.*.swp \
                 --ignore=.DS_Store \
                 --ignore=.git \
                 --ignore=.sass-cache \
                 --ignore=.svn \
+                --ignore=.swp \
                 --literal \
                 --time-style=local \
                 -X \
