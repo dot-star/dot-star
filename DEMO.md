@@ -3,7 +3,7 @@
 ## Version Control Agnostic
 #### Git
 
-    $ mkdir --parents /tmp/gitrepo
+    $ mkdir -p /tmp/gitrepo
     $ cd /tmp/gitrepo
     $ git init
     Initialized empty Git repository in /tmp/gitrepo/.git/
@@ -22,7 +22,7 @@
 
 #### Mercurial
 
-    $ mkdir --parents /tmp/hgrepo
+    $ mkdir -p /tmp/hgrepo
     $ cd /tmp/hgrepo
     $ hg init
     $ touch foo.txt

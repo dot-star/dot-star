@@ -5,8 +5,8 @@ fi
 git config --global core.excludesfile "~/.gitignore"
 
 # Create backup and swap directories specified in vimrc.
-mkdir --parents "$HOME/.vim/backup/"
-mkdir --parents "$HOME/.vim/swap/"
+mkdir -p "$HOME/.vim/backup/"
+mkdir -p "$HOME/.vim/swap/"
 
 # Configure vimrc.
 if [ ! -e "${HOME}/.vimrc" ]; then
