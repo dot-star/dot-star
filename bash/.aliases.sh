@@ -49,7 +49,7 @@ _ls(){
         fi
     else
         # OS X `ls`
-        ls -l -F -G
+        ls -a -l -F -G
     fi
 }
 
