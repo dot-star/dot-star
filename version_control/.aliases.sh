@@ -61,6 +61,10 @@ is_svn() {
     if [ $? -eq 0 ]; then
         return 0
     fi
+    svn status &> /dev/null
+    if [ $? -eq 0 ]; then
+        return 0
+    fi
     return 1
 }
 
