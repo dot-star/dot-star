@@ -31,5 +31,17 @@ fi
 # Add bootstrap to bashrc.
 echo -e "# .dotstar bootstrap\n[[ -r ~/.dot-star/bash/.bash_profile ]] && source ~/.dot-star/bash/.bash_profile" >> "$HOME/.bashrc"
 
+# Find existing settings in inputrc.
+line_number=$(grep --line-number "# .dotstar inputrc" "${HOME}/.inputrc" | cut -d ":" -f "1")
+if [ ! -z "${line_number}" ]; then
+    # Remove installed settings
+    next_line_number="${line_number}"
+    (( next_line_number += 1 ))
+    sed -i "" "${line_number},${next_line_number}d" "${HOME}/.inputrc"
+fi
+
+# Add settings to inputrc.
+echo -e "# .dotstar inputrc\nset completion-ignore-case on" >> "$HOME/.inputrc"
+
 # Run post installation script.
 source "${DOT_STAR_ROOT}/script/post_install.sh"
