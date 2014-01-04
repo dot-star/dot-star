@@ -19,6 +19,8 @@ _vim () {
 
     if which "mvim" &> /dev/null; then
         open -a MacVim "$@"
+    elif which "gvim" &> /dev/null; then
+        gvim -p "$@"
     else
         \vim -p "$@"
     fi
