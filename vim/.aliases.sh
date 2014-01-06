@@ -20,6 +20,7 @@ _vim () {
     if which "mvim" &> /dev/null; then
         open -a MacVim "$@"
     elif which "gvim" &> /dev/null; then
+        gvim -c "call remote_foreground('$VIMSERVER')" -c quit
         gvim -p --remote-tab-silent "$@"
     else
         \vim -p "$@"
