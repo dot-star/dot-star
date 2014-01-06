@@ -68,10 +68,17 @@ alias h="history"
 alias j="jobs"
 alias l="_ls"
 alias m="mate ."
-alias o="open"
-alias oo="open ."
+alias o="_open"
+alias oo="_open ."
 alias s="subl ."
 alias t="tree"
+
+_open() {
+    open "$@" &> /dev/null
+    if [ ! $? -eq 0 ]; then
+        nautilus "$@"
+    fi
+}
 
 _ip() {
     if [ -x /sbin/ifconfig ]; then
