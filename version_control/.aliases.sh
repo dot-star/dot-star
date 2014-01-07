@@ -61,10 +61,16 @@ is_svn() {
     if [ $? -eq 0 ]; then
         return 0
     fi
-    svn status &> /dev/null
-    if [ $? -eq 0 ]; then
+
+    # Look for a Subversion .svn folder in the current directory to indicate
+    # that we are in a Subversion repository. Avoid using `svn status' because
+    # it will erroneously return 0 (success) whilst declaring "svn: warning: '.'
+    # is not a working copy".
+    search=$(find . -maxdepth "1" -type "d" -name ".svn" -print -quit)
+    if [ ! -z "${search}" ]; then
         return 0
     fi
+
     return 1
 }
 
