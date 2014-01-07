@@ -40,6 +40,15 @@ git_stash_drop() {
     git stash drop "stash@{$@}"
 }
 
+is_g() {
+    search=$(find . -mindepth 1 -maxdepth 1 -type f -print -quit | xargs g4 log -m 1 2> /dev/null)
+    if [ ! -z "${search}" ]; then
+        return 0
+    fi
+
+    return 1
+}
+
 is_git() {
     git log -1 &> /dev/null
     if [ $? -eq 0 ]; then
@@ -289,6 +298,9 @@ rc_status() {
     elif is_svn; then
         echo "svn status $params"
         svn status $params
+    elif is_g; then
+        echo "g4 pending"
+        g4 pending
     else
         echo "NotImplementedError"
     fi
