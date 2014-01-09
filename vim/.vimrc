@@ -126,7 +126,8 @@ if has("gui_running")
   colorscheme railscat
 
   if has("gui_macvim")
-    set guifont=consolas:h16
+    " MacVim Settings
+    set guifont=consolas:h17
   else
     " gVim Settings
 
