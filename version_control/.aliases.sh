@@ -171,7 +171,7 @@ rc_diff() {
 
     colordiff=$(which colordiff)
     if [ -z "$colordiff" ]; then
-        echo "WARNING: colordiff does not seem to be installed."
+        echo -e '\x1b[0;93mWARNING\x1b[0m: colordiff does not seem to be installed.'
         colordiff_installed=false
     else
         colordiff_installed=true
