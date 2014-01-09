@@ -58,17 +58,6 @@ au WinEnter * set cursorline
 set ic
 set nopaste
 
-if has("gui_macvim")
-  " remove scroll bars and tool bar
-  set guioptions-=T " remove toolbar
-
-  " expand width in fullscreen
-  set fuoptions=maxvert,maxhorz
-
-  " hide tab bar
-  "set showtabline=0
-endif
-
 " Change indent using arrow keys
 nmap <Left> <<
 nmap <Right> >>
@@ -128,6 +117,15 @@ if has("gui_running")
   if has("gui_macvim")
     " MacVim Settings
     set guifont=Consolas:h16
+
+    " Remove scroll bars and tool bar.
+    set guioptions-=T
+
+    " Expand width in fullscreen.
+    set fuoptions=maxvert,maxhorz
+
+    " hide tab bar
+    "set showtabline=0
   elseif has("gui_gtk2")
     " gVim Settings
 
