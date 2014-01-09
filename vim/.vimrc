@@ -127,7 +127,7 @@ if has("gui_running")
 
   if has("gui_macvim")
     " MacVim Settings
-    set guifont=consolas:h17
+    set guifont=Consolas:h17
   else
     " gVim Settings
 
