@@ -123,7 +123,9 @@ set backupdir=~/.vim/backup/
 set directory=~/.vim/swap/
 
 if has("gui_running")
-  if !has("gui_macvim")
+  if has("gui_macvim")
+    set guifont=consolas:h16
+  else
     " gVim Settings
 
     " Hide the gVim toolbar.
