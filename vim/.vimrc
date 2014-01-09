@@ -121,3 +121,28 @@ set backupdir=~/.vim/backup/
 
 " Move the directory for the swap file.
 set directory=~/.vim/swap/
+
+if has("gui_running")
+  if !has("gui_macvim")
+    " gVim Settings
+
+    " Hide the gVim toolbar.
+    set guioptions-=T
+
+    " Show a maximum number of characters in the tabs.
+    set guitablabel=%-0.20t%M
+
+    " Make gVim behave a bit more like MacVim.
+    " ctrl + w => Close Tab
+    map <C-w> :q<cr>
+
+    " alt + shift + ] => Next Tab
+    map <A-}> gt
+
+    " alt + shift + [ => Previous Tab
+    map <A-{> gT
+
+    " ctrl + a = Select All
+    map <C-a> <esc>gg<S-v>G
+  endif
+endif
