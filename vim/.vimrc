@@ -114,25 +114,18 @@ set directory=~/.vim/swap/
 if has("gui_running")
   colorscheme railscat
 
+  " Hide the tool bar.
+  set guioptions-=T
+
   if has("gui_macvim")
     " MacVim Settings
     set guifont=Consolas:h16
 
-    " Remove scroll bars and tool bar.
-    set guioptions-=T
-
     " Expand width in fullscreen.
     set fuoptions=maxvert,maxhorz
-
-    " hide tab bar
-    "set showtabline=0
   elseif has("gui_gtk2")
     " gVim Settings
-
     set guifont=Consolas\ 12
-
-    " Hide the gVim toolbar.
-    set guioptions-=T
 
     " Show a maximum number of characters in the tabs.
     set guitablabel=%-0.20t%M
