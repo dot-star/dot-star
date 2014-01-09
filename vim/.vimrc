@@ -123,6 +123,8 @@ set backupdir=~/.vim/backup/
 set directory=~/.vim/swap/
 
 if has("gui_running")
+  colorscheme railscat
+
   if has("gui_macvim")
     set guifont=consolas:h16
   else
