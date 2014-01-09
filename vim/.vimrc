@@ -127,11 +127,11 @@ if has("gui_running")
 
   if has("gui_macvim")
     " MacVim Settings
-    set guifont=Consolas:h17
+    set guifont=Consolas:h16
   elseif has("gui_gtk2")
     " gVim Settings
 
-    set guifont=Consolas\ 14
+    set guifont=Consolas\ 12
 
     " Hide the gVim toolbar.
     set guioptions-=T
