@@ -1,5 +1,6 @@
 # Use vim as the default editor.
 export EDITOR="vim"
+export VISUAL="vim"
 
 # Use vi-style command line editing.
 set -o vi
