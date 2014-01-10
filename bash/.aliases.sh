@@ -73,6 +73,13 @@ alias oo="_open ."
 alias s="subl ."
 alias t="tree"
 
+alias addrepo="sudo add-apt-repository"
+alias autoclean="sudo apt-get autoclean"
+alias autoremove="sudo apt-get autoremove"
+alias clean="sudo apt-get clean"
+alias distupgrade="sudo apt-get dist-upgrade"
+alias upgrade="sudo apt-get upgrade"
+
 _open() {
     open "$@" &> /dev/null
     if [ ! $? -eq 0 ]; then
