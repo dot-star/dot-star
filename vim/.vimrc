@@ -56,7 +56,7 @@ set softtabstop=4 " number of spaces that a <Tab> counts for while performing ed
 au WinLeave * set nocursorline
 au WinEnter * set cursorline
 set ic
-set nopaste
+set nopaste " 'set paste' messes with autoindent
 
 " Change indent using arrow keys
 nmap <Left> <<
@@ -76,6 +76,7 @@ nnoremap <Space> @q
 autocmd BufWritePre *.css :%s/\s\+$//e
 autocmd BufWritePre *.html :%s/\s\+$//e
 autocmd BufWritePre *.php :%s/\s\+$//e
+autocmd BufWritePre *.py :%s/\s\+$//e
 autocmd BufWritePre *.scss :%s/\s\+$//e
 
 highlight BadWhitespace ctermbg=red guibg=red
