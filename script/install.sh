@@ -49,5 +49,10 @@ fi
 # Add settings to inputrc.
 echo -e "# .dotstar\nset completion-ignore-case on" >> "$HOME/.inputrc"
 
+# Install colordiff configuration.
+if [ ! -L "${HOME}/.colordiffrc" ]; then
+    ln -v -s "${DOT_STAR_ROOT}/colordiff/.colordiffrc" "${HOME}/.colordiffrc"
+fi
+
 # Run post installation script.
 source "${DOT_STAR_ROOT}/script/post_install.sh"
