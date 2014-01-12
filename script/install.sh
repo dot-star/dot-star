@@ -34,20 +34,10 @@ fi
 # Add bootstrap to bashrc.
 echo -e "# .dotstar bootstrap\n[[ -r ~/.dot-star/bash/.bash_profile ]] && source ~/.dot-star/bash/.bash_profile" >> "$HOME/.bashrc"
 
-# Find existing settings in inputrc.
-line_number=$(grep --line-number "# .dotstar" "${HOME}/.inputrc" | cut -d ":" -f "1")
-if [ ! -z "${line_number}" ]; then
-    # Remove installed settings
-    next_line_number="${line_number}"
-    (( next_line_number += 1 ))
-    sed -i "" "${line_number},${next_line_number}d" "${HOME}/.inputrc" &> /dev/null
-    if [ ! $? -eq 0 ]; then
-        sed --in-place="" "${line_number},${next_line_number}d" "${HOME}/.inputrc"
-    fi
+# Install inputrc.
+if [ ! -L "${HOME}/.inputrc" ]; then
+    ln -v -s "${DOT_STAR_ROOT}/bash/.inputrc" "${HOME}/.inputrc"
 fi
-
-# Add settings to inputrc.
-echo -e "# .dotstar\nset completion-ignore-case on" >> "$HOME/.inputrc"
 
 # Install colordiff configuration.
 if [ ! -L "${HOME}/.colordiffrc" ]; then

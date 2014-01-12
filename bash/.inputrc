@@ -1,0 +1,2 @@
+# Use case-insensitive file name matching.
+set completion-ignore-case on
