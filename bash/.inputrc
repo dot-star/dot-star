@@ -9,3 +9,7 @@ set show-all-if-unmodified on
 # through commands in the history.
 "\e[B": history-search-forward
 "\e[A": history-search-backward
+
+# Append a character denoting a file's type to the filename when listing
+# possible completions. Like `ls -F'.
+set visible-stats on
