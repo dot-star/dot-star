@@ -4,3 +4,8 @@ set completion-ignore-case on
 # Tab once for autocompletion.
 set show-all-if-ambiguous on
 set show-all-if-unmodified on
+
+# Use the text that has been typed as the prefix for searching up and down
+# through commands in the history.
+"\e[B": history-search-forward
+"\e[A": history-search-backward
