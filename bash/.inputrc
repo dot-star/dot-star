@@ -1,2 +1,6 @@
-# Use case-insensitive file name matching.
+# Use case-insensitive file name tab autocomplete.
 set completion-ignore-case on
+
+# Tab once for autocompletion.
+set show-all-if-ambiguous on
+set show-all-if-unmodified on
