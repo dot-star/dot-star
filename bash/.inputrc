@@ -13,3 +13,6 @@ set show-all-if-unmodified on
 # Append a character denoting a file's type to the filename when listing
 # possible completions. Like `ls -F'.
 set visible-stats on
+
+# Use vi key bindings with readline compatible applications.
+set editing-mode vi
