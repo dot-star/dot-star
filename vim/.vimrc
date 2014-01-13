@@ -129,7 +129,7 @@ if has("gui_running")
     set guifont=Consolas\ 12
 
     " Show a maximum number of characters in the tabs.
-    set guitablabel=%-0.20t%M
+    set guitablabel=%-0.30t%M
 
     " Make gVim behave a bit more like MacVim.
     " ctrl + w => Close Tab
