@@ -10,6 +10,9 @@ syntax on
 
 set showmatch
 
+" Load file changes automatically.
+set autoread
+
 " Save on blur.
 au FocusLost * :silent! wall
 
