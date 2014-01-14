@@ -4,6 +4,9 @@ if [ ! -e "${HOME}/.gitignore" ]; then
 fi
 git config --global core.excludesfile "~/.gitignore"
 
+# Enable color in git.
+git config --global color.ui true
+
 # Create backup and swap directories specified in vimrc.
 mkdir -p "$HOME/.vim/backup/"
 mkdir -p "$HOME/.vim/colors/"
