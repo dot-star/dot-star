@@ -98,3 +98,6 @@ alias ip="_ip"
 
 alias dotstar="cd ${HOME}/.dot-star && l"
 alias extra="vim ${HOME}/.dot-star/bash/extra.sh"
+
+alias bashprofile="vim ${HOME}/.bash_profile"
+alias bashrc="vim ${HOME}/.bashrc"
