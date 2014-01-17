@@ -67,7 +67,6 @@ alias grep="_grep"
 alias h="history"
 alias j="jobs"
 alias l="_ls"
-alias m="mate ."
 alias o="_open"
 alias oo="_open ."
 
