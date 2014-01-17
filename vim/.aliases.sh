@@ -17,11 +17,13 @@ _vim () {
         done
     fi
 
-    if which "mvim" &> /dev/null; then
-        open -a MacVim "$@"
+    if [ ! -z "$SSH_CONNECTION" ]; then
+        \vim -p "$@"
     elif which "gvim" &> /dev/null; then
         gvim -p --remote-tab-silent "$@"
         gvim -c "call remote_foreground('$VIMSERVER')" -c quit
+    elif which "mvim" &> /dev/null; then
+        open -a MacVim "$@"
     else
         \vim -p "$@"
     fi
