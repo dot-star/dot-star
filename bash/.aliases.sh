@@ -70,7 +70,12 @@ alias l="_ls"
 alias m="mate ."
 alias o="_open"
 alias oo="_open ."
-alias s="subl ."
+
+_search_text() {
+    grep -Ri "${1}" .
+}
+alias s="_search_text"
+
 alias t="tree"
 
 alias addrepo="sudo add-apt-repository"
