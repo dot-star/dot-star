@@ -33,9 +33,6 @@ alias vim="_vim"
 
 if which "mvim" &> /dev/null; then
     alias mvim="open -a MacVim"
-    alias v="_vim"
-    alias vi="_vim"
-    alias vim="_vim"
 fi
 
 alias vimrc="_vim ~/.vimrc"
