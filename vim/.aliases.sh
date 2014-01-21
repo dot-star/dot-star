@@ -17,7 +17,7 @@ _vim () {
         done
     fi
 
-    if [ ! -z "$SSH_CONNECTION" ]; then
+    if $ssh; then
         \vim -p "$@"
     elif which "gvim" &> /dev/null; then
         gvim -p --remote-tab-silent "$@"

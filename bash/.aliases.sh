@@ -105,3 +105,8 @@ alias extra="vim ${HOME}/.dot-star/bash/extra.sh"
 
 alias bashprofile="vim ${HOME}/.bash_profile"
 alias bashrc="vim ${HOME}/.bashrc"
+
+ssh=false
+if [ ! -z "$SSH_CONNECTION" ]; then
+  ssh=true
+fi
