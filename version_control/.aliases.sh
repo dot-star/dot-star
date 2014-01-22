@@ -351,3 +351,5 @@ grep_merge() {
 }
 
 source "version_control/git-completion.bash"
+
+export P4DIFF="~/.dot-star/version_control/p4diff.sh"
