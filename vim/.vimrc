@@ -154,3 +154,9 @@ if has("gui_running")
     imap <C-v> <C-r><C-o>+
   endif
 endif
+
+" Reload vimrc when changed.
+augroup myvimrc
+    au!
+    au BufWritePost .vimrc so $MYVIMRC | if has('gui_running') | so $MYVIMRC | endif
+augroup END
