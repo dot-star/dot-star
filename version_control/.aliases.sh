@@ -214,6 +214,8 @@ rc_diff() {
                 echo "hg diff --git ."
                 hg diff --git .
             fi
+        elif is_g; then
+            p4 diff
         else
             \df $@
         fi
