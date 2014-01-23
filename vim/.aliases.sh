@@ -20,8 +20,15 @@ _vim () {
     if $ssh; then
         \vim -p "$@"
     elif which "gvim" &> /dev/null; then
+        xdotool=$(which xdotool)
+        if [ -z "${xdotool}" ]; then
+            echo -e '\x1b[0;93mWARNING\x1b[0m: xdotool does not seem to be installed.'
+        else
+          window_id=$(xdotool search --name ") - GVIM")
+          xdotool windowactivate "${window_id}"
+        fi
+
         gvim -p --remote-tab-silent "$@"
-        gvim -c "call remote_foreground('$VIMSERVER')" -c quit
     elif which "mvim" &> /dev/null; then
         open -a MacVim "$@"
     else
