@@ -25,7 +25,9 @@ _vim () {
             echo -e '\x1b[0;93mWARNING\x1b[0m: xdotool does not seem to be installed.'
         else
           window_id=$(xdotool search --name ") - GVIM")
-          xdotool windowactivate "${window_id}"
+          if [ ! -z "${window_id}" ]; then
+            xdotool windowactivate "${window_id}"
+          fi
         fi
 
         gvim -p --remote-tab-silent "$@"
