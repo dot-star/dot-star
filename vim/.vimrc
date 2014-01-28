@@ -3,8 +3,11 @@ scriptencoding utf-8
 
 set nocompatible
 
-" Use a different view in the netrw directory listing.
-let g:netrw_liststyle=3 " or 1
+" Display a tree style listing view.
+let g:netrw_liststyle=3
+
+" Hide matching files in the listing view.
+let g:netrw_list_hide='.*\.pyc$,.*\.swp$'
 
 syntax on
 
