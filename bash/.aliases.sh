@@ -67,10 +67,14 @@ alias grep="_grep"
 alias h="history"
 alias j="jobs"
 alias l="_ls"
-alias m="mate ."
 alias o="_open"
 alias oo="_open ."
-alias s="subl ."
+
+_search_text() {
+    grep -Ri "${1}" .
+}
+alias s="_search_text"
+
 alias t="tree"
 
 alias addrepo="sudo add-apt-repository"
@@ -98,3 +102,11 @@ alias ip="_ip"
 
 alias dotstar="cd ${HOME}/.dot-star && l"
 alias extra="vim ${HOME}/.dot-star/bash/extra.sh"
+
+alias bashprofile="vim ${HOME}/.bash_profile"
+alias bashrc="vim ${HOME}/.bashrc"
+
+export ssh=false
+if [ ! -z "$SSH_CONNECTION" ]; then
+  ssh=true
+fi

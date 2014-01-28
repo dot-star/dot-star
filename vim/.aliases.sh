@@ -17,11 +17,22 @@ _vim () {
         done
     fi
 
-    if which "mvim" &> /dev/null; then
-        open -a MacVim "$@"
+    if $ssh; then
+        \vim -p "$@"
     elif which "gvim" &> /dev/null; then
-        gvim -p --remote-tab-silent "$@"
-        gvim -c "call remote_foreground('$VIMSERVER')" -c quit
+        xdotool=$(which xdotool)
+        if [ -z "${xdotool}" ]; then
+            echo -e '\x1b[0;93mWARNING\x1b[0m: xdotool does not seem to be installed.'
+        else
+          window_id=$(xdotool search --name ") - GVIM")
+          if [ ! -z "${window_id}" ]; then
+            xdotool windowactivate "${window_id}"
+          fi
+        fi
+
+        gvim -f -p --remote-tab-silent "$@" &
+    elif which "mvim" &> /dev/null; then
+        open -a MacVim "$@"
     else
         \vim -p "$@"
     fi
@@ -33,9 +44,6 @@ alias vim="_vim"
 
 if which "mvim" &> /dev/null; then
     alias mvim="open -a MacVim"
-    alias v="_vim"
-    alias vi="_vim"
-    alias vim="_vim"
 fi
 
 alias vimrc="_vim ~/.vimrc"

@@ -214,6 +214,8 @@ rc_diff() {
                 echo "hg diff --git ."
                 hg diff --git .
             fi
+        elif is_g; then
+            p4 diff
         else
             \df $@
         fi
@@ -351,3 +353,5 @@ grep_merge() {
 }
 
 source "version_control/git-completion.bash"
+
+export P4DIFF="~/.dot-star/version_control/p4diff.sh"

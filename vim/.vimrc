@@ -13,6 +13,9 @@ syntax on
 
 set showmatch
 
+" Load file changes automatically.
+set autoread
+
 " Save on blur.
 au FocusLost * :silent! wall
 
@@ -75,6 +78,10 @@ vmap <Right> >gv
 " Execute macro q by pressing spacebar
 nnoremap <Space> @q
 
+" Move tabs left and right with alt + left and alt + right.
+nnoremap <silent> <A-Left> :execute 'silent! tabmove ' . (tabpagenr()-2)<CR>
+nnoremap <silent> <A-Right> :execute 'silent! tabmove ' . tabpagenr()<CR>
+
 " Remove trailing spaces on save for certain file types.
 autocmd BufWritePre *.css :%s/\s\+$//e
 autocmd BufWritePre *.html :%s/\s\+$//e
@@ -132,7 +139,7 @@ if has("gui_running")
     set guifont=Consolas\ 12
 
     " Show a maximum number of characters in the tabs.
-    set guitablabel=%-0.20t%M
+    set guitablabel=%-0.30t%M
 
     " Make gVim behave a bit more like MacVim.
     " ctrl + w => Close Tab
@@ -146,5 +153,17 @@ if has("gui_running")
 
     " ctrl + a = Select All
     map <C-a> <esc>gg<S-v>G
+
+    " Add copy, cut, and paste.
+    vmap <C-c> "+yi
+    vmap <C-x> "+c
+    vmap <C-v> c<ESC>"+p
+    imap <C-v> <C-r><C-o>+
   endif
 endif
+
+" Reload vimrc when changed.
+augroup myvimrc
+    au!
+    au BufWritePost .vimrc so $MYVIMRC | if has('gui_running') | so $MYVIMRC | endif
+augroup END
