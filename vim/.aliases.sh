@@ -30,7 +30,7 @@ _vim () {
           fi
         fi
 
-        gvim -f -p --remote-tab-silent "$@" &> /dev/null &
+        $(gvim -f -p --remote-tab-silent "$@" &> /dev/null &)
     elif which "mvim" &> /dev/null; then
         open -a MacVim "$@"
     else
