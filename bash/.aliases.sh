@@ -102,6 +102,7 @@ _ip() {
 }
 alias ip="_ip"
 
+alias dotfiles="dotstar"
 alias dotstar="cd ${HOME}/.dot-star && l"
 alias extra="vim ${HOME}/.dot-star/bash/extra.sh"
 
