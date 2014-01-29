@@ -79,6 +79,15 @@ alias s="_search_text"
 
 alias t="tree"
 
+_top() {
+    if top -o cpu &> /dev/null; then
+        top -o cpu
+    else
+        top
+    fi
+}
+alias top="_top"
+
 alias addrepo="sudo add-apt-repository"
 alias autoclean="sudo apt-get autoclean"
 alias autoremove="sudo apt-get autoremove"
