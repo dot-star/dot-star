@@ -53,6 +53,8 @@ _ls(){
     fi
 }
 
+alias c="clear"
+
 _grep() {
     grep \
         --color \
