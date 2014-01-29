@@ -13,3 +13,6 @@ shopt -s histappend
 
 # Match filename (globbing) in a case-insensitive fashion.
 shopt -s nocaseglob
+
+# Set default options for grep.
+export GREP_OPTIONS="--binary-files=without-match"
