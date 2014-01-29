@@ -78,7 +78,13 @@ vmap <Right> >gv
 " Execute macro q by pressing spacebar
 nnoremap <Space> @q
 
-" Move tabs left and right with alt + left and alt + right.
+" Move tabs left with ctrl + shift + page up and move tabs right with ctrl +
+" shift + page down.
+nnoremap <silent> <C-S-PageUp> :execute 'silent! tabmove ' . (tabpagenr()-2)<CR>
+nnoremap <silent> <C-S-PageDown> :execute 'silent! tabmove ' . tabpagenr()<CR>
+
+" Move tabs left with alt + left and move tabs right with alt + right for
+" keyboards that don't have page up and page down keys.
 nnoremap <silent> <A-Left> :execute 'silent! tabmove ' . (tabpagenr()-2)<CR>
 nnoremap <silent> <A-Right> :execute 'silent! tabmove ' . tabpagenr()<CR>
 
