@@ -121,6 +121,24 @@ autocmd BufRead,BufNewFile *.py,*.pyw match BadWhitespace /\s\+$/
 autocmd         BufNewFile *.py,*.pyw set fileformat=unix
 autocmd BufRead,BufNewFile *.py,*.pyw let b:comment_leader = '#'
 autocmd BufWritePre        *.py,*.pyw :%s/\s\+$//e
+autocmd BufWriteCmd        *.py,*.pyw call CheckPythonSyntax()
+
+function CheckPythonSyntax()
+  let tmpfile = tempname()
+  silent execute "write! " . tmpfile
+
+  let command = "python -c \"__import__('py_compile').compile(r'" . tmpfile . "')\""
+  let output = system(command . " 2>&1")
+  if output != ''
+    let curfile = bufname("%")
+    let output = substitute(output, fnameescape(tmpfile), fnameescape(curfile), "g")
+    echo output
+  else
+    write
+  endif
+
+  call delete(tmpfile)
+endfunction
 
 " Move the directory for the backup file.
 set backupdir=~/.vim/backup/
