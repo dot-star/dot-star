@@ -92,7 +92,6 @@ nnoremap <silent> <A-Right> :execute 'silent! tabmove ' . tabpagenr()<CR>
 autocmd BufWritePre *.css :%s/\s\+$//e
 autocmd BufWritePre *.html :%s/\s\+$//e
 autocmd BufWritePre *.php :%s/\s\+$//e
-autocmd BufWritePre *.py :%s/\s\+$//e
 autocmd BufWritePre *.scss :%s/\s\+$//e
 
 highlight BadWhitespace ctermbg=red guibg=red
@@ -107,7 +106,7 @@ autocmd BufRead,BufNewFile *.js match BadWhitespace /^\t\+/
 autocmd BufRead,BufNewFile *.js match BadWhitespace /\s\+$/
 autocmd         BufNewFile *.js set fileformat=unix
 autocmd BufRead,BufNewFile *.js let b:comment_leader = '//'
-autocmd BufWritePre *.js :%s/\s\+$//e
+autocmd BufWritePre        *.js :%s/\s\+$//e
 
 " Python, PEP-008
 autocmd BufRead,BufNewFile *.py,*.pyw set expandtab
@@ -120,7 +119,7 @@ autocmd BufRead,BufNewFile *.py,*.pyw match BadWhitespace /^\t\+/
 autocmd BufRead,BufNewFile *.py,*.pyw match BadWhitespace /\s\+$/
 autocmd         BufNewFile *.py,*.pyw set fileformat=unix
 autocmd BufRead,BufNewFile *.py,*.pyw let b:comment_leader = '#'
-autocmd BufWritePre *.py :%s/\s\+$//e
+autocmd BufWritePre        *.py,*.pyw :%s/\s\+$//e
 
 " Move the directory for the backup file.
 set backupdir=~/.vim/backup/
