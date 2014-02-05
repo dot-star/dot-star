@@ -178,6 +178,9 @@ if has("gui_running")
     " ctrl + a = Select All
     map <C-a> <esc>gg<S-v>G
 
+    " ctrl + s = Save
+    map <C-s> :w<cr>
+
     " Add copy, cut, and paste.
     vmap <C-c> "+yi
     vmap <C-x> "+c
