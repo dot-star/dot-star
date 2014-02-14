@@ -79,13 +79,13 @@ vmap <Right> >gv
 " Execute macro q by pressing spacebar
 nnoremap <Space> @q
 
-" Move tabs left with ctrl + shift + page up and move tabs right with ctrl +
-" shift + page down.
+" Move tabs left with Ctrl + Shift + Page Up and move tabs right with Ctrl +
+" Shift + Page Down.
 nnoremap <silent> <C-S-PageUp> :execute 'silent! tabmove ' . (tabpagenr()-2)<CR>
 nnoremap <silent> <C-S-PageDown> :execute 'silent! tabmove ' . tabpagenr()<CR>
 
-" Move tabs left with alt + left and move tabs right with alt + right for
-" keyboards that don't have page up and page down keys.
+" Move tabs left with Alt + Left and move tabs right with Alt + Right for
+" keyboards that don't have Page Up and Page Down keys.
 nnoremap <silent> <A-Left> :execute 'silent! tabmove ' . (tabpagenr()-2)<CR>
 nnoremap <silent> <A-Right> :execute 'silent! tabmove ' . tabpagenr()<CR>
 
@@ -166,19 +166,19 @@ if has("gui_running")
     set guitablabel=%-0.30t%M
 
     " Make gVim behave a bit more like MacVim.
-    " ctrl + w => Close Tab
+    " Ctrl + w => Close Tab
     map <C-w> :q<cr>
 
-    " alt + shift + ] => Next Tab
+    " Alt + Shift + ] => Next Tab
     map <A-}> gt
 
-    " alt + shift + [ => Previous Tab
+    " Alt + Shift + [ => Previous Tab
     map <A-{> gT
 
-    " ctrl + a = Select All
+    " Ctrl + a = Select All
     map <C-a> <esc>gg<S-v>G
 
-    " ctrl + s = Save
+    " Ctrl + s = Save
     map <C-s> :w<cr>
 
     " Add copy, cut, and paste.
@@ -187,10 +187,10 @@ if has("gui_running")
     vmap <C-v> c<ESC>"+p
     imap <C-v> <C-r><C-o>+
 
-    " ctrl + tab => Next Tab
+    " Ctrl + Tab => Next Tab
     map <C-Tab> gt
 
-    " ctrl + shift + tab => Previous Tab
+    " Ctrl + Shift + Tab => Previous Tab
     map <C-S-Tab> gT
   endif
 endif
