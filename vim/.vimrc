@@ -186,6 +186,12 @@ if has("gui_running")
     vmap <C-x> "+c
     vmap <C-v> c<ESC>"+p
     imap <C-v> <C-r><C-o>+
+
+    " ctrl + tab => Next Tab
+    map <C-Tab> gt
+
+    " ctrl + shift + tab => Previous Tab
+    map <C-S-Tab> gT
   endif
 endif
 
