@@ -57,7 +57,7 @@ set autoindent " turn on automatic indentation (copy the indentation of the prev
 set shiftround " round indent to a multiple of 'shiftwidth'; e.g. when at 3 spaces and tabbed go to 4, not 5
 set expandtab " no real tabs
 set tabstop=4 " number of spaces that a <Tab> in the file counts for
-set shiftwidth=4 " number of spaces to use for each step of (auto)indent 
+set shiftwidth=4 " number of spaces to use for each step of (auto)indent
 set softtabstop=4 " number of spaces that a <Tab> counts for while performing editing operations
 
 au WinLeave * set nocursorline
