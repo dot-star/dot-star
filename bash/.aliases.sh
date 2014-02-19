@@ -57,7 +57,7 @@ alias c="clear"
 
 _dirs() {
     i=0
-    for dir in $(php -r 'echo implode("\n", array_unique(array_splice($argv, 1)));' -- $(\dirs -p)); do
+    for dir in $(\dirs -p | awk '!x[$0]++'); do
         echo " ${i}  ${dir}"
         alias -- "${i}"="cd ${dir}"
         ((i++))
