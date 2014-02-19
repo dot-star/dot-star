@@ -55,6 +55,29 @@ _ls(){
 
 alias c="clear"
 
+_dirs() {
+    i=0
+    for dir in $(php -r 'echo implode("\n", array_unique(array_splice($argv, 1)));' -- $(\dirs -p)); do
+        echo " ${i}  ${dir}"
+        alias -- "${i}"="cd ${dir}"
+        ((i++))
+    done
+}
+alias dirs="_dirs"
+
+pushd() {
+    if [ "${#}" -eq 0 ]; then
+        DIR="${HOME}"
+    else
+        DIR="${1}"
+    fi
+
+    builtin pushd "${DIR}" > /dev/null
+
+    dirs
+}
+alias "cd"="pushd"
+
 _grep() {
     grep \
         --color \
