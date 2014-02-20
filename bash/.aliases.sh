@@ -55,14 +55,14 @@ _ls(){
 
 alias c="clear"
 
-_dirs() {
+list_dirstack() {
     i=0
     for dir in $(\dirs -p | awk '!x[$0]++'); do
         echo " ${i}  ${dir}"
         ((i++))
     done
 }
-alias dirs="_dirs"
+alias dirs="list_dirstack"
 
 pushd() {
     if [ "${#}" -eq 0 ]; then
