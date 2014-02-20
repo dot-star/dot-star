@@ -57,7 +57,7 @@ alias c="clear"
 
 list_dirstack() {
     i=0
-    for dir in $(\dirs -p | awk '!x[$0]++'); do
+    for dir in $(\dirs -p | awk '!x[$0]++' | head -n 10); do
         echo " ${i}  ${dir}"
         ((i++))
     done
@@ -74,7 +74,7 @@ pushd() {
     builtin pushd "${DIR}" > /dev/null
 
     i=0
-    for dir in $(\dirs -p | awk '!x[$0]++'); do
+    for dir in $(\dirs -p | awk '!x[$0]++' | head -n 10); do
         alias -- "${i}"="cd ${dir}"
         ((i++))
     done
