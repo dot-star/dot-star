@@ -59,7 +59,6 @@ _dirs() {
     i=0
     for dir in $(\dirs -p | awk '!x[$0]++'); do
         echo " ${i}  ${dir}"
-        alias -- "${i}"="cd ${dir}"
         ((i++))
     done
 }
@@ -74,7 +73,11 @@ pushd() {
 
     builtin pushd "${DIR}" > /dev/null
 
-    dirs
+    i=0
+    for dir in $(\dirs -p | awk '!x[$0]++'); do
+        alias -- "${i}"="cd ${dir}"
+        ((i++))
+    done
 }
 alias "cd"="pushd"
 
