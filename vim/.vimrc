@@ -43,6 +43,7 @@ set scrolloff=3 " Keep X lines (top/bottom) before the horizontal window border
 set showtabline=2 " always show tabbar
 set title " Show the filename in the window's titlebar
 set nowrap " Don't wrap long lines
+set cmdheight=3 " Avoid 'Press ENTER or type command to continue'
 
 " Search
 set ignorecase " case insensitive by default
@@ -56,7 +57,7 @@ set autoindent " turn on automatic indentation (copy the indentation of the prev
 set shiftround " round indent to a multiple of 'shiftwidth'; e.g. when at 3 spaces and tabbed go to 4, not 5
 set expandtab " no real tabs
 set tabstop=4 " number of spaces that a <Tab> in the file counts for
-set shiftwidth=4 " number of spaces to use for each step of (auto)indent 
+set shiftwidth=4 " number of spaces to use for each step of (auto)indent
 set softtabstop=4 " number of spaces that a <Tab> counts for while performing editing operations
 
 au WinLeave * set nocursorline
@@ -78,13 +79,13 @@ vmap <Right> >gv
 " Execute macro q by pressing spacebar
 nnoremap <Space> @q
 
-" Move tabs left with ctrl + shift + page up and move tabs right with ctrl +
-" shift + page down.
+" Move tabs left with Ctrl + Shift + Page Up and move tabs right with Ctrl +
+" Shift + Page Down.
 nnoremap <silent> <C-S-PageUp> :execute 'silent! tabmove ' . (tabpagenr()-2)<CR>
 nnoremap <silent> <C-S-PageDown> :execute 'silent! tabmove ' . tabpagenr()<CR>
 
-" Move tabs left with alt + left and move tabs right with alt + right for
-" keyboards that don't have page up and page down keys.
+" Move tabs left with Alt + Left and move tabs right with Alt + Right for
+" keyboards that don't have Page Up and Page Down keys.
 nnoremap <silent> <A-Left> :execute 'silent! tabmove ' . (tabpagenr()-2)<CR>
 nnoremap <silent> <A-Right> :execute 'silent! tabmove ' . tabpagenr()<CR>
 
@@ -92,7 +93,6 @@ nnoremap <silent> <A-Right> :execute 'silent! tabmove ' . tabpagenr()<CR>
 autocmd BufWritePre *.css :%s/\s\+$//e
 autocmd BufWritePre *.html :%s/\s\+$//e
 autocmd BufWritePre *.php :%s/\s\+$//e
-autocmd BufWritePre *.py :%s/\s\+$//e
 autocmd BufWritePre *.scss :%s/\s\+$//e
 
 highlight BadWhitespace ctermbg=red guibg=red
@@ -107,7 +107,7 @@ autocmd BufRead,BufNewFile *.js match BadWhitespace /^\t\+/
 autocmd BufRead,BufNewFile *.js match BadWhitespace /\s\+$/
 autocmd         BufNewFile *.js set fileformat=unix
 autocmd BufRead,BufNewFile *.js let b:comment_leader = '//'
-autocmd BufWritePre *.js :%s/\s\+$//e
+autocmd BufWritePre        *.js :%s/\s\+$//e
 
 " Python, PEP-008
 autocmd BufRead,BufNewFile *.py,*.pyw set expandtab
@@ -120,7 +120,25 @@ autocmd BufRead,BufNewFile *.py,*.pyw match BadWhitespace /^\t\+/
 autocmd BufRead,BufNewFile *.py,*.pyw match BadWhitespace /\s\+$/
 autocmd         BufNewFile *.py,*.pyw set fileformat=unix
 autocmd BufRead,BufNewFile *.py,*.pyw let b:comment_leader = '#'
-autocmd BufWritePre *.py :%s/\s\+$//e
+autocmd BufWritePre        *.py,*.pyw :%s/\s\+$//e
+autocmd BufWriteCmd        *.py,*.pyw call CheckPythonSyntax()
+
+function CheckPythonSyntax()
+  let tmpfile = tempname()
+  silent execute "write! " . tmpfile
+
+  let command = "python -c \"__import__('py_compile').compile(r'" . tmpfile . "')\""
+  let output = system(command . " 2>&1")
+  if output != ''
+    let curfile = bufname("%")
+    let output = substitute(output, fnameescape(tmpfile), fnameescape(curfile), "g")
+    echo output
+  else
+    write
+  endif
+
+  call delete(tmpfile)
+endfunction
 
 " Move the directory for the backup file.
 set backupdir=~/.vim/backup/
@@ -148,23 +166,32 @@ if has("gui_running")
     set guitablabel=%-0.30t%M
 
     " Make gVim behave a bit more like MacVim.
-    " ctrl + w => Close Tab
+    " Ctrl + w => Close Tab
     map <C-w> :q<cr>
 
-    " alt + shift + ] => Next Tab
+    " Alt + Shift + ] => Next Tab
     map <A-}> gt
 
-    " alt + shift + [ => Previous Tab
+    " Alt + Shift + [ => Previous Tab
     map <A-{> gT
 
-    " ctrl + a = Select All
+    " Ctrl + a = Select All
     map <C-a> <esc>gg<S-v>G
+
+    " Ctrl + s = Save
+    map <C-s> :w<cr>
 
     " Add copy, cut, and paste.
     vmap <C-c> "+yi
     vmap <C-x> "+c
     vmap <C-v> c<ESC>"+p
     imap <C-v> <C-r><C-o>+
+
+    " Ctrl + Tab => Next Tab
+    map <C-Tab> gt
+
+    " Ctrl + Shift + Tab => Previous Tab
+    map <C-S-Tab> gT
   endif
 endif
 
