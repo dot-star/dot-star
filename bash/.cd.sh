@@ -11,7 +11,20 @@ alias documents="cd ~/Documents"
 alias doc="documents"
 alias downloads="cd ~/Downloads"
 alias dl="downloads"
-alias extensions="cd ~/Library/Application\ Support/Chromium/Default/Extensions"
+extensions() {
+    array=(
+        "$HOME/Library/Application Support/Google/Chrome/Default/Extensions"
+        "$HOME/Library/Application Support/Chromium/Default/Extensions"
+        "$HOME/.config/google-chrome/Default/Extensions"
+        "$HOME/.config/chromium/Default/Extensions"
+    )
+    for path in "${array[@]}"; do
+        if [ -d "${path}" ]; then
+            cd "${path}"
+            break
+        fi
+    done
+}
 alias ext="extensions"
 alias library="cd ~/Library"
 alias lib="library"
