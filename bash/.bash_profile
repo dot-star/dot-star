@@ -21,3 +21,6 @@ source "vim/.aliases.sh"
 source "virtualenv/.aliases.sh"
 source "bash/.extra.sh"
 \cd "${CWD}"
+if $ssh; then
+    byobu
+fi
