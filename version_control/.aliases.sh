@@ -5,6 +5,7 @@ alias add="rc_add"
 alias addp="git add --patch"
 alias addu="git add --update"
 alias amend="git commit --amend"
+alias apply="git_stash_apply"
 alias br="rc_branch"
 alias branch="rc_branch"
 alias branches="rc_branches"
@@ -33,6 +34,12 @@ alias st="rc_status"
 alias stash="git stash"
 alias tag="git tag"
 alias tags="git tag --list"
+
+git_stash_apply() {
+    # Apply the specified git stash.
+    # Usage: apply 0
+    git stash apply "stash@{$@}"
+}
 
 git_stash_drop() {
     # Drop the specified git stash.

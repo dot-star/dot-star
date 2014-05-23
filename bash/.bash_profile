@@ -22,5 +22,7 @@ source "virtualenv/.aliases.sh"
 source "bash/.extra.sh"
 \cd "${CWD}"
 if $ssh; then
-    byobu
+    if which "byobu" &> /dev/null; then
+        byobu
+    fi
 fi
