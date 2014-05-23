@@ -99,9 +99,15 @@ alias o="_open"
 alias oo="_open ."
 
 _search_text() {
-    grep -Ri "${1}" .
+    case_sensitive=$1
+    if $case_sensitive; then
+      grep -R "${2}" .
+    else
+      grep -Ri "${2}" .
+    fi
 }
-alias s="_search_text"
+alias s="_search_text true"
+alias si="_search_text false"
 
 alias t="tree"
 
