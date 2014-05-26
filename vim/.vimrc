@@ -148,6 +148,7 @@ set directory=~/.vim/swap/
 
 if has("gui_running")
   colorscheme railscat
+  set colorcolumn=121
 
   " Hide the tool bar.
   set guioptions-=T
