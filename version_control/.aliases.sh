@@ -30,6 +30,7 @@ alias merge="rc_merge"
 alias pop="git stash pop"
 alias pull="rc_pull"
 alias push="rc_push"
+alias show="git_stash_show"
 alias st="rc_status"
 alias stash="git stash"
 alias tag="git tag"
@@ -45,6 +46,12 @@ git_stash_drop() {
     # Drop the specified git stash.
     # Usage: drop 0
     git stash drop "stash@{$@}"
+}
+
+git_stash_show() {
+    # Show the specified git stash.
+    # Usage: show 0
+    git stash show -p "stash@{$@}"
 }
 
 is_g() {
