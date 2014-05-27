@@ -7,10 +7,12 @@ alias .....="cd ../../../.."
 alias ......="cd ../../../../.."
 alias desktop="cd ~/Desktop"
 alias dt="desktop"
+alias dto="desktop && oo && x"
 alias documents="cd ~/Documents"
 alias doc="documents"
 alias downloads="cd ~/Downloads"
 alias dl="downloads"
+alias dlo="downloads && oo && x"
 extensions() {
     array=(
         "$HOME/Library/Application Support/Google/Chrome/Default/Extensions"
