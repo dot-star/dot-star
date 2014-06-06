@@ -238,7 +238,7 @@ rc_diff() {
 
 rc_log() {
     if is_git; then
-        git log
+        git log "${@}"
     elif is_hg; then
         hg log | less
     else
