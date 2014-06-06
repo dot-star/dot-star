@@ -23,6 +23,8 @@ source "bash/.extra.sh"
 \cd "${CWD}"
 if $ssh; then
     if which "byobu" &> /dev/null; then
-        byobu
+        if [ -z "${BYOBU_WINDOW_NAME}" ]; then
+            byobu
+        fi
     fi
 fi
