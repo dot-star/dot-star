@@ -22,8 +22,8 @@ source "virtualenv/.aliases.sh"
 source "bash/.extra.sh"
 \cd "${CWD}"
 if $ssh; then
-    if which "byobu" &> /dev/null; then
-        if [ -z "${BYOBU_WINDOW_NAME}" ]; then
+    if [ -z "${BYOBU_WINDOW_NAME}" ]; then
+        if which "byobu" &> /dev/null; then
             byobu
         fi
     fi
