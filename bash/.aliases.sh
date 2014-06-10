@@ -53,6 +53,20 @@ _ls(){
     fi
 }
 
+bak() {
+    filename="${1}"
+    extension="${filename##*.}"
+    base_filename="${filename%.*}"
+    timestamp=$(date +"%Y-%m-%d_%H%I%S")
+    new_filename="${base_filename}_${timestamp}.${extension}"
+    if [[ ! -f "${new_filename}" ]]; then
+        cp -v "${filename}" "${new_filename}"
+    else
+        echo "destination \"${new_filename}\" exists"
+        file "${new_filename}"
+    fi
+}
+
 alias c="clear"
 
 list_dirstack() {
