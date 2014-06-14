@@ -194,6 +194,9 @@ if has("gui_running")
     " Ctrl + Shift + Tab => Previous Tab
     map <C-S-Tab> gT
   endif
+else
+  " Close tabs with Ctrl + w.
+  nnoremap <C-w> :q<CR>
 endif
 
 " Reload vimrc when changed.
