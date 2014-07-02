@@ -112,16 +112,15 @@ alias l="_ls"
 alias o="_open"
 alias oo="_open ."
 
-_search_text() {
-    case_sensitive=$1
-    if $case_sensitive; then
-      grep -R "${2}" .
-    else
-      grep -Ri "${2}" .
-    fi
+s() {
+  # Case-sensitive text search.
+  grep -R "${1}" . "${@:2}"
 }
-alias s="_search_text true"
-alias si="_search_text false"
+
+si() {
+  # Case-insensitive text search.
+  grep -Ri "${1}" . "${@:2}"
+}
 
 alias t="tree"
 
