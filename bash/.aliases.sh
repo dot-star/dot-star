@@ -140,6 +140,7 @@ alias clean="sudo apt-get clean"
 alias distupgrade="sudo apt-get dist-upgrade"
 alias upgrade="sudo apt-get upgrade"
 alias x="exit"
+alias reboot="sudo shutdown -r now"
 
 _open() {
     open "$@" &> /dev/null
