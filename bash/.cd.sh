@@ -43,7 +43,7 @@ alias pub="public"
 alias tmp="cd /tmp"
 
 trash() {
-    array=("$HOME/.local/share/Trash/" "$HOME/.Trash/")
+    array=("$HOME/.Trash/" "$HOME/.local/share/Trash/")
     for path in "${array[@]}"; do
         if [ -d "${path}" ]; then
             cd "${path}"
