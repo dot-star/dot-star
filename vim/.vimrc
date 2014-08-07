@@ -152,6 +152,7 @@ set directory=~/.vim/swap/
 
 if has("gui_running")
   colorscheme railscat
+  highlight ColorColumn guibg=#424242
 
   " Hide the tool bar.
   set guioptions-=T
@@ -159,7 +160,6 @@ if has("gui_running")
   if has("gui_macvim")
     " MacVim Settings
     set guifont=Consolas:h16
-    highlight ColorColumn guibg=#424242
 
     " Expand width in fullscreen.
     set fuoptions=maxvert,maxhorz
@@ -199,6 +199,8 @@ if has("gui_running")
     map <C-S-Tab> gT
   endif
 else
+  highlight ColorColumn ctermbg=0
+
   " Close tabs with Ctrl + w.
   nnoremap <C-w> :q<CR>
 endif
