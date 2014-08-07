@@ -30,6 +30,7 @@ set autochdir " always switch to the current file directory
 set backspace=indent,eol,start " allow backspacing over these
 set iskeyword+=_,$,@,%,# " none of these are word dividers
 set noerrorbells " don't make noise
+execute "set colorcolumn=" . join(range(121,255), ',')
 
 " Vim UI
 set cursorline " highlight current line
@@ -49,7 +50,7 @@ set cmdheight=3 " Avoid 'Press ENTER or type command to continue'
 set ignorecase " case insensitive by default
 set smartcase " if there are caps, go case-sensitive
 set hlsearch " highlight search
-hi Search ctermbg=0 ctermfg=none
+highlight Search ctermbg=0 ctermfg=none
 
 " Automatic Indentation
 set autoindent " turn on automatic indentation (copy the indentation of the previous line)
@@ -149,7 +150,6 @@ set directory=~/.vim/swap/
 
 if has("gui_running")
   colorscheme railscat
-  set colorcolumn=121
 
   " Hide the tool bar.
   set guioptions-=T
@@ -157,6 +157,7 @@ if has("gui_running")
   if has("gui_macvim")
     " MacVim Settings
     set guifont=Consolas:h16
+    highlight ColorColumn guibg=#424242
 
     " Expand width in fullscreen.
     set fuoptions=maxvert,maxhorz
