@@ -125,7 +125,7 @@ autocmd BufRead,BufNewFile *.py,*.pyw let b:comment_leader = '#'
 autocmd BufWritePre        *.py,*.pyw :%s/\s\+$//e
 autocmd BufWriteCmd        *.py,*.pyw call CheckPythonSyntax()
 
-if exists("*CheckPythonSyntax")
+if ! exists("*CheckPythonSyntax")
     function CheckPythonSyntax()
     let tmpfile = tempname()
     silent execute "write! " . tmpfile
