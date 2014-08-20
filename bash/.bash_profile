@@ -28,5 +28,3 @@ if $ssh; then
         fi
     fi
 fi
-
-alias done='terminal-notifier -message "" -title "Done"'
