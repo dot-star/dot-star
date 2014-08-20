@@ -111,6 +111,7 @@ alias j="jobs"
 alias l="_ls"
 alias o="_open"
 alias oo="_open ."
+alias fin="terminal-notifier -message 'Done'"
 
 s() {
   # Case-sensitive text search.
