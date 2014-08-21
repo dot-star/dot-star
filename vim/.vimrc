@@ -127,19 +127,19 @@ autocmd BufWriteCmd        *.py,*.pyw call CheckPythonSyntax()
 
 if ! exists("*CheckPythonSyntax")
     function CheckPythonSyntax()
-    let tmpfile = tempname()
-    silent execute "write! " . tmpfile
+      let tmpfile = tempname()
+      silent execute "write! " . tmpfile
 
-    let command = "python -c \"__import__('py_compile').compile(r'" . tmpfile . "')\""
-    let output = system(command . " 2>&1")
-    if output != ''
-        let curfile = bufname("%")
-        let output = substitute(output, fnameescape(tmpfile), fnameescape(curfile), "g")
-        echo output
-    endif
-    write
+      let command = "python -c \"__import__('py_compile').compile(r'" . tmpfile . "')\""
+      let output = system(command . " 2>&1")
+      if output != ''
+          let curfile = bufname("%")
+          let output = substitute(output, fnameescape(tmpfile), fnameescape(curfile), "g")
+          echo output
+      endif
+      write
 
-    call delete(tmpfile)
+      call delete(tmpfile)
     endfunction
 endif
 
