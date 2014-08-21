@@ -136,9 +136,8 @@ if ! exists("*CheckPythonSyntax")
         let curfile = bufname("%")
         let output = substitute(output, fnameescape(tmpfile), fnameescape(curfile), "g")
         echo output
-    else
-        write
     endif
+    write
 
     call delete(tmpfile)
     endfunction
