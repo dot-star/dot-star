@@ -25,7 +25,14 @@ _runserver() {
 alias dbshell="python manage.py dbshell"
 alias devrunserver="_runserver false"
 alias runserver="_runserver true"
-alias shell="python manage.py shell"
+
+shell() {
+    python manage.py debugsqlshell 2> /dev/null
+    if [ ! $? -eq 0 ]; then
+        python manage.py shell
+    fi
+}
+
 alias sqlall="python manage.py sqlall"
 alias startapp="python manage.py startapp"
 alias syncdb="python manage.py syncdb --no-initial-data"
