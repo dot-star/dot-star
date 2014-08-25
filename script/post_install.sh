@@ -6,6 +6,7 @@ git config --global core.excludesfile "~/.gitignore"
 
 # Enable color in git.
 git config --global color.ui true
+git config --global core.pager "diff-highlight | less"
 
 # Create backup and swap directories specified in vimrc.
 mkdir -p "$HOME/.vim/backup/"
