@@ -6,6 +6,10 @@ git config --global core.excludesfile "~/.gitignore"
 
 # Enable color in git.
 git config --global color.ui true
+
+wget https://raw.githubusercontent.com/git/git/master/contrib/diff-highlight/diff-highlight
+sudo chmod +x diff-highlight
+sudo mv diff-highlight /usr/bin/
 git config --global core.pager "diff-highlight | less"
 
 # Create backup and swap directories specified in vimrc.
