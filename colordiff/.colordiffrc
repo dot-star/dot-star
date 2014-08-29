@@ -20,7 +20,7 @@ color_patches=no
 # this, use the default output colour"
 #
 plain=off
-newtext=green
-oldtext=red
+newtext=darkgreen
+oldtext=darkred
 diffstuff=magenta
 cvsstuff=yellow
