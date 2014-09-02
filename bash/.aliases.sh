@@ -111,7 +111,13 @@ alias j="jobs"
 alias l="_ls"
 alias o="_open"
 alias oo="_open ."
-alias fin='terminal-notifier -message "" -title "Done"'
+
+fin() {
+    terminal-notifier -message "" -title "Done" 2> /dev/null
+    if [ $? -eq 127 ]; then
+        notify-send --expire-time=1000 "Done $(date)"
+    fi
+}
 
 s() {
   # Case-sensitive text search.
