@@ -164,7 +164,7 @@ if has("gui_running")
     set fuoptions=maxvert,maxhorz
   elseif has("gui_gtk2")
     " gVim Settings
-    set guifont=Consolas\ 12
+    set guifont=Ubuntu\ Mono\ 12
 
     " Show a maximum number of characters in the tabs.
     set guitablabel=%-0.30t%M
