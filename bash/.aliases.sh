@@ -121,11 +121,17 @@ fin() {
 
 s() {
   # Case-sensitive text search.
+  if [[ -z "${1}" ]]; then
+    return
+  fi
   grep -R "${1}" . "${@:2}"
 }
 
 si() {
   # Case-insensitive text search.
+  if [[ -z "${1}" ]]; then
+    return
+  fi
   grep -Ri "${1}" . "${@:2}"
 }
 
