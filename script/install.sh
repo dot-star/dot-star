@@ -44,5 +44,9 @@ if [ ! -L "${HOME}/.colordiffrc" ]; then
     ln -v -s "${DOT_STAR_ROOT}/colordiff/.colordiffrc" "${HOME}/.colordiffrc"
 fi
 
+# Disable IPython's "Do you really want to exit ([y]/n)?".
+ipython profile create
+sed --in-place --regexp-extended 's/# c.TerminalInteractiveShell.confirm_exit = True/c.TerminalInteractiveShell.confirm_exit = False/' ~/.ipython/profile_default/ipython_config.py
+
 # Run post installation script.
 source "${DOT_STAR_ROOT}/script/post_install.sh"
