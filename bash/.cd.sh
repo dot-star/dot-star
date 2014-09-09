@@ -70,4 +70,8 @@ alias www="_www"
 for file in $(find ~/Projects -maxdepth 1 -mindepth 1 -type d -o -type l); do
     name=$(basename "${file}")
     alias "${name}"="cd ~/Projects/${name} && l"
+    nonwwwname="${name/www\./}"
+    if [[ "${nonwwwname}" != "${name}" ]]; then
+        alias "${nonwwwname}"="cd ~/Projects/${name} && l"
+    fi
 done
