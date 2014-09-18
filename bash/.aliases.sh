@@ -174,6 +174,7 @@ alias ip="_ip"
 alias dotfiles="dotstar"
 alias dotstar="cd ${HOME}/.dot-star && l"
 alias extra="vim ${HOME}/.dot-star/bash/extra.sh"
+alias hosts="sudo vim /etc/hosts"
 alias sshconfig="vim ${HOME}/.ssh/config"
 
 alias bashprofile="vim ${HOME}/.bash_profile"
