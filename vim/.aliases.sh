@@ -19,6 +19,8 @@ _vim () {
 
     if $ssh; then
         \vim -p "$@"
+    elif which "mvim" &> /dev/null; then
+        open -a MacVim "$@"
     elif which "gvim" &> /dev/null; then
         xdotool=$(which xdotool)
         if [ -z "${xdotool}" ]; then
@@ -31,8 +33,6 @@ _vim () {
         fi
 
         (gvim -f -p --remote-tab-silent "$@" &> /dev/null &)
-    elif which "mvim" &> /dev/null; then
-        open -a MacVim "$@"
     else
         \vim -p "$@"
     fi
