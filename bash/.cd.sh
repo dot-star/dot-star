@@ -52,7 +52,7 @@ trash() {
     done
 }
 
-_www() {
+www() {
     array=("/Library/WebServer/Documents/" "/var/www/")
     for path in "${array[@]}"; do
         if [ -d "${path}" ]; then
@@ -61,9 +61,7 @@ _www() {
         fi
     done
 }
-
-alias ww="_www"
-alias www="_www"
+alias ww="www"
 
 
 # Add aliases that cd to the project directory and list the files.
