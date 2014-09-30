@@ -172,6 +172,12 @@ _ip() {
 }
 alias ip="_ip"
 
+clipboard() {
+    # Remove trailing newline from stdin and copy it to the clipboard.
+    perl -p -e 'chomp if eof' | xsel --clipboard
+}
+alias clip="clipboard"
+
 alias dotfiles="dotstar"
 alias dotstar="cd ${HOME}/.dot-star && l"
 alias extra="vim ${HOME}/.dot-star/bash/extra.sh"
