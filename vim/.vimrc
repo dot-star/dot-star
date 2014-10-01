@@ -90,6 +90,10 @@ nnoremap <silent> <C-S-PageDown> :execute 'silent! tabmove ' . tabpagenr()<CR>
 nnoremap <silent> <A-Left> :execute 'silent! tabmove ' . (tabpagenr()-2)<CR>
 nnoremap <silent> <A-Right> :execute 'silent! tabmove ' . tabpagenr()<CR>
 
+" Move tabs left with Ctrl + h and move tabs right with Ctrl + l.
+map <silent> <C-H> :execute 'tabmove' tabpagenr() - 2 <CR>
+map <silent> <C-L> :execute 'tabmove' tabpagenr() <CR>
+
 " Remove trailing spaces on save for certain file types.
 autocmd BufWritePre *.css :%s/\s\+$//e
 autocmd BufWritePre *.html :%s/\s\+$//e
