@@ -190,6 +190,16 @@ alias bashprofile="vim ${HOME}/.bash_profile"
 alias bashrc="vim ${HOME}/.bashrc"
 alias +x="chmod +x"
 
+pdf_remove_password() {
+    in="${1}"
+    echo "in: ${in}"
+    file "${in}"
+    out=$(echo "${in}" | perl -pe 's/^(.*)(\.pdf)$/\1_passwordless.pdf/')
+    echo "out: ${out}"
+    pdftk "${in}" output "${out}" do_ask
+    file "${out}"
+}
+
 export ssh=false
 if [ ! -z "$SSH_CONNECTION" ]; then
   ssh=true
