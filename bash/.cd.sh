@@ -1,10 +1,10 @@
 # Change Directory Aliases
 
-alias ..="cd .."
-alias ...="cd ../.."
-alias ....="cd ../../.."
-alias .....="cd ../../../.."
-alias ......="cd ../../../../.."
+alias ..="cd .. && l"
+alias ...="cd ../.. && l"
+alias ....="cd ../../.. && l"
+alias .....="cd ../../../.. && l"
+alias ......="cd ../../../../.. && l"
 alias desktop="cd ~/Desktop"
 alias dt="desktop"
 alias dto="desktop && oo && x"
