@@ -7,6 +7,7 @@ sasswatch() {
     fi
 
     sass \
+        --sourcemap="none" \
         --style "expanded" \
         --unix-newlines \
         --watch "${command}"

@@ -22,6 +22,7 @@ alias fetch="git fetch"
 alias filemode="git config core.filemode false"
 alias g="git"
 alias gco="grep_checkout"
+alias gitconfig="git_config"
 alias gm="grep_merge"
 alias list="git stash list"
 alias log="rc_log"
@@ -35,6 +36,32 @@ alias st="rc_status"
 alias stash="git stash"
 alias tag="git tag"
 alias tags="git tag --list"
+
+git_config() {
+    filename=$(cat <<EOF | python -
+import os
+
+
+dirs = os.getcwd().split(os.sep)
+for i, _ in enumerate(dirs):
+    paths = dirs[:len(dirs) - i]
+    paths.append('.git')
+    paths.append('config')
+    filename = os.path.join(os.sep, *paths)
+    try:
+        open(filename, 'r')
+    except IOError:
+        pass
+    else:
+        print filename
+        break
+EOF)
+    if [[ -z "${filename}" ]]; then
+        echo ".git/config not found"
+    else
+        v "${filename}"
+    fi
+}
 
 git_stash_apply() {
     # Apply the specified git stash.
