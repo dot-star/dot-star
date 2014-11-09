@@ -174,7 +174,11 @@ alias ip="_ip"
 
 clipboard() {
     # Remove trailing newline from stdin and copy it to the clipboard.
-    perl -p -e 'chomp if eof' | xsel --clipboard
+    if which "xsel" &> /dev/null; then
+        perl -p -e 'chomp if eof' | xsel --clipboard
+    elif which "pbcopy" &> /dev/null; then
+        perl -p -e 'chomp if eof' | pbcopy
+    fi
 }
 alias clip="clipboard"
 
