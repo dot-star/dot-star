@@ -95,6 +95,11 @@ pushd() {
 }
 alias "cd"="pushd"
 
+edit() {
+  "${EDITOR}" "${@}"
+}
+e="edit"
+
 _grep() {
     grep \
         --color \
