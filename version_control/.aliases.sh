@@ -34,6 +34,7 @@ alias push="rc_push"
 alias show="git_stash_show"
 alias st="rc_status"
 alias stash="git stash"
+alias stashu="git stash --include-untracked"
 alias tag="git tag"
 alias tags="git tag --list"
 
