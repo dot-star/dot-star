@@ -98,7 +98,7 @@ alias "cd"="pushd"
 edit() {
   "${EDITOR}" "${@}"
 }
-e="edit"
+alias e="edit"
 
 _grep() {
     grep \
