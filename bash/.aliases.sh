@@ -201,6 +201,7 @@ pdf_remove_password() {
     out=$(echo "${in}" | perl -pe 's/^(.*)(\.pdf)$/\1_passwordless.pdf/')
     echo "out: ${out}"
     pdftk "${in}" output "${out}" do_ask
+    realpath "${out}"
     file "${out}"
 }
 
