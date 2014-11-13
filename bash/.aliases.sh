@@ -96,7 +96,11 @@ pushd() {
 alias "cd"="pushd"
 
 edit() {
-  "${EDITOR}" "${@}"
+  editor="${EDITOR}"
+  if $ssh; then
+    editor="vim"
+  fi
+  "${editor}" "${@}"
 }
 alias e="edit"
 
