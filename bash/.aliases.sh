@@ -190,6 +190,7 @@ clipboard() {
     fi
 }
 alias clip="clipboard"
+alias copy="clipboard"
 
 alias dotfiles="dotstar"
 alias dotstar="cd ${HOME}/.dot-star && l"
