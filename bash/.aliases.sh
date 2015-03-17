@@ -216,6 +216,6 @@ pdf_remove_password() {
 }
 
 export ssh=false
-if [ ! -z "$SSH_CONNECTION" ]; then
+if [ ! -z "${SSH_CLIENT}" ]; then
   ssh=true
 fi
