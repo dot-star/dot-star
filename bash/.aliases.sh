@@ -55,7 +55,7 @@ _ls(){
 
 bak() {
     filename="${1}"
-    extension="${filename##*.}"
+    extension=$(basename "${filename##*.}")
     base_filename="${filename%.*}"
     timestamp=$(date +"%Y-%m-%d_%H%I%S")
     new_filename="${base_filename}_${timestamp}.${extension}"
