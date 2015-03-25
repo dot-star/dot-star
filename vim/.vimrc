@@ -99,6 +99,7 @@ autocmd BufWritePre *.css :%s/\s\+$//e
 autocmd BufWritePre *.html :%s/\s\+$//e
 autocmd BufWritePre *.php :%s/\s\+$//e
 autocmd BufWritePre *.scss :%s/\s\+$//e
+autocmd BufWritePre *.sh :%s/\s\+$//e
 autocmd BufWritePre *.txt :%s/\s\+$//e
 
 highlight BadWhitespace ctermbg=red guibg=red
