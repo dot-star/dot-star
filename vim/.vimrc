@@ -127,26 +127,32 @@ autocmd BufRead,BufNewFile *.py,*.pyw match BadWhitespace /^\t\+/
 autocmd BufRead,BufNewFile *.py,*.pyw match BadWhitespace /\s\+$/
 autocmd         BufNewFile *.py,*.pyw set fileformat=unix
 autocmd BufRead,BufNewFile *.py,*.pyw let b:comment_leader = '#'
-autocmd BufWritePre        *.py,*.pyw :%s/\s\+$//e
-autocmd BufWriteCmd        *.py,*.pyw call CheckPythonSyntax()
 
-if ! exists("*CheckPythonSyntax")
-    function CheckPythonSyntax()
-      let tmpfile = tempname()
-      silent execute "write! " . tmpfile
+function! <SID>PythonSave()
+    " Check python syntax.
+    let tmpfile = tempname()
+    silent execute "write! " . tmpfile
+    let command = "python -c \"__import__('py_compile').compile(r'" . tmpfile . "')\""
+    let output = system(command . " 2>&1")
+    if output != ''
+        let curfile = bufname("%")
+        let output = substitute(output, fnameescape(tmpfile), fnameescape(curfile), "g")
+        echo output
+    endif
+    call delete(tmpfile)
 
-      let command = "python -c \"__import__('py_compile').compile(r'" . tmpfile . "')\""
-      let output = system(command . " 2>&1")
-      if output != ''
-          let curfile = bufname("%")
-          let output = substitute(output, fnameescape(tmpfile), fnameescape(curfile), "g")
-          echo output
-      endif
-      write
+    " Save cursor position.
+    let l = line(".")
+    let c = col(".")
 
-      call delete(tmpfile)
-    endfunction
-endif
+    " Strip trailing whitespace.
+    %s/\s\+$//e
+
+    " Restore cursor position.
+    call cursor(l, c)
+endfunction
+
+autocmd FileType python autocmd BufWritePre <buffer> :call <SID>PythonSave()
 
 " Move the directory for the backup file.
 set backupdir=~/.vim/backup/
