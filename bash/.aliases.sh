@@ -211,6 +211,14 @@ alias bashprofile="vim ${HOME}/.bash_profile"
 alias bashrc="vim ${HOME}/.bashrc"
 alias +x="chmod +x"
 
+slugify() {
+    cat <<EOF | python -
+import re
+value = re.sub('[^\w\s-]', '', '${1}').strip().lower()
+print re.sub('[-\s]+', '-', value)
+EOF
+}
+
 pdf_remove_password() {
     in="${1}"
     echo "in: ${in}"
