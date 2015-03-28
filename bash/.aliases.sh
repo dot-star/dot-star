@@ -214,10 +214,11 @@ alias +x="chmod +x"
 slugify() {
     cat <<EOF | python -
 import re
-value = re.sub('[^\w\s-]', '', '${1}').strip().lower()
+value = re.sub('[^\w\s\.-]', '', '${1}').strip().lower()
 print re.sub('[-\s]+', '-', value)
 EOF
 }
+alias slug="slugify"
 
 pdf_remove_password() {
     in="${1}"
