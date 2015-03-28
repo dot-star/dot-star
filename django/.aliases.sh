@@ -25,6 +25,7 @@ _runserver() {
 alias dbshell="python manage.py dbshell"
 alias devrunserver="_runserver false"
 alias runserver="_runserver true"
+alias rs="runserver"
 
 shell() {
     python manage.py debugsqlshell 2> /dev/null
