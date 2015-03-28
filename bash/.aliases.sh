@@ -211,6 +211,11 @@ alias bashprofile="vim ${HOME}/.bash_profile"
 alias bashrc="vim ${HOME}/.bashrc"
 alias +x="chmod +x"
 
+large_files() {
+    du -hs * | sort -h
+}
+alias large="large_files"
+
 slugify() {
     cat <<EOF | python -
 import re
