@@ -1,5 +1,12 @@
 # Shortcuts
 
+alias 600="chmod 600"
+alias 644="chmod 644"
+alias 700="chmod 700"
+alias 750="chmod 750"
+alias 755="chmod 755"
+alias 777="chmod 777"
+
 _ls(){
     clear
     if ls --color > /dev/null 2>&1; then
