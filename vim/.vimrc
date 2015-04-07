@@ -80,6 +80,13 @@ vmap <Right> >gv
 " Execute macro q by pressing spacebar
 nnoremap <Space> @q
 
+" Open tabs with just :T and :t instead of :tabe :tabedit :tabnew.
+command! -nargs=* -complete=file T tabnew <args>
+nnoremap :t<CR>    :tabnew<CR>
+xnoremap :t<CR>    :tabnew<CR>
+nnoremap :t<Space> :tabnew<Space>
+xnoremap :t<Space> :tabnew<Space>
+
 " Move tabs left with Ctrl + Shift + Page Up and move tabs right with Ctrl +
 " Shift + Page Down.
 nnoremap <silent> <C-S-PageUp> :execute 'silent! tabmove ' . (tabpagenr()-2)<CR>
