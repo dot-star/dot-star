@@ -25,6 +25,7 @@ alias filemode="git config core.filemode false"
 alias g="git"
 alias gco="grep_checkout"
 alias gitconfig="git_config"
+alias gitignore="git_ignore"
 alias gm="grep_merge"
 alias list="git stash list"
 alias log="rc_log"
@@ -66,6 +67,11 @@ EOF)
     else
         v "${filename}"
     fi
+}
+
+git_ignore() {
+    touch .gitignore
+    vim .gitignore
 }
 
 git_stash_apply() {
