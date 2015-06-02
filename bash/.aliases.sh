@@ -225,6 +225,22 @@ EOF
 }
 alias slug="slugify"
 
+slugify_mv() {
+    for filename in "${@}"; do
+        new_filename=$(slugify "${filename}")
+        if [[ "${new_filename}" != "${filename}" ]]; then
+            message='Rename "'${filename}'" to "'${new_filename}'"?'
+            read -p "${message} [y/n] " -n 1 -r; echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                mv "${filename}" "${new_filename}"
+            fi
+        else
+            echo "${filename} OK"
+        fi
+    done
+}
+alias smv="slugify_mv"
+
 pdf_remove_password() {
     in="${1}"
     echo "in: ${in}"
