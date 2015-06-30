@@ -22,9 +22,6 @@ au FocusLost * :silent! wall
 " Return to command mode on blur.
 au FocusLost * call feedkeys("\<C-\>\<C-n>")
 
-" Add jj to exit back to normal mode.
-inoremap jj <ESC>
-
 " General
 set autochdir " always switch to the current file directory
 set backspace=indent,eol,start " allow backspacing over these
