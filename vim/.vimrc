@@ -80,7 +80,8 @@ vmap <Right> >gv
 " Execute macro q by pressing spacebar
 nnoremap <Space> @q
 
-" Open tabs with just :T and :t instead of :tabe :tabedit :tabnew.
+" Open tabs with just :T and :t instead of :tabe :tabedit :tabnew. :T filename
+" works with tab completion.
 command! -nargs=* -complete=file T tabnew <args>
 nnoremap :t<CR>    :tabnew<CR>
 xnoremap :t<CR>    :tabnew<CR>
@@ -100,6 +101,16 @@ nnoremap <silent> <A-Right> :execute 'silent! tabmove ' . tabpagenr()<CR>
 " Move tabs left with Ctrl + h and move tabs right with Ctrl + l.
 map <silent> <C-H> :execute 'tabmove' tabpagenr() - 2 <CR>
 map <silent> <C-L> :execute 'tabmove' tabpagenr() <CR>
+
+" Navigate between splits with ctrl + h, ctrl + j, ctrl + k, ctrl + l.
+nnoremap <C-H> <C-W><C-H>
+nnoremap <C-J> <C-W><C-J>
+nnoremap <C-K> <C-W><C-K>
+nnoremap <C-L> <C-W><C-L>
+
+" Open new split panes to right and bottom.
+set splitbelow
+set splitright
 
 " Remove trailing spaces on save for certain file types.
 autocmd BufWritePre *.css :%s/\s\+$//e
