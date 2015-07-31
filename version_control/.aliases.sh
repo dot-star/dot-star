@@ -242,13 +242,16 @@ rc_diff() {
     else
         colordiff=$(which colordiff)
         if [ -z "$colordiff" ]; then
-            echo -e '\x1b[0;93mWARNING\x1b[0m: colordiff does not seem to be installed.'
             colordiff_installed=false
         else
             colordiff_installed=true
         fi
 
         if is_svn; then
+            if ! $colordiff_installed ; then
+                echo -e '\x1b[0;93mWARNING\x1b[0m: colordiff does not seem to be installed.'
+            fi
+
             if [ $# == 0 ]; then
                 svn diff . | colordiff | less -R
             else
@@ -259,10 +262,11 @@ rc_diff() {
                 fi
             fi
         elif is_hg; then
-            if $colordiff_installed ; then
+            if $colordiff_installed; then
                 hg diff --git . | colordiff | less --RAW-CONTROL-CHARS
                 echo "hg diff --git . | colordiff | less --RAW-CONTROL-CHARS"
             else
+                echo -e '\x1b[0;93mWARNING\x1b[0m: colordiff does not seem to be installed.'
                 echo "hg diff --git ."
                 hg diff --git .
             fi
