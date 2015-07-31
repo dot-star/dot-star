@@ -201,6 +201,7 @@ alias copy="clipboard"
 
 alias dotfiles="dotstar"
 alias dotstar="cd ${HOME}/.dot-star && l"
+alias .*="dotstar"
 alias extra="vim ${HOME}/.dot-star/bash/extra.sh"
 alias hosts="sudo vim /etc/hosts"
 alias known_hosts="vim ${HOME}/.ssh/known_hosts"
