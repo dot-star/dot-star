@@ -100,7 +100,7 @@ pushd() {
         ((i++))
     done
 }
-alias "cd"="pushd"
+#alias "cd"="pushd"
 
 edit() {
   editor="${EDITOR}"
