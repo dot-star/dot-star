@@ -41,6 +41,7 @@ set scrolloff=3 " Keep X lines (top/bottom) before the horizontal window border
 set showtabline=2 " always show tabbar
 set title " Show the filename in the window's titlebar
 set nowrap " Don't wrap long lines
+set textwidth=120 " Set textwidth to wrap. e.g. when using "selection" + gq
 set cmdheight=3 " Avoid 'Press ENTER or type command to continue'
 
 " Search
