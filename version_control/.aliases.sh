@@ -208,9 +208,8 @@ rc_checkout() {
 }
 
 rc_commit() {
-    # git and hg support
     if is_git; then
-        git commit "$@"
+        git commit -m "$@"
     elif is_hg; then
         hg commit "$@"
     elif is_svn; then
