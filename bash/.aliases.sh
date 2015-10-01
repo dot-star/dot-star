@@ -253,6 +253,16 @@ pdf_remove_password() {
     file "${out}"
 }
 
+change_mac_address() {
+    current_mac_address=$(ifconfig en0 | \grep ether | perl -pe 's/^\s+ether (.*) /\1/')
+    echo "Current mac address: \"${current_mac_address}\""
+    new_mac_address=$(openssl rand -hex 6 | sed 's/\(..\)/\1:/g; s/.$//')
+    sudo ifconfig en0 ether "${new_mac_address}"
+    sleep 3
+    new_mac_address=$(ifconfig en0 | grep ether | perl -pe 's/^\s+ether (.*) /\1/')
+    echo "New mac address:     \"${new_mac_address}\""
+}
+
 export ssh=false
 if [ ! -z "${SSH_CLIENT}" ]; then
   ssh=true
