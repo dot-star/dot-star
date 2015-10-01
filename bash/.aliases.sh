@@ -10,7 +10,7 @@ alias 777="chmod 777"
 _ls(){
     clear
     if ls --color > /dev/null 2>&1; then
-        # GNU `ls`
+        # GNU `ls`. Available with `brew install coreutils'.
         ls \
             --almost-all \
             --classify \
