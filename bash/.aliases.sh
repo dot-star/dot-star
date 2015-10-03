@@ -255,12 +255,22 @@ pdf_remove_password() {
 
 change_mac_address() {
     current_mac_address=$(ifconfig en0 | \grep ether | perl -pe 's/^\s+ether (.*) /\1/')
-    echo "Current mac address: \"${current_mac_address}\""
+    echo -e "\033[31m-${current_mac_address}\033[0m"
+
     new_mac_address=$(openssl rand -hex 6 | sed 's/\(..\)/\1:/g; s/.$//')
+    echo -e "\033[32m+${new_mac_address}\033[0m"
+
     sudo ifconfig en0 ether "${new_mac_address}"
-    sleep 3
-    new_mac_address=$(ifconfig en0 | grep ether | perl -pe 's/^\s+ether (.*) /\1/')
-    echo "New mac address:     \"${new_mac_address}\""
+
+    current_mac_address=$(ifconfig en0 | \grep ether | perl -pe 's/^\s+ether (.*) /\1/')
+    if ! [[ $new_mac_address == $current_mac_address ]]; then
+        echo "DIFFERENCE FOUND"
+        echo "expected ${new_mac_address}"
+        echo "got      ${current_mac_address}"
+    fi
+
+    sudo ifconfig en0 down
+    sudo ifconfig en0 up
 }
 
 export ssh=false
