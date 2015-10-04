@@ -75,7 +75,7 @@ if tput setaf 1 &> /dev/null; then
 	red=$(tput setaf 124);
 	violet=$(tput setaf 61);
 	white=$(tput setaf 15);
-	yellow=$(tput setaf 136);
+	yellow=$(tput setaf 190);
 else
 	bold='';
 	reset="\e[0m";
@@ -95,24 +95,27 @@ fi;
 if [[ "${USER}" == "root" ]]; then
 	userStyle="${red}";
 else
-	userStyle="${orange}";
+	#userStyle="${orange}";
+	userStyle="${red}";
 fi;
 
 # Highlight the hostname when connected via SSH.
 if [[ "${SSH_TTY}" ]]; then
 	hostStyle="${bold}${red}";
 else
-	hostStyle="${yellow}";
+	#hostStyle="${yellow}";
+	hostStyle="${orange}";
 fi;
 
 # Set the terminal title to the current working directory.
 PS1="\[\033]0;\w\007\]";
-PS1+="\[${bold}\]\n"; # newline
+#PS1+="\[${bold}\]\n"; # newline
 PS1+="\[${userStyle}\]\u"; # username
 PS1+="\[${white}\] at ";
 PS1+="\[${hostStyle}\]\h"; # host
 PS1+="\[${white}\] in ";
-PS1+="\[${green}\]\w"; # working directory
+#PS1+="\[${green}\]\w"; # working directory
+PS1+="\[${yellow}\]\w"; # working directory
 PS1+="\$(prompt_git \"${white} on ${violet}\")"; # Git repository details
 PS1+="\n";
 PS1+="\[${white}\]\$ \[${reset}\]"; # `$` (and reset color)
