@@ -280,6 +280,15 @@ difference() {
 }
 alias d="difference"
 
+chmod() {
+    if [ "$#" -eq 1 ]; then
+        file_mode_bits=$(stat --format "%a" "${1}")
+        echo -e "${file_mode_bits}\t${1}"
+    else
+        command chmod "${@}"
+    fi
+}
+
 export ssh=false
 if [ ! -z "${SSH_CLIENT}" ]; then
   ssh=true
