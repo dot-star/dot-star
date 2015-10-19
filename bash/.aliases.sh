@@ -273,6 +273,13 @@ change_mac_address() {
     sudo ifconfig en0 up
 }
 
+difference() {
+    command="diff -u ${1} ${2} | colordiff | less -R"
+    echo "${command}"
+    eval $command
+}
+alias d="difference"
+
 export ssh=false
 if [ ! -z "${SSH_CLIENT}" ]; then
   ssh=true
