@@ -289,6 +289,25 @@ chmod() {
     fi
 }
 
+un() {
+    command=$(cat <<EOF | python -
+import os
+
+filename = '${1}'
+command = ''
+if filename.endswith('.zip'):
+    command = 'unzip'
+elif filename.endswith(('.tar.bz2', '.tar.gz',)):
+    command = 'tar xvf'
+if command:
+    print command
+EOF)
+    if [ ! -z "${command}" ]; then
+        echo "command: ${command}"
+        ${command} ${1}
+    fi
+}
+
 export ssh=false
 if [ ! -z "${SSH_CLIENT}" ]; then
   ssh=true
