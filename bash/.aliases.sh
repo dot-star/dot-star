@@ -243,12 +243,13 @@ slugify_mv() {
 alias smv="slugify_mv"
 
 pdf_remove_password() {
+    read password
     in="${1}"
     echo "in: ${in}"
     file "${in}"
     out=$(echo "${in}" | perl -pe 's/^(.*)(\.pdf)$/\1_passwordless.pdf/')
     echo "out: ${out}"
-    pdftk "${in}" output "${out}" do_ask
+    qpdf --decrypt --password="${password}" "${in}" "${out}"
     realpath "${out}"
     file "${out}"
 }
