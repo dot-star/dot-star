@@ -290,6 +290,18 @@ chmod() {
     fi
 }
 
+f() {
+    # Find files with path containing the specified keyword.
+    keyword="${1}"
+    if [[ -z "${keyword}" ]] ; then
+        echo "Search is empty"
+    else
+        echo "Searching for files with path containing \"*${keyword}*\":" | \grep --color --ignore-case "${keyword}"
+        find . -type f -iname "*${keyword}*" | \grep --color --ignore-case "${keyword}"
+    fi
+}
+
+
 un() {
     command=$(cat <<EOF | python -
 import os
