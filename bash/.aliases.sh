@@ -321,6 +321,23 @@ EOF)
     fi
 }
 
+type() {
+    if [ ! -z "${1}" ]; then
+        response=$(command type "${1}")
+        echo "${response}"
+        command=$(cat <<EOF | python -
+import re
+
+match = re.match(r".* is aliased to \`([\w]+)'", """${response}""")
+if match is not None:
+    print 'type {0}'.format(match.group(1))
+EOF)
+        if [ ! -z "${command}" ]; then
+            ${command}
+        fi
+    fi
+}
+
 export ssh=false
 if [ ! -z "${SSH_CLIENT}" ]; then
   ssh=true
