@@ -355,7 +355,8 @@ import re
 match = re.match(r".* is aliased to \`([\w]+)'", """${response}""")
 if match is not None:
     print 'type {0}'.format(match.group(1))
-EOF)
+EOF
+)
         if [ ! -z "${command}" ]; then
             ${command}
         fi
