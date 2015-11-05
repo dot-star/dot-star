@@ -135,21 +135,45 @@ fin() {
     fi
 }
 
-s() {
-  # Case-sensitive text search.
+case_sensitive_search() {
   if [[ -z "${1}" ]]; then
     return
   fi
+  set -x
   grep -R "${1}" . "${@:2}"
+  set +x
 }
+alias s="case_sensitive_search"
 
-si() {
-  # Case-insensitive text search.
+case_insensitive_search() {
   if [[ -z "${1}" ]]; then
     return
   fi
+  set -x
   grep -Ri "${1}" . "${@:2}"
+  set +x
 }
+alias si="case_insensitive_search"
+
+case_sensitive_search_python() {
+  if [[ -z "${1}" ]]; then
+    return
+  fi
+  set -x
+  grep -R --include="*.py" "${1}" . "${@:2}"
+  set +x
+}
+alias spy="case_sensitive_search_python"
+
+case_insensitive_search_python() {
+  if [[ -z "${1}" ]]; then
+    return
+  fi
+  set -x
+  grep -Ri --include="*.py" "${1}" . "${@:2}"
+  set +x
+}
+alias sipy="case_insensitive_search_python"
 
 alias t="tree"
 
