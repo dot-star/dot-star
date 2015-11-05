@@ -337,6 +337,7 @@ EOF)
         fi
     fi
 }
+alias ty="type"
 
 export ssh=false
 if [ ! -z "${SSH_CLIENT}" ]; then
