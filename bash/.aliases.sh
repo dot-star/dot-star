@@ -267,15 +267,17 @@ slugify_mv() {
 alias smv="slugify_mv"
 
 pdf_remove_password() {
+    green=$(tput setaf 64)
+    red=$(tput setaf 124)
     read password
     in="${1}"
-    echo "in: ${in}"
-    file "${in}"
     out=$(echo "${in}" | perl -pe 's/^(.*)(\.pdf)$/\1_passwordless.pdf/')
-    echo "out: ${out}"
     qpdf --decrypt --password="${password}" "${in}" "${out}"
-    realpath "${out}"
-    file "${out}"
+    if [[ $? -eq 0 ]]; then
+        echo -e "${red}- ${in}"
+        echo -e "${green}+ ${out}"
+        # rm -v "${in}"
+    fi
 }
 
 change_mac_address() {
