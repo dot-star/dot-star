@@ -3,6 +3,6 @@
 git pull
 
 curl \
-    --silent \
-    --output git/git-completion.bash \
-    "https://raw.github.com/git/git/master/contrib/completion/git-completion.bash"
+    --output version_control/git-completion.bash \
+    --verbose \
+    "https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash"
