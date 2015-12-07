@@ -120,40 +120,26 @@ is_git() {
 }
 
 rc_add() {
-    if is_git; then
-        git add "$@"
-    fi
+    git add "$@"
 }
 
 rc_branch() {
-    if is_git; then
-        git branch
-    fi
+    git branch
 }
 
 rc_branches() {
-    if is_git; then
-        git branch --all
-    fi
+    git branch --all
 }
 
 rc_checkout() {
-    # Revision Control checkout
-    if is_git; then
-        git checkout $@
-    else
-        echo "NotImplementedError"
-    fi
+    git checkout $@
 }
 
 rc_commit() {
-    if is_git; then
-        git commit -m "$@"
-    fi
+    git commit -m "$@"
 }
 
 rc_diff() {
-    # Revision Control diff
     clear
 
     if is_git; then
@@ -191,24 +177,14 @@ rc_diff() {
 }
 
 rc_log() {
-    if is_git; then
-        git log "${@}"
-    else
-        echo "NotImplementedError"
-    fi
+    git log "${@}"
 }
 
 rc_master() {
-    # Revision Control master.
-    if is_git; then
-        git checkout master
-    else
-        echo "NotImplementedError"
-    fi
+    git checkout master
 }
 
 rc_merge() {
-    # Revision Control merge.
     if is_git; then
         git merge $@
     else
@@ -217,25 +193,14 @@ rc_merge() {
 }
 
 rc_pull() {
-    # Revision Control pull
-    if is_git; then
-        git pull $@
-    else
-        echo "NotImplementedError"
-    fi
+    git pull $@
 }
 
 rc_push() {
-    # Revision Control push
-    if is_git; then
-        git push $@
-    else
-        echo "NotImplementedError"
-    fi
+    git push $@
 }
 
 rc_status() {
-    # Revision Control status
     clear
 
     # If params empty, retrieve status of current directory
