@@ -113,6 +113,7 @@ alias e="edit"
 
 _grep() {
     grep \
+        --binary-files="without-match" \
         --color \
         --exclude-dir=".git" \
         --exclude-dir=".hg" \
