@@ -143,14 +143,18 @@ rc_diff() {
     clear
 
     if is_git; then
+        # No arguments passed to `git diff'.
         if [ $# == 0 ]; then
-            if [ "$(git diff --cached . | wc -l)" -gt 1 ]; then
-                echo "git diff --cached ."
-                git diff --cached .
+            # Display staged diff (cached) when available.
+            if [ "$(git diff --cached | wc -l)" -gt 1 ]; then
+                echo "git diff --cached"
+                git diff --cached
+            # Display current directory diff.
             else
                 echo "git diff ."
                 git diff .
             fi
+        # Arguments passed to `git diff'.
         else
             if [ -z "$(git diff --cached $@)" ]; then
                 echo "git diff $@"
@@ -203,15 +207,9 @@ rc_push() {
 rc_status() {
     clear
 
-    # If params empty, retrieve status of current directory
-    params=$@
-    if [ -z "$params" ]; then
-        params="."
-    fi
-
     if is_git; then
-        echo "git status $params"
-        git status $params
+        echo "git status"
+        git status
     elif is_g; then
         echo "g4 pending"
         g4 pending
