@@ -63,7 +63,8 @@ for i, _ in enumerate(dirs):
     else:
         print filename
         break
-EOF)
+EOF
+)
     if [[ -z "${filename}" ]]; then
         echo ".git/config not found"
     else
