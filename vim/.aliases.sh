@@ -1,23 +1,23 @@
 # Vim aliases
 
-_vim () {
-    param_count="${#}"
-    if [ "${param_count}" -ge 1 ]; then
-        for param in "$@"; do
-            if [ ! -d "${param}" ]; then
-                file="${param}"
-                if [ ! -e "${file}" ]; then
-                    read -p "File \"${file}\" doesn't exist. Create file? " -n 1 -r
-                    echo
-                    if [[ $REPLY =~ ^[Yy]$ ]]; then
-                        touch "${file}"
-                    fi
+_vim() {
+    # FIXME: Only proceed to open files that exist or were created. (e.g. $ v foo File "foo.txt" doesn't exist. Create
+    # file? n The file /path/to/foo.txt does not exist.)
+    for filename in "${@}"; do
+        # Not (exists and is a directory).
+        if [[ ! -d "${filename}" ]]; then
+            # Not (file exists).
+            if [[ ! -e "${filename}" ]]; then
+                read -p "File \"${filename}\" doesn't exist. Create file? " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    touch "${filename}"
                 fi
             fi
-        done
-    fi
+        fi
+    done
 
-    if $ssh; then
+    if is_ssh; then
         \vim -p "$@"
     elif which "mvim" &> /dev/null; then
         open -a MacVim "$@"

@@ -104,7 +104,7 @@ pushd() {
 
 edit() {
   editor="${EDITOR}"
-  if $ssh; then
+  if is_ssh; then
     editor="vim"
   fi
   "${editor}" "${@}"
@@ -367,7 +367,9 @@ EOF
 }
 alias ty="type"
 
-export ssh=false
-if [ ! -z "${SSH_CLIENT}" ]; then
-  ssh=true
-fi
+is_ssh() {
+    if [ -z "${SSH_CLIENT}" ]; then
+        return 1
+    fi
+    return 0
+}
