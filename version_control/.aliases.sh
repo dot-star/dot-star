@@ -146,13 +146,16 @@ rc_diff() {
         # No arguments passed to `git diff'.
         if [ $# == 0 ]; then
             # Display staged diff (cached) when available.
-            if [ "$(git diff --cached | wc -l)" -gt 1 ]; then
+            if [[ ! -z "$(git diff --cached)" ]]; then
                 echo "git diff --cached"
                 git diff --cached
             # Display current directory diff.
-            else
+            elif [[ ! -z "$(git diff .)" ]]; then
                 echo "git diff ."
                 git diff .
+            else
+                echo "git diff"
+                git diff
             fi
         # Arguments passed to `git diff'.
         else
