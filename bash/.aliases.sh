@@ -176,7 +176,8 @@ case_insensitive_search_python() {
 }
 alias sipy="case_insensitive_search_python"
 
-alias t="tree"
+# Print hidden files.
+alias t="tree -a"
 
 _top() {
     if top -o cpu &> /dev/null; then
