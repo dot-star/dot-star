@@ -303,7 +303,7 @@ change_mac_address() {
 }
 
 difference() {
-    command="diff -u ${1} ${2} | colordiff | less -R"
+    command='diff -u "'"${1}"'" "'"${2}"'" | colordiff | less -R'
     echo "${command}"
     eval $command
 }
