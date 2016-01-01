@@ -17,7 +17,11 @@ if [ ! -z "${line_number}" ]; then
 fi
 
 # Add bootstrap to bash profile.
-echo -e "# .dotstar bootstrap\n[[ -r ~/.bashrc ]] && source ~/.bashrc" >> "$HOME/.bash_profile"
+echo "
+# .dotstar bootstrap
+if shopt -q login_shell; then
+    [[ -r ~/.bashrc ]] && source ~/.bashrc
+fi" >> "$HOME/.bash_profile"
 
 # Find existing bootstrap in bashrc.
 line_number=$(grep --line-number "# .dotstar bootstrap" "${HOME}/.bashrc" | cut -d ":" -f "1")
@@ -32,7 +36,11 @@ if [ ! -z "${line_number}" ]; then
 fi
 
 # Add bootstrap to bashrc.
-echo -e "# .dotstar bootstrap\n[[ -r ~/.dot-star/bash/.bash_profile ]] && source ~/.dot-star/bash/.bash_profile" >> "$HOME/.bashrc"
+echo "
+# .dotstar bootstrap
+if shopt -q login_shell; then
+    [[ -r ~/.dot-star/bash/.bash_profile ]] && source ~/.dot-star/bash/.bash_profile
+fi" >> "$HOME/.bashrc"
 
 # Install inputrc.
 if [ ! -L "${HOME}/.inputrc" ]; then
