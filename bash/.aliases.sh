@@ -338,7 +338,7 @@ filename = '${1}'
 command = ''
 if filename.endswith('.zip'):
     command = 'unzip'
-elif filename.endswith(('.tar.bz2', '.tar.gz',)):
+elif filename.endswith(('.gz', '.tar.bz2', '.tar.gz',)):
     command = 'tar xvf'
 if command:
     print command
