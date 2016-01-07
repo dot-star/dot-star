@@ -344,7 +344,8 @@ elif filename.endswith('.gz'):
     command = 'gunzip'
 if command:
     print command
-EOF)
+EOF
+)
     if [ ! -z "${command}" ]; then
         echo "command: ${command}"
         ${command} ${1}
