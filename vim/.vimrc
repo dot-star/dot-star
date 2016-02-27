@@ -27,6 +27,7 @@ set autochdir " always switch to the current file directory
 set backspace=indent,eol,start " allow backspacing over these
 set iskeyword+=_,$,@,%,# " none of these are word dividers
 set noerrorbells " don't make noise
+set tabpagemax=100 " allow opening more tabs
 execute "set colorcolumn=" . join(range(121,255), ',')
 
 " Vim UI
