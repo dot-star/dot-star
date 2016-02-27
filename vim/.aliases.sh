@@ -42,8 +42,16 @@ alias v="_vim"
 alias vi="_vim"
 alias vim="_vim"
 
-if which "mvim" &> /dev/null; then
-    alias mvim="open -a MacVim"
-fi
-
 alias vimrc="_vim ~/.vimrc"
+
+# Use vi-style command line editing.
+set -o vi
+
+# Use vim as the default editor.
+export EDITOR="vim"
+export VISUAL="vim"
+
+if which "mvim" &> /dev/null; then
+    # Background MacVim when using visual selection on the command line.
+    export VISUAL="mvim -f"
+fi
