@@ -194,9 +194,20 @@ alias autoremove="sudo apt-get autoremove"
 alias clean="sudo apt-get clean"
 alias distupgrade="sudo apt-get dist-upgrade"
 alias upgrade="sudo apt-get upgrade"
-alias x="exit"
-alias q="exit"
 alias reboot="sudo shutdown -r now"
+
+quit() {
+    # Quit Terminal when the last tab is closed.
+    if [ "$TERM_PROGRAM" == "Apple_Terminal" ]; then
+        quit_terminal_when_no_terminals_remain() {
+            osascript -e 'tell application "Terminal" to if running and (count every tab of every window whose tty is not "'"$(tty)"'") is 0 then quit'
+        }
+        trap quit_terminal_when_no_terminals_remain EXIT
+    fi
+    exit
+}
+alias x="quit"
+alias q="quit"
 
 _open() {
     open "$@" &> /dev/null
