@@ -74,7 +74,21 @@ bak() {
     fi
 }
 
-alias c="clear"
+c() {
+    # clear, cd $dir, or $cat $filename [$filename ...]
+    param_count="${#}"
+    # Call `clear' when no parameters are passed.
+    if [[ "${param_count}" -eq 0 ]]; then
+        clear
+        echo "would have cleared"
+    # Call `cd $dir' when a single parameter is passed and it is a directory.
+    elif [ "${param_count}" -eq 1 ] && [ -d "${1}" ]; then
+        cd "${1}"
+    # Call `cat $filename [$filename ...]' when one or more parameters are passed.
+    else
+        cat "${@}"
+    fi
+}
 
 list_dirstack() {
     i=0
