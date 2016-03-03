@@ -261,6 +261,7 @@ alias sshconfig="vim ${HOME}/.ssh/config"
 alias aliases="vim ${HOME}/.dot-star/bash/.aliases.sh"
 alias bashprofile="vim ${HOME}/.bash_profile"
 alias bashrc="vim ${HOME}/.bashrc"
+alias inputrc="vim ${HOME}/.inputrc"
 alias +x="chmod +x"
 
 large_files() {
