@@ -403,3 +403,14 @@ is_ssh() {
     fi
     return 0
 }
+
+serve_dir() {
+    port="8080"
+    read -p "Are you sure you want to serve the current directory over port ${port}? [y/n] " -n 1 -r; echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo "http://localhost:${port}/"
+        set -x
+        python -m SimpleHTTPServer "${port}"
+        set +x
+    fi
+}
