@@ -345,13 +345,17 @@ chmod() {
 }
 
 f() {
-    # Find files with path containing the specified keyword.
-    keyword="${1}"
-    if [[ -z "${keyword}" ]] ; then
-        echo "Search is empty"
+    # Run fg when no parameters are passed, otherwise find files with path containing the specified keyword.
+    if [ $# == 0 ]; then
+        fg
     else
-        echo "Searching for files with path containing \"*${keyword}*\":" | \grep --color --ignore-case "${keyword}"
-        find . -type f -iname "*${keyword}*" | \grep --color --ignore-case "${keyword}"
+        keyword="${1}"
+        if [[ -z "${keyword}" ]] ; then
+            echo "Search is empty"
+        else
+            echo "Searching for files with path containing \"*${keyword}*\":" | \grep --color --ignore-case "${keyword}"
+            find . -type f -iname "*${keyword}*" | \grep --color --ignore-case "${keyword}"
+        fi
     fi
 }
 
