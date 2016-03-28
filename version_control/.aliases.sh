@@ -137,7 +137,11 @@ rc_checkout() {
 }
 
 rc_commit() {
-    git commit -m "$@"
+    if [ $# == 0 ]; then
+        git commit
+    else
+        git commit -m "${@}"
+    fi
 }
 
 rc_diff() {
