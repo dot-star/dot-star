@@ -353,8 +353,8 @@ f() {
         if [[ -z "${keyword}" ]] ; then
             echo "Search is empty"
         else
-            echo "Searching for files with path containing \"*${keyword}*\":" | \grep --color --ignore-case "${keyword}"
-            find . -type f -iname "*${keyword}*" | \grep --color --ignore-case "${keyword}"
+            echo "Searching paths and filenames containing \"*${keyword}*\":" | \grep --color --ignore-case "${keyword}"
+            find . -iname "*${keyword}*" | \grep --color --ignore-case "${keyword}"
         fi
     fi
 }
