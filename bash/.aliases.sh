@@ -418,3 +418,12 @@ serve_dir() {
         set +x
     fi
 }
+
+file() {
+    if [[ "${#}" -eq 1 ]]; then
+        file_size=$(stat --printf="%s" "${1}")
+        echo "$($(which file) "${@}") (${file_size} bytes)"
+    else
+        echo "$($(which file) "${@}")"
+    fi
+}
