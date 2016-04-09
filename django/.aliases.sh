@@ -1,13 +1,15 @@
 # Django Aliases
 
-schemamigration() {
-    # Django South schemamigration
-    ./manage.py schemamigration $@ --auto
+makemigrations() {
+    python manage.py makemigrations $@
 }
 
 migrate() {
-    # Django South migrate
-    ./manage.py migrate $@
+    python manage.py migrate $@
+}
+
+createsuperuser() {
+    python manage.py createsuperuser $@
 }
 
 _runserver() {

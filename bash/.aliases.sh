@@ -80,7 +80,6 @@ c() {
     # Call `clear' when no parameters are passed.
     if [[ "${param_count}" -eq 0 ]]; then
         clear
-        echo "would have cleared"
     # Call `cd $dir' when a single parameter is passed and it is a directory.
     elif [ "${param_count}" -eq 1 ] && [ -d "${1}" ]; then
         cd "${1}"
