@@ -426,3 +426,15 @@ file() {
         echo "$($(which file) "${@}")"
     fi
 }
+
+watch_file() {
+  # Watch a file for changes and run a command.
+  # Usage: watch_file file_to_watch.log "bash file_changed.sh"
+  filename="${1}"
+  cmd="${2}"
+  while inotifywait --event modify --quiet "${filename}"; do
+    if [ ! -z "${cmd}" ]; then
+      $cmd
+    fi
+  done
+}
