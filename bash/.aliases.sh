@@ -294,17 +294,22 @@ slugify_mv() {
 alias smv="slugify_mv"
 
 pdf_remove_password() {
+    # Remove password from one or more pdf files.
+    # @usage: pdf_remove_password file.pdf
+    # @usage: echo "thepassword" | pdf_remove_password file.pdf
     green=$(tput setaf 64)
     red=$(tput setaf 124)
     read password
-    in="${1}"
-    out=$(echo "${in}" | perl -pe 's/^(.*)(\.pdf)$/\1_passwordless.pdf/')
-    qpdf --decrypt --password="${password}" "${in}" "${out}"
-    if [[ $? -eq 0 ]]; then
-        echo -e "${red}- ${in}"
-        echo -e "${green}+ ${out}"
-        # rm -v "${in}"
-    fi
+    for filename in "$@"; do
+        in="${filename}"
+        out=$(echo "${in}" | perl -pe 's/^(.*)(\.pdf)$/\1_passwordless.pdf/')
+        qpdf --decrypt --password="${password}" "${in}" "${out}"
+        if [[ $? -eq 0 ]]; then
+            echo -e "${red}- ${in}"
+            echo -e "${green}+ ${out}"
+            # rm -v "${in}"
+        fi
+    done
 }
 
 change_mac_address() {
