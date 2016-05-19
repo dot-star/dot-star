@@ -433,13 +433,39 @@ file() {
 }
 
 watch_file() {
-  # Watch a file for changes and run a command.
-  # Usage: watch_file file_to_watch.log "bash file_changed.sh"
-  filename="${1}"
-  cmd="${2}"
-  while inotifywait --event modify --quiet "${filename}"; do
-    if [ ! -z "${cmd}" ]; then
-      $cmd
+    # Watch a file for changes and run a command.
+    # Usage: watch_file file_to_watch.log "bash file_changed.sh"
+    filename="${1}"
+    cmd="${2}"
+    if [[ "${OSTYPE}" == "linux-gnu" ]]; then # Linux
+        while inotifywait --event modify --quiet "${filename}"; do
+            if [ ! -z "${cmd}" ]; then
+                $cmd
+            fi
+        done
+    elif [[ "${OSTYPE}" == "darwin"* ]]; then # OS X
+        echo -e '\x1b[0;93mWARNING\x1b[0m: watch using polling'
+python_script=$(cat <<'EOF'
+import os
+import shlex
+import subprocess
+import sys
+import time
+
+filename = sys.argv[1]
+filepath = os.path.abspath(filename)
+cmd = sys.argv[2]
+cmd_parts = shlex.split(cmd)
+
+last = cur = os.path.getmtime(filepath)
+while True:
+    time.sleep(1)
+    cur = os.path.getmtime(filepath)
+    if cur != last:
+        subprocess.Popen(cmd_parts)
+        last = cur
+EOF
+)
+        python -c "${python_script}" "${filename}" "${cmd}"
     fi
-  done
 }
