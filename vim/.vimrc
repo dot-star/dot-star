@@ -31,7 +31,6 @@ set tabpagemax=100 " allow opening more tabs
 execute "set colorcolumn=" . join(range(121,255), ',')
 
 " Vim UI
-set cursorline " highlight current line
 set incsearch " BUT do highlight as you type you search phrase
 set list " display unprintable characters
 set listchars=tab:>·,trail:·,extends:>,precedes:< " show tabs and trailing; works with 'list'

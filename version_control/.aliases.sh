@@ -268,10 +268,4 @@ grep_merge() {
     done
 }
 
-# Bash completion for git. May require: brew install bash-completion
-source "version_control/git-completion.bash"
-if [ -f $(brew --prefix)/etc/bash_completion ]; then
-    . $(brew --prefix)/etc/bash_completion
-fi
-
 export P4DIFF="~/.dot-star/version_control/p4diff.sh"
