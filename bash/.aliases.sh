@@ -157,7 +157,7 @@ case_sensitive_search() {
   grep -R "${1}" . "${@:2}"
   set +x
 }
-alias s="case_sensitive_search"
+alias ss="case_sensitive_search"
 
 case_insensitive_search() {
   if [[ -z "${1}" ]]; then
@@ -168,6 +168,7 @@ case_insensitive_search() {
   set +x
 }
 alias si="case_insensitive_search"
+alias s="case_insensitive_search"
 
 case_sensitive_search_python() {
   if [[ -z "${1}" ]]; then
