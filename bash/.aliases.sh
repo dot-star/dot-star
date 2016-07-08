@@ -282,6 +282,8 @@ slugify_mv() {
     for filename in "${@}"; do
         new_filename=$(slugify "${filename}")
         if [[ "${new_filename}" != "${filename}" ]]; then
+            # TODO: Ensure destination doesn't exist. Append the first available number to file name if needed.
+            # TODO: Display result file rename without asking for confirmation.
             message='Rename "'${filename}'" to "'${new_filename}'"?'
             read -p "${message} [y/n] " -n 1 -r; echo
             if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -426,6 +428,7 @@ serve_dir() {
 
 file() {
     if [[ "${#}" -eq 1 ]]; then
+        # TODO: Add thousands separator to file size.
         file_size=$(stat --printf="%s" "${1}")
         echo "$($(which file) "${@}") (${file_size} bytes)"
     else
