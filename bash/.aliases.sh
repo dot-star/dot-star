@@ -461,10 +461,13 @@ cmd_parts = shlex.split(cmd)
 last = cur = os.path.getmtime(filepath)
 while True:
     time.sleep(1)
-    cur = os.path.getmtime(filepath)
-    if cur != last:
-        subprocess.Popen(cmd_parts)
-        last = cur
+    try:
+        cur = os.path.getmtime(filepath)
+        if cur != last:
+            subprocess.Popen(cmd_parts)
+            last = cur
+    except OSError:
+        pass
 EOF
 )
         python -c "${python_script}" "${filename}" "${cmd}"
