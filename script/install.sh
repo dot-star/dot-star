@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -x
 
 # Create symlink to project files in home directory.
 DOT_STAR_ROOT="$( dirname $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ))"
@@ -53,8 +54,21 @@ if [ ! -L "${HOME}/.colordiffrc" ]; then
 fi
 
 # Disable IPython's "Do you really want to exit ([y]/n)?".
-ipython profile create
-sed --in-place --regexp-extended 's/# c.TerminalInteractiveShell.confirm_exit = True/c.TerminalInteractiveShell.confirm_exit = False/' ~/.ipython/profile_default/ipython_config.py
+install_ipython() {
+    sudo easy_install pip
+    pip install --upgrade pip
+
+    brew install python
+    pip install --user ipython
+
+    echo "# Add python binaries to PATH." >> ~/.bash_profile
+    echo -e "export PATH=$PATH:/Users/$(whoami)/Library/Python/2.7/bin\n\n" >> ~/.bash_profile
+
+    export PATH="$PATH:/Users/$(whoami)/Library/Python/2.7/bin"
+    ipython profile create
+    sed --in-place --regexp-extended 's/# c.TerminalInteractiveShell.confirm_exit = True/c.TerminalInteractiveShell.confirm_exit = False/' ~/.ipython/profile_default/ipython_config.py
+}
+install_ipython
 
 # Run post installation script.
 source "${DOT_STAR_ROOT}/script/post_install.sh"

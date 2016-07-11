@@ -7,6 +7,7 @@ git config --global core.excludesfile "~/.gitignore"
 # Enable color in git.
 git config --global color.ui true
 
+brew install wget
 wget https://raw.githubusercontent.com/git/git/master/contrib/diff-highlight/diff-highlight
 sudo chmod +x diff-highlight
 sudo mv diff-highlight /usr/local/bin/

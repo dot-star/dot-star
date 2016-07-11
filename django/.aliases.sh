@@ -38,5 +38,6 @@ shell() {
 
 alias sqlall="python manage.py sqlall"
 alias startapp="python manage.py startapp"
+alias startproject="python manage.py startproject"
 alias syncdb="python manage.py syncdb --no-initial-data"
 alias validate="python manage.py validate"
