@@ -467,8 +467,9 @@ while True:
     try:
         cur = os.path.getmtime(filepath)
         if cur != last:
-            subprocess.Popen(cmd_parts)
             last = cur
+            print('-=' * 40)
+            subprocess.Popen(cmd_parts)
     except OSError:
         pass
 EOF
