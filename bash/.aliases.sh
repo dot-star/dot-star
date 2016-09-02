@@ -73,6 +73,7 @@ bak() {
         file "${new_filename}"
     fi
 }
+alias b="bak"
 
 c() {
     # clear, cd $dir, or $cat $filename [$filename ...]
