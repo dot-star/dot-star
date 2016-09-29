@@ -459,8 +459,12 @@ import sys
 import time
 
 filename = sys.argv[1]
+_, file_extension = os.path.splitext(filename)
 filepath = os.path.abspath(filename)
 cmd = sys.argv[2]
+if not cmd:
+    if file_extension == '.php':
+        cmd = 'php {0}'.format(filename)
 cmd_parts = shlex.split(cmd)
 
 last = cur = os.path.getmtime(filepath)
@@ -479,6 +483,7 @@ EOF
         python -c "${python_script}" "${filename}" "${cmd}"
     fi
 }
+alias wf="watch_file"
 
 checksum() {
     filename="${1}"
