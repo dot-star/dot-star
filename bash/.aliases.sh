@@ -465,6 +465,8 @@ cmd = sys.argv[2]
 if not cmd:
     if file_extension == '.php':
         cmd = 'php {0}'.format(filename)
+    elif file_extension == '.py':
+        cmd = 'python {0}'.format(filename)
 cmd_parts = shlex.split(cmd)
 
 last = cur = os.path.getmtime(filepath)
