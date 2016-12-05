@@ -40,8 +40,7 @@ alias push="rc_push"
 alias shallow_clone="git clone --depth 1"
 alias show="git_stash_show"
 alias st="rc_status"
-alias stash="git stash"
-alias stashu="git stash --include-untracked"
+alias stash="git_stash"
 alias tag="git tag"
 alias tags="git tag --list"
 
@@ -75,6 +74,17 @@ EOF
 git_ignore() {
     touch .gitignore
     vim .gitignore
+}
+
+git_stash() {
+    message="${1}"
+    if [ -z "${message}" ]; then
+        echo "message required"
+    else
+        set -x
+        git stash save --include-untracked "${message}"
+        set +x
+    fi
 }
 
 git_stash_apply() {
