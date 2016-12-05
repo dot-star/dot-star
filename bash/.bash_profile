@@ -19,6 +19,7 @@ source "ssh/.aliases.sh"
 source "vim/.aliases.sh"
 source "version_control/.aliases.sh"
 source "virtualenv/.aliases.sh"
+source "bash/.settings.sh"
 source "bash/.extra.sh"
 \cd "${CWD}"
 if is_ssh; then
