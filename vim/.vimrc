@@ -185,7 +185,7 @@ if has("gui_running")
 
   if has("gui_macvim")
     " MacVim Settings
-    set guifont=Consolas:h16
+    set guifont=Consolas:h16,Menlo:h16
 
     " Expand width in fullscreen.
     set fuoptions=maxvert,maxhorz
