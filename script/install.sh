@@ -5,43 +5,31 @@ set -x
 DOT_STAR_ROOT="$( dirname $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ))"
 [ ! -L "${HOME}/.dot-star" ] && ln -vs "${DOT_STAR_ROOT}/" "${HOME}/.dot-star"
 
-# Find existing bootstrap in bash profile.
-line_number=$(grep --line-number "# .dotstar bootstrap" "${HOME}/.bash_profile" | cut -d ":" -f "1")
-if [ ! -z "${line_number}" ]; then
-    # Remove installed bootstrap.
-    next_line_number="${line_number}"
-    (( next_line_number += 1 ))
-    sed -i "" "${line_number},${next_line_number}d" "${HOME}/.bash_profile" &> /dev/null
-    if [ ! $? -eq 0 ]; then
-        sed --in-place="" "${line_number},${next_line_number}d" "${HOME}/.bash_profile"
-    fi
-fi
+dotstar_header="# Begin dot-star bootstrap."
+dotstar_footer="# End dot-star bootstrap."
 
-# Add bootstrap to bash profile.
-echo "
-# .dotstar bootstrap
-if shopt -q login_shell; then
+# Remove any existing bootstrap in bash profile.
+sed -i "" "/${dotstar_header}/,/${dotstar_footer}/d" "${HOME}/.bash_profile" &> /dev/null
+
+# Add bootstrap header to bash profile.
+echo -e "${dotstar_header}" >> "$HOME/.bash_profile"
+
+echo "if shopt -q login_shell; then
     [[ -r ~/.bashrc ]] && source ~/.bashrc
 fi" >> "$HOME/.bash_profile"
 
-# Find existing bootstrap in bashrc.
-line_number=$(grep --line-number "# .dotstar bootstrap" "${HOME}/.bashrc" | cut -d ":" -f "1")
-if [ ! -z "${line_number}" ]; then
-    # Remove installed bootstrap.
-    next_line_number="${line_number}"
-    (( next_line_number += 1 ))
-    sed -i "" "${line_number},${next_line_number}d" "${HOME}/.bashrc" &> /dev/null
-    if [ ! $? -eq 0 ]; then
-        sed --in-place="" "${line_number},${next_line_number}d" "${HOME}/.bashrc"
-    fi
-fi
+# Remove any existing bootstrap in bashrc.
+sed -i "" "/${dotstar_header}/,/${dotstar_footer}/d" "${HOME}/.bashrc" &> /dev/null
 
-# Add bootstrap to bashrc.
-echo "
-# .dotstar bootstrap
-if shopt -q login_shell; then
+# Add bootstrap header to bashrc.
+echo -e "${dotstar_header}" >> "$HOME/.bashrc"
+
+echo "if shopt -q login_shell; then
     [[ -r ~/.dot-star/bash/.bash_profile ]] && source ~/.dot-star/bash/.bash_profile
 fi" >> "$HOME/.bashrc"
+
+# Add bootstrap footer to bashrc.
+echo -e "${dotstar_footer}" >> "$HOME/.bashrc"
 
 # Install inputrc.
 if [ ! -L "${HOME}/.inputrc" ]; then
@@ -53,7 +41,6 @@ if [ ! -L "${HOME}/.colordiffrc" ]; then
     ln -v -s "${DOT_STAR_ROOT}/colordiff/.colordiffrc" "${HOME}/.colordiffrc"
 fi
 
-# Disable IPython's "Do you really want to exit ([y]/n)?".
 install_ipython() {
     sudo easy_install pip
     pip install --upgrade pip
@@ -61,14 +48,21 @@ install_ipython() {
     brew install python
     pip install --user ipython
 
-    echo "# Add python binaries to PATH." >> ~/.bash_profile
-    echo -e "export PATH=$PATH:/Users/$(whoami)/Library/Python/2.7/bin\n\n" >> ~/.bash_profile
+    # Add python binaries to PATH.
+    echo -e "export PATH=$PATH:/Users/$(whoami)/Library/Python/2.7/bin" >> "${HOME}/.bash_profile"
 
+    # Disable IPython's "Do you really want to exit ([y]/n)?".
     export PATH="$PATH:/Users/$(whoami)/Library/Python/2.7/bin"
     ipython profile create
     sed --in-place --regexp-extended 's/# c.TerminalInteractiveShell.confirm_exit = True/c.TerminalInteractiveShell.confirm_exit = False/' ~/.ipython/profile_default/ipython_config.py
 }
 install_ipython
 
+# Add bootstrap footer to bash profile.
+echo -e "${dotstar_footer}" >> "$HOME/.bash_profile"
+
+# TODO: Consolidate post install script into install script.
 # Run post installation script.
 source "${DOT_STAR_ROOT}/script/post_install.sh"
+
+echo "install complete"

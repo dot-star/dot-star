@@ -387,7 +387,7 @@ EOF
 )
     if [ ! -z "${command}" ]; then
         echo "command: ${command}"
-        ${command} ${1}
+        ${command} "${1}"
     fi
 }
 
@@ -464,9 +464,11 @@ filepath = os.path.abspath(filename)
 cmd = sys.argv[2]
 if not cmd:
     if file_extension == '.php':
-        cmd = 'php {0}'.format(filename)
+        cmd = 'php "{0}"'.format(filename)
     elif file_extension == '.py':
-        cmd = 'python {0}'.format(filename)
+        cmd = 'python "{0}"'.format(filename)
+    elif file_extension == '.sh':
+        cmd = 'bash "{0}"'.format(filename)
 cmd_parts = shlex.split(cmd)
 
 last = cur = os.path.getmtime(filepath)
@@ -478,8 +480,8 @@ while True:
             last = cur
             print('-=' * 40)
             subprocess.Popen(cmd_parts)
-    except OSError:
-        pass
+    except OSError as e:
+        print('failed to get file modification time (%s)' % e.message)
 EOF
 )
         python -c "${python_script}" "${filename}" "${cmd}"
