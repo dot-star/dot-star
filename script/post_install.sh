@@ -11,6 +11,7 @@ git config --global color.ui true
 command -v brew > /dev/null || /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 
 # https://github.com/Homebrew/homebrew-core/blob/master/Formula/*.rb
+brew install colordiff
 brew install coreutils
 brew install diffutils
 brew install git
