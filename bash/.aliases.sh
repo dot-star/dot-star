@@ -470,6 +470,7 @@ if not cmd:
     elif file_extension == '.sh':
         cmd = 'bash "{0}"'.format(filename)
 cmd_parts = shlex.split(cmd)
+print(cmd)
 
 last = cur = os.path.getmtime(filepath)
 while True:
