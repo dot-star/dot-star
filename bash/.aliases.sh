@@ -506,3 +506,7 @@ checksum() {
     echo -e "\nsha512sum:"
     sha512sum "${filename}"
 }
+
+alias ipython="ipython --TerminalInteractiveShell.editing_mode=vi"
+alias ipy="ipython"
+alias py="python"
