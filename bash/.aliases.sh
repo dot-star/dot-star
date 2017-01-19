@@ -75,20 +75,21 @@ bak() {
 }
 alias b="bak"
 
-c() {
+conditional_c() {
     # clear, cd $dir, or $cat $filename [$filename ...]
     param_count="${#}"
-    # Call `clear' when no parameters are passed.
+    # Call `clear' when no parameters are passed (e.g. c).
     if [[ "${param_count}" -eq 0 ]]; then
         clear
-    # Call `cd $dir' when a single parameter is passed and it is a directory.
+    # Call `cd $dir' when a single parameter is passed and it is a directory (e.g. c ~/dir).
     elif [ "${param_count}" -eq 1 ] && [ -d "${1}" ]; then
         cd "${1}"
-    # Call `cat $filename [$filename ...]' when one or more parameters are passed.
+    # Call `cat $filename [$filename ...]' when one or more parameters are passed (e.g. c file1.log file2.log).
     else
         cat "${@}"
     fi
 }
+alias c="conditional_c"
 
 list_dirstack() {
     i=0
