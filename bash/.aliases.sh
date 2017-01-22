@@ -339,8 +339,12 @@ change_mac_address() {
 }
 
 difference() {
-    command='diff -u "'"${1}"'" "'"${2}"'" | colordiff | less -R'
-    echo "${command}"
+    if [ -t 1 ]; then
+        command='diff -u "'"${1}"'" "'"${2}"'" | colordiff | less -R'
+        echo "${command}"
+    else
+        command='diff -u "'"${1}"'" "'"${2}"'"'
+    fi
     eval $command
 }
 alias d="difference"
