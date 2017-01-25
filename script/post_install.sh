@@ -15,6 +15,7 @@ brew install colordiff
 brew install coreutils
 brew install diffutils
 brew install git
+brew install grep
 brew install homebrew/dupes/rsync
 brew install macvim --with-override-system-vim
 brew install wget
