@@ -219,6 +219,9 @@ if has("gui_running")
 
     " Expand width in fullscreen.
     set fuoptions=maxvert,maxhorz
+
+    " Resize splits when resizing window.
+    autocmd VimResized * wincmd =
   elseif has("gui_gtk2")
     " gVim Settings
     set guifont=Ubuntu\ Mono\ 12
