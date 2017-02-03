@@ -5,6 +5,12 @@ set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 Plugin 'VundleVim/Vundle.vim'
 Plugin 'vim-syntastic/syntastic'
+Plugin 'scrooloose/nerdtree'
+Plugin 'tpope/vim-surround'
+Plugin 'ctrlpvim/ctrlp.vim'
+Plugin 'vim-airline/vim-airline'
+Plugin 'vim-airline/vim-airline-themes'
+Plugin 'valloric/youcompleteme'
 call vundle#end()
 filetype plugin indent on
 " End Vundle
@@ -19,6 +25,8 @@ let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
 " End syntastic
+
+let g:airline#extensions#tabline#enabled = 1
 
 " Read the file as UTF-8.
 scriptencoding utf-8
