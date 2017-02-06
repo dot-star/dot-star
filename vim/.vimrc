@@ -28,6 +28,12 @@ let g:syntastic_check_on_wq = 0
 
 let g:airline#extensions#tabline#enabled = 1
 
+" Open CtrlP in new tabs.
+let g:ctrlp_prompt_mappings = {
+    \ 'AcceptSelection("e")': ['<c-t>'],
+    \ 'AcceptSelection("t")': ['<cr>', '<2-LeftMouse>'],
+    \ }
+
 " Read the file as UTF-8.
 scriptencoding utf-8
 
