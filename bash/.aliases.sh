@@ -340,10 +340,10 @@ change_mac_address() {
 
 difference() {
     if [ -t 1 ]; then
-        command='diff -u "'"${1}"'" "'"${2}"'" | colordiff | less -R'
+        command='diff --recursive --unified "'"${1}"'" "'"${2}"'" | colordiff | less -R'
         echo "${command}"
     else
-        command='diff -u "'"${1}"'" "'"${2}"'"'
+        command='diff --recursive --unified "'"${1}"'" "'"${2}"'"'
     fi
     eval $command
 }
