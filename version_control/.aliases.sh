@@ -195,7 +195,7 @@ rc_diff() {
         if is_g; then
             p4 diff
         else
-            \df $@
+            \df "${@}"
         fi
     fi
 }
