@@ -78,6 +78,11 @@ git_ignore() {
     vim .gitignore
 }
 
+git_reset_author() {
+    git commit --amend --reset-author
+}
+alias reset_author="git_reset_author"
+
 git_stash() {
     message="${1}"
     if [ -z "${message}" ]; then
