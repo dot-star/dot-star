@@ -414,6 +414,9 @@ EOF
             fi
         else
             file "${1}"
+            if [[ "${1}" == *.mp3 ]]; then
+                command -v ffmpeg >/dev/null 2>&1 && ffmpeg -i "${1}" 2>&1 | \grep "Duration: "
+            fi
         fi
     fi
 }
