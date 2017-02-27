@@ -6,3 +6,6 @@ shopt -s histappend
 
 # Match filename (globbing) in a case-insensitive fashion.
 shopt -s nocaseglob
+
+# Type only the directory name to change into the directory.
+shopt -s autocd
