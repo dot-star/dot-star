@@ -216,7 +216,7 @@ quit() {
     # Quit Terminal when the last tab is closed.
     if [ "$TERM_PROGRAM" == "Apple_Terminal" ]; then
         quit_terminal_when_no_terminals_remain() {
-            osascript -e 'tell application "Terminal" to if running and (count every tab of every window whose tty is not "'"$(tty)"'") is 0 then quit'
+            osascript -e 'tell application "Terminal" to if running and (count every tab of every window whose tty is not "'"$(tty)"'") is 0 then quit' &
         }
         trap quit_terminal_when_no_terminals_remain EXIT
     fi
@@ -456,9 +456,32 @@ watch_file() {
     filename="${1}"
     cmd="${2}"
     if [[ "${OSTYPE}" == "linux-gnu" ]]; then # Linux
+        python_script=$(cat <<'EOF'
+import os
+import pipes
+import sys
+
+filename = sys.argv[1]
+_, file_extension = os.path.splitext(filename)
+filepath = os.path.abspath(filename)
+cmd = sys.argv[2]
+if not cmd:
+    if file_extension == '.php':
+        cmd = 'php {0}'.format(pipes.quote(filename))
+    elif file_extension == '.py':
+        cmd = 'python {0}'.format(pipes.quote(filename))
+    elif file_extension == '.sh':
+        cmd = 'bash {0}'.format(pipes.quote(filename))
+print(cmd)
+EOF
+)
+        cmd=$(python -c "${python_script}" "${filename}" "${cmd}")
+        echo
         while inotifywait --event modify --quiet "${filename}"; do
+            printf -- '-=%.0s' {1..40}
+            echo
             if [ ! -z "${cmd}" ]; then
-                $cmd
+                bash -c "${cmd}"
             fi
         done
     elif [[ "${OSTYPE}" == "darwin"* ]]; then # OS X
@@ -492,7 +515,9 @@ while True:
         if cur != last:
             last = cur
             print('-=' * 40)
-            subprocess.Popen(cmd_parts)
+            proc = subprocess.Popen(cmd_parts)
+            proc.communicate()[0]
+            print(proc.returncode)
     except OSError as e:
         print('failed to get file modification time (%s)' % e.message)
 EOF
@@ -521,3 +546,20 @@ checksum() {
 alias ipython="ipython --TerminalInteractiveShell.editing_mode=vi"
 alias ipy="ipython"
 alias py="python"
+
+case_insensitive_search_edit() {
+  if [[ -z "${1}" ]]; then
+    return
+  fi
+  results=$(grep --dereference-recursive --files-with-matches --ignore-case "${1}" . "${@:2}")
+  result_count=$(echo "${results}" | wc --lines)
+  if [[ $result_count -gt 10 ]]; then
+    read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
+    if ! [[ $REPLY =~ ^[Yy]$ ]]; then
+      exit
+    fi
+  fi
+  files=$(echo "${results}" | tr '\n' ' ')
+  edit -p ${files}
+}
+alias se="case_insensitive_search_edit"

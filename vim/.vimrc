@@ -149,6 +149,7 @@ set splitright
 " Remove trailing spaces on save for certain file types.
 autocmd BufWritePre *.css :%s/\s\+$//e
 autocmd BufWritePre *.html :%s/\s\+$//e
+autocmd BufWritePre *.json :%s/\s\+$//e
 autocmd BufWritePre *.php :%s/\s\+$//e
 autocmd BufWritePre *.scss :%s/\s\+$//e
 autocmd BufWritePre *.sh :%s/\s\+$//e
@@ -221,7 +222,7 @@ if has("gui_running")
 
   if has("gui_macvim")
     " MacVim Settings
-    set guifont=Consolas:h16,Menlo:h16
+    set guifont=Roboto\ Mono:h16,Consolas:h16,Menlo:h16
 
     " Expand width in fullscreen.
     set fuoptions=maxvert,maxhorz
