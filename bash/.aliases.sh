@@ -488,6 +488,7 @@ EOF
         echo -e '\x1b[0;93mWARNING\x1b[0m: watch using polling'
 python_script=$(cat <<'EOF'
 import os
+import pipes
 import shlex
 import subprocess
 import sys
@@ -498,12 +499,14 @@ _, file_extension = os.path.splitext(filename)
 filepath = os.path.abspath(filename)
 cmd = sys.argv[2]
 if not cmd:
-    if file_extension == '.php':
-        cmd = 'php "{0}"'.format(filename)
+    if file_extension == '.js':
+        cmd = 'node {0}'.format(pipes.quote(filename))
+    elif file_extension == '.php':
+        cmd = 'php {0}'.format(pipes.quote(filename))
     elif file_extension == '.py':
-        cmd = 'python "{0}"'.format(filename)
+        cmd = 'python {0}'.format(pipes.quote(filename))
     elif file_extension == '.sh':
-        cmd = 'bash "{0}"'.format(filename)
+        cmd = 'bash {0}'.format(pipes.quote(filename))
 cmd_parts = shlex.split(cmd)
 print(cmd)
 
