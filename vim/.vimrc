@@ -28,6 +28,9 @@ let g:syntastic_check_on_wq = 0
 
 let g:airline#extensions#tabline#enabled = 1
 
+" Show hidden files in nerdtree.
+let g:NERDTreeShowHidden=1
+
 " Open CtrlP in new tabs.
 let g:ctrlp_prompt_mappings = {
     \ 'AcceptSelection("e")': ['<c-t>'],
