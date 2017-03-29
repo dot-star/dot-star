@@ -11,6 +11,7 @@ Plugin 'ctrlpvim/ctrlp.vim'
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
 Plugin 'valloric/youcompleteme'
+Plugin 'google/vim-searchindex'
 call vundle#end()
 filetype plugin indent on
 " End Vundle
