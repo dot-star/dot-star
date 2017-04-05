@@ -546,8 +546,12 @@ checksum() {
     sha512sum "${filename}"
 }
 
-alias ipython="ipython --TerminalInteractiveShell.editing_mode=vi"
-alias ipy="ipython"
+ipython_wrapper() {
+    ipython \
+        --TerminalInteractiveShell.confirm_exit=False \
+        --TerminalInteractiveShell.editing_mode=vi
+}
+alias ipy="ipython_wrapper"
 alias py="python"
 
 case_insensitive_search_edit() {

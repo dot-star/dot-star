@@ -54,7 +54,8 @@ install_ipython() {
     # Disable IPython's "Do you really want to exit ([y]/n)?".
     export PATH="$PATH:/Users/$(whoami)/Library/Python/2.7/bin"
     ipython profile create
-    sed --in-place --regexp-extended 's/# c.TerminalInteractiveShell.confirm_exit = True/c.TerminalInteractiveShell.confirm_exit = False/' ~/.ipython/profile_default/ipython_config.py
+    echo -e "c.TerminalInteractiveShell.confirm_exit = False\n" >> ~/.ipython/profile_default/ipython_config.py
+    echo -e "c.TerminalInteractiveShell.editor = 'vi'\n" >> ~/.ipython/profile_default/ipython_config.py
 }
 install_ipython
 
