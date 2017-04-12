@@ -440,15 +440,15 @@ serve_dir() {
     fi
 }
 
-file() {
+file_alias() {
     if [[ "${#}" -eq 1 ]]; then
-        # TODO: Add thousands separator to file size.
-        file_size=$(stat --printf="%s" "${1}")
+        file_size=$(printf "%'d" $(stat --printf="%s" "${1}"))
         echo "$($(which file) "${@}") (${file_size} bytes)"
     else
         echo "$($(which file) "${@}")"
     fi
 }
+alias file="file_alias"
 
 watch_file() {
     # Watch a file for changes and run a command.
