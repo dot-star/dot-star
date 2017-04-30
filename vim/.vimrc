@@ -27,6 +27,11 @@ let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
 " End syntastic
 
+" Custom Syntastic
+let g:syntastic_php_phpcs_args='--standard=PSR2'
+"let g:syntastic_php_phpcs_args='--standard=~/.config/phpcs/ruleset.xml'
+" End Custom Syntastic
+
 let g:airline#extensions#tabline#enabled = 1
 
 " Show hidden files in nerdtree.
