@@ -16,3 +16,4 @@ set visible-stats on
 
 # Use vi key bindings with readline compatible applications.
 set editing-mode vi
+set keymap vi

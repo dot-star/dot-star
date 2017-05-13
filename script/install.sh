@@ -55,6 +55,7 @@ install_ipython() {
     export PATH="$PATH:/Users/$(whoami)/Library/Python/2.7/bin"
     ipython profile create
     echo -e "c.TerminalInteractiveShell.confirm_exit = False\n" >> ~/.ipython/profile_default/ipython_config.py
+    echo -e "c.TerminalInteractiveShell.editing_mode = 'vi'\n" >> ~/.ipython/profile_default/ipython_config.py
     echo -e "c.TerminalInteractiveShell.editor = 'vi'\n" >> ~/.ipython/profile_default/ipython_config.py
 }
 install_ipython

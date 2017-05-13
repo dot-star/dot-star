@@ -549,7 +549,8 @@ checksum() {
 ipython_wrapper() {
     ipython \
         --TerminalInteractiveShell.confirm_exit=False \
-        --TerminalInteractiveShell.editing_mode=vi
+        --TerminalInteractiveShell.editing_mode=vi \
+        --TerminalInteractiveShell.editor=vi
 }
 alias ipy="ipython_wrapper"
 alias py="python"
