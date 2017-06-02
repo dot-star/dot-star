@@ -7,18 +7,20 @@ git config --global core.excludesfile "~/.gitignore"
 # Enable color in git.
 git config --global color.ui true
 
-# Install brew.
-command -v brew > /dev/null || /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+if [[ "${OSTYPE}" == "darwin"* ]]; then
+    # Install brew.
+    command -v brew > /dev/null || /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 
-# https://github.com/Homebrew/homebrew-core/blob/master/Formula/*.rb
-brew install colordiff
-brew install coreutils
-brew install diffutils
-brew install git
-brew install grep --with-default-names
-brew install homebrew/dupes/rsync
-brew install macvim --with-override-system-vim
-brew install wget
+    # https://github.com/Homebrew/homebrew-core/blob/master/Formula/*.rb
+    brew install colordiff
+    brew install coreutils
+    brew install diffutils
+    brew install git
+    brew install grep --with-default-names
+    brew install homebrew/dupes/rsync
+    brew install macvim --with-override-system-vim
+    brew install wget
+fi
 
 # Install diff highlight.
 wget https://raw.githubusercontent.com/git/git/master/contrib/diff-highlight/diff-highlight

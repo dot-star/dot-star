@@ -45,7 +45,9 @@ install_ipython() {
     sudo easy_install pip
     pip install --upgrade pip
 
-    brew install python
+    if [[ "${OSTYPE}" == "darwin"* ]]; then
+        brew install python
+    fi
     pip install --user ipython
 
     # Add python binaries to PATH.
