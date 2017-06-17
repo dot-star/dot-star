@@ -396,9 +396,9 @@ EOF
     fi
 }
 
-type() {
-    if [ ! -z "${1}" ]; then
-        response=$(command type "${1}")
+get_file_info() {
+    if [[ "${#}" -eq 1 ]]; then
+        response=$(command type "${1}" &> /dev/null)
         if [[ $? -eq 0 ]]; then
             cmd=$(cat <<EOF | python -
 import pipes
@@ -413,13 +413,27 @@ EOF
                 ${cmd}
             fi
         else
-            file "${1}"
+            file_size=$(printf "%'d" $(stat --printf="%s" "${1}"))
+            echo "$($(which file) "${1}") (${file_size} bytes)"
             if [[ "${1}" == *.mp3 ]]; then
-                command -v ffmpeg >/dev/null 2>&1 && ffmpeg -i "${1}" 2>&1 | \grep "Duration: "
+                # command -v ffmpeg >/dev/null 2>&1 && ffmpeg -i "${1}" 2>&1 | \grep "Duration: "
+
+                info=$(afinfo "${1}" | grep "estimated duration: ")
+                python - << EOF
+import datetime
+import re
+info = """${info}"""
+seconds = float(re.match('.*?(\d+\.\d+).*?', info).group(1))
+print(str(datetime.timedelta(seconds=round(seconds))))
+EOF
             fi
         fi
+    else
+        echo "$($(which file) "${@}")"
     fi
 }
+alias file="get_file_info"
+alias type="get_file_info"
 alias ty="type"
 
 is_ssh() {
@@ -440,15 +454,6 @@ serve_dir() {
     fi
 }
 
-file_alias() {
-    if [[ "${#}" -eq 1 ]]; then
-        file_size=$(printf "%'d" $(stat --printf="%s" "${1}"))
-        echo "$($(which file) "${@}") (${file_size} bytes)"
-    else
-        echo "$($(which file) "${@}")"
-    fi
-}
-alias file="file_alias"
 
 watch_file() {
     # Watch a file for changes and run a command.
