@@ -398,17 +398,20 @@ EOF
 
 get_file_info() {
     if [[ "${#}" -eq 1 ]]; then
-        response=$(command type "${1}" &> /dev/null)
+        response=$(command type "${1}")
         if [[ $? -eq 0 ]]; then
-            cmd=$(cat <<EOF | python -
+            script=$(cat <<"EOF"
 import pipes
 import re
+import sys
 
-match = re.match(r".* is aliased to \`([\w]+)'", """${response}""")
+response = sys.stdin.read().rstrip()
+match = re.match(r".* is aliased to `([\w]+)'", response)
 if match is not None:
     print 'builtin type {0}'.format(pipes.quote(match.group(1)))
 EOF
 )
+            cmd=$(echo "${response}" | python -c "${script}")
             if [ ! -z "${cmd}" ]; then
                 ${cmd}
             fi
@@ -434,7 +437,7 @@ EOF
 }
 alias file="get_file_info"
 alias type="get_file_info"
-alias ty="type"
+alias ty="get_file_info"
 
 is_ssh() {
     if [ -z "${SSH_CLIENT}" ]; then
