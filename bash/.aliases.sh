@@ -414,6 +414,8 @@ EOF
             cmd=$(echo "${response}" | python -c "${script}")
             if [ ! -z "${cmd}" ]; then
                 ${cmd}
+            else
+                echo "${response}"
             fi
         else
             file_size=$(printf "%'d" $(stat --printf="%s" "${1}"))
