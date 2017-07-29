@@ -30,8 +30,10 @@ alias runserver="_runserver true"
 alias rs="runserver"
 
 shell() {
-    python manage.py debugsqlshell 2> /dev/null
-    if [ ! $? -eq 0 ]; then
+    python manage.py help debugsqlshell &> /dev/null
+    if [ $? -eq 0 ]; then
+        python manage.py debugsqlshell
+    else
         python manage.py shell
     fi
 }
