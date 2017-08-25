@@ -5,4 +5,5 @@ if [[ $? -eq 0 ]]; then
     # coreutils_path=$(brew --prefix coreutils)
     coreutils_path="/usr/local/opt/coreutils"
     export PATH="${coreutils_path}/libexec/gnubin:${PATH}"
+    export MANPATH="${coreutils_path}/libexec/gnuman:${MANPATH}"
 fi
