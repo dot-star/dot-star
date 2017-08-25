@@ -412,7 +412,7 @@ EOF
 
 get_file_info() {
     if [[ "${#}" -eq 1 ]]; then
-        response=$(command type "${1}")
+        response=$(command type "${1}" 2> /dev/null)
         if [[ $? -eq 0 ]]; then
             script=$(cat <<"EOF"
 import pipes
