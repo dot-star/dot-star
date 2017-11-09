@@ -118,10 +118,7 @@ pushd() {
 #alias "cd"="pushd"
 
 edit() {
-  editor="${EDITOR}"
-  if is_ssh; then
-    editor="vim"
-  fi
+  editor="_vim"
   "${editor}" "${@}"
 }
 alias e="edit"
@@ -456,10 +453,12 @@ alias type="get_file_info"
 alias ty="get_file_info"
 
 is_ssh() {
-    if [ -z "${SSH_CLIENT}" ]; then
-        return 1
+    if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
+        # Using ssh.
+        return 0
     fi
-    return 0
+    # Not using ssh.
+    return 1
 }
 
 serve_dir() {
