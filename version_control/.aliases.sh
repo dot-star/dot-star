@@ -76,7 +76,14 @@ EOF
 }
 
 git_diff_last() {
-    git diff HEAD^ HEAD $@
+    # Display diff of last commit, optionally with a path.
+    response=$(git diff HEAD^ HEAD $@)
+    if [ -z "${response}" ]; then
+        # Display diff of last commit in current directory.
+        git diff $(git rev-list -2 HEAD . | perl -e 'print reverse <>') .
+    else
+        git diff HEAD^ HEAD $@
+    fi
 }
 
 git_ignore() {
