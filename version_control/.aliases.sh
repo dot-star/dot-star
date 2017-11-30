@@ -22,7 +22,7 @@ alias commit="rc_commit"
 alias dcommit="git svn dcommit"
 alias default="rc_master"
 alias df="rc_diff"
-alias difflast="git diff HEAD^ HEAD"
+alias difflast="git_diff_last"
 alias drop="git_stash_drop"
 alias fetch="git fetch"
 alias filemode="git config core.filemode false"
@@ -73,6 +73,10 @@ EOF
     else
         v "${filename}"
     fi
+}
+
+git_diff_last() {
+    git diff HEAD^ HEAD $@
 }
 
 git_ignore() {
