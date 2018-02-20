@@ -142,9 +142,13 @@ alias o="_open"
 alias oo="_open ."
 
 fin() {
-    terminal-notifier -message "" -title "Done" 2> /dev/null
-    if [ $? -eq 127 ]; then
-        notify-send --expire-time=1000 "Done $(date)"
+    if [[ "${OSTYPE}" == "darwin"* ]]; then
+        osascript -e 'display notification "" with title "Done"'
+    else
+        terminal-notifier -message "" -title "Done" 2> /dev/null
+        if [ $? -eq 127 ]; then
+            notify-send --expire-time=1000 "Done $(date)"
+        fi
     fi
 }
 
