@@ -373,20 +373,30 @@ chmod() {
     fi
 }
 
-f() {
+find_files_by_keyword() {
+    interactive=false
+    if [ -t 1 ]; then
+        interactive=true
+    fi
+
     # Run fg when no parameters are passed, otherwise find files with path containing the specified keyword.
     if [ $# == 0 ]; then
         fg
     else
         keyword="${1}"
         if [[ -z "${keyword}" ]] ; then
-            echo "Search is empty"
+            if $interactive; then
+                echo "Search is empty"
+            fi
         else
-            echo "Searching paths and filenames containing \"*${keyword}*\":" | \grep --color --ignore-case "${keyword}"
+            if $interactive; then
+                echo "Searching paths and filenames containing \"*${keyword}*\":" | \grep --color --ignore-case "${keyword}"
+            fi
             find . -iname "*${keyword}*" | \grep --color --ignore-case "${keyword}"
         fi
     fi
 }
+alias f="find_files_by_keyword"
 
 
 un() {
@@ -449,7 +459,9 @@ EOF
             fi
         fi
     else
-        echo "$($(which file) "${@}")"
+        file_bin="$(which file)"
+        target_file="${@}"
+        "${file_bin}" "${target_file}"
     fi
 }
 alias file="get_file_info"
