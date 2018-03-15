@@ -528,6 +528,7 @@ EOF
 python_script=$(cat <<'EOF'
 import os
 import pipes
+import random
 import shlex
 import subprocess
 import sys
@@ -559,7 +560,10 @@ while True:
             print('-=' * 40)
             proc = subprocess.Popen(cmd_parts)
             proc.communicate()[0]
-            print(proc.returncode)
+            print('return code: %s' % proc.returncode)
+            print
+            time.sleep(1)
+            print(random.random())
     except OSError as e:
         print('failed to get file modification time (%s)' % e.message)
 EOF
