@@ -20,7 +20,7 @@ _vim() {
     if is_ssh; then
         \vim -p "$@"
     elif which "mvim" &> /dev/null; then
-        open -a MacVim "$@"
+        mvim --remote-tab-silent "$@"
     elif which "gvim" &> /dev/null; then
         xdotool=$(which xdotool)
         if [ -z "${xdotool}" ]; then
