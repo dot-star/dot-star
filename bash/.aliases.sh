@@ -188,19 +188,32 @@ alias si="case_insensitive_search"
 alias s="case_insensitive_search"
 
 case_insensitive_search_edit() {
-  if [[ -z "${1}" ]]; then
+  param_count="${#}"
+  if [[ "${param_count}" -eq 0 ]]; then
     return
-  fi
-  results=$(grep --dereference-recursive --files-with-matches --ignore-case "${1}" . "${@:2}")
-  result_count=$(echo "${results}" | wc --lines)
-  if [[ $result_count -gt 10 ]]; then
-    read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
-    if ! [[ $REPLY =~ ^[Yy]$ ]]; then
-      exit
+  else
+    # Search by keyword and edit (e.g. `se keyword').
+    if [[ "${param_count}" -eq 1 ]]; then
+      keyword="${1}"
+      results=$(grep --dereference-recursive --files-with-matches --ignore-case "${keyword}" . "${@:2}")
+    # Search by extension + keyword and edit (e.g. `se ext keyword').
+    elif [[ "${param_count}" -eq 2 ]]; then
+      extension="${1}"
+      keyword="${2}"
+      results=$(grep --dereference-recursive --files-with-matches --ignore-case --include="*.${extension}" "${keyword}" . "${@:3}")
     fi
+
+    result_count=$(echo "${results}" | wc --lines)
+    if [[ $result_count -gt 10 ]]; then
+      read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
+      if ! [[ $REPLY =~ ^[Yy]$ ]]; then
+        exit
+      fi
+    fi
+
+    files=$(echo "${results}" | tr '\n' ' ')
+    edit ${files}
   fi
-  files=$(echo "${results}" | tr '\n' ' ')
-  edit ${files}
 }
 alias se="case_insensitive_search_edit"
 
