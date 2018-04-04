@@ -187,6 +187,23 @@ case_insensitive_search() {
 alias si="case_insensitive_search"
 alias s="case_insensitive_search"
 
+case_insensitive_search_edit() {
+  if [[ -z "${1}" ]]; then
+    return
+  fi
+  results=$(grep --dereference-recursive --files-with-matches --ignore-case "${1}" . "${@:2}")
+  result_count=$(echo "${results}" | wc --lines)
+  if [[ $result_count -gt 10 ]]; then
+    read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
+    if ! [[ $REPLY =~ ^[Yy]$ ]]; then
+      exit
+    fi
+  fi
+  files=$(echo "${results}" | tr '\n' ' ')
+  edit ${files}
+}
+alias se="case_insensitive_search_edit"
+
 case_sensitive_search_python() {
   if [[ -z "${1}" ]]; then
     return
@@ -597,20 +614,3 @@ ipython_wrapper() {
 }
 alias ipy="ipython_wrapper"
 alias py="python"
-
-case_insensitive_search_edit() {
-  if [[ -z "${1}" ]]; then
-    return
-  fi
-  results=$(grep --dereference-recursive --files-with-matches --ignore-case "${1}" . "${@:2}")
-  result_count=$(echo "${results}" | wc --lines)
-  if [[ $result_count -gt 10 ]]; then
-    read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
-    if ! [[ $REPLY =~ ^[Yy]$ ]]; then
-      exit
-    fi
-  fi
-  files=$(echo "${results}" | tr '\n' ' ')
-  edit ${files}
-}
-alias se="case_insensitive_search_edit"
