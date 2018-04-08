@@ -404,9 +404,10 @@ chmod() {
 }
 
 find_files_by_keyword() {
-    interactive=false
     if [ -t 1 ]; then
         interactive=true
+    else
+        interactive=false
     fi
 
     # Run fg when no parameters are passed, otherwise find files with path containing the specified keyword.
