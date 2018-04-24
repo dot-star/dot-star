@@ -32,6 +32,7 @@ let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
+let g:syntastic_loc_list_height=3
 " End syntastic
 
 " Custom Syntastic
@@ -40,6 +41,10 @@ let g:syntastic_php_phpcs_args='--standard=PSR2'
 " End Custom Syntastic
 
 let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#left_sep = ' '
+let g:airline#extensions#tabline#left_alt_sep = '|'
+let g:airline_theme='luna'
+set laststatus=2
 
 " Show hidden files in nerdtree.
 let g:NERDTreeShowHidden=1
