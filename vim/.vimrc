@@ -1,3 +1,4 @@
+" Install plugins by running :PluginInstall inside vim.
 " Begin Vundle
 set nocompatible
 filetype off
@@ -10,7 +11,13 @@ Plugin 'tpope/vim-surround'
 Plugin 'ctrlpvim/ctrlp.vim'
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
+
+" Install:
+"   $ cd ~/.vim/bundle/youcompleteme
+"   $ git submodule update --init --recursive (Fixes: "error: unrecognized arguments: --js-completer")
+"   $ ./install.py --js-completer
 Plugin 'valloric/youcompleteme'
+
 Plugin 'google/vim-searchindex'
 call vundle#end()
 filetype plugin indent on
