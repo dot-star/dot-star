@@ -10,7 +10,6 @@ Plugin 'scrooloose/nerdtree'
 Plugin 'tpope/vim-surround'
 Plugin 'ctrlpvim/ctrlp.vim'
 Plugin 'vim-airline/vim-airline'
-Plugin 'vim-airline/vim-airline-themes'
 
 " Install:
 "   $ cd ~/.vim/bundle/youcompleteme
@@ -40,10 +39,6 @@ let g:syntastic_php_phpcs_args='--standard=PSR2'
 "let g:syntastic_php_phpcs_args='--standard=~/.config/phpcs/ruleset.xml'
 " End Custom Syntastic
 
-let g:airline#extensions#tabline#enabled = 1
-let g:airline#extensions#tabline#left_sep = ' '
-let g:airline#extensions#tabline#left_alt_sep = '|'
-let g:airline_theme='luna'
 set laststatus=2
 
 " Show hidden files in nerdtree.
