@@ -173,6 +173,10 @@ autocmd BufWritePre *.txt :%s/\s\+$//e
 
 highlight BadWhitespace ctermbg=red guibg=red
 
+" Sass
+autocmd BufRead,BufNewFile *.scss set tabstop=4
+autocmd BufRead,BufNewFile *.scss set shiftwidth=4
+
 " JavaScript
 autocmd BufRead,BufNewFile *.js set expandtab
 autocmd BufRead,BufNewFile *.js set tabstop=4

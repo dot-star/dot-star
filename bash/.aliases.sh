@@ -414,6 +414,7 @@ find_files_by_keyword() {
     if [ $# == 0 ]; then
         fg
     else
+        # Find files by keyword.
         keyword="${1}"
         if [[ -z "${keyword}" ]] ; then
             if $interactive; then
@@ -536,7 +537,10 @@ _, file_extension = os.path.splitext(filename)
 filepath = os.path.abspath(filename)
 cmd = sys.argv[2]
 if not cmd:
-    if file_extension == '.php':
+
+    if file_extension == '.js':
+        cmd = 'node {0}'.format(pipes.quote(filename))
+    elif file_extension == '.php':
         cmd = 'php {0}'.format(pipes.quote(filename))
     elif file_extension == '.py':
         cmd = 'python {0}'.format(pipes.quote(filename))
