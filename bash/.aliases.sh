@@ -403,7 +403,7 @@ chmod() {
     fi
 }
 
-find_files_by_keyword() {
+conditional_f() {
     if [ -t 1 ]; then
         interactive=true
     else
@@ -428,8 +428,7 @@ find_files_by_keyword() {
         fi
     fi
 }
-alias f="find_files_by_keyword"
-
+alias f="conditional_f"
 
 un() {
     command=$(cat <<EOF | python -
@@ -631,3 +630,20 @@ ipython_wrapper() {
 }
 alias ipy="ipython_wrapper"
 alias py="python"
+
+case_insensitive_search_edit() {
+  if [[ -z "${1}" ]]; then
+    return
+  fi
+  results=$(grep --dereference-recursive --files-with-matches --ignore-case "${1}" . "${@:2}")
+  result_count=$(echo "${results}" | wc --lines)
+  if [[ $result_count -gt 10 ]]; then
+    read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
+    if ! [[ $REPLY =~ ^[Yy]$ ]]; then
+      exit
+    fi
+  fi
+  files=$(echo "${results}" | tr '\n' ' ')
+  edit -p ${files}
+}
+alias se="case_insensitive_search_edit"

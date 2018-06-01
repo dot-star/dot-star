@@ -175,6 +175,7 @@ highlight BadWhitespace ctermbg=red guibg=red
 
 " Sass
 autocmd BufRead,BufNewFile *.scss set tabstop=4
+autocmd BufRead,BufNewFile *.scss set softtabstop=4
 autocmd BufRead,BufNewFile *.scss set shiftwidth=4
 
 " JavaScript
