@@ -27,7 +27,7 @@ extensions() {
         fi
     done
 }
-alias ext="extensions"
+alias exts="extensions"
 alias library="cd ~/Library"
 alias lib="library"
 alias movies="cd ~/Movies"

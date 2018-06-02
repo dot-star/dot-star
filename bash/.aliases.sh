@@ -647,3 +647,51 @@ case_insensitive_search_edit() {
   edit -p ${files}
 }
 alias se="case_insensitive_search_edit"
+
+edit_extension_files() {
+    files_to_edit=""
+
+    # Open background.js.
+    content_script_results=$(find . -iname "background.js" | head -1)
+    if [[ ! -z "${content_script_results}" ]]; then
+        echo "content_script_results: ${content_script_results}"
+        files_to_edit+=" ${content_script_results}"
+    fi
+
+    # Open content_script.js.
+    content_script_results=$(find . -iname "content_script.js" | head -1)
+    if [[ ! -z "${content_script_results}" ]]; then
+        echo "content_script_results: ${content_script_results}"
+        files_to_edit+=" ${content_script_results}"
+    fi
+
+    # Open style.scss or style.css in a child directory.
+    style_results=$(find . -iname "style.scss" | head -1)
+    scss_found=false
+    if [[ -z "${style_results}" ]]; then
+        style_results=$(find . -iname "style.css" | head -1)
+    else
+        scss_found=true
+    fi
+    if [[ ! -z "${style_results}" ]]; then
+        echo "style_results: ${style_results}"
+        files_to_edit+=" ${style_results}"
+    fi
+
+    # Open style.scss or style.css in a child directory.
+    manifest_results=$(find . -iname "manifest.json" | head -1)
+    if [[ ! -z "${manifest_results}" ]]; then
+        echo "manifest_results: ${manifest_results}"
+        files_to_edit+=" ${manifest_results}"
+    fi
+
+    echo "${files_to_edit}"
+    edit ${files_to_edit}
+
+    if $scss_found; then
+        echo "running sasswatch"
+        dir="$(dirname "${style_results}")/"
+        sasswatch "${dir}style.scss:${dir}style.css"
+    fi
+}
+alias ext="edit_extension_files"
