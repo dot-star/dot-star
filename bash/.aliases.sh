@@ -318,11 +318,19 @@ large_files() {
 alias large="large_files"
 
 slugify() {
-    cat <<EOF | python -
+    stdin="${1}"
+    if [[ -z "${1}" ]]; then
+        read stdin
+    fi
+    script="
 import re
-value = re.sub('[^\w\s\.-]', '', '${1}').strip().lower()
+import sys
+
+input = sys.stdin.read().rstrip()
+value = re.sub('[^\w\s\.-]', '', input).strip().lower()
 print re.sub('[-\s]+', '-', value)
-EOF
+"
+    echo "${stdin}" | python -c "${script}"
 }
 alias slug="slugify"
 
