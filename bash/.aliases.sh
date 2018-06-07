@@ -172,7 +172,8 @@ alias ss="case_sensitive_search"
 case_insensitive_search() {
   param_count="${#}"
   if [[ "${param_count}" -eq 0 ]]; then
-    return
+    # Show version control status when no parameters are passed.
+    rc_status
   # Search by keyword (e.g. `s keyword').
   elif [[ "${param_count}" -eq 1 ]]; then
     keyword="${1}"
