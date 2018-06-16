@@ -12,7 +12,36 @@ installation
 
 examples
 --------
-Examples are in the [demo](https://github.com/dot-star/dot-star/blob/master/DEMO.md).
+
+# Search for files by file name
+
+    $ f filter
+    Searching paths and filenames containing "*filter*":
+    ./admin/static/admin/js/SelectFilter2.js
+    ./admin/templates/admin/filter.html
+    ./admin/filters.py
+    ./admindocs/templates/admin_doc/template_filter_index.html
+
+# Search for files containing text
+
+    $ s "admin.ModelAdmin"
+    ./admin.py:26:class GroupAdmin(admin.ModelAdmin):
+    ./admin.py:41:class UserAdmin(admin.ModelAdmin):
+
+# Search for files containing text and edit
+
+    $ se "admin.ModelAdmin"
+    (file admin.py contains search keyword and is opened)
+
+# Case-sensitive search for files containing text
+
+    $ ss keyword
+
+# Song duration added to `file' command
+
+    $ file "Out of it All by Helen Jane Long.mp3"
+    Out of it All by Helen Jane Long.mp3: Audio file with ID3 version 2.4.0, contains:MPEG ADTS, layer III, v2, 160 kbps, 22.05 kHz, Monaural (4,832,126 bytes)
+    0:04:38
 
 update
 ------
@@ -26,7 +55,6 @@ compatibility
 -------------
 - OS X
 - Ubuntu
-- Red Hat Enterprise Linux
 
 mission
 -------
