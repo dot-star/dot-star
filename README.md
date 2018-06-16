@@ -10,6 +10,41 @@
 
 ## Examples
 
+### List folders and files in current directory
+
+    $ l
+
+### List folders and files in a tree-like format (using the `tree' command)
+
+    $ t
+
+### Run a smarter git diff
+
+    $ df
+
+### Run `git add --patch'
+
+    $ addp
+
+### Go up one directory
+
+    $ ..
+
+### Go up two directories
+
+    $ ...
+
+### Go up more directories
+
+    $ ....
+    $ .....
+    $ ......
+
+### Backup a file
+
+    $ b script.py
+    'script.py' -> 'script_2018-06-16_000000.py'
+
 ### Search for files by file name
 
     $ f filter
@@ -18,6 +53,40 @@
     ./admin/templates/admin/filter.html
     ./admin/filters.py
     ./admindocs/templates/admin_doc/template_filter_index.html
+
+### View git status
+
+    $ s
+    git status
+    On branch master
+    Your branch is up to date with 'origin/master'.
+
+    nothing to commit, working tree clean
+
+### View last git diff
+
+    $ difflast
+
+### View git log
+
+    $ log
+
+### List git stashes
+
+    $ list
+    stash@{0}: On master: work in progress
+
+### Show a git stash
+
+    $ show 0
+
+### Run git pull
+
+    $ pull
+
+### Open the current directory
+
+    $ oo
 
 ### Search for files containing text
 
