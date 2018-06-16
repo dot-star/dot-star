@@ -653,7 +653,7 @@ case_insensitive_search_edit() {
     fi
   fi
   files=$(echo "${results}" | tr '\n' ' ')
-  edit -p ${files}
+  edit ${files}
 }
 alias se="case_insensitive_search_edit"
 
