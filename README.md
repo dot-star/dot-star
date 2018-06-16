@@ -1,8 +1,6 @@
-dot-star
-========
+# dot-star
 
-installation
-------------
+## Install
 
     mkdir -p ~/Projects
     cd ~/Projects
@@ -10,10 +8,9 @@ installation
     cd dot-star
     ./install.sh
 
-examples
---------
+## Examples
 
-# Search for files by file name
+### Search for files by file name
 
     $ f filter
     Searching paths and filenames containing "*filter*":
@@ -22,40 +19,38 @@ examples
     ./admin/filters.py
     ./admindocs/templates/admin_doc/template_filter_index.html
 
-# Search for files containing text
+### Search for files containing text
 
     $ s "admin.ModelAdmin"
     ./admin.py:26:class GroupAdmin(admin.ModelAdmin):
     ./admin.py:41:class UserAdmin(admin.ModelAdmin):
 
-# Search for files containing text and edit
+### Search for files containing text and edit
 
     $ se "admin.ModelAdmin"
     (file admin.py contains search keyword and is opened)
 
-# Case-sensitive search for files containing text
+### Case-sensitive search for files containing text
 
     $ ss keyword
 
-# Song duration added to `file' command
+### Song duration added to `file' command
 
     $ file "Out of it All by Helen Jane Long.mp3"
     Out of it All by Helen Jane Long.mp3: Audio file with ID3 version 2.4.0, contains:MPEG ADTS, layer III, v2, 160 kbps, 22.05 kHz, Monaural (4,832,126 bytes)
     0:04:38
 
-update
-------
+## Update
 
     dotstar
     ./update.sh
 
 The installation and update may be run repeatedly. Neither action will remove nor overwrite files outside the dotstar directory.
 
-compatibility
--------------
-- OS X
+## Compatibility
+- Mac
 - Ubuntu
 
-mission
--------
+## Mission
+
     There should be one-- and preferably only one --command to do it.
