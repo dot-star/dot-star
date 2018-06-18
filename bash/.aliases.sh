@@ -8,6 +8,7 @@ alias 755="chmod 755"
 alias 777="chmod 777"
 
 _ls(){
+    extra_args="${@}"
     clear
     if ls --color > /dev/null 2>&1; then
         # GNU `ls`. Available with `brew install coreutils'.
@@ -31,6 +32,7 @@ _ls(){
             -X \
             -l \
             -v \
+            ${extra_args} \
             2> /dev/null
 
         if [[ $? -ne 0 ]]; then
@@ -52,11 +54,12 @@ _ls(){
                 --time-style=local \
                 -X \
                 -l \
-                -v
+                -v \
+                ${extra_args}
         fi
     else
         # OS X `ls`
-        ls -a -l -F -G
+        ls -a -l -F -G ${extra_args}
     fi
 }
 
