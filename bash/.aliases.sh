@@ -707,3 +707,17 @@ edit_extension_files() {
     fi
 }
 alias ext="edit_extension_files"
+
+conditional_d() {
+    # Diff when 2 parameters are specified and they both are either files or directories.
+    if [ "${#}" -eq 2 ] && [ -e "${1}" ] && [ -e "${2}" ]; then
+        difference "${1}" "${2}"
+    # Run version control diff when no parameters are specified.
+    elif is_git; then
+        rc_diff $@
+    # Otherwise, run Docker.
+    else
+        docker "${@}"
+    fi
+}
+alias d="conditional_d"
