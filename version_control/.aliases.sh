@@ -77,12 +77,15 @@ EOF
 
 git_diff_last() {
     # Display diff of last commit, optionally with a path.
-    response=$(git diff HEAD^ HEAD $@)
-    if [ -z "${response}" ]; then
-        # Display diff of last commit in current directory.
-        git diff $(git rev-list -2 HEAD . | perl -e 'print reverse <>') .
+    clear
+
+    if [[ -z "${1}" ]]; then
+        # Display last diff of project when path is not specified.
+        git log --max-count=1 --patch
     else
-        git diff HEAD^ HEAD $@
+        # Display last diff of path when path is specified.
+        path="${1}"
+        git log --max-count=1 --patch "${path}"
     fi
 }
 
