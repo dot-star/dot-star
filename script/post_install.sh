@@ -14,6 +14,12 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     # https://github.com/Homebrew/homebrew-core/blob/master/Formula/*.rb
     brew install colordiff
     brew install coreutils
+
+    brew install diff-so-fancy
+    git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
+    git config --global --bool diff-so-fancy.markEmptyLines false
+    git config --global --bool diff-so-fancy.stripLeadingSymbols false
+
     brew install diffutils
     brew install git
     brew install grep --with-default-names
