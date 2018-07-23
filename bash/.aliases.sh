@@ -64,16 +64,27 @@ _ls(){
 }
 
 bak() {
-    filename="${1}"
-    extension=$(basename "${filename##*.}")
-    base_filename="${filename%.*}"
-    timestamp=$(date +"%Y-%m-%d_%H%I%S")
-    new_filename="${base_filename}_${timestamp}.${extension}"
-    if [[ ! -f "${new_filename}" ]]; then
-        cp --interactive --verbose "${filename}" "${new_filename}"
+    source="${1}"
+    if [[ -f "${source}" ]]; then
+        # Source is a file.
+        filename="${source}"
+        extension=$(basename "${filename##*.}")
+        base_filename="${filename%.*}"
+        timestamp=$(date +"%Y-%m-%d_%H%I%S")
+        new_filename="${base_filename}_${timestamp}.${extension}"
+        if [[ ! -f "${new_filename}" ]]; then
+            cp --interactive --verbose "${filename}" "${new_filename}"
+        else
+            echo "destination \"${new_filename}\" exists"
+            file "${new_filename}"
+        fi
+    elif [[ -d "${source}" ]]; then
+        # Source is a directory.
+        echo "Error: backup of directory not yet implemented."
+        exit 2
     else
-        echo "destination \"${new_filename}\" exists"
-        file "${new_filename}"
+        echo "Error: source is not a file or directory."
+        exit 1
     fi
 }
 alias b="bak"
