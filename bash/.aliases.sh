@@ -65,12 +65,12 @@ _ls(){
 
 bak() {
     source="${1}"
+    timestamp=$(date +"%Y-%m-%d_%H%I%S")
     if [[ -f "${source}" ]]; then
         # Source is a file.
         filename="${source}"
         extension=$(basename "${filename##*.}")
         base_filename="${filename%.*}"
-        timestamp=$(date +"%Y-%m-%d_%H%I%S")
         new_filename="${base_filename}_${timestamp}.${extension}"
         if [[ ! -f "${new_filename}" ]]; then
             cp --interactive --verbose "${filename}" "${new_filename}"
@@ -80,8 +80,14 @@ bak() {
         fi
     elif [[ -d "${source}" ]]; then
         # Source is a directory.
-        echo "Error: backup of directory not yet implemented."
-        exit 2
+        folder_name="${source%/}"
+        new_folder_name="${folder_name}_${timestamp}"
+        if [[ ! -d "${new_folder_name}" ]]; then
+            cp --interactive --recursive --verbose "${folder_name}" "${new_folder_name}"
+        else
+            echo "destination \"${new_folder_name}\" exists"
+            file "${new_folder_name}"
+        fi
     else
         echo "Error: source is not a file or directory."
         exit 1
