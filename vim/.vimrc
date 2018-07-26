@@ -202,6 +202,11 @@ autocmd BufRead,BufNewFile *.py,*.pyw match BadWhitespace /\s\+$/
 autocmd         BufNewFile *.py,*.pyw set fileformat=unix
 autocmd BufRead,BufNewFile *.py,*.pyw let b:comment_leader = '#'
 
+" YAML
+autocmd BufRead,BufNewFile *.yaml,*.yml set tabstop=2
+autocmd BufRead,BufNewFile *.yaml,*.yml set softtabstop=2
+autocmd BufRead,BufNewFile *.yaml,*.yml set shiftwidth=2
+
 function! <SID>PythonSave()
     " Check python syntax.
     let tmpfile = tempname()
