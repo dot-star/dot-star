@@ -65,7 +65,7 @@ _ls(){
 
 bak() {
     source="${1}"
-    timestamp=$(date +"%Y-%m-%d_%H%I%S")
+    timestamp=$(date +"%Y-%m-%d_%H%M%S")
     if [[ -f "${source}" ]]; then
         # Source is a file.
         filename="${source}"
