@@ -15,7 +15,9 @@ Plugin 'vim-airline/vim-airline'
 "   $ cd ~/.vim/bundle/youcompleteme
 "   $ git submodule update --init --recursive (Fixes: "error: unrecognized arguments: --js-completer")
 "   $ ./install.py --js-completer
-Plugin 'valloric/youcompleteme'
+if has("gui_running")
+  Plugin 'valloric/youcompleteme'
+endif
 
 Plugin 'google/vim-searchindex'
 call vundle#end()
