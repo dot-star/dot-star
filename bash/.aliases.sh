@@ -460,6 +460,27 @@ conditional_f() {
 }
 alias f="conditional_f"
 
+find_and_edit() {
+    param_count="${#}"
+    if [[ "${param_count}" -eq 0 ]]; then
+        return
+    else
+        # Find files by keyword and edit (e.g. `fe keyword').
+        keyword="${1}"
+        results=$(find . -iname "*${keyword}*" -type "file")
+        result_count=$(echo "${results}" | wc --lines)
+        if [[ $result_count -gt 10 ]]; then
+            read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
+            if ! [[ $REPLY =~ ^[Yy]$ ]]; then
+                exit
+            fi
+        fi
+        files=$(echo "${results}" | tr '\n' ' ')
+        edit ${files}
+    fi
+}
+alias fe="find_and_edit"
+
 un() {
     command=$(cat <<EOF | python -
 import os
