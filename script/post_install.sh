@@ -26,6 +26,10 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     brew install homebrew/dupes/rsync
     brew install macvim --with-override-system-vim
     brew install wget
+
+    # Install command-line fuzzy finder with key bindings and fuzzy completion.
+    brew install fzf
+    $(brew --prefix)/opt/fzf/install
 fi
 
 # Install diff highlight.
