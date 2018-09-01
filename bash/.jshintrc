@@ -1,3 +1,4 @@
 {
-  "-W018": false
+  "-W018": false,
+  "esversion": 6
 }
