@@ -576,6 +576,8 @@ watch_file() {
     # Usage: watch_file file_to_watch.log "bash file_changed.sh"
     filename="${1}"
     cmd="${2}"
+    # TODO: Use os.get_terminal_size() to get terminal size available in python 3.
+    cols=$(tput cols)
     if [[ "${OSTYPE}" == "linux-gnu" ]]; then # Linux
         python_script=$(cat <<'EOF'
 import os
@@ -601,7 +603,7 @@ EOF
         cmd=$(python -c "${python_script}" "${filename}" "${cmd}")
         echo
         while inotifywait --event modify --quiet "${filename}"; do
-            printf -- '-=%.0s' {1..40}
+            printf -- '-=%.0s' $(eval echo {1.."${cols}"})
             echo
             if [ ! -z "${cmd}" ]; then
                 bash -c "${cmd}"
@@ -610,6 +612,7 @@ EOF
     elif [[ "${OSTYPE}" == "darwin"* ]]; then # OS X
         echo -e '\x1b[0;93mWARNING\x1b[0m: watch using polling'
 python_script=$(cat <<'EOF'
+import math
 import os
 import pipes
 import random
@@ -617,6 +620,9 @@ import shlex
 import subprocess
 import sys
 import time
+
+cols = int(sys.stdin.read().rstrip())
+separator = '-=' * int(math.floor(cols / 2))
 
 filename = sys.argv[1]
 _, file_extension = os.path.splitext(filename)
@@ -641,7 +647,7 @@ while True:
         cur = os.path.getmtime(filepath)
         if cur != last:
             last = cur
-            print('-=' * 40)
+            print(separator)
             proc = subprocess.Popen(cmd_parts)
             proc.communicate()[0]
             print('return code: %s' % proc.returncode)
@@ -652,7 +658,7 @@ while True:
         print('failed to get file modification time (%s)' % e.message)
 EOF
 )
-        python -c "${python_script}" "${filename}" "${cmd}"
+        echo "${cols}" | python -c "${python_script}" "${filename}" "${cmd}"
     fi
 }
 alias wf="watch_file"
