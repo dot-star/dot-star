@@ -48,7 +48,7 @@ alias show="git_stash_show"
 alias st="rc_status"
 alias stash="git_stash"
 alias tag="git tag"
-alias tags="git tag --list"
+alias tags="git tag --list | sort --version-sort"
 
 git_config() {
     filename=$(cat <<EOF | python -
