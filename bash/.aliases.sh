@@ -189,6 +189,36 @@ case_sensitive_search() {
 }
 alias ss="case_sensitive_search"
 
+case_sensitive_search_edit() {
+  param_count="${#}"
+  if [[ "${param_count}" -eq 0 ]]; then
+    return
+  else
+    # Search by keyword and edit (e.g. `sse keyword').
+    if [[ "${param_count}" -eq 1 ]]; then
+      keyword="${1}"
+      results=$(grep --dereference-recursive --files-with-matches "${keyword}" . "${@:2}")
+    # Search by extension + keyword and edit (e.g. `sse ext keyword').
+    elif [[ "${param_count}" -eq 2 ]]; then
+      extension="${1}"
+      keyword="${2}"
+      results=$(grep --dereference-recursive --files-with-matches --include="*.${extension}" "${keyword}" . "${@:3}")
+    fi
+
+    result_count=$(echo "${results}" | wc --lines)
+    if [[ $result_count -gt 10 ]]; then
+      read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
+      if ! [[ $REPLY =~ ^[Yy]$ ]]; then
+        exit
+      fi
+    fi
+
+    files=$(echo "${results}" | tr '\n' ' ')
+    edit ${files}
+  fi
+}
+alias sse="case_sensitive_search_edit"
+
 case_insensitive_search() {
   param_count="${#}"
   if [[ "${param_count}" -eq 0 ]]; then
