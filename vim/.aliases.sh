@@ -3,7 +3,8 @@
 _vim() {
     # FIXME: Only proceed to open files that exist or were created. (e.g. $ v foo File "foo.txt" doesn't exist. Create
     # file? n The file /path/to/foo.txt does not exist.)
-    for filename in "${@}"; do
+    files="${@}"
+    for filename in "${files}"; do
         # Not (exists and is a directory).
         if [[ ! -d "${filename}" ]]; then
             # Not (file exists).
@@ -18,12 +19,12 @@ _vim() {
     done
 
     if is_ssh; then
-        \vim -p "$@"
+        \vim -p "${files}"
     elif which "mvim" &> /dev/null; then
         if [[ $# -eq 0 ]]; then
             mvim
         else
-            mvim --remote-tab-silent "$@"
+            mvim --remote-tab-silent "${files}"
         fi
     elif which "gvim" &> /dev/null; then
         xdotool=$(which xdotool)
@@ -36,9 +37,9 @@ _vim() {
           fi
         fi
 
-        (gvim -f -p --remote-tab-silent "$@" &> /dev/null &)
+        (gvim -f -p --remote-tab-silent "${files}" &> /dev/null &)
     else
-        \vim -p "$@"
+        \vim -p "${files}"
     fi
 }
 
