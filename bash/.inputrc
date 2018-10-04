@@ -5,11 +5,6 @@ set completion-ignore-case on
 set show-all-if-ambiguous on
 set show-all-if-unmodified on
 
-# Use the text that has been typed as the prefix for searching up and down
-# through commands in the history.
-"\e[B": history-search-forward
-"\e[A": history-search-backward
-
 # Append a character denoting a file's type to the filename when listing
 # possible completions. Like `ls -F'.
 set visible-stats on
