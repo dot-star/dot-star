@@ -192,6 +192,11 @@ autocmd         BufNewFile *.js set fileformat=unix
 autocmd BufRead,BufNewFile *.js let b:comment_leader = '//'
 autocmd BufWritePre        *.js :%s/\s\+$//e
 
+" PHP
+autocmd BufRead,BufNewFile *.php set tabstop=4
+autocmd BufRead,BufNewFile *.php set softtabstop=4
+autocmd BufRead,BufNewFile *.php set shiftwidth=4
+
 " Python, PEP-008 except textwidth.
 autocmd BufRead,BufNewFile *.py,*.pyw set expandtab
 autocmd BufRead,BufNewFile *.py,*.pyw set textwidth=120
