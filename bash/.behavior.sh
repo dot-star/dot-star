@@ -22,5 +22,7 @@ shopt -s autocd
 #   $ bind -P | grep "history-search-"
 #   history-search-backward is not bound to any keys
 #   history-search-forward is not bound to any keys
-bind '"\e[A": history-search-backward'
-bind '"\e[B": history-search-forward'
+if is_interactive_shell; then
+    bind '"\e[A": history-search-backward'
+    bind '"\e[B": history-search-forward'
+fi

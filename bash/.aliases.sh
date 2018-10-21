@@ -1,5 +1,9 @@
 # Shortcuts
 
+is_interactive_shell() {
+    [[ "$-" =~ "i" ]]
+}
+
 alias 600="chmod 600"
 alias 644="chmod 644"
 alias 700="chmod 700"
