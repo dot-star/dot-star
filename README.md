@@ -22,6 +22,12 @@
 
     $ df
 
+### Set clipboard
+
+    $ pwd | clipboard
+    $ pwd | clip
+    $ cat file.txt | c
+
 ### Run `git add --patch'
 
     $ addp
@@ -40,10 +46,14 @@
     $ .....
     $ ......
 
-### Backup a file
+### Backup a file or directory
 
     $ b script.py
     'script.py' -> 'script_2018-06-16_000000.py'
+
+    $ b project/
+    'project' -> 'project_2018-06-16_000000'
+    'project/README.md' -> 'project_2018-06-16_000000/README.md'
 
 ### Search for files by file name
 
@@ -111,8 +121,8 @@
 
 ## Update
 
-    dotstar
-    ./update.sh
+    $ dotstar
+    $ ./update.sh
 
 The installation and update may be run repeatedly. Neither action will remove nor overwrite files outside the dotstar directory.
 
