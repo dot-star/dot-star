@@ -10,6 +10,11 @@
 
 ## Examples
 
+### Prevent accidental wildcard deletion
+
+    $ rm *
+    cowardly refusing to run `rm' with a dangerous wildcard
+
 ### List folders and files in current directory
 
     $ l
