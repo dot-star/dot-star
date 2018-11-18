@@ -300,7 +300,7 @@ case_insensitive_search_python() {
 alias sipy="case_insensitive_search_python"
 
 # Print hidden files.
-alias tree="tree -a -I '__pycache__' -I '.git'"
+alias tree="tree -a -F -I '__pycache__' -I '.git'"
 alias t="tree"
 
 _top() {
