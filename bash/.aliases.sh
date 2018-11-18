@@ -376,7 +376,7 @@ alias +w="chmod +w"
 alias +x="chmod +x"
 
 large_files() {
-    du --human-readable --summarize .[!.]* * | sort --human-numeric-sort
+    du --human-readable --summarize --total .[!.]* * | sort --human-numeric-sort
 }
 alias large="large_files"
 
