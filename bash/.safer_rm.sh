@@ -5,15 +5,15 @@ safer_rm(){
     # Allowed:    rm foo.txt
     # Allowed:    rm foo*.txt
 
-    danground_wildcard_detected=false
+    dangerous_wildcard_detected=false
     for arg in "${@}"; do
         if [[ "${arg}" == "*" ]]; then
-            danground_wildcard_detected=true
+            dangerous_wildcard_detected=true
             break
         fi
     done
 
-    if $danground_wildcard_detected; then
+    if $dangerous_wildcard_detected; then
         echo "cowardly refusing to run \`rm' with a dangerous wildcard"
         return 1
     fi
