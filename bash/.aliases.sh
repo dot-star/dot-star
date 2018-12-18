@@ -784,3 +784,34 @@ conditional_d() {
     fi
 }
 alias d="conditional_d"
+
+generate_key() {
+    # read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
+    # if ! [[ $REPLY =~ ^[Yy]$ ]]; then
+
+    read -p "authority (e.g. github, etc.)? " -r
+    authority="${REPLY}"
+
+    read -p "account (e.g. \"${USER}\", etc.)? " -r
+    account="${REPLY}"
+
+    keyfile="${HOME}/.ssh/id_rsa_${authority}_${account}"
+    echo "authority: ${authority}"
+    echo "account: ${account}"
+    echo "keyfile: ${keyfile}"
+
+    if [[ -f "${keyfile}" ]]; then
+        echo "file exists: ${keyfile}"
+        return 1
+    fi
+
+    read -p "Look good? [y/n] " -n 1 -r; echo
+    if ! [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo "exiting"
+        return
+    fi
+
+    set -x
+    ssh-keygen -t "rsa" -b "4096" -f "${keyfile}" -C ""
+    set +x
+}
