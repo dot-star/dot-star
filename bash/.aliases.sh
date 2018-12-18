@@ -192,7 +192,7 @@ case_sensitive_search_edit() {
       results=$(grep --dereference-recursive --files-with-matches --include="*.${extension}" "${keyword}" . "${@:3}")
     fi
 
-    result_count=$(echo "${results}" | wc --lines)
+    result_count=$(echo "${results}" | gwc --lines)
     if [[ $result_count -gt 10 ]]; then
       read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
       if ! [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -241,7 +241,7 @@ case_insensitive_search_edit() {
       results=$(grep --dereference-recursive --files-with-matches --ignore-case --include="*.${extension}" "${keyword}" . "${@:3}")
     fi
 
-    result_count=$(echo "${results}" | wc --lines)
+    result_count=$(echo "${results}" | gwc --lines)
     if [[ $result_count -gt 10 ]]; then
       read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
       if ! [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -486,7 +486,7 @@ find_and_edit() {
         # Find files by keyword and edit (e.g. `fe keyword').
         keyword="${1}"
         results=$(find . -iname "*${keyword}*" -type "file")
-        result_count=$(echo "${results}" | wc --lines)
+        result_count=$(echo "${results}" | gwc --lines)
         if [[ $result_count -gt 10 ]]; then
             read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
             if ! [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -711,7 +711,7 @@ case_insensitive_search_edit() {
     return
   fi
   results=$(grep --dereference-recursive --files-with-matches --ignore-case "${1}" . "${@:2}")
-  result_count=$(echo "${results}" | wc --lines)
+  result_count=$(echo "${results}" | gwc --lines)
   if [[ $result_count -gt 10 ]]; then
     read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
     if ! [[ $REPLY =~ ^[Yy]$ ]]; then
