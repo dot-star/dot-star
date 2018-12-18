@@ -70,7 +70,7 @@ bak() {
         fi
     else
         echo "Error: source is not a file or directory."
-        exit 1
+        return 1
     fi
 }
 alias b="bak"
@@ -196,7 +196,7 @@ case_sensitive_search_edit() {
     if [[ $result_count -gt 10 ]]; then
       read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
       if ! [[ $REPLY =~ ^[Yy]$ ]]; then
-        exit
+        return
       fi
     fi
 
@@ -245,7 +245,7 @@ case_insensitive_search_edit() {
     if [[ $result_count -gt 10 ]]; then
       read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
       if ! [[ $REPLY =~ ^[Yy]$ ]]; then
-        exit
+        return
       fi
     fi
 
@@ -490,7 +490,7 @@ find_and_edit() {
         if [[ $result_count -gt 10 ]]; then
             read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
             if ! [[ $REPLY =~ ^[Yy]$ ]]; then
-                exit
+                return
             fi
         fi
         files=$(echo "${results}" | tr '\n' ' ')
@@ -715,7 +715,7 @@ case_insensitive_search_edit() {
   if [[ $result_count -gt 10 ]]; then
     read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
     if ! [[ $REPLY =~ ^[Yy]$ ]]; then
-      exit
+      return
     fi
   fi
   files=$(echo "${results}" | tr '\n' ' ')
