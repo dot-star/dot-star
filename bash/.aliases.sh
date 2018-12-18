@@ -531,7 +531,7 @@ import re
 import sys
 
 response = sys.stdin.read().rstrip()
-match = re.match(r".* is aliased to `([\w]+)'", response)
+match = re.match(r".* is aliased to \`([\w]+)'", response)
 if match is not None:
     print 'builtin type {0}'.format(pipes.quote(match.group(1)))
 EOF
