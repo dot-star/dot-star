@@ -14,9 +14,9 @@ alias 777="chmod 777"
 _ls(){
     extra_args="${@}"
     clear
-    if ls --color > /dev/null 2>&1; then
+    if which "gls" &> /dev/null; then
         # GNU `ls`. Available with `brew install coreutils'.
-        ls \
+        gls \
             --almost-all \
             --classify \
             --color=always \
@@ -36,31 +36,7 @@ _ls(){
             -X \
             -l \
             -v \
-            ${extra_args} \
-            2> /dev/null
-
-        if [[ $? -ne 0 ]]; then
-            ls \
-                --almost-all \
-                --classify \
-                --color=always \
-                --hide-control-chars \
-                --human-readable \
-                --ignore=*.pyc \
-                --ignore=.*.swp \
-                --ignore=.DS_Store \
-                --ignore=.git \
-                --ignore=.hg \
-                --ignore=.sass-cache \
-                --ignore=.svn \
-                --ignore=.swp \
-                --literal \
-                --time-style=local \
-                -X \
-                -l \
-                -v \
-                ${extra_args}
-        fi
+            ${extra_args}
     else
         # OS X `ls`
         ls -a -l -F -G ${extra_args}
