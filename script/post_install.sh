@@ -11,6 +11,13 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     # Install brew.
     command -v brew > /dev/null || /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 
+    # Upgrade bash.
+    # Fixes "-bash: shopt: autocd: invalid shell option name".
+    brew install bash
+    sudo bash -c "echo /usr/local/bin/bash >> /etc/shells"
+    chsh -s /usr/local/bin/bash
+    echo "${BASH_VERSION}"
+
     # https://github.com/Homebrew/homebrew-core/blob/master/Formula/*.rb
     brew install colordiff
     brew install coreutils
