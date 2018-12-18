@@ -25,6 +25,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     brew install grep --with-default-names
     brew install homebrew/dupes/rsync
     brew install macvim --with-override-system-vim
+    brew install tree
     brew install wget
 
     # Install command-line fuzzy finder with key bindings and fuzzy completion.
