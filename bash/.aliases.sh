@@ -444,7 +444,7 @@ alias d="difference"
 
 chmod() {
     if [ "$#" -eq 1 ]; then
-        file_mode_bits=$(stat --format "%a" "${1}")
+        file_mode_bits=$(gstat --format "%a" "${1}")
         echo -e "${file_mode_bits}\t${1}"
     else
         command chmod "${@}"
