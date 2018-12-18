@@ -40,10 +40,8 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     $(brew --prefix)/opt/fzf/install
 fi
 
-# Install diff highlight.
-wget https://raw.githubusercontent.com/git/git/master/contrib/diff-highlight/diff-highlight
-sudo chmod +x diff-highlight
-sudo mv diff-highlight /usr/local/bin/
+# Use diff highlight.
+ln -s "/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" "/usr/local/bin/"
 git config --global core.pager "diff-highlight | less"
 
 # Create backup and swap directories specified in vimrc.
