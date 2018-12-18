@@ -10,7 +10,7 @@ alias dt="desktop"
 alias dto="desktop && oo && x"
 alias documents="cd ~/Documents"
 alias doc="documents"
-alias downloads="cd ~/Downloads"
+alias downloads="cd ~/Downloads && l"
 alias dl="downloads"
 alias dlo="downloads && oo && x"
 extensions() {
