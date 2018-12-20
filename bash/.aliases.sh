@@ -53,7 +53,7 @@ bak() {
         base_filename="${filename%.*}"
         new_filename="${base_filename}_${timestamp}.${extension}"
         if [[ ! -f "${new_filename}" ]]; then
-            cp --interactive --verbose "${filename}" "${new_filename}"
+            gcp --interactive --verbose "${filename}" "${new_filename}"
         else
             echo "destination \"${new_filename}\" exists"
             file "${new_filename}"
@@ -63,7 +63,7 @@ bak() {
         folder_name="${source%/}"
         new_folder_name="${folder_name}_${timestamp}"
         if [[ ! -d "${new_folder_name}" ]]; then
-            cp --interactive --recursive --verbose "${folder_name}" "${new_folder_name}"
+            gcp --interactive --recursive --verbose "${folder_name}" "${new_folder_name}"
         else
             echo "destination \"${new_folder_name}\" exists"
             file "${new_folder_name}"
