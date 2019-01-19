@@ -734,7 +734,7 @@ edit_extension_files() {
     fi
 
     # Open content_script.js.
-    content_script_results=$(find . -iname "content_script.js" | head -1)
+    content_script_results=$(find . -iname "*content_script.js")
     if [[ ! -z "${content_script_results}" ]]; then
         echo "content_script_results: ${content_script_results}"
         files_to_edit+=" ${content_script_results}"
