@@ -727,10 +727,10 @@ edit_extension_files() {
     files_to_edit=""
 
     # Open background.js.
-    content_script_results=$(find . -iname "background.js" | head -1)
-    if [[ ! -z "${content_script_results}" ]]; then
-        echo "content_script_results: ${content_script_results}"
-        files_to_edit+=" ${content_script_results}"
+    background_results=$(find . -iname "background.js" | head -1)
+    if [[ ! -z "${background_results}" ]]; then
+        echo "background_results: ${background_results}"
+        files_to_edit+=" ${background_results}"
     fi
 
     # Open content_script.js.
