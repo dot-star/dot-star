@@ -43,7 +43,7 @@ fi
 
 # Use diff highlight.
 ln -s "/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" "/usr/local/bin/"
-git config --global core.pager "diff-highlight | less"
+git config --global core.pager "diff-highlight | less -m"
 
 # Create backup and swap directories specified in vimrc.
 mkdir -p "$HOME/.vim/backup/"
