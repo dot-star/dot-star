@@ -543,7 +543,7 @@ EOF
                 echo "${response}"
             fi
         else
-            file_size=$(printf "%'d" $(stat --printf="%s" "${1}"))
+            file_size=$(printf "%'d" $(gstat --printf="%s" "${1}"))
             echo "$($(which file) "${1}") (${file_size} bytes)"
             if [[ "${1}" == *.mp3 ]]; then
                 # command -v ffmpeg >/dev/null 2>&1 && ffmpeg -i "${1}" 2>&1 | \grep "Duration: "
