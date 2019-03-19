@@ -23,7 +23,15 @@ _vim() {
         if [[ $# -eq 0 ]]; then
             mvim
         else
-            mvim --remote-tab-silent "${@}"
+            # The following did not work:
+            #   $ mvim "${@}"
+            #   Fails to open files tabs when more than 1 file is specified.
+            #
+            #   $ mvim --remote-tab-silent "${@}"
+            #   Fails to open files on first run. However, running the same command again correctly opens files in tabs.
+
+            # Open tabs for each file in MacVim.
+            open -a MacVim "${@}"
         fi
     elif which "gvim" &> /dev/null; then
         xdotool=$(which xdotool)
