@@ -45,6 +45,7 @@ alias pus="rc_push"
 alias push="rc_push"
 alias shallow_clone="git clone --depth 1"
 alias show="git_stash_show"
+alias s.="rc_status ."
 alias st="rc_status"
 alias stash="git_stash"
 alias tag="git tag"
@@ -253,7 +254,7 @@ rc_status() {
 
     if is_git; then
         echo "git status"
-        git status
+        git status $@
     elif is_g; then
         echo "g4 pending"
         g4 pending
