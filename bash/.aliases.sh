@@ -124,6 +124,20 @@ pushd() {
 }
 #alias "cd"="pushd"
 
+better_cd() {
+    # Allow cd-ing to a file's directory when a file path has been specified as the argument to cd.
+    if [[ "${#}" -eq 0 ]]; then
+        builtin cd
+    elif [[ "${#}" -eq 1 ]]; then
+        directory="${1}"
+        if [[ -f "${directory}" ]]; then
+            directory="$(dirname $directory)"
+        fi
+        builtin cd "${directory}"
+    fi
+}
+alias "cd"="better_cd"
+
 edit() {
   editor="_vim"
   "${editor}" "${@}"
