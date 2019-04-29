@@ -499,7 +499,7 @@ find_and_edit() {
     else
         # Find files by keyword and edit (e.g. `fe keyword').
         keyword="${1}"
-        results=$(find . -iname "*${keyword}*" -type "file")
+        results=$(find . -iname "*${keyword}*" -type "f")
         result_count=$(echo "${results}" | gwc --lines)
         if [[ $result_count -gt 10 ]]; then
             read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
