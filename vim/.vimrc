@@ -169,6 +169,7 @@ autocmd BufWritePre *.css :%s/\s\+$//e
 autocmd BufWritePre *.html :%s/\s\+$//e
 autocmd BufWritePre *.json :%s/\s\+$//e
 autocmd BufWritePre *.php :%s/\s\+$//e
+autocmd BufWritePre *.py :%s/\s\+$//e
 autocmd BufWritePre *.scss :%s/\s\+$//e
 autocmd BufWritePre *.sh :%s/\s\+$//e
 autocmd BufWritePre *.txt :%s/\s\+$//e
