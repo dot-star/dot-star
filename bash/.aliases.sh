@@ -621,7 +621,9 @@ _, file_extension = os.path.splitext(filename)
 filepath = os.path.abspath(filename)
 cmd = sys.argv[2]
 if not cmd:
-    if file_extension == '.js':
+    if file_extension == '.go':
+        cmd = 'go run {0}'.format(pipes.quote(filename))
+    elif file_extension == '.js':
         cmd = 'node {0}'.format(pipes.quote(filename))
     elif file_extension == '.php':
         cmd = 'php {0}'.format(pipes.quote(filename))
