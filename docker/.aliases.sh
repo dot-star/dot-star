@@ -1,0 +1,6 @@
+alias dc="docker"
+alias doc="docker"
+alias img="clear; docker images; echo; docker ps -a"
+alias psa="clear; docker ps -a; echo; docker images"
+alias rmi="clear; docker rmi"
+alias stop="docker stop"
