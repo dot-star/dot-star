@@ -1,6 +1,8 @@
+alias attach="docker attach"
 alias dc="docker"
 alias doc="docker"
 alias img="clear; docker images; echo; docker ps -a"
+alias pause="docker pause"
 alias psa="clear; docker ps --all --format \"table {{.Image}}\t{{.Names}}\t{{.Ports}}\t{{.Status}}\"; echo; docker images"
 alias rmi="clear; docker rmi"
 alias stop="docker stop"
