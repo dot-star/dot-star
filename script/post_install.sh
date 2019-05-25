@@ -27,6 +27,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     git config --global --bool diff-so-fancy.markEmptyLines false
     git config --global --bool diff-so-fancy.stripLeadingSymbols false
 
+    brew install bash-completion
     brew install cmake
     brew install diffutils
     brew install git

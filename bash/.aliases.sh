@@ -579,8 +579,9 @@ EOF
     fi
 }
 alias file="get_file_info"
-alias type="get_file_info"
 alias ty="get_file_info"
+# Temporarily disable alias "type" as it makes bash-completion slow.
+# alias type="get_file_info"
 
 is_ssh() {
     if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
