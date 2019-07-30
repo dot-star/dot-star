@@ -217,7 +217,7 @@ function! <SID>PythonSave()
     " Check python syntax.
     let tmpfile = tempname()
     silent execute "write! " . tmpfile
-    let command = "python -m py_compile '" . tmpfile . "'"
+    let command = "python3 -m py_compile '" . tmpfile . "'"
     let output = system(command . " 2>&1")
     if output != ''
         let curfile = bufname("%")
