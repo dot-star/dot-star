@@ -832,3 +832,9 @@ generate_key() {
     ssh-keygen -t "rsa" -b "4096" -f "${keyfile}" -C ""
     set +x
 }
+
+unlink() {
+    for filename in "${@}"; do
+        command unlink "${filename}"
+    done
+}
