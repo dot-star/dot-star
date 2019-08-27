@@ -294,9 +294,8 @@ alias tree="tree -a -F -I '__pycache__' -I '.git'"
 alias t="tree"
 
 _top() {
-    if top -o cpu &> /dev/null; then
-        top -o cpu
-    else
+    top -o cpu
+    if [[ $? -ne 0 ]]; then
         top
     fi
 }
