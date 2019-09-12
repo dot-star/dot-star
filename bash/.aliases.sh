@@ -529,9 +529,13 @@ elif filename.endswith('.gz'):
     command = 'gunzip'
 if command:
     print(command)
+else:
+    sys.exit(1)
 "
     command=$(echo "${filename}" | python -c "${script}")
-    if [ ! -z "${command}" ]; then
+    if [[ "${?}" -ne 0 ]]; then
+        echo "Error: unknown extension (filename=${filename})"
+    else
         echo "command: ${command}"
         ${command} "${1}"
     fi
