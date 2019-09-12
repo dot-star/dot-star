@@ -513,10 +513,13 @@ find_and_edit() {
 alias fe="find_and_edit"
 
 un() {
-    command=$(cat <<EOF | python -
+    filename="${1}"
+    script="
 import os
+import sys
 
-filename = '${1}'
+
+filename = sys.stdin.read().rstrip()
 command = ''
 if filename.endswith('.zip'):
     command = 'unzip'
@@ -525,9 +528,9 @@ elif filename.endswith(('.tar.bz2', '.tar.gz',)):
 elif filename.endswith('.gz'):
     command = 'gunzip'
 if command:
-    print command
-EOF
-)
+    print(command)
+"
+    command=$(echo "${filename}" | python -c "${script}")
     if [ ! -z "${command}" ]; then
         echo "command: ${command}"
         ${command} "${1}"
