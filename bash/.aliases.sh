@@ -523,7 +523,7 @@ filename = sys.stdin.read().rstrip()
 command = ''
 if filename.endswith('.zip'):
     command = 'unzip'
-elif filename.endswith(('.tar.bz2', '.tar.gz',)):
+elif filename.endswith(('.tar.bz2', '.tar.gz', '.tar.xz',)):
     command = 'tar xvf'
 elif filename.endswith('.gz'):
     command = 'gunzip'
