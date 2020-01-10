@@ -3,7 +3,7 @@ set -x
 
 # Create symlink to project files in home directory.
 DOT_STAR_ROOT="$( dirname $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ))"
-[ ! -L "${HOME}/.dot-star" ] && ln -vs "${DOT_STAR_ROOT}/" "${HOME}/.dot-star"
+ln -vsf "${DOT_STAR_ROOT}/" "${HOME}/.dot-star"
 
 dotstar_header="# Begin dot-star bootstrap."
 dotstar_footer="# End dot-star bootstrap."
