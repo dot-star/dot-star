@@ -46,16 +46,16 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
 
     # Disable chime sound when power is connected.
     defaults write com.apple.PowerChime ChimeOnNoHardware -bool true
+
+    # Use diff highlight.
+    ln -s "/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" "/usr/local/bin/"
+
+    # Use wildcard to run diff-highlight under the currently installed version of git.
+    git config --global core.pager '"/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" | less -m'
 else
     sudo apt-get install colordiff
     sudo apt-get install jq
 fi
-
-# Use diff highlight.
-ln -s "/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" "/usr/local/bin/"
-
-# Use wildcard to run diff-highlight under the currently installed version of git.
-git config --global core.pager '"/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" | less -m'
 
 # Create backup and swap directories specified in vimrc.
 mkdir -p "$HOME/.vim/backup/"
