@@ -46,6 +46,8 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
 
     # Disable chime sound when power is connected.
     defaults write com.apple.PowerChime ChimeOnNoHardware -bool true
+else
+    sudo apt-get install colordiff
 fi
 
 # Use diff highlight.
