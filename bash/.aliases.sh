@@ -14,9 +14,17 @@ alias 777="chmod 777"
 _ls(){
     extra_args="${@}"
     clear
-    if which "gls" &> /dev/null; then
-        # GNU `ls`. Available with `brew install coreutils'.
-        gls \
+
+    local ls_to_use
+    if [[ "${OSTYPE}" == "darwin"* ]]; then
+      # GNU `ls`. Available with `brew install coreutils'.
+      ls_to_use="gls"
+    else
+      ls_to_use="ls"
+    fi
+
+    if which "$ls_to_use" &> /dev/null; then
+        "$ls_to_use" \
             --almost-all \
             --classify \
             --color=always \
