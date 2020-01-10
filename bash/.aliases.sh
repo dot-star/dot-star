@@ -445,12 +445,21 @@ change_mac_address() {
 }
 
 difference() {
-    if [ -t 1 ]; then
+    colordiff=$(which colordiff)
+    if [ -z "$colordiff" ]; then
+        colordiff_installed=false
+    else
+        colordiff_installed=true
+    fi
+
+    if [ -t 1 ] && $colordiff_installed; then
         command='diff --recursive --unified "'"${1}"'" "'"${2}"'" | colordiff | less -R'
-        echo "${command}"
+    elif [ -t 1 ]; then
+        command='diff --recursive --unified "'"${1}"'" "'"${2}"'" | less -R'
     else
         command='diff --recursive --unified "'"${1}"'" "'"${2}"'"'
     fi
+    echo "${command}"
     eval $command
 }
 alias d="difference"
