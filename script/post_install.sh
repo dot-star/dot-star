@@ -48,6 +48,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     defaults write com.apple.PowerChime ChimeOnNoHardware -bool true
 else
     sudo apt-get install colordiff
+    sudo apt-get install jq
 fi
 
 # Use diff highlight.
