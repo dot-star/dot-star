@@ -212,13 +212,6 @@ rc_diff() {
             fi
         fi
     else
-        colordiff=$(which colordiff)
-        if [ -z "$colordiff" ]; then
-            colordiff_installed=false
-        else
-            colordiff_installed=true
-        fi
-
         if is_g; then
             p4 diff
         else
