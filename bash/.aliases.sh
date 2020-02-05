@@ -331,9 +331,16 @@ alias x="quit"
 alias q="quit"
 
 _open() {
-    open "$@" &> /dev/null
+    args=("${@}")
+
+    # Open current directory when no path is specified.
+    if [ "$#" -eq 0 ]; then
+        args[0]="."
+    fi
+
+    open "${args[@]}" &> /dev/null
     if [ ! $? -eq 0 ]; then
-        nautilus "$@"
+        nautilus "${args[@]}"
     fi
 }
 
