@@ -254,7 +254,7 @@ rc_status() {
         echo "g4 pending"
         g4 pending
     else
-        echo "NotImplementedError"
+        l
     fi
 }
 
