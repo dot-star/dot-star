@@ -52,6 +52,13 @@ _ls(){
 }
 
 bak() {
+    local cp_to_use
+    if which "gcp" &> /dev/null; then
+      cp_to_use="gcp"
+    else
+      cp_to_use="cp"
+    fi
+
     source="${1}"
     timestamp=$(date +"%Y-%m-%d_%H%M%S")
     if [[ -f "${source}" ]]; then
@@ -61,7 +68,7 @@ bak() {
         base_filename="${filename%.*}"
         new_filename="${base_filename}_${timestamp}.${extension}"
         if [[ ! -f "${new_filename}" ]]; then
-            gcp --interactive --verbose "${filename}" "${new_filename}"
+            "$cp_to_use" --interactive --verbose "${filename}" "${new_filename}"
         else
             echo "destination \"${new_filename}\" exists"
             file "${new_filename}"
@@ -71,7 +78,7 @@ bak() {
         folder_name="${source%/}"
         new_folder_name="${folder_name}_${timestamp}"
         if [[ ! -d "${new_folder_name}" ]]; then
-            gcp --interactive --recursive --verbose "${folder_name}" "${new_folder_name}"
+            "$cp_to_use" --interactive --recursive --verbose "${folder_name}" "${new_folder_name}"
         else
             echo "destination \"${new_folder_name}\" exists"
             file "${new_folder_name}"
