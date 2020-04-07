@@ -34,6 +34,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     brew install cmake
     brew install diffutils
     brew install git
+    brew install git-gui
     brew install grep --with-default-names
     brew install homebrew/dupes/rsync
     brew install macvim --with-override-system-vim
