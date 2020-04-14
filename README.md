@@ -15,6 +15,13 @@
     $ rm *
     cowardly refusing to run `rm' with a dangerous wildcard
 
+### Rename file using one parameter
+
+    $ mv download.jpg
+    the-lorax.jpg
+    -download.jpg
+    +the-lorax.jpg
+
 ### List folders and files in current directory
 
     $ l
