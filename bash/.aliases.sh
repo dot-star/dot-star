@@ -1,5 +1,19 @@
 # Shortcuts
 
+colordiff="$(which colordiff)"
+if [[ -z "${colordiff}" ]]; then
+    COLORDIFF_INSTALLED=false
+else
+    COLORDIFF_INSTALLED=true
+fi
+
+diff_so_fancy="$(which diff-so-fancy)"
+if [[ -z "${diff_so_fancy}" ]]; then
+    DIFF_SO_FANCY_INSTALLED=false
+else
+    DIFF_SO_FANCY_INSTALLED=true
+fi
+
 is_interactive_shell() {
     [[ "$-" =~ "i" ]]
 }
@@ -467,14 +481,7 @@ change_mac_address() {
 }
 
 difference() {
-    colordiff="$(which colordiff)"
-    if [ -z "${colordiff}" ]; then
-        colordiff_installed=false
-    else
-        colordiff_installed=true
-    fi
-
-    if [ -t 1 ] && $colordiff_installed; then
+    if [ -t 1 ] && $COLORDIFF_INSTALLED; then
         command='diff --recursive --unified "'"${1}"'" "'"${2}"'" | colordiff | less -R'
     elif [ -t 1 ]; then
         command='diff --recursive --unified "'"${1}"'" "'"${2}"'" | less -R'
@@ -887,7 +894,15 @@ mv() {
     elif [[ "${#}" -eq 1 ]] && [[ -f "${file_name}" ]]; then
         read -e -i "${file_name}" "new_file_name"
         command mv "${file_name}" "${new_file_name}" &&
-            diff --unified <(echo "${file_name}") <(echo "${new_file_name}") | diff-so-fancy | tail -n +5
+            (
+                $DIFF_SO_FANCY_INSTALLED &&
+                diff --unified <(echo "${file_name}") <(echo "${new_file_name}") | "diff-so-fancy" | tail -n +5
+            ) || (
+                $COLORDIFF_INSTALLED &&
+                diff --unified <(echo "${file_name}") <(echo "${new_file_name}") | "colordiff" | tail -n +4
+            ) || (
+                diff --unified <(echo "${file_name}") <(echo "${new_file_name}") | tail -n +4
+            )
 
     # Call original mv command when any other number of parameters have been specified.
     else
