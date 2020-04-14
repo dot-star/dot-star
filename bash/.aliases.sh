@@ -875,3 +875,17 @@ unlink() {
         command unlink "${filename}"
     done
 }
+
+mv() {
+    # Display information when parameter is not a file.
+    if [[ "${#}" -eq 1 ]] && [[ ! -f "${1}" ]]; then
+        command file "${@}"
+    # Call modified mv command to edit file name in place when only 1 parameter has been specified.
+    elif [[ "${#}" -eq 1 ]] && [[ -f "${1}" ]]; then
+        read -e -i "${1}" "new_file_name"
+        mv --verbose "${1}" "${new_file_name}"
+    # Call original mv command when any other number of parameters have been specified.
+    else
+        command mv "${@}"
+    fi
+}
