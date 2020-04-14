@@ -885,18 +885,9 @@ mv() {
 
     # Call modified mv command to edit file name in place when only 1 parameter has been specified.
     elif [[ "${#}" -eq 1 ]] && [[ -f "${file_name}" ]]; then
-        colordiff="$(which colordiff)"
-        if [ -z "${colordiff}" ]; then
-            colordiff_installed=false
-        else
-            colordiff_installed=true
-        fi
-
         read -e -i "${file_name}" "new_file_name"
-        command mv --verbose "${file_name}" "${new_file_name}" &&
-            $colordiff_installed &&
-            diff --unified <(echo "${file_name}") <(echo "${new_file_name}") | colordiff ||
-            diff --unified <(echo "${file_name}") <(echo "${new_file_name}")
+        command mv "${file_name}" "${new_file_name}" &&
+            diff --unified <(echo "${file_name}") <(echo "${new_file_name}") | diff-so-fancy | tail -n +5
 
     # Call original mv command when any other number of parameters have been specified.
     else
