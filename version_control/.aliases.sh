@@ -29,6 +29,7 @@ alias difflast="git_diff_last"
 alias difftool="git difftool"
 alias drop="git_stash_drop"
 alias fetch="git fetch"
+alias fetch_tags="rc_fetch_tags"
 alias filemode="git config core.filemode false"
 alias g="git"
 alias gco="grep_checkout"
@@ -43,6 +44,7 @@ alias merge="rc_merge"
 alias pop="git stash pop"
 alias pul="rc_pull"
 alias pull="rc_pull"
+alias pull_tags="rc_fetch_tags"
 alias pus="rc_push"
 alias push="rc_push"
 alias shallow_clone="git clone --depth 1"
@@ -218,6 +220,10 @@ rc_diff() {
             \df "${@}"
         fi
     fi
+}
+
+rc_fetch_tags() {
+    git fetch --tags $@
 }
 
 rc_log() {
