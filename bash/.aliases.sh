@@ -883,6 +883,29 @@ unlink() {
     done
 }
 
+cp() {
+    file_name="${1}"
+
+    # Call modified cp command to edit file name in place when only 1 parameter has been specified.
+    if [[ "${#}" -eq 1 ]] && [[ -f "${file_name}" ]]; then
+        read -e -i "${file_name}" "new_file_name"
+        command cp "${file_name}" "${new_file_name}" &&
+            (
+                $DIFF_SO_FANCY_INSTALLED &&
+                diff --unified <(echo "${file_name}") <(echo -e "${file_name}\n${new_file_name}") | "diff-so-fancy" | tail -n +5
+            ) || (
+                $COLORDIFF_INSTALLED &&
+                diff --unified <(echo "${file_name}") <(echo -e "${file_name}\n${new_file_name}") | "colordiff" | tail -n +4
+            ) || (
+                diff --unified <(echo "${file_name}") <(echo -e "${file_name}\n${new_file_name}") | tail -n +4
+            )
+
+    # Call original cp command when any other number of parameters have been specified.
+    else
+        command cp "${@}"
+    fi
+}
+
 mv() {
     file_name="${1}"
 
