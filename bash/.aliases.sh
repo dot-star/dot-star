@@ -653,6 +653,20 @@ watch_file() {
     # Usage: watch_file file_to_watch.log "bash file_changed.sh"
     filename="${1}"
     cmd="${2}"
+
+    # Watch current directory and run command when only one parameter is specified.
+    if [[ $# -eq 1 ]]; then
+        filename="**"
+        cmd="${1}"
+    fi
+
+    # Use watchman-make when available.
+    which watchman-make &> /dev/null
+    if [[ $? -eq 0 ]]; then
+        watchman-make -p "${filename}" --run "${cmd}"
+        return
+    fi
+
     # TODO: Use os.get_terminal_size() to get terminal size available in python 3.
     cols=$(tput cols)
     if [[ "${OSTYPE}" == "linux-gnu" ]]; then # Linux
