@@ -932,3 +932,5 @@ mv() {
         command mv "${@}"
     fi
 }
+
+alias rp="realpath"
