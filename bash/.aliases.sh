@@ -650,26 +650,31 @@ serve_dir() {
 
 watch_file() {
     # Watch a file for changes and run a command.
-    # Usage: watch_file file_to_watch.log "bash file_changed.sh"
-    filename="${1}"
-    cmd="${2}"
+    # Usage:
+    #   $ watch_file file_to_watch.log "bash file_changed.sh"
+    #   >>> watchman-make -p "file_to_watch.log" --run "bash file_changed.sh"
+    #
+    #   $ watch_file script.sh
+    #   >>> watchman-make -p "**" --run "bash script.sh"
+    #
+    #   $ watch_file script.go
+    #   >>> watchman-make -p "**" --run "go run script.go"
+    #
+    #   $ watch_file script.js
+    #   >>> watchman-make -p "**" --run "node script.js"
+    #
+    #   $ watch_file script.php
+    #   >>> watchman-make -p "**" --run "php script.php"
+    #
+    #   $ watch_file script.py
+    #   >>> watchman-make -p "**" --run "python script.py"
 
     # Watch current directory and run command when only one parameter is specified.
     if [[ $# -eq 1 ]]; then
-        filename="**"
-        cmd="${1}"
-    fi
+        pattern_to_watch="**"
+        file_name="${1}"
 
-    # Use watchman-make when available.
-    which watchman-make &> /dev/null
-    if [[ $? -eq 0 ]]; then
-        watchman-make -p "${filename}" --run "${cmd}"
-        return
-    fi
-
-    # TODO: Use os.get_terminal_size() to get terminal size available in python 3.
-    cols=$(tput cols)
-    if [[ "${OSTYPE}" == "linux-gnu" ]]; then # Linux
+        # Add prefix to command based on file name extension.
         python_script=$(cat <<'EOF'
 import os
 import pipes
@@ -678,80 +683,43 @@ import sys
 filename = sys.argv[1]
 _, file_extension = os.path.splitext(filename)
 filepath = os.path.abspath(filename)
-cmd = sys.argv[2]
-if not cmd:
-    if file_extension == '.go':
-        cmd = 'go run {0}'.format(pipes.quote(filename))
-    elif file_extension == '.js':
-        cmd = 'node {0}'.format(pipes.quote(filename))
-    elif file_extension == '.php':
-        cmd = 'php {0}'.format(pipes.quote(filename))
-    elif file_extension == '.py':
-        cmd = 'python {0}'.format(pipes.quote(filename))
-    elif file_extension == '.sh':
-        cmd = 'bash {0}'.format(pipes.quote(filename))
+cmd = ''
+if file_extension == '.sh':
+    cmd = 'bash {0}'.format(pipes.quote(filename))
+elif file_extension == '.go':
+    cmd = 'go run {0}'.format(pipes.quote(filename))
+elif file_extension == '.js':
+    cmd = 'node {0}'.format(pipes.quote(filename))
+elif file_extension == '.php':
+    cmd = 'php {0}'.format(pipes.quote(filename))
+elif file_extension == '.py':
+    cmd = 'python {0}'.format(pipes.quote(filename))
 print(cmd)
 EOF
 )
-        cmd=$(python -c "${python_script}" "${filename}" "${cmd}")
-        echo
-        while inotifywait --event modify --quiet "${filename}"; do
-            printf -- '-=%.0s' $(eval echo {1.."${cols}"})
-            echo
-            if [ ! -z "${cmd}" ]; then
-                bash -c "${cmd}"
-            fi
-        done
-    elif [[ "${OSTYPE}" == "darwin"* ]]; then # OS X
-        echo -e '\x1b[0;93mWARNING\x1b[0m: watch using polling'
-python_script=$(cat <<'EOF'
-import math
-import os
-import pipes
-import random
-import shlex
-import subprocess
-import sys
-import time
+        cmd_to_run=$(python -c "${python_script}" "${file_name}")
+    elif [[ $# -eq 2 ]]; then
+        pattern_to_watch="${1}"
+        cmd_to_run="${2}"
+    else
+        echo "Error: 1 or 2 parameters required"
+        return
+    fi
 
-cols = int(sys.stdin.read().rstrip())
-separator = '-=' * int(math.floor(cols / 2))
+    # Add line separator between each command.
+    cols="$(tput cols)"
+    cmd_to_run="printf -- '-=%.0s' {1..${cols}}; echo; ${cmd_to_run}"
 
-filename = sys.argv[1]
-_, file_extension = os.path.splitext(filename)
-filepath = os.path.abspath(filename)
-cmd = sys.argv[2]
-if not cmd:
-    if file_extension == '.js':
-        cmd = 'node {0}'.format(pipes.quote(filename))
-    elif file_extension == '.php':
-        cmd = 'php {0}'.format(pipes.quote(filename))
-    elif file_extension == '.py':
-        cmd = 'python {0}'.format(pipes.quote(filename))
-    elif file_extension == '.sh':
-        cmd = 'bash {0}'.format(pipes.quote(filename))
-cmd_parts = shlex.split(cmd)
-print(cmd)
+    echo "pattern_to_watch: ${pattern_to_watch}"
+    echo "cmd_to_run: ${cmd_to_run}"
 
-last = cur = os.path.getmtime(filepath)
-while True:
-    time.sleep(1)
-    try:
-        cur = os.path.getmtime(filepath)
-        if cur != last:
-            last = cur
-            print(separator)
-            proc = subprocess.Popen(cmd_parts)
-            proc.communicate()[0]
-            print('return code: %s' % proc.returncode)
-            print
-            time.sleep(1)
-            print(random.random())
-    except OSError as e:
-        print('failed to get file modification time (%s)' % e.message)
-EOF
-)
-        echo "${cols}" | python -c "${python_script}" "${filename}" "${cmd}"
+    # Use watchman-make when available.
+    which watchman-make &> /dev/null
+    if [[ $? -eq 0 ]]; then
+        watchman-make --pattern "${pattern_to_watch}" --run "${cmd_to_run}"
+        return
+    else
+        echo -e '\x1b[0;93mWARNING\x1b[0m: watchman-make required'
     fi
 }
 alias wf="watch_file"
