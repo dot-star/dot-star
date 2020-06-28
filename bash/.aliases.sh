@@ -447,7 +447,7 @@ pdf_remove_password() {
     # @usage: echo "thepassword" | pdf_remove_password file.pdf
     green=$(tput setaf 64)
     red=$(tput setaf 124)
-    read password
+    read -r -s -p "enter pdf password: " "password"; echo
     for filename in "$@"; do
         in="${filename}"
         out=$(echo "${in}" | perl -pe 's/^(.*)(\.pdf)$/\1_passwordless.pdf/')
