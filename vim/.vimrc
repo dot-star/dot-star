@@ -93,7 +93,7 @@ set scrolloff=3 " Keep X lines (top/bottom) before the horizontal window border
 set showtabline=2 " always show tabbar
 set title " Show the filename in the window's titlebar
 set nowrap " Don't wrap long lines
-set textwidth=120 " Set textwidth to wrap. e.g. when using "selection" + gq
+set textwidth=80 " Set textwidth to wrap. e.g. when using "selection" + gq
 set cmdheight=3 " Avoid 'Press ENTER or type command to continue'
 
 " Search
@@ -195,6 +195,7 @@ autocmd BufWritePre        *.js :%s/\s\+$//e
 autocmd BufRead,BufNewFile *.php set tabstop=4
 autocmd BufRead,BufNewFile *.php set softtabstop=4
 autocmd BufRead,BufNewFile *.php set shiftwidth=4
+autocmd BufRead,BufNewFile *.php set textwidth=120
 
 " Python, PEP-008 except textwidth.
 autocmd BufRead,BufNewFile *.py,*.pyw set expandtab
