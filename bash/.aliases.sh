@@ -77,6 +77,9 @@ _ls(){
 }
 
 bak() {
+    source="${1}"
+    timestamp=$(date +"%Y-%m-%d_%H%M%S")
+
     local cp_to_use
     if which "gcp" &> /dev/null; then
       cp_to_use="gcp"
@@ -84,8 +87,6 @@ bak() {
       cp_to_use="cp"
     fi
 
-    source="${1}"
-    timestamp=$(date +"%Y-%m-%d_%H%M%S")
     if [[ -f "${source}" ]]; then
         # Source is a file.
         filename="${source}"
@@ -660,7 +661,6 @@ serve_dir() {
         set +x
     fi
 }
-
 
 watch_file() {
     # Watch a file for changes and run a command.
