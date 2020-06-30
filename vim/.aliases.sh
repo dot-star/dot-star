@@ -4,13 +4,17 @@ _vim() {
     # FIXME: Only proceed to open files that exist or were created. (e.g. $ v foo File "foo.txt" doesn't exist. Create
     # file? n The file /path/to/foo.txt does not exist.)
     for filename in "${@}"; do
+        # Skip parameter specified for setting cursor line position.
+        if [[ "${filename}" == "+"* ]]; then
+          continue
+        fi
+
         # Not (exists and is a directory).
         if [[ ! -d "${filename}" ]]; then
             # Not (file exists).
             if [[ ! -e "${filename}" ]]; then
-                read -p "File \"${filename}\" doesn't exist. Create file? " -n 1 -r
-                echo
-                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                response="$(display_confirm_prompt "File \"${filename}\" doesn't exist. Create file?")"
+                if [[ "${response}" =~ ^[Yy]$ ]]; then
                     touch "${filename}"
                 fi
             fi

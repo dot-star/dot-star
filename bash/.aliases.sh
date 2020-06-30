@@ -18,6 +18,17 @@ is_interactive_shell() {
     [[ "$-" =~ "i" ]]
 }
 
+display_confirm_prompt() {
+    text="${1}"
+    if [ -n "${BASH_VERSION}" ]; then
+        read -p "${text} " -n 1 -r
+        echo "${REPLY}"
+    elif [ -n "${ZSH_VERSION}" ]; then
+        read "REPLY?${text} "
+        echo "${REPLY}"
+    fi
+}
+
 alias 600="chmod 600"
 alias 644="chmod 644"
 alias 700="chmod 700"
