@@ -56,14 +56,14 @@ _ls(){
             --group-directories-first \
             --hide-control-chars \
             --human-readable \
-            --ignore=*.pyc \
-            --ignore=.*.swp \
-            --ignore=.DS_Store \
-            --ignore=.git \
-            --ignore=.hg \
-            --ignore=.sass-cache \
-            --ignore=.svn \
-            --ignore=.swp \
+            --ignore="*.pyc" \
+            --ignore=".*.swp" \
+            --ignore=".DS_Store" \
+            --ignore=".git" \
+            --ignore=".hg" \
+            --ignore=".sass-cache" \
+            --ignore=".svn" \
+            --ignore=".swp" \
             --literal \
             --time-style=local \
             -X \
@@ -351,7 +351,7 @@ alias reboot="sudo shutdown -r now"
 
 quit() {
     # Quit Terminal when the last tab is closed.
-    if [ "$TERM_PROGRAM" == "Apple_Terminal" ]; then
+    if [[ "${TERM_PROGRAM}" == "Apple_Terminal" ]]; then
         quit_terminal_when_no_terminals_remain() {
             osascript -e 'tell application "Terminal" to if running and (count every tab of every window whose tty is not "'"$(tty)"'") is 0 then quit' &
         }
@@ -398,7 +398,7 @@ alias copy="clipboard"
 
 alias dotfiles="dotstar"
 alias dotstar="cd ${HOME}/.dot-star && l"
-alias .*="dotstar"
+alias ".*"="dotstar"
 alias extra="vim ${HOME}/.dot-star/bash/extra.sh"
 alias hosts="sudo vim /etc/hosts"
 alias known_hosts="vim ${HOME}/.ssh/known_hosts"
@@ -409,8 +409,11 @@ alias bashprofile="vim ${HOME}/.bash_profile"
 alias bashrc="vim ${HOME}/.bashrc"
 alias inputrc="vim ${HOME}/.inputrc"
 alias screenrc="vim ${HOME}/.screenrc"
-alias +w="chmod +w"
-alias +x="chmod +x"
+
+if [[ "${SHELL}" == *"/bash" ]]; then
+    alias +w="chmod +w"
+    alias +x="chmod +x"
+fi
 
 large_files() {
     du --human-readable --summarize --total .[!.]* * | sort --human-numeric-sort
