@@ -939,7 +939,16 @@ jq() {
     if [[ -f "${file_path}" ]]; then
         # Open an interactive view for entering a jq filter and viewing the
         # result in the fzf preview window.
-        jq_filter=$(echo "" | fzf --print-query --preview "cat \"${file_path}\" | jq {q}")
+        jq_filter=$(echo "" |
+            fzf \
+                --info=hidden \
+                --preview "cat \"${file_path}\" | jq --color-output {q}" \
+                --preview-window=up:100 \
+                --print-query
+        )
+        if [[ -z "${jq_filter}" ]]; then
+            return
+        fi
 
         # Display a preview of the file using the selected jq filter.
         echo "preview:"
