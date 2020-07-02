@@ -19,6 +19,8 @@
 
     $ jq api_response.json
     (opens an interactive fzf window for debugging a jq filter)
+    
+![](screenshots/jq.png)
 
 ### Rename file using one parameter
 
