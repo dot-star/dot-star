@@ -15,6 +15,11 @@
     $ rm *
     cowardly refusing to run `rm' with a dangerous wildcard
 
+### Debug a jq filter
+
+    $ jq api_response.json
+    (opens an interactive fzf window for debugging a jq filter)
+
 ### Rename file using one parameter
 
     $ mv download.jpg

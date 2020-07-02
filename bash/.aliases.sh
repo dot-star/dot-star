@@ -930,3 +930,27 @@ mv() {
 }
 
 alias rp="realpath"
+
+# Wrap jq command to allow debugging jq filter when a file is specified as the
+# first and only argument. When the command is return, the filter used is put in
+# the clipboard to immediate use.
+jq() {
+    file_path="${1}"
+    if [[ -f "${file_path}" ]]; then
+        # Open an interactive view for entering a jq filter and viewing the
+        # result in the fzf preview window.
+        jq_filter=$(echo "" | fzf --print-query --preview "cat \"${file_path}\" | jq {q}")
+
+        # Display a preview of the file using the selected jq filter.
+        echo "preview:"
+        "$(which jq)" -C "${jq_filter}" "${file_path}" | head
+
+        # Put the selected jq filter in the clipboard.
+        echo "${jq_filter}" | clip
+
+        # Display the selected jq filter.
+        echo -e "\njq filter (also in clipboard):\n${jq_filter}"
+    else
+        "$(which jq)" "${@}"
+    fi
+}
