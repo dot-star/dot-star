@@ -935,6 +935,8 @@ alias rp="realpath"
 # first and only argument. When the command is return, the filter used is put in
 # the clipboard to immediate use.
 jq() {
+    export JQ_COLORS="1;37:0;33:0;33:0;31:0;32:1;39:1;39"
+
     file_path="${1}"
     if [[ -f "${file_path}" ]]; then
         # Open an interactive view for entering a jq filter and viewing the
@@ -947,6 +949,7 @@ jq() {
                 --print-query
         )
         if [[ -z "${jq_filter}" ]]; then
+            echo "(no filter submitted)"
             return
         fi
 
