@@ -701,7 +701,7 @@ watch_file() {
     # Watch current directory and run command when only one parameter is specified.
     if [[ $# -eq 1 ]]; then
         pattern_to_watch="**"
-        file_name="${1}"
+        command_or_file_name="${1}"
 
         # Add prefix to command based on file name extension.
         python_script=$(cat <<'EOF'
@@ -709,24 +709,28 @@ import os
 import pipes
 import sys
 
-file_name = sys.argv[1]
-_, file_extension = os.path.splitext(file_name)
-filepath = os.path.abspath(file_name)
-cmd = ''
-if file_extension == '.sh':
-    cmd = 'bash {0}'.format(pipes.quote(file_name))
-elif file_extension == '.go':
-    cmd = 'go run {0}'.format(pipes.quote(file_name))
-elif file_extension == '.js':
-    cmd = 'node {0}'.format(pipes.quote(file_name))
-elif file_extension == '.php':
-    cmd = 'php {0}'.format(pipes.quote(file_name))
-elif file_extension == '.py':
-    cmd = 'python {0}'.format(pipes.quote(file_name))
+command_or_file_name = sys.argv[1]
+if os.path.isfile(command_or_file_name):
+    file_name = command_or_file_name
+    _, file_extension = os.path.splitext(file_name)
+    filepath = os.path.abspath(file_name)
+    cmd = ''
+    if file_extension == '.sh':
+        cmd = 'bash {0}'.format(pipes.quote(file_name))
+    elif file_extension == '.go':
+        cmd = 'go run {0}'.format(pipes.quote(file_name))
+    elif file_extension == '.js':
+        cmd = 'node {0}'.format(pipes.quote(file_name))
+    elif file_extension == '.php':
+        cmd = 'php {0}'.format(pipes.quote(file_name))
+    elif file_extension == '.py':
+        cmd = 'python {0}'.format(pipes.quote(file_name))
+else:
+    cmd = command_or_file_name
 print(cmd)
 EOF
 )
-        cmd_to_run=$(python -c "${python_script}" "${file_name}")
+        cmd_to_run=$(python -c "${python_script}" "${command_or_file_name}")
     elif [[ $# -eq 2 ]]; then
         pattern_to_watch="${1}"
         cmd_to_run="${2}"
