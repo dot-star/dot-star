@@ -709,20 +709,20 @@ import os
 import pipes
 import sys
 
-filename = sys.argv[1]
-_, file_extension = os.path.splitext(filename)
-filepath = os.path.abspath(filename)
+file_name = sys.argv[1]
+_, file_extension = os.path.splitext(file_name)
+filepath = os.path.abspath(file_name)
 cmd = ''
 if file_extension == '.sh':
-    cmd = 'bash {0}'.format(pipes.quote(filename))
+    cmd = 'bash {0}'.format(pipes.quote(file_name))
 elif file_extension == '.go':
-    cmd = 'go run {0}'.format(pipes.quote(filename))
+    cmd = 'go run {0}'.format(pipes.quote(file_name))
 elif file_extension == '.js':
-    cmd = 'node {0}'.format(pipes.quote(filename))
+    cmd = 'node {0}'.format(pipes.quote(file_name))
 elif file_extension == '.php':
-    cmd = 'php {0}'.format(pipes.quote(filename))
+    cmd = 'php {0}'.format(pipes.quote(file_name))
 elif file_extension == '.py':
-    cmd = 'python {0}'.format(pipes.quote(filename))
+    cmd = 'python {0}'.format(pipes.quote(file_name))
 print(cmd)
 EOF
 )
