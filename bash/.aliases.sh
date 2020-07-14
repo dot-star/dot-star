@@ -180,8 +180,24 @@ better_cd() {
 alias "cd"="better_cd"
 
 edit() {
-  editor="_vim"
-  "${editor}" "${@}"
+    editor="_vim"
+
+    # Display option for selecting which file to edit when no file has been
+    # specified. Automatically select file when there's only one file.
+    if [[ $# -eq 0 ]] && is_git; then
+        result=$(
+            git status --porcelain |
+                \grep "^ M " |
+                awk '{print $2}' |
+                fzf --select-1
+        )
+        echo "result: ${result}"
+        args="${result}"
+    else
+        args="${@}"
+    fi
+
+    "${editor}" "${args}"
 }
 alias e="edit"
 
