@@ -191,7 +191,6 @@ edit() {
                 awk '{print $2}' |
                 fzf --select-1
         )
-        echo "result: ${result}"
         args="${result}"
     else
         args="${@}"
@@ -947,9 +946,10 @@ mv() {
 
 alias rp="realpath"
 
-# Wrap jq command to allow debugging jq filter when a file is specified as the
-# first and only argument. When the command is return, the filter used is put in
-# the clipboard to immediate use.
+# Wrap jq command to allow debugging a jq filter interactively.
+# To use, run `jq $filename'. Press return when the desired filter has been
+# entered. The entered filter will be displayed and put in the clipboard for
+# immediate use.
 jq() {
     export JQ_COLORS="1;37:0;33:0;33:0;31:0;32:1;39:1;39"
 
