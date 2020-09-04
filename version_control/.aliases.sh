@@ -257,8 +257,7 @@ rc_status() {
         echo "git status"
         git status $@
     elif is_g; then
-        echo "g4 pending"
-        g4 pending
+        pending
     else
         l
     fi

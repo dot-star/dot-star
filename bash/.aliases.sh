@@ -204,7 +204,7 @@ edit() {
         args="${@}"
     fi
 
-    "${editor}" "${args}"
+    "${editor}" ${args}
 }
 alias e="edit"
 
