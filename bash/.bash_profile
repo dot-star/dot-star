@@ -1,15 +1,29 @@
 #!/usr/bin/env bash
 
 CWD="${PWD}"
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+if [[ -n "${BASH_VERSION}" ]]; then
+  DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+elif [ -n "${ZSH_VERSION}" ]; then
+  DIR="$(dirname $0)"
+fi
+
 cd "${DIR}"
 cd ..
 source "bash/.aliases.sh"
-source "bash/.behavior.sh"
+
+if [ -n "${BASH_VERSION}" ]; then
+  source "bash/.behavior.sh"
+fi
+
 source "bash/.cd.sh"
 source "bash/.history.sh"
 source "bash/.path.sh"
-source "bash/.prompt.sh"
+
+if [[ -n "${BASH_VERSION}" ]]; then
+  source "bash/.prompt.sh"
+fi
+
 source "bash/.safer_rm.sh"
 source "brew/.aliases.sh"
 source "coffeescript/.aliases.sh"
