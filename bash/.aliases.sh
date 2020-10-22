@@ -197,8 +197,19 @@ edit() {
             git status --porcelain |
                 \grep "^ M " |
                 awk '{print $2}' |
-                fzf --select-1
+                fzf --select-1 --exit-0
         )
+
+        # Fallback to looking for files with unmerged changes.
+        if [[ -z "${result}" ]]; then
+            result=$(
+                git status --porcelain |
+                    \grep "^UU " |
+                    awk '{print $2}' |
+                    fzf --select-1 --exit-0
+            )
+        fi
+
         args="${result}"
     else
         args="${@}"
