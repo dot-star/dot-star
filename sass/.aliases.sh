@@ -12,11 +12,13 @@ sasswatch() {
     #   $ sasswatch my_style.scss
     #   sass [...] --watch "my_style.scss:my_style.css"
 
-    if [[ "${#}" -eq 1 ]]; then
+    if [[ "${#}" -eq 1 ]] && [[ "${1}" != *":"* ]]; then
         arg="${1}"
         arg="${arg/.css/}"
         arg="${arg/.scss/}"
         command="${arg}.scss:${arg}.css"
+    elif [[ "${#}" -eq 1 ]]; then
+        command="${1}"
     else
         command="style.scss:style.css"
     fi
