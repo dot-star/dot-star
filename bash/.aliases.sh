@@ -702,6 +702,9 @@ watch_file() {
     #   $ watch_file file_to_watch.log "bash file_changed.sh"
     #   >>> watchman-make -p "file_to_watch.log" --run "bash file_changed.sh"
     #
+    #   $ watch_file "bash file_changed.sh"
+    #   >>> watchman-make -p "**" --run "bash file_changed.sh"
+    #
     #   $ watch_file script.sh
     #   >>> watchman-make -p "**" --run "bash script.sh"
     #
@@ -768,7 +771,9 @@ EOF
     # Use watchman-make when available.
     which watchman-make &> /dev/null
     if [[ $? -eq 0 ]]; then
+        set -x
         watchman-make --pattern "${pattern_to_watch}" --run "${cmd_to_run}"
+        set +x
         return
     else
         echo -e '\x1b[0;93mWARNING\x1b[0m: watchman-make required'
