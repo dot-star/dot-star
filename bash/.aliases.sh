@@ -185,7 +185,30 @@ better_cd() {
         builtin cd "${directory}"
     fi
 }
-alias "cd"="better_cd"
+
+conditional_cd() {
+    # Allow changing directory when "cd" is called for changing the directory,
+    # but also allow piping to colordiff using the "cd" alias.
+    #
+    # Examples:
+    #   $ cd path/to/dir
+    #   (Calls regular cd to change into the directory.)
+    #
+    #   $ wdiff original.txt changed.txt | cd
+    #   (pipes wdiff result to colordiff)
+
+    # Keyboard input (interactive).
+    if [ -t 0 ]; then
+        # Run cd alias when not piped.
+        better_cd $@
+
+    # Pipe input (non-interactive).
+    else
+        # Run colordiff when alias cd is piped.
+        colordiff
+    fi
+}
+alias "cd"="conditional_cd"
 
 edit() {
     editor="_vim"
