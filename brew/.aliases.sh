@@ -10,4 +10,17 @@ if [[ $? -eq 0 ]]; then
     export PATH="${coreutils_path}/libexec/gnubin:${PATH}"
     export PATH="/usr/local/opt/grep/libexec/gnubin:$PATH"
     export MANPATH="${coreutils_path}/libexec/gnuman:${MANPATH}"
+
+    # Increase verbosity of brew commands. Useful for seeing some progress when calling `brew update' on a slower
+    # connection.
+    #
+    # Before:
+    #   $ brew update
+    # After:
+    #   $ brew update --debug --verbose
+    brew() {
+        set -x
+        /usr/local/bin/brew $@ --debug --verbose
+        set +x
+    }
 fi
