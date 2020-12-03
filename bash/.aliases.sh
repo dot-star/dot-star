@@ -180,7 +180,7 @@ better_cd() {
     elif [[ "${#}" -eq 1 ]]; then
         directory="${1}"
         if [[ -f "${directory}" ]]; then
-            directory="$(dirname $directory)"
+            directory="$(dirname "${directory}")"
         fi
         builtin cd "${directory}"
     fi
@@ -200,7 +200,7 @@ conditional_cd() {
     # Keyboard input (interactive).
     if [ -t 0 ]; then
         # Run cd alias when not piped.
-        better_cd $@
+        better_cd "${@}"
 
     # Pipe input (non-interactive).
     else
