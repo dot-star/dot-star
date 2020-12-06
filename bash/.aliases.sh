@@ -1033,3 +1033,18 @@ jq() {
         "$(which jq)" "${@}"
     fi
 }
+
+_man() {
+    # Open man pages in Preview on Mac.
+    if [[ "${OSTYPE}" == "darwin"* ]]; then
+        man -t "${@}" |
+            open -f -a Preview
+    # Open man pages regularly on all others.
+    else
+        man "${@}"
+
+        # TODO: Support opening man pages in pdf viewer on other systems.
+        # Hint: f=$(mktemp); man -t "$@" > "$f" && ( {some-pdf-viewer} "$f" ; rm "$f" )
+    fi
+}
+alias man="_man"
