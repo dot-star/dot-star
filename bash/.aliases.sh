@@ -793,14 +793,19 @@ EOF
 
     # Use watchman-make when available.
     which watchman-make &> /dev/null
-    if [[ $? -eq 0 ]]; then
-        set -x
-        watchman-make --pattern "${pattern_to_watch}" --run "${cmd_to_run}"
-        set +x
-        return
-    else
+    if [[ $? -ne 0 ]]; then
         echo -e '\x1b[0;93mWARNING\x1b[0m: watchman-make required'
+
+        if [[ "${OSTYPE}" == "darwin"* ]]; then
+            brew install watchman
+        else
+            sudo apt-get install -y watchman
+        fi
     fi
+
+    set -x
+    watchman-make --pattern "${pattern_to_watch}" --run "${cmd_to_run}"
+    set +x
 }
 alias wf="watch_file"
 
