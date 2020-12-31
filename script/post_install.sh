@@ -56,6 +56,8 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
 else
     sudo apt-get install colordiff
     sudo apt-get install jq
+
+    pip install diff-highlight
 fi
 
 # Create backup and swap directories specified in vimrc.
