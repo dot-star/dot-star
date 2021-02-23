@@ -37,7 +37,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     brew install git-gui
     brew install grep --with-default-names
     brew install homebrew/dupes/rsync
-    brew install macvim --with-override-system-vim
+    brew install macvim --HEAD
     brew install tree
     brew install wget
 
