@@ -44,7 +44,7 @@ alias 750="chmod 750"
 alias 755="chmod 755"
 alias 777="chmod 777"
 
-_ls(){
+_ls() {
     extra_args="${@}"
     clear
 
@@ -83,6 +83,18 @@ _ls(){
         ls -a -l -F -G ${extra_args}
     fi
 }
+
+conditional_l() {
+    if [ -t 0 ]; then
+        # Run `ls' when shell is interactive (e.g. "$ l").
+        _ls "${@}"
+    else
+        # Run `less' when shell is non-interactive (e.g. "$my_command | l").
+        less
+    fi
+
+}
+alias l="conditional_l"
 
 bak() {
     source="${1}"
@@ -256,7 +268,6 @@ alias grep="_grep"
 
 alias h="history"
 alias j="jobs"
-alias l="_ls"
 alias o="_open"
 alias oo="_open ."
 
