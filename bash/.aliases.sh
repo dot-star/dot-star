@@ -228,6 +228,8 @@ edit() {
     # Display option for selecting which file to edit when no file has been
     # specified. Automatically select file when there's only one file.
     if [[ $# -eq 0 ]] && is_git; then
+        root_dir="$(git rev-parse --show-toplevel)"
+
         result=$(
             git status --porcelain |
                 \grep "^ M " |
@@ -243,6 +245,23 @@ edit() {
                     awk '{print $2}' |
                     fzf --select-1 --exit-0
             )
+        fi
+
+        # Lastly, look for untracked files.
+        if [[ -z "${result}" ]]; then
+            result=$(
+                git status --porcelain |
+                    \grep "^?? " |
+                    awk '{print $2}' |
+                    fzf --select-1 --exit-0
+            )
+        fi
+
+        # Prepend root directory to result when not empty. Prepend after instead
+        # of with the fzf selector so that only paths relative from the git root
+        # directory are shown in the fzf selector and not absolute paths.
+        if [[ ! -z "${result}" ]]; then
+            result="${root_dir}/${result}"
         fi
 
         args="${result}"
