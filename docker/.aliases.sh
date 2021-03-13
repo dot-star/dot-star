@@ -52,7 +52,9 @@ docker_psa() {
 }
 
 docker_image_prune() {
-    docker image prune
+    # Use `docker image prune --all' for removing dangling and ununsed images
+    # (images not referenced by any container).
+    docker image prune --all
 }
 
 alias attach="docker attach"
