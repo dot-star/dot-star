@@ -51,12 +51,16 @@ docker_psa() {
     done
 }
 
+docker_image_prune() {
+    docker image prune
+}
+
 alias attach="docker attach"
 alias dc="docker"
 alias doc="docker"
 alias img="clear; docker images; echo; docker ps -a"
 alias pause="docker pause"
-alias prune="docker image prune"
+alias prune="docker_image_prune"
 alias psa="docker_psa"
 alias rmi="clear; docker rmi"
 alias stop="docker stop"
