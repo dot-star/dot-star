@@ -24,6 +24,7 @@ alias commit="rc_commit"
 alias d.="git diff ."
 alias dcommit="git svn dcommit"
 alias default="rc_master"
+alias delete_branch="git_delete_branch"
 alias df="rc_diff"
 alias dfl="git_diff_last"
 alias difflast="git_diff_last"
@@ -81,6 +82,14 @@ EOF
         echo ".git/config not found"
     else
         v "${filename}"
+    fi
+}
+
+git_delete_branch() {
+    branch_name="$(branches | fzf)"
+    branch_name="${branch_name#"${branch_name%%[![:space:]]*}"}"
+    if [[ ! -z "${branch_name}" ]]; then
+        git branch --delete -- "${branch_name}"
     fi
 }
 
