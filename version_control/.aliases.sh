@@ -54,7 +54,7 @@ alias s.="rc_status ."
 alias st="rc_status"
 alias stash="git_stash"
 alias tag="git tag"
-alias tags="git tag --list | sort --version-sort"
+alias tags="git tag --list | sort --version-sort | less -X -F"
 alias unshallow="git fetch --unshallow"
 
 git_config() {
