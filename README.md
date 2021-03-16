@@ -22,6 +22,11 @@
     
 ![](screenshots/jq.png)
 
+### View git stashes
+
+    $ list
+    (opens an interactive fzf window for viewing git stashes in the current repository)
+
 ### Rename file using one parameter
 
     $ mv download.jpg
