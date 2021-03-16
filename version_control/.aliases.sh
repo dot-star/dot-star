@@ -39,7 +39,7 @@ alias gconf="git_config"
 alias gitconfig="git_config"
 alias gitignore="git_ignore"
 alias gm="grep_merge"
-alias list="git stash list"
+alias list="git_stash_list"
 alias log="rc_log"
 alias master="rc_master"
 alias merge="rc_merge"
@@ -138,6 +138,10 @@ git_stash_drop() {
     # Drop the specified git stash.
     # Usage: drop 0
     git stash drop "stash@{$@}"
+}
+
+git_stash_list() {
+    git stash list
 }
 
 git_stash_show() {
