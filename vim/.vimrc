@@ -81,6 +81,7 @@ set iskeyword+=_,$,@,%,# " none of these are word dividers
 set noerrorbells " don't make noise
 set tabpagemax=100 " allow opening more tabs
 execute "set colorcolumn=" . join(range(121,255), ',')
+set redrawtime=10000
 
 " Vim UI
 set incsearch " BUT do highlight as you type you search phrase
