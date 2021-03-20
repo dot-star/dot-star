@@ -596,11 +596,24 @@ difference() {
 alias d="difference"
 
 chmod() {
-    if [ "$#" -eq 1 ]; then
-        file_mode_bits=$(gstat --format "%a" "${1}")
-        echo -e "${file_mode_bits}\t${1}"
-    else
+    option_found=false
+    for param in "${@}"; do
+        if [[ "${param}" == "-"* ]] || [[ "${param}" == "+"* ]]; then
+            option_found=true
+            break
+        fi
+    done
+
+    # Run chmod when any option is specified.
+    if $option_found; then
         command chmod "${@}"
+
+    # Display file mode bits for all files specified.
+    else
+        for filename in "${@}"; do
+            file_mode_bits="$(gstat --format "%a" "${filename}")"
+            echo -e "${file_mode_bits}\t${filename}"
+        done
     fi
 }
 
