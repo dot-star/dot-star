@@ -141,11 +141,14 @@ git_stash_drop() {
 }
 
 git_stash_list() {
-    git stash list |
+    result="$(git stash list |
         fzf \
             --info="hidden" \
             --preview='stash=$(echo {} | sed "s/}.*/}/"); git stash show -p "${stash}" --color=always' \
-            --preview-window="up:100"
+            --preview-window="up:100")"
+
+    git_stash="$(echo ${result} | sed "s/}.*/}/")"
+    echo "${git_stash}"
 }
 
 git_stash_show() {
