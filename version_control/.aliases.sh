@@ -135,9 +135,16 @@ git_stash_apply() {
 }
 
 git_stash_drop() {
-    # Drop the specified git stash.
-    # Usage: drop 0
-    git stash drop "stash@{$@}"
+    # Drop the selected git stash.
+    git_stash="$(git_stash_list)"
+    if [[ ! -z "${git_stash}" ]]; then
+        # Confirm before dropping the selected git stash.
+        response="$(display_confirm_prompt "Drop stash ${git_stash}?")"
+        if [[ "${response}" =~ ^[Yy]$ ]]; then
+            echo
+            git stash drop "${git_stash}"
+        fi
+    fi
 }
 
 git_stash_list() {
