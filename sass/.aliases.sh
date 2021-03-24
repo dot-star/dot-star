@@ -28,7 +28,8 @@ sasswatch() {
     fi
 
     sass \
-        --no-source-map="none" \
+        --no-source-map \
         --style="expanded" \
-        --watch "${command}"
+        --watch \
+        "${command}"
 }
