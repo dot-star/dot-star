@@ -1096,3 +1096,7 @@ _man() {
     fi
 }
 alias man="_man"
+
+if [[ ! -z "${BYOBU_WINDOW_NAME}" ]]; then
+    alias detach="/usr/lib/byobu/include/tmux-detach-all-but-current-client"
+fi
