@@ -74,7 +74,7 @@ for i, _ in enumerate(dirs):
     except IOError:
         pass
     else:
-        print filename
+        print(filename)
         break
 EOF
 )
