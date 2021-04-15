@@ -51,7 +51,7 @@ install_ipython() {
     pip install --user ipython
 
     # Add python binaries to PATH.
-    echo -e "export PATH=$PATH:/Users/$(whoami)/Library/Python/2.7/bin" >> "${HOME}/.bash_profile"
+    echo -e "export PATH=$PATH:/Users/$(whoami)/Library/Python/2.7/bin\n\n" >> "${HOME}/.bash_profile"
 
     # Disable IPython's "Do you really want to exit ([y]/n)?".
     export PATH="$PATH:/Users/$(whoami)/Library/Python/2.7/bin"

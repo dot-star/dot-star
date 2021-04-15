@@ -58,6 +58,9 @@ else
     sudo apt-get install jq
 
     pip install diff-highlight
+
+    # Install diff highlight.
+    git config --global core.pager "diff-highlight | less"
 fi
 
 # Create backup and swap directories specified in vimrc.
