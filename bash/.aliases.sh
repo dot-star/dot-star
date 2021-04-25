@@ -1113,10 +1113,11 @@ jq() {
 }
 
 _man() {
-    # Open man pages in Preview on Mac.
+    # Open man pages as pdfs in the Preview application when on a Mac.
     if [[ "${OSTYPE}" == "darwin"* ]]; then
         man -t "${@}" |
             open -f -a Preview
+
     # Open man pages regularly on all others.
     else
         man "${@}"
