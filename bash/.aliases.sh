@@ -1000,7 +1000,35 @@ cp() {
 
     # Call modified cp command to edit file name in place when only 1 parameter has been specified.
     if [[ "${#}" -eq 1 ]] && [[ -f "${file_name}" ]]; then
-        read -e -i "${file_name}" "new_file_name"
+        # Usage:
+        #   $ cp myfile.txt
+        #   myfile (displayed)
+        #   myfile2 (edited and return pressed)
+        #   >>> cp myfile.txt myfile2.txt
+
+        file_name_extension="$(basename "${file_name##*.}")"
+        file_name_no_extension="${file_name%.*}"
+
+        read -e -i "${file_name_no_extension}" "entered_file_name"
+
+        # Attempt to copy the specified file to a unique name (race condition
+        # possible, but not yet worth addressing).
+        new_file_name="${entered_file_name}.${file_name_extension}"
+        if [[ -f "${new_file_name}" ]]; then
+            i=0
+            while :; do
+                ((i++))
+                new_file_name="${entered_file_name}_${i}.${file_name_extension}"
+                if ! [[ -f "${new_file_name}" ]]; then
+                    echo "${new_file_name} (available)"
+                    break
+                else
+                    echo "${new_file_name} (exists)"
+                    sleep .1
+                fi
+            done
+        fi
+
         command cp "${file_name}" "${new_file_name}" &&
             (
                 $DIFF_SO_FANCY_INSTALLED &&
