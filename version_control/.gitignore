@@ -19,4 +19,5 @@ Thumbs.db
 # Sass Cache
 .sass-cache/
 
+.php_cs.cache
 .phpunit.result.cache
