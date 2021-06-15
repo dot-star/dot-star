@@ -264,6 +264,11 @@ edit() {
             return
         fi
 
+        # Show notice when no file was selected.
+        if [[ -z "${result}" ]]; then
+            echo "(no file selected)"
+        fi
+
         # Prepend root directory to result when not empty. Prepend after instead
         # of with the fzf selector so that only paths relative from the git root
         # directory are shown in the fzf selector and not absolute paths.
