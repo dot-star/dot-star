@@ -880,23 +880,6 @@ ipython_wrapper() {
 alias ipy="ipython_wrapper"
 alias py="python"
 
-case_insensitive_search_edit() {
-  if [[ -z "${1}" ]]; then
-    return
-  fi
-  results=$(grep --dereference-recursive --files-with-matches --ignore-case "${1}" . "${@:2}")
-  result_count=$(echo "${results}" | count_lines)
-  if [[ $result_count -gt 10 ]]; then
-    read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
-    if ! [[ $REPLY =~ ^[Yy]$ ]]; then
-      return
-    fi
-  fi
-  files=$(echo "${results}" | tr '\n' ' ')
-  edit ${files}
-}
-alias se="case_insensitive_search_edit"
-
 edit_extension_files() {
     files_to_edit=""
 
