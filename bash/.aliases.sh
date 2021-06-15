@@ -233,8 +233,7 @@ edit() {
         result=$(
             git status --porcelain |
                 \grep "^ M " |
-                awk '{print $2}' |
-                fzf --select-1 --exit-0
+                awk '{print $2}'
         )
 
         # Fallback to looking for files with unmerged changes.
@@ -242,8 +241,7 @@ edit() {
             result=$(
                 git status --porcelain |
                     \grep "^UU " |
-                    awk '{print $2}' |
-                    fzf --select-1 --exit-0
+                    awk '{print $2}'
             )
         fi
 
@@ -255,6 +253,15 @@ edit() {
                     awk '{print $2}' |
                     fzf --select-1 --exit-0
             )
+        fi
+
+        result="$(echo "${result}" | fzf --select-1 --exit-0)"
+        return_code="${?}"
+
+        # Stop edit when canceled.
+        # "130 Interrupted with CTRL-C or ESC"
+        if [[ "${return_code}" -eq 130 ]]; then
+            return
         fi
 
         # Prepend root directory to result when not empty. Prepend after instead
