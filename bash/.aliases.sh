@@ -561,6 +561,7 @@ pdf_remove_password() {
         fi
     done
 }
+alias remove_pdf_password="pdf_remove_password"
 
 change_mac_address() {
     current_mac_address=$(ifconfig en0 | \grep ether | perl -pe 's/^\s+ether (.*) /\1/')
