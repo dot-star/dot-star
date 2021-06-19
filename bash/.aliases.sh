@@ -37,12 +37,12 @@ display_confirm_prompt() {
     fi
 }
 
-alias 600="chmod 600"
-alias 644="chmod 644"
-alias 700="chmod 700"
-alias 750="chmod 750"
-alias 755="chmod 755"
-alias 777="chmod 777"
+alias 600="\chmod 600"
+alias 644="\chmod 644"
+alias 700="\chmod 700"
+alias 750="\chmod 750"
+alias 755="\chmod 755"
+alias 777="\chmod 777"
 
 _ls() {
     extra_args="${@}"
@@ -608,7 +608,7 @@ difference() {
 }
 alias d="difference"
 
-chmod() {
+_chmod() {
     option_found=false
     for param in "${@}"; do
         if [[ "${param}" == "-"* ]] || [[ "${param}" == "+"* ]]; then
@@ -629,6 +629,7 @@ chmod() {
         done
     fi
 }
+alias chmod="_chmod"
 
 conditional_f() {
     if [ -t 1 ]; then
