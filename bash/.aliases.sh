@@ -89,7 +89,7 @@ conditional_l() {
         # Run `ls' when shell is interactive (e.g. "$ l").
         _ls "${@}"
     else
-        # Run `less' when shell is non-interactive (e.g. "$my_command | l").
+        # Run `less' when shell is non-interactive (e.g. "$ my_command | l").
         less
     fi
 
@@ -286,14 +286,28 @@ edit() {
 alias e="edit"
 
 _grep() {
-    grep \
-        --binary-files="without-match" \
-        --color \
-        --exclude-dir=".git" \
-        --exclude-dir=".hg" \
-        --exclude-dir=".svn" \
-        --line-number \
-        "$@"
+    if [ -t 0 ]; then
+        # Run grep with line numbers when shell is interactive (e.g.
+        # "$ grep ...").
+        grep \
+            --binary-files="without-match" \
+            --color \
+            --exclude-dir=".git" \
+            --exclude-dir=".hg" \
+            --exclude-dir=".svn" \
+            --line-number \
+            "$@"
+    else
+        # Run grep without line numbers when shell is non-interactive (e.g.
+        # "$ my_command | grep ...").
+        grep \
+            --binary-files="without-match" \
+            --color \
+            --exclude-dir=".git" \
+            --exclude-dir=".hg" \
+            --exclude-dir=".svn" \
+            "$@"
+    fi
 }
 alias grep="_grep"
 
