@@ -1145,3 +1145,7 @@ fi
 
 alias k="kill"
 alias ka="killall"
+
+detach() {
+   /usr/lib/byobu/include/tmux-detach-all-but-current-client
+}
