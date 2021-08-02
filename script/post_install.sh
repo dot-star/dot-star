@@ -55,6 +55,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     git config --global core.pager '"/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" | less -m'
 else
     sudo apt-get install colordiff
+    sudo apt-get install fzf
     sudo apt-get install jq
 
     pip install diff-highlight
