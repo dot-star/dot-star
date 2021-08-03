@@ -58,9 +58,7 @@ else
     sudo apt-get install fzf
     sudo apt-get install jq
 
-    pip install diff-highlight
-
-    # Install diff highlight.
+    # Use git's diff-highlight.
     git config --global core.pager "diff-highlight | less"
 fi
 
