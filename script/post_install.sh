@@ -48,6 +48,9 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     # Disable chime sound when power is connected.
     defaults write com.apple.PowerChime ChimeOnNoHardware -bool true
 
+    # Show all files in Finder (requires a restart of Finder: `killall Finder').
+    defaults write com.apple.Finder AppleShowAllFiles true
+
     # Use diff highlight.
     ln -s "/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" "/usr/local/bin/"
 
