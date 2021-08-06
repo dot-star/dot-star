@@ -1235,3 +1235,5 @@ alias ka="killall"
 detach() {
    /usr/lib/byobu/include/tmux-detach-all-but-current-client
 }
+
+alias pc="pre-commit"
