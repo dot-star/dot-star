@@ -1237,3 +1237,30 @@ detach() {
 }
 
 alias pc="pre-commit"
+
+_type() {
+    # Display a list of the currently defined bash functions when the `type'
+    # command is run without any parameters.
+    if [[ "${#}" -eq 0 ]]; then
+        result=$(
+            set |
+            \grep -E "^\w+ \()" |
+            awk '{ print $1 }' |
+            fzf --select-1 --exit-0
+        )
+        return_code="${?}"
+
+        # Stop edit when canceled.
+        # "130 Interrupted with CTRL-C or ESC"
+        if [[ "${return_code}" -eq 130 ]]; then
+            return
+        fi
+
+        builtin type "${result}"
+
+    # Run regular `type' command.
+    else
+        builtin type $@
+    fi
+}
+alias type="_type"
