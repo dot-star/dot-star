@@ -1250,7 +1250,7 @@ _type() {
                 --exit-0 \
                 --info="hidden" \
                 --preview-window="right:70%" \
-                --preview='source ~/.dot-star/bash/.bash_profile; set -x; type {}; set +x' \
+                --preview='source ~/.dot-star/bash/.bash_profile; type {}' \
                 --select-1
         )
         return_code="${?}"
