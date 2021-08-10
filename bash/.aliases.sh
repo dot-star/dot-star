@@ -1246,7 +1246,12 @@ _type() {
             set |
             \grep -E "^[a-z][a-z_]+ \()" |
             awk '{ print $1 }' |
-            fzf --select-1 --exit-0
+            fzf \
+                --exit-0 \
+                --info="hidden" \
+                --preview-window="right:70%" \
+                --preview='source ~/.dot-star/bash/.bash_profile; set -x; type {}; set +x' \
+                --select-1
         )
         return_code="${?}"
 
