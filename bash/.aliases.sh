@@ -1244,7 +1244,7 @@ _type() {
     if [[ "${#}" -eq 0 ]]; then
         result=$(
             set |
-            \grep -E "^\w+ \()" |
+            \grep -E "^[a-z][a-z_]+ \()" |
             awk '{ print $1 }' |
             fzf --select-1 --exit-0
         )
