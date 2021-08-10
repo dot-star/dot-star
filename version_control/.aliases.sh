@@ -150,12 +150,22 @@ git_stash_drop() {
 git_stash_list() {
     result="$(git stash list |
         fzf \
+            --exit-0 \
             --info="hidden" \
             --preview='stash=$(echo {} | sed "s/}.*/}/"); git stash show -p "${stash}" --color=always' \
             --preview-window="up:100")"
-
-    git_stash="$(echo ${result} | sed "s/}.*/}/")"
-    echo "${git_stash}"
+    exit_code="${?}"
+    if [[ "${exit_code}" -eq 0 ]]; then
+        git_stash="$(echo ${result} | sed "s/}.*/}/")"
+        echo "${git_stash}"
+    elif [[ "${exit_code}" -eq 1 ]]; then
+        echo "(no stashes)"
+    elif [[ "${exit_code}" -eq 2 ]]; then
+        echo "(fzf error)"
+    elif [[ "${exit_code}" -eq 130 ]]; then
+        # Handle Ctrl-C and Esc exit gracefully.
+        return
+    fi
 }
 
 git_stash_show() {
