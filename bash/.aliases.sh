@@ -1262,6 +1262,7 @@ detach() {
 }
 
 alias pc="pre-commit"
+alias pca="pre-commit run --all-files"
 
 _type() {
     # Display a list of the currently defined bash functions when the `type'
