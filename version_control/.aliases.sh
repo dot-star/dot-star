@@ -153,7 +153,8 @@ git_stash_list() {
             --exit-0 \
             --info="hidden" \
             --preview='stash=$(echo {} | sed "s/}.*/}/"); git stash show -p "${stash}" --color=always' \
-            --preview-window="up:100")"
+            --preview-window="up:100" \
+            --tac)"
     exit_code="${?}"
     if [[ "${exit_code}" -eq 0 ]]; then
         git_stash="$(echo ${result} | sed "s/}.*/}/")"
