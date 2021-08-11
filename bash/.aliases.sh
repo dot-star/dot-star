@@ -1210,10 +1210,35 @@ jq() {
 }
 
 _man() {
-    # Open man pages as pdfs in the Preview application when on a Mac.
+    # Open man pages as html when on a Mac.
     if [[ "${OSTYPE}" == "darwin"* ]]; then
-        man -t "${@}" |
-            open -f -a Preview
+        # Open man pages as html.
+        # Previously man pages were opened as pdfs in the Preview application
+        # using the following command:
+        #   man -t "${@}" | open -f -a Preview
+        # However, the minus signs in the resulting pdf were rendered using
+        # U+2212 (e2 88 92) instead of the desired U+002d (2d). This causes the
+        # program options to not be searchable (e.g. a text search for
+        # "--verbose" returns no results). Render to html so that text searches
+        # for program options using dashes works as expected.
+        man_file_path="$(\man --path "${1}")"
+        exit_code="${?}"
+        if [[ "${exit_code}" -ne 0 ]]; then
+            return
+        fi
+
+        mkdir -p "${HOME}/man_html/"
+
+        man_file_name="$(basename "${man_file_path}")"
+        echo "file name: ${man_file_name}"
+        if [[ "${man_file_name}" == *".gz" ]]; then
+            gunzip --to-stdout "${man_file_path}" |
+                groff -mandoc -T html > "${HOME}/man_html/${1}.html"
+        else
+            groff -mandoc -T html "${man_file_path}" > "${HOME}/man_html/${1}.html"
+        fi
+
+        open "${HOME}/man_html/${1}.html"
 
     # Open man pages regularly on all others.
     else
