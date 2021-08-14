@@ -52,9 +52,14 @@ docker_psa() {
 }
 
 docker_image_prune() {
+    set -x
+    docker image prune
+
     # Use `docker image prune --all' for removing dangling and ununsed images
     # (images not referenced by any container).
-    docker image prune --all
+    until="$(date --rfc-3339="date" --date="3 months ago")"
+    docker image prune --all --filter="until=${until}"
+    set +x
 }
 
 alias attach="docker attach"
