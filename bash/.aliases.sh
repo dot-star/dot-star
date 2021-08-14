@@ -448,8 +448,10 @@ _tree() {
   tree \
     -a \
     -F \
+    -I ".git" \
     -I "__pycache__" \
-    -I ".git"
+    -I "node_modules" \
+    $@
 }
 alias tree="_tree"
 alias t="_tree"
