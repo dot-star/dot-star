@@ -2,8 +2,8 @@ pomodoro() {
     _play_media() {
         prompt="${1}"
 
-        ffplay -loop -1 -nodisp -loglevel quiet -af "volume=0.01" <(xxd --revert --plain <(echo "${MEDIA}")) &
-        pid="${!}"
+        read < <(ffplay -loop -1 -nodisp -loglevel quiet -af "volume=0.01" <(xxd --revert --plain <(echo "${MEDIA}")) & echo "${!}")
+        pid="${REPLY}"
 
         read -p "${prompt}" -n 1 -s
         kill "${pid}"
