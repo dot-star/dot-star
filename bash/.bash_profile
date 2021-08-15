@@ -19,6 +19,7 @@ fi
 source "bash/.cd.sh"
 source "bash/.history.sh"
 source "bash/.path.sh"
+source "bash/.pomodoro.sh"
 
 if [[ -n "${BASH_VERSION}" ]]; then
   source "bash/.prompt.sh"
