@@ -457,9 +457,21 @@ alias tree="_tree"
 alias t="_tree"
 
 _top() {
-    top -o cpu
-    if [[ $? -ne 0 ]]; then
-        top
+    if ! which htop &> /dev/null; then
+        if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+            set -x
+            sudo apt-get install -y htop
+            set +x
+        fi
+    fi
+
+    if which htop &> /dev/null; then
+        htop --sort-key=PERCENT_MEM
+    else
+        top -o cpu
+        if [[ $? -ne 0 ]]; then
+            top
+        fi
     fi
 }
 alias top="_top"
