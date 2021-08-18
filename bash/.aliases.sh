@@ -1241,7 +1241,12 @@ _man() {
         # U+2212 (e2 88 92) instead of the desired U+002d (2d). This causes the
         # program options to not be searchable (e.g. a text search for
         # "--verbose" returns no results). Render to html so that text searches
-        # for program options using dashes works as expected.
+        # for program options using dashes works as expected. So open the
+        # resulting html file in a web browser so that program options are
+        # searchable using dashes. While this allows for successful text
+        # searching, any selected option still copies the incorrect characters
+        # to the clipboard so use `sed' to replace instaces of "&minus;" with
+        # dashes.
         man_file_path="$(\man --path "${1}")"
         exit_code="${?}"
         if [[ "${exit_code}" -ne 0 ]]; then
@@ -1258,6 +1263,8 @@ _man() {
         else
             groff -mandoc -T html "${man_file_path}" > "${HOME}/man_html/${1}.html"
         fi
+
+        sed -i "" $'s/&minus;/-/g' "${HOME}/man_html/${1}.html"
 
         open "${HOME}/man_html/${1}.html"
 
