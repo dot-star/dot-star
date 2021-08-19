@@ -62,9 +62,31 @@ docker_image_prune() {
     set +x
 }
 
+_docker() {
+    # Run docker only if is not already running.
+    if (! docker stats --no-stream &> /dev/null); then
+        if [[ "${OSTYPE}" == "darwin"* ]]; then
+            open /Applications/Docker.app
+
+            # Wait until docker daemon is running and has completed initialization.
+            echo -n "Waiting for docker."
+            while (! docker stats --no-stream &> /dev/null); do
+                echo -n "."
+                sleep 1
+            done
+            echo ""
+
+            docker "${@}"
+        else
+            echo "docker is not running"
+        fi
+    fi
+}
+
 alias attach="docker attach"
-alias dc="docker"
-alias doc="docker"
+alias dc="_docker"
+alias doc="_docker"
+alias docker="_docker"
 alias img="clear; docker images; echo; docker ps -a"
 alias pause="docker pause"
 alias prune="docker_image_prune"
