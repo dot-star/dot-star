@@ -14,6 +14,20 @@ else
     DIFF_SO_FANCY_INSTALLED=true
 fi
 
+success() {
+    printf '%s%s%s' \
+        "$(echo -e "\x1b[32m")" \
+        "${*}" \
+        "$(echo -e "\x1b[39m")"
+}
+
+error() {
+    printf '%s%s%s' \
+        "$(echo -e "\x1b[31m")" \
+        "${*}" \
+        "$(echo -e "\x1b[39m")"
+}
+
 is_interactive_shell() {
     [[ "$-" =~ "i" ]]
 }
@@ -976,28 +990,50 @@ EOF
         return
     fi
 
-    # Add line separator between each command.
-    cols="$(tput cols)"
-    cmd_to_run="printf -- '-=%.0s' {1..${cols}}; echo; ${cmd_to_run}"
+    i=0
+    while :; do
 
-    echo "pattern_to_watch: ${pattern_to_watch}"
-    echo "cmd_to_run: ${cmd_to_run}"
+        watchman-wait --max-events="1" --pattern "${pattern_to_watch}" -- .
+        watchman_exit_code="${?}"
 
-    # Use watchman-make when available.
-    which watchman-make &> /dev/null
-    if [[ $? -ne 0 ]]; then
-        echo -e '\x1b[0;93mWARNING\x1b[0m: watchman-make required'
+        # "0 is returned after successfully waiting for event(s)".
+        if [ "${watchman_exit_code}" -eq 0 ]; then
+            cols="$(tput cols)"
+            echo "$(bash -c "printf -- '=%.0s' {1..${cols}}")"
+            clear
 
-        if [[ "${OSTYPE}" == "darwin"* ]]; then
-            brew install watchman
+            bash -c "${cmd_to_run}"
+            command_exit_code="${?}"
+
+            # Calculate width of line separator between each command execution
+            # and right before printing the separator to account for resizing.
+            cols="$(tput cols)"
+
+            if [ $((i%4)) -eq 0 ]; then
+                sep="$(bash -c "printf -- '-%.0s' {1..${cols}}")"
+            elif [ $((i%4)) -eq 1 ]; then
+                sep="$(bash -c "printf -- '\%.0s' {1..${cols}}")"
+            elif [ $((i%4)) -eq 2 ]; then
+                sep="$(bash -c "printf -- '|%.0s' {1..${cols}}")"
+            elif [ $((i%4)) -eq 3 ]; then
+                sep="$(bash -c "printf -- '/%.0s' {1..${cols}}")"
+            fi
+
+            if [ "${command_exit_code}" -ne 0 ]; then
+                error "${sep}"
+                echo "Error: exit code ${command_exit_code}"
+                echo "Command: \`${cmd_to_run}'"
+            else
+                success "${sep}"
+            fi
         else
-            sudo apt-get install -y watchman
+            break
         fi
-    fi
 
-    set -x
-    watchman-make --pattern "${pattern_to_watch}" --run "${cmd_to_run}"
-    set +x
+        sleep 1
+
+        (( i += 1 ))
+    done
 }
 alias wf="watch_file"
 
