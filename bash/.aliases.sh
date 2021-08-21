@@ -886,7 +886,7 @@ _run_watchman() {
 
             if [ "${command_exit_code}" -ne 0 ]; then
                 error "${sep}"
-                echo "Error: exit code ${command_exit_code}"
+                echo -e "\\033[4;31mError\\033[0m: exit code ${command_exit_code}"
                 echo "Command: \`${cmd_to_run}'"
             else
                 success "${sep}"
