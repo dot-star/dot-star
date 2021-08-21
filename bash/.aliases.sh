@@ -389,10 +389,12 @@ case_insensitive_search() {
   if [[ "${param_count}" -eq 0 ]]; then
     # Show version control status when no parameters are passed.
     rc_status
+
   # Search by keyword (e.g. `s keyword').
   elif [[ "${param_count}" -eq 1 ]]; then
     keyword="${1}"
-    grep --ignore-case --recursive "${keyword}" . "${@:2}"
+    grep --exclude-dir="node_modules" --ignore-case --recursive "${keyword}" . "${@:2}"
+
   # Search by extension + keyword (e.g. `s ext keyword').
   elif [[ "${param_count}" -eq 2 ]]; then
     extension="${1}"
