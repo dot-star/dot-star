@@ -58,6 +58,19 @@ alias 750="\chmod 750"
 alias 755="\chmod 755"
 alias 777="\chmod 777"
 
+_require_watchman() {
+    which watchman-make &> /dev/null
+    if [ $? -ne 0 ]; then
+        echo -e '\x1b[0;93mWARNING\x1b[0m: watchman-make required'
+
+        if [[ "${OSTYPE}" == "darwin"* ]]; then
+            brew install watchman
+        else
+            sudo apt-get install -y watchman
+        fi
+    fi
+}
+
 _ls() {
     extra_args="${@}"
     clear
@@ -859,6 +872,8 @@ watch_dir() {
     #
     #   $ watch_dir script.py
     #   >>> watchman-make -p "**" --run "python script.py"
+    _require_watchman
+
     # Watch current directory and run command when only one parameter is specified.
     if [[ $# -eq 1 ]]; then
         # Use a glob pattern (not a regular expression) that excludes period-prefixed files which would otherwise cause
@@ -907,18 +922,6 @@ EOF
     echo "pattern_to_watch: ${pattern_to_watch}"
     echo "cmd_to_run: ${cmd_to_run}"
 
-    # Use watchman-make when available.
-    which watchman-make &> /dev/null
-    if [[ $? -ne 0 ]]; then
-        echo -e '\x1b[0;93mWARNING\x1b[0m: watchman-make required'
-
-        if [[ "${OSTYPE}" == "darwin"* ]]; then
-            brew install watchman
-        else
-            sudo apt-get install -y watchman
-        fi
-    fi
-
     set -x
     watchman-make --pattern "${pattern_to_watch}" --run "${cmd_to_run}"
     set +x
@@ -948,6 +951,7 @@ watch_file() {
     #
     #   $ watch_file script.py
     #   >>> watchman-make -p "**" --run "python script.py"
+    _require_watchman
 
     # Watch current directory and run command when only one parameter is specified.
     if [[ $# -eq 1 ]]; then
