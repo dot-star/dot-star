@@ -852,151 +852,12 @@ serve_dir() {
     fi
 }
 
-watch_dir() {
-    # Watch the current directory and run a command.
-    # Usage:
-    #   $ watch_dir "bash file_changed.sh"
-    #   >>> watchman-make -p "**" --run "bash file_changed.sh"
-    #
-    #   $ watch_dir script.sh
-    #   >>> watchman-make -p "**" --run "bash script.sh"
-    #
-    #   $ watch_dir script.go
-    #   >>> watchman-make -p "**" --run "go run script.go"
-    #
-    #   $ watch_dir script.js
-    #   >>> watchman-make -p "**" --run "node script.js"
-    #
-    #   $ watch_dir script.php
-    #   >>> watchman-make -p "**" --run "php script.php"
-    #
-    #   $ watch_dir script.py
-    #   >>> watchman-make -p "**" --run "python script.py"
-    _require_watchman
-
-    # Watch current directory and run command when only one parameter is specified.
-    if [[ $# -eq 1 ]]; then
-        # Use a glob pattern (not a regular expression) that excludes period-prefixed files which would otherwise cause
-        # endless triggering. For example, using watchman-make with --pattern "**" and --run "phpunit [...]" causes a
-        # cache file (".phpunit.result.cache") to be continually updated and a another execution.
-        pattern_to_watch="**/[!\.]*.*"
-        command_or_file_name="${1}"
-
-        # Add prefix to command based on file name extension.
-        python_script=$(cat <<'EOF'
-import os
-import pipes
-import sys
-
-command_or_file_name = sys.argv[1]
-if os.path.isfile(command_or_file_name):
-    file_name = command_or_file_name
-    _, file_extension = os.path.splitext(file_name)
-    filepath = os.path.abspath(file_name)
-    cmd = ''
-    if file_extension == '.sh':
-        cmd = 'bash {0}'.format(pipes.quote(file_name))
-    elif file_extension == '.go':
-        cmd = 'go run {0}'.format(pipes.quote(file_name))
-    elif file_extension == '.js':
-        cmd = 'node {0}'.format(pipes.quote(file_name))
-    elif file_extension == '.php':
-        cmd = 'php {0}'.format(pipes.quote(file_name))
-    elif file_extension == '.py':
-        cmd = 'python {0}'.format(pipes.quote(file_name))
-else:
-    cmd = command_or_file_name
-print(cmd)
-EOF
-)
-        cmd_to_run=$(python -c "${python_script}" "${command_or_file_name}")
-    else
-        echo "Error: 1 parameter required"
-        return
-    fi
-
-    # Add line separator between each command.
-    cols="$(tput cols)"
-    cmd_to_run="printf -- '-=%.0s' {1..${cols}}; echo; ${cmd_to_run}"
-
-    echo "pattern_to_watch: ${pattern_to_watch}"
-    echo "cmd_to_run: ${cmd_to_run}"
-
-    set -x
-    watchman-make --pattern "${pattern_to_watch}" --run "${cmd_to_run}"
-    set +x
-}
-alias wd="watch_dir"
-
-watch_file() {
-    # Watch a file for changes and run a command.
-    # Usage:
-    #   $ watch_file file_to_watch.log "bash file_changed.sh"
-    #   >>> watchman-make -p "file_to_watch.log" --run "bash file_changed.sh"
-    #
-    #   $ watch_file "bash file_changed.sh"
-    #   >>> watchman-make -p "**" --run "bash file_changed.sh"
-    #
-    #   $ watch_file script.sh
-    #   >>> watchman-make -p "**" --run "bash script.sh"
-    #
-    #   $ watch_file script.go
-    #   >>> watchman-make -p "**" --run "go run script.go"
-    #
-    #   $ watch_file script.js
-    #   >>> watchman-make -p "**" --run "node script.js"
-    #
-    #   $ watch_file script.php
-    #   >>> watchman-make -p "**" --run "php script.php"
-    #
-    #   $ watch_file script.py
-    #   >>> watchman-make -p "**" --run "python script.py"
-    _require_watchman
-
-    # Watch current directory and run command when only one parameter is specified.
-    if [[ $# -eq 1 ]]; then
-        pattern_to_watch="**"
-        command_or_file_name="${1}"
-
-        # Add prefix to command based on file name extension.
-        python_script=$(cat <<'EOF'
-import os
-import pipes
-import sys
-
-command_or_file_name = sys.argv[1]
-if os.path.isfile(command_or_file_name):
-    file_name = command_or_file_name
-    _, file_extension = os.path.splitext(file_name)
-    filepath = os.path.abspath(file_name)
-    cmd = ''
-    if file_extension == '.sh':
-        cmd = 'bash {0}'.format(pipes.quote(file_name))
-    elif file_extension == '.go':
-        cmd = 'go run {0}'.format(pipes.quote(file_name))
-    elif file_extension == '.js':
-        cmd = 'node {0}'.format(pipes.quote(file_name))
-    elif file_extension == '.php':
-        cmd = 'php {0}'.format(pipes.quote(file_name))
-    elif file_extension == '.py':
-        cmd = 'python {0}'.format(pipes.quote(file_name))
-else:
-    cmd = command_or_file_name
-print(cmd)
-EOF
-)
-        cmd_to_run=$(python -c "${python_script}" "${command_or_file_name}")
-    elif [[ $# -eq 2 ]]; then
-        pattern_to_watch="${1}"
-        cmd_to_run="${2}"
-    else
-        echo "Error: 1 or 2 parameters required"
-        return
-    fi
+_run_watchman() {
+    pattern_to_watch="${1}"
+    cmd_to_run="${2}"
 
     i=0
     while :; do
-
         watchman-wait --max-events="1" --pattern "${pattern_to_watch}" -- .
         watchman_exit_code="${?}"
 
@@ -1038,6 +899,100 @@ EOF
 
         (( i += 1 ))
     done
+}
+
+_get_command_for_file_type() {
+    # Add prefix to command based on file name extension.
+    python_script=$(cat <<'EOF'
+import os
+import pipes
+import sys
+
+command_or_file_name = sys.argv[1]
+if os.path.isfile(command_or_file_name):
+    file_name = command_or_file_name
+    _, file_extension = os.path.splitext(file_name)
+    filepath = os.path.abspath(file_name)
+    cmd = ''
+    if file_extension == '.sh':
+        cmd = 'bash {0}'.format(pipes.quote(file_name))
+    elif file_extension == '.go':
+        cmd = 'go run {0}'.format(pipes.quote(file_name))
+    elif file_extension == '.js':
+        cmd = 'node {0}'.format(pipes.quote(file_name))
+    elif file_extension == '.php':
+        cmd = 'php {0}'.format(pipes.quote(file_name))
+    elif file_extension == '.py':
+        cmd = 'python3 {0}'.format(pipes.quote(file_name))
+else:
+    cmd = command_or_file_name
+print(cmd)
+EOF
+)
+    cmd_to_run=$(python -c "${python_script}" "${command_or_file_name}")
+    echo "${cmd_to_run}"
+}
+
+watch_dir() {
+    # Watch the current directory for changes and run a command.
+    # Usage:
+    #   $ watch_dir "bash file_changed.sh"
+    #   $ watch_dir script.sh
+    #   $ watch_dir script.go
+    #   $ watch_dir script.js
+    #   $ watch_dir script.php
+    #   $ watch_dir script.py
+    _require_watchman
+
+    # Watch the current directory and run the specified command (parameter 1)
+    # when one parameter is specified.
+    if [[ $# -eq 1 ]]; then
+        # Use a glob pattern (not a regular expression) that excludes period-prefixed files which would otherwise cause
+        # endless triggering. For example, using watchman-make with --pattern "**" and --run "phpunit [...]" causes a
+        # cache file (".phpunit.result.cache") to be continually updated and a another execution.
+        pattern_to_watch="**/[!\.]*.*"
+        command_or_file_name="${1}"
+        cmd_to_run="$(_get_command_for_file_type "${command_or_file_name}")"
+    else
+        echo "Error: 1 parameter required"
+        return
+    fi
+
+    _run_watchman "${pattern_to_watch}" "${cmd_to_run}"
+}
+alias wd="watch_dir"
+
+watch_file() {
+    # Watch a file for changes and run a command.
+    # Usage:
+    #   $ watch_file file_to_watch.log "bash file_changed.sh"
+    #   $ watch_file "bash file_changed.sh"
+    #   $ watch_file script.sh
+    #   $ watch_file script.go
+    #   $ watch_file script.js
+    #   $ watch_file script.php
+    #   $ watch_file script.py
+    _require_watchman
+
+    # Watch the specified file (parameter 1) for changes and run its related
+    # command when only one parameter is specified.
+    if [[ $# -eq 1 ]]; then
+        pattern_to_watch="**"
+        command_or_file_name="${1}"
+        cmd_to_run="$(_get_command_for_file_type "${command_or_file_name}")"
+
+    # Watch the specified pattern (parameter 1) for changes and run the
+    # specified command (parameter 2) when two parameters are specified.
+    elif [[ $# -eq 2 ]]; then
+        pattern_to_watch="${1}"
+        cmd_to_run="${2}"
+
+    else
+        echo "Error: 1 or 2 parameters required"
+        return
+    fi
+
+    _run_watchman "${pattern_to_watch}" "${cmd_to_run}"
 }
 alias wf="watch_file"
 
