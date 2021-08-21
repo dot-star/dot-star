@@ -75,12 +75,13 @@ _docker() {
                 sleep 1
             done
             echo ""
-
-            docker "${@}"
         else
             echo "docker is not running"
+            return
         fi
     fi
+
+    docker "${@}"
 }
 
 alias attach="docker attach"
