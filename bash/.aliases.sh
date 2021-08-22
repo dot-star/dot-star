@@ -456,6 +456,8 @@ case_insensitive_search_edit() {
       fi
     fi
 
+    # TODO(zborboa): Only open if files are found.
+
     files=$(echo "${results}" | tr '\n' ' ')
     edit ${files}
   fi

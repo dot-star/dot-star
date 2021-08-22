@@ -52,14 +52,13 @@ docker_psa() {
 }
 
 docker_image_prune() {
-    set -x
-    docker image prune
+    # Use --force option to skip confirmation prompt.
+    docker image prune --force
 
     # Use `docker image prune --all' for removing dangling and ununsed images
     # (images not referenced by any container).
     until="$(date --rfc-3339="date" --date="3 months ago")"
     docker image prune --all --filter="until=${until}"
-    set +x
 }
 
 _docker() {
