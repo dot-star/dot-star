@@ -607,9 +607,10 @@ slugify() {
 import re
 import sys
 
-input = sys.stdin.read().rstrip()
-value = re.sub('[^\w\s\.-]', '', input).strip().lower()
-print re.sub('[-\s]+', '-', value)
+value = sys.stdin.read().rstrip()
+value = re.sub(r'[/]', '-', value)
+value = re.sub(r'[^\w\s\.-]', '', value.lower())
+print(re.sub(r'[-\s]+', '-', value).strip('-_'))
 "
     echo "${stdin}" | python -c "${script}"
 }
