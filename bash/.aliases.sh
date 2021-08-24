@@ -536,7 +536,17 @@ quit() {
     exit
 }
 alias x="quit"
-alias q="quit"
+
+_conditional_q() {
+    if [ "${#}" -eq 0 ]; then
+        quit
+    else
+        set -x
+        quilt "${*}"
+        set +x
+    fi
+}
+alias q="_conditional_q"
 
 _open() {
     args=("${@}")
