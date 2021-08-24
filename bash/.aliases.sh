@@ -597,9 +597,10 @@ large_files() {
 alias large="large_files"
 
 slugify() {
-    stdin="${1}"
-    if [[ -z "${1}" ]]; then
+    if [[ "${#}" -eq 0 ]]; then
         read stdin
+    else
+      stdin="${*}"
     fi
     script="
 import re
