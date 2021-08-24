@@ -600,8 +600,9 @@ slugify() {
     if [[ "${#}" -eq 0 ]]; then
         read stdin
     else
-      stdin="${*}"
+        stdin="${*}"
     fi
+
     script="
 import re
 import sys
