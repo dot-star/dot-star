@@ -426,7 +426,7 @@ case_insensitive_search() {
   elif [[ "${param_count}" -eq 2 ]]; then
     extension="${1}"
     keyword="${2}"
-    grep --ignore-case --recursive --include="*.${extension}" "${keyword}" . "${@:3}"
+    grep --exclude-dir="node_modules" --ignore-case --recursive --include="*.${extension}" "${keyword}" . "${@:3}"
   fi
 }
 alias si="case_insensitive_search"
@@ -440,12 +440,12 @@ case_insensitive_search_edit() {
     # Search by keyword and edit (e.g. `se keyword').
     if [[ "${param_count}" -eq 1 ]]; then
       keyword="${1}"
-      results=$(grep --dereference-recursive --files-with-matches --ignore-case "${keyword}" . "${@:2}")
+      results=$(grep --dereference-recursive --exclude-dir="node_modules" --files-with-matches --ignore-case "${keyword}" . "${@:2}")
     # Search by extension + keyword and edit (e.g. `se ext keyword').
     elif [[ "${param_count}" -eq 2 ]]; then
       extension="${1}"
       keyword="${2}"
-      results=$(grep --dereference-recursive --files-with-matches --ignore-case --include="*.${extension}" "${keyword}" . "${@:3}")
+      results=$(grep --dereference-recursive --exclude-dir="node_modules" --files-with-matches --ignore-case --include="*.${extension}" "${keyword}" . "${@:3}")
     fi
 
     result_count=$(echo "${results}" | count_lines)
