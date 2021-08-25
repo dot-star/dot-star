@@ -10,6 +10,7 @@ fi
 
 cd "${DIR}"
 cd ..
+source "bash/.config.sh"
 source "bash/.aliases.sh"
 
 if [ -n "${BASH_VERSION}" ]; then
