@@ -462,7 +462,15 @@ case_insensitive_search_edit() {
     edit ${files}
   fi
 }
-alias se="case_insensitive_search_edit"
+
+conditional_se() {
+    if [ "${#}" -eq 0 ]; then
+        quilt series "${@}"
+    else
+        case_insensitive_search_edit "${@}"
+    fi
+}
+alias se="conditional_se"
 
 case_sensitive_search_python() {
   if [[ -z "${1}" ]]; then
