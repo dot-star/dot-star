@@ -1,2 +1,5 @@
+alias re="quilt refresh"
 alias refresh="quilt refresh"
+alias ser="quilt series"
 alias series="quilt series"
+alias to="quilt top"
