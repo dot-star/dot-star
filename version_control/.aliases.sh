@@ -349,3 +349,5 @@ grep_merge() {
 }
 
 export P4DIFF="~/.dot-star/version_control/p4diff.sh"
+
+alias diff-highlight="/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight"
