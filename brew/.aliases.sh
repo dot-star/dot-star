@@ -18,9 +18,11 @@ if [[ $? -eq 0 ]]; then
     #   $ brew update
     # After:
     #   $ brew update --debug --verbose
-    brew() {
+    _brew() {
         set -x
         /usr/local/bin/brew $@ --debug --verbose
         set +x
     }
+
+    alias brew="_brew"
 fi
