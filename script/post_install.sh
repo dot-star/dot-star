@@ -7,6 +7,9 @@ git config --global core.excludesfile "~/.gitignore"
 # Enable color in git.
 git config --global color.ui true
 
+# Use muted color for the file names.
+git config --global color.diff.meta blue
+
 if [[ "${OSTYPE}" == "darwin"* ]]; then
     # Install brew.
     command -v brew > /dev/null || /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
