@@ -541,9 +541,7 @@ _conditional_q() {
     if [ "${#}" -eq 0 ]; then
         quit
     else
-        set -x
-        quilt "${*}"
-        set +x
+        quilt "${@}"
     fi
 }
 alias q="_conditional_q"
