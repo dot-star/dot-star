@@ -348,15 +348,23 @@ grep_merge() {
     done
 }
 
+diff_highlight() {
+    "/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" "${@}"
+}
+
 diff_strings_like_files() {
     string_1="${1}"
     string_2="${2}"
     (
+        $DIFF_HIGHLIGHT_INSTALLED &&
+        $COLORDIFF_INSTALLED &&
+        diff --unified <(echo "${string_1}") <(echo "${string_2}") | diff_highlight | colordiff | tail -n +4
+    ) || (
         $DIFF_SO_FANCY_INSTALLED &&
-        diff --unified <(echo "${string_1}") <(echo "${string_2}") | "diff-so-fancy" | tail -n +5
+        diff --unified <(echo "${string_1}") <(echo "${string_2}") | diff-so-fancy | tail -n +5
     ) || (
         $COLORDIFF_INSTALLED &&
-        diff --unified <(echo "${string_1}") <(echo "${string_2}") | "colordiff" | tail -n +4
+        diff --unified <(echo "${string_1}") <(echo "${string_2}") | colordiff | tail -n +4
     ) || (
         diff --unified <(echo "${string_1}") <(echo "${string_2}") | tail -n +4
     )
