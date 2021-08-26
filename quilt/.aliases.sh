@@ -88,7 +88,9 @@ _quilt_deactivate_quilt_mode() {
 }
 
 _quilt() {
-    if [ -z "${_QUILT_MODE_ON}" ]; then
+    if [ "${#}" -ne 0 ]; then
+        \quilt "${@}"
+    elif [ -z "${_QUILT_MODE_ON}" ]; then
         _quilt_activate_quilt_mode
     else
         \quilt "${@}"
