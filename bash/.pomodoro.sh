@@ -31,14 +31,14 @@ pomodoro() {
 
         _countdown_from "${TASK_SEC}" "task"
         echo -e -n "\r${ceol}"
-        _play_media "Press any key to start your break or [q] to quit: "
+        _play_media "Press any key to start your break or press [q] to quit: "
         if [ $? -ne 0 ]; then
             break
         fi
 
         _countdown_from "${BREAK_SEC}" "break"
         echo -e -n "\r${ceol}"
-        _play_media "Resume your task by pressing any key [q] to quit: "
+        _play_media "Resume your task by pressing any key or press [q] to quit: "
         if [ $? -ne 0 ]; then
             break
         fi
