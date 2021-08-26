@@ -287,10 +287,16 @@ rc_merge() {
 
 rc_pull() {
     git pull $@
+    if [[ $? -ne 0 ]]; then
+        echo -e "\ngit pull options: $(git remote show)"
+    fi
 }
 
 rc_push() {
     git push $@
+    if [[ $? -ne 0 ]]; then
+        echo -e "\ngit push options: $(git remote show)"
+    fi
 }
 
 rc_status() {
