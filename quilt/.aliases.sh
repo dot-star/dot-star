@@ -35,6 +35,43 @@ _quilt_set_alias() {
     alias "${existing_alias_to_override}"="${new_alias_value}"
 }
 
+_quilt_series() {
+    # Improve `quilt series' output.
+    #
+    # Before:
+    #   $ quilt series
+    #   patches/patch1.diff
+    #   patches/patch2.diff
+    #   patches/patch3.diff
+    #   patches/patch4.diff
+    #   patches/patch5.diff
+    #   patches/patch6.diff
+    #   patches/patch7.diff
+    #
+    #   $ quilt series -v
+    #   + patches/patch1.diff
+    #   + patches/patch2.diff
+    #   + patches/patch3.diff
+    #   = patches/patch4.diff
+    #     patches/patch5.diff
+    #     patches/patch6.diff
+    #     patches/patch7.diff
+    #
+    # After:
+    #   $ quilt series
+    #     patches/patch1.diff
+    #     patches/patch2.diff
+    #     patches/patch3.diff
+    #   → patches/patch4.diff
+    #     patches/patch5.diff
+    #     patches/patch6.diff
+    #     patches/patch7.diff
+    #
+    quilt series --color="always" -v |
+        perl -pe "s/^(.*)\+ /  \1/" |
+        perl -pe "s/^(.*)= /\1→ /"
+}
+
 _quilt_override_aliases() {
     _quilt_set_alias "n"   "_quilt_new"
     _quilt_set_alias "new" "_quilt_new"
@@ -62,9 +99,9 @@ _quilt_override_aliases() {
     _quilt_set_alias "ref"     "quilt refresh"
     _quilt_set_alias "refresh" "quilt refresh"
 
-    _quilt_set_alias "se"     "quilt series"
-    _quilt_set_alias "ser"    "quilt series"
-    _quilt_set_alias "series" "quilt series"
+    _quilt_set_alias "se"     "_quilt_series"
+    _quilt_set_alias "ser"    "_quilt_series"
+    _quilt_set_alias "series" "_quilt_series"
 
     _quilt_set_alias "t"   "quilt top"
     _quilt_set_alias "to"  "quilt top"
