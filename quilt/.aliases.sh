@@ -72,6 +72,26 @@ _quilt_series() {
         perl -pe "s/^(.*)= /\1→ /"
 }
 
+_quilt_pop() {
+    result="$(quilt pop "${@}")"
+    exit_code="${?}"
+    if [ "${exit_code}" -ne 0 ]; then
+        echo "${result}"
+    else
+        _quilt_series
+    fi
+}
+
+_quilt_push() {
+    result="$(quilt push "${@}")"
+    exit_code="${?}"
+    if [ "${exit_code}" -ne 0 ]; then
+        echo "${result}"
+    else
+        _quilt_series
+    fi
+}
+
 _quilt_override_aliases() {
     _quilt_set_alias "n"   "_quilt_new"
     _quilt_set_alias "new" "_quilt_new"
@@ -80,17 +100,18 @@ _quilt_override_aliases() {
     _quilt_set_alias "pusha"   "quilt push -a"
     _quilt_set_alias "pushall" "quilt push -a"
 
-    _quilt_set_alias "o"   "quilt pop"
-    _quilt_set_alias "po"  "quilt pop"
-    _quilt_set_alias "pop" "quilt pop"
+    _quilt_set_alias "o"   "_quilt_pop"
+    _quilt_set_alias "po"  "_quilt_pop"
+    _quilt_set_alias "pop" "_quilt_pop"
 
     _quilt_set_alias "poa"    "quilt pop -a"
     _quilt_set_alias "popa"   "quilt pop -a"
     _quilt_set_alias "popall" "quilt pop -a"
 
-    _quilt_set_alias "u"    "quilt push"
-    _quilt_set_alias "pu"   "quilt push"
-    _quilt_set_alias "push" "quilt push"
+    _quilt_set_alias "u"    "_quilt_push"
+    _quilt_set_alias "pu"   "_quilt_push"
+    _quilt_set_alias "pus"  "_quilt_push"
+    _quilt_set_alias "push" "_quilt_push"
 
     _quilt_set_alias "q" "quilt"
 
