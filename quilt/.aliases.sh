@@ -72,7 +72,6 @@ _quilt_override_aliases() {
 _quilt_activate_quilt_mode() {
     export _QUILT_MODE_ON="yes"
     export _OLD_QUILT_PS1="${PS1}"
-    export PS1="(quilt) ${PS1}"
 
     bash
     _quilt_deactivate_quilt_mode
@@ -95,5 +94,6 @@ _quilt() {
 }
 
 if [ -n "${_QUILT_MODE_ON}" ]; then
+    export PS1="(quilt) ${PS1}"
     _quilt_override_aliases
 fi
