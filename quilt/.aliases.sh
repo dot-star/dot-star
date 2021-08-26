@@ -43,6 +43,7 @@ _quilt_override_aliases() {
     _quilt_set_alias "pusha"   "quilt push -a"
     _quilt_set_alias "pushall" "quilt push -a"
 
+    _quilt_set_alias "o"   "quilt pop"
     _quilt_set_alias "po"  "quilt pop"
     _quilt_set_alias "pop" "quilt pop"
 
@@ -50,6 +51,7 @@ _quilt_override_aliases() {
     _quilt_set_alias "popa"   "quilt pop -a"
     _quilt_set_alias "popall" "quilt pop -a"
 
+    _quilt_set_alias "u"    "quilt push"
     _quilt_set_alias "pu"   "quilt push"
     _quilt_set_alias "push" "quilt push"
 
