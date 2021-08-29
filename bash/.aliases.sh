@@ -1203,7 +1203,7 @@ alias rp="realpath"
 # To use, run `jq $filename'. Press return when the desired filter has been
 # entered. The entered filter will be displayed and put in the clipboard for
 # immediate use.
-jq() {
+_jq() {
     export JQ_COLORS="1;37:0;33:0;33:0;31:0;32:1;39:1;39"
 
     file_path="${1}"
@@ -1235,6 +1235,7 @@ jq() {
         "$(which jq)" "${@}"
     fi
 }
+alias jq="_jq"
 
 _man() {
     # Open man pages as html when on a Mac.
