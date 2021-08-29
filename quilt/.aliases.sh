@@ -96,10 +96,6 @@ _quilt_override_aliases() {
     _quilt_set_alias "n"   "_quilt_new"
     _quilt_set_alias "new" "_quilt_new"
 
-    _quilt_set_alias "pua"     "quilt push -a"
-    _quilt_set_alias "pusha"   "quilt push -a"
-    _quilt_set_alias "pushall" "quilt push -a"
-
     _quilt_set_alias "o"   "_quilt_pop"
     _quilt_set_alias "po"  "_quilt_pop"
     _quilt_set_alias "pop" "_quilt_pop"
@@ -109,10 +105,14 @@ _quilt_override_aliases() {
     _quilt_set_alias "popa"   "quilt pop -a"
     _quilt_set_alias "popall" "quilt pop -a"
 
-    _quilt_set_alias "u"    "_quilt_push"
     _quilt_set_alias "pu"   "_quilt_push"
     _quilt_set_alias "pus"  "_quilt_push"
     _quilt_set_alias "push" "_quilt_push"
+    _quilt_set_alias "u"    "_quilt_push"
+
+    _quilt_set_alias "pua"     "quilt push -a"
+    _quilt_set_alias "pusha"   "quilt push -a"
+    _quilt_set_alias "pushall" "quilt push -a"
 
     _quilt_set_alias "q" "quilt"
 
