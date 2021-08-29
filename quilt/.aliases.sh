@@ -77,6 +77,7 @@ _quilt_pop() {
     exit_code="${?}"
     if [ "${exit_code}" -ne 0 ]; then
         echo "${result}"
+        (exit "${exit_code}")
     else
         _quilt_series
     fi
@@ -87,6 +88,7 @@ _quilt_push() {
     exit_code="${?}"
     if [ "${exit_code}" -ne 0 ]; then
         echo "${result}"
+        (exit "${exit_code}")
     else
         _quilt_series
     fi
