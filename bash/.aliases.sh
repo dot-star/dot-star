@@ -1206,8 +1206,9 @@ alias rp="realpath"
 _jq() {
     export JQ_COLORS="1;37:0;33:0;33:0;31:0;32:1;39:1;39"
 
-    file_path="${1}"
-    if [[ -f "${file_path}" ]]; then
+    if [ $# -eq 1 ] && [ -f "${1}" ]; then
+        file_path="${1}"
+
         # Open an interactive view for entering a jq filter and viewing the
         # result in the fzf preview window.
         jq_filter=$(echo "" |
@@ -1223,7 +1224,7 @@ _jq() {
         fi
 
         # Display a preview of the file using the selected jq filter.
-        echo "$ jq \"${jq_filter}\" \"${file_path}\" | head"
+        echo "$ jq -C \"${jq_filter}\" \"${file_path}\" | head"
         "$(which jq)" -C "${jq_filter}" "${file_path}" | head
 
         # Put the selected jq filter in the clipboard.
