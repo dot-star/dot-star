@@ -1223,14 +1223,16 @@ _jq() {
         fi
 
         # Display a preview of the file using the selected jq filter.
-        echo "preview:"
+        echo "$ jq \"${jq_filter}\" \"${file_path}\" | head"
         "$(which jq)" -C "${jq_filter}" "${file_path}" | head
 
         # Put the selected jq filter in the clipboard.
         echo "${jq_filter}" | clip
 
         # Display the selected jq filter.
-        echo -e "\njq filter (also in clipboard):\n${jq_filter}"
+        echo ""
+        echo "jq filter (also in clipboard):"
+        echo "${jq_filter}"
     else
         "$(which jq)" "${@}"
     fi
