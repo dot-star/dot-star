@@ -7,7 +7,13 @@ git config --global core.excludesfile "~/.gitignore"
 # Enable color in git.
 git config --global color.ui true
 
+# https://git-scm.com/docs/git-config#Documentation/git-config.txt-colordiffltslotgt
+# https://git-scm.com/docs/git-config#Documentation/git-config.txt-color
+git config --global color.diff.func magenta
+
 # Use muted color for the file names.
+# https://git-scm.com/docs/git-config#Documentation/git-config.txt-colordiffltslotgt
+# https://git-scm.com/docs/git-config#Documentation/git-config.txt-color
 git config --global color.diff.meta blue
 
 if [[ "${OSTYPE}" == "darwin"* ]]; then

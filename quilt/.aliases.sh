@@ -137,6 +137,13 @@ _quilt_activate_quilt_mode() {
     export _QUILT_MODE_ON="yes"
     export _OLD_QUILT_PS1="${PS1}"
 
+    # Use standard diff colors.
+    # diff_hdr=34 - blue index line
+    # diff_add=32 - green added lines
+    # diff_rem=31 - red removed lines
+    # diff_hunk=36 - cyan hunk header
+    export QUILT_COLORS="diff_hdr=34:diff_add=32:diff_rem=31:diff_hunk=36"
+
     bash
     _quilt_deactivate_quilt_mode
 }
@@ -146,6 +153,7 @@ _quilt_deactivate_quilt_mode() {
         export PS1="${_OLD_QUILT_PS1}"
         unset _OLD_QUILT_PS1
         unset _QUILT_MODE_ON
+        unset QUILT_COLORS
     fi
 }
 
