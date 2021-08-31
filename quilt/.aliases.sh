@@ -115,6 +115,7 @@ _quilt_override_aliases() {
     _quilt_set_alias "pua"     "quilt push -a"
     _quilt_set_alias "pusha"   "quilt push -a"
     _quilt_set_alias "pushall" "quilt push -a"
+    _quilt_set_alias "ua"      "quilt push -a"
 
     _quilt_set_alias "q" "quilt"
 
