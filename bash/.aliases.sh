@@ -1333,3 +1333,18 @@ _type() {
     fi
 }
 alias type="_type"
+
+go_to_root() {
+    # Go to project root.
+    while :; do
+        if [ -d ".git" ]; then
+            l
+            break
+        elif [ "${PWD}" == "/" ]; then
+            break
+        else
+            cd ..
+        fi
+    done
+}
+alias r="go_to_root"
