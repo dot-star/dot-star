@@ -357,12 +357,12 @@ case_sensitive_search() {
   # Search by keyword (e.g. `s keyword').
   elif [[ "${param_count}" -eq 1 ]]; then
     keyword="${1}"
-    grep --recursive "${keyword}" . "${@:2}"
+    grep --exclude-dir="node_modules" --recursive "${keyword}" . "${@:2}"
   # Search by extension + keyword (e.g. `s ext keyword').
   elif [[ "${param_count}" -eq 2 ]]; then
     extension="${1}"
     keyword="${2}"
-    grep --recursive --include="*.${extension}" "${keyword}" . "${@:3}"
+    grep --exclude-dir="node_modules" --recursive --include="*.${extension}" "${keyword}" . "${@:3}"
   fi
 }
 alias ss="case_sensitive_search"
