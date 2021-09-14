@@ -107,6 +107,9 @@ _quilt_override_aliases() {
     _quilt_set_alias "popa"   "quilt pop -a"
     _quilt_set_alias "popall" "quilt pop -a"
 
+    _quilt_set_alias "pa"      "quilt patches"
+    _quilt_set_alias "patches" "quilt patches"
+
     _quilt_set_alias "pu"   "_quilt_push"
     _quilt_set_alias "pus"  "_quilt_push"
     _quilt_set_alias "push" "_quilt_push"
