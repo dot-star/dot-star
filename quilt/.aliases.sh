@@ -84,7 +84,7 @@ _quilt_pop() {
 }
 
 _quilt_push() {
-    result="$(quilt push "${@}")"
+    result="$(quilt push --color="always" "${@}")"
     exit_code="${?}"
     if [ "${exit_code}" -ne 0 ]; then
         echo "${result}"
