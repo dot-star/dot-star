@@ -399,12 +399,9 @@ alias sse="case_sensitive_search_edit"
 
 case_insensitive_search() {
   param_count="${#}"
-  if [[ "${param_count}" -eq 0 ]]; then
-    # Show version control status when no parameters are passed.
-    rc_status
 
   # Search by keyword (e.g. `s keyword').
-  elif [[ "${param_count}" -eq 1 ]]; then
+  if [[ "${param_count}" -eq 1 ]]; then
     keyword="${1}"
     grep --exclude="*~" --exclude-dir="node_modules" --ignore-case --recursive "${keyword}" . "${@:2}"
 
@@ -413,10 +410,22 @@ case_insensitive_search() {
     extension="${1}"
     keyword="${2}"
     grep --exclude="*~" --exclude-dir="node_modules" --ignore-case --recursive --include="*.${extension}" "${keyword}" . "${@:3}"
+
   fi
 }
 alias si="case_insensitive_search"
-alias s="case_insensitive_search"
+
+conditional_s() {
+  param_count="${#}"
+  if [[ "${param_count}" -eq 0 ]]; then
+    # Show version control status when no parameters are passed.
+    rc_status
+
+  else
+    case_insensitive_search "${@}"
+  fi
+}
+alias s="conditional_s"
 
 case_insensitive_search_edit() {
   param_count="${#}"
@@ -865,7 +874,9 @@ _run_watchman() {
 
     i=0
     while :; do
+        set -x
         watchman-wait --max-events="1" --pattern "${pattern_to_watch}" -- .
+        set +x
         watchman_exit_code="${?}"
 
         # "0 is returned after successfully waiting for event(s)".
