@@ -810,30 +810,29 @@ import sys
 response = sys.stdin.read().rstrip()
 match = re.match(r".* is aliased to \`([\w]+)'", response)
 if match is not None:
-    print 'builtin type {0}'.format(pipes.quote(match.group(1)))
+    print('builtin type {0}'.format(pipes.quote(match.group(1))))
 EOF
 )
             cmd=$(echo "${response}" | python -c "${script}")
             if [ ! -z "${cmd}" ]; then
                 ${cmd}
-            else
-                echo "${response}"
+                return
             fi
-        else
-            file_size=$(printf "%'d" $(gstat --printf="%s" "${1}"))
-            echo "$($(which file) "${1}") (${file_size} bytes)"
-            if [[ "${1}" == *.mp3 ]]; then
-                # command -v ffmpeg >/dev/null 2>&1 && ffmpeg -i "${1}" 2>&1 | \grep "Duration: "
+        fi
 
-                info=$(afinfo "${1}" | grep "estimated duration: ")
-                python - << EOF
+        file_size=$(printf "%'d" $(gstat --printf="%s" "${1}"))
+        echo "$($(which file) "${1}") (${file_size} bytes)"
+        if [[ "${1}" == *.mp3 ]]; then
+            # command -v ffmpeg >/dev/null 2>&1 && ffmpeg -i "${1}" 2>&1 | \grep "Duration: "
+
+            info=$(afinfo "${1}" | grep "estimated duration: ")
+            python - << EOF
 import datetime
 import re
 info = """${info}"""
 seconds = float(re.match('.*?(\d+\.\d+).*?', info).group(1))
 print(str(datetime.timedelta(seconds=round(seconds))))
 EOF
-            fi
         fi
     else
         file_bin="$(which file)"
