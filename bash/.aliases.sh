@@ -1359,4 +1359,20 @@ go_to_root() {
 }
 alias r="go_to_root"
 
+wget() {
+    set -x
+    curl --remote-name --user-agent "" "${@}"
+    set +x
+}
+
+alias wget="wget"
 alias wg="wget"
+
+_conditional_w() {
+    if [ "${#}" -eq 0 ]; then
+        w
+    else
+        wget "${@}"
+    fi
+}
+alias w="_conditional_w"
