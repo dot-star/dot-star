@@ -1358,3 +1358,5 @@ go_to_root() {
     done
 }
 alias r="go_to_root"
+
+alias wg="wget"
