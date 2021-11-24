@@ -51,6 +51,17 @@ docker_psa() {
     done
 }
 
+docker_watch_psa() {
+    while :; do
+        # Fetch result before clearing as the command can be slow. Without this,
+        # there will be a blank cleared screen while the command finishes.
+        docker_psa_result="$(docker_psa)"
+        clear
+        echo "${docker_psa_result}"
+        sleep 10
+    done
+}
+
 docker_image_prune() {
     # Use --force option to skip confirmation prompt.
     docker image prune --force
@@ -91,5 +102,7 @@ alias img="clear; docker images; echo; docker ps -a"
 alias pause="docker pause"
 alias prune="docker_image_prune"
 alias psa="docker_psa"
+alias psaw="docker_watch_psa"
 alias rmi="clear; docker rmi"
 alias stop="docker stop"
+alias wpsa="docker_watch_psa"
