@@ -43,6 +43,7 @@ alias 700="\chmod 700"
 alias 750="\chmod 750"
 alias 755="\chmod 755"
 alias 777="\chmod 777"
+alias xsh="chmod +x *.sh"
 
 _require_watchman() {
     which watchman-make &> /dev/null
