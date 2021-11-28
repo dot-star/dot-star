@@ -1050,10 +1050,10 @@ edit_extension_files() {
     fi
 
     # Open content_script.js.
-    content_script_results=$(find . -iname "*content_script*.js")
-    if [[ ! -z "${content_script_results}" ]]; then
-        echo "content_script_results: ${content_script_results}"
-        files_to_edit+=" ${content_script_results}"
+    javascript_results=$(find . -iname "*content_script*.js")
+    if [[ ! -z "${javascript_results}" ]]; then
+        echo "javascript_results: ${javascript_results}"
+        files_to_edit+=" ${javascript_results}"
     fi
 
     # Open style.scss or style.css in a child directory.
