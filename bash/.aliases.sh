@@ -1049,10 +1049,10 @@ edit_extension_files() {
         files_to_edit+=" ${background_results}"
     fi
 
-    # Open content_script.js.
-    javascript_results=$(find . -iname "*content_script*.js")
+    # Open JavaScript files.
+    javascript_results=$(find . -iname "*.js")
     if [[ ! -z "${javascript_results}" ]]; then
-        echo "javascript_results: ${javascript_results}"
+        echo -e "javascript_results:\n${javascript_results}"
         files_to_edit+=" ${javascript_results}"
     fi
 
