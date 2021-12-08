@@ -1032,9 +1032,9 @@ checksum() {
 
 ipython_wrapper() {
     ipython \
-        --TerminalInteractiveShell.confirm_exit=False \
-        --TerminalInteractiveShell.editing_mode=vi \
-        --TerminalInteractiveShell.editor=vi
+        --TerminalInteractiveShell.confirm_exit="False" \
+        --TerminalInteractiveShell.editing_mode="vi" \
+        --TerminalInteractiveShell.editor="vi"
 }
 alias ipy="ipython_wrapper"
 alias py="python"
@@ -1050,7 +1050,7 @@ edit_extension_files() {
     fi
 
     # Open JavaScript files.
-    javascript_results=$(find . -iname "*.js")
+    javascript_results=$(find . -iname "*.js" ! -path "*/node_modules/*")
     if [[ ! -z "${javascript_results}" ]]; then
         echo -e "javascript_results:\n${javascript_results}"
         files_to_edit+=" ${javascript_results}"
@@ -1076,7 +1076,6 @@ edit_extension_files() {
         files_to_edit+=" ${manifest_results}"
     fi
 
-    echo "${files_to_edit}"
     edit ${files_to_edit}
 
     if $scss_found; then
