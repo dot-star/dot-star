@@ -376,12 +376,12 @@ case_sensitive_search_edit() {
     # Search by keyword and edit (e.g. `sse keyword').
     if [[ "${param_count}" -eq 1 ]]; then
       keyword="${1}"
-      results=$(grep --dereference-recursive --files-with-matches "${keyword}" . "${@:2}")
+      results=$(grep --dereference-recursive --exclude-dir="node_modules" --files-with-matches "${keyword}" . "${@:2}")
     # Search by extension + keyword and edit (e.g. `sse ext keyword').
     elif [[ "${param_count}" -eq 2 ]]; then
       extension="${1}"
       keyword="${2}"
-      results=$(grep --dereference-recursive --files-with-matches --include="*.${extension}" "${keyword}" . "${@:3}")
+      results=$(grep --dereference-recursive --exclude-dir="node_modules" --files-with-matches --include="*.${extension}" "${keyword}" . "${@:3}")
     fi
 
     result_count=$(echo "${results}" | count_lines)
