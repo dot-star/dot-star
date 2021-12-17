@@ -95,6 +95,9 @@ _quilt_push() {
 }
 
 _quilt_override_aliases() {
+    _quilt_set_alias "e"    "quilt edit"
+    _quilt_set_alias "edit" "quilt edit"
+
     _quilt_set_alias "files" "quilt files"
 
     _quilt_set_alias "n"   "_quilt_new"
