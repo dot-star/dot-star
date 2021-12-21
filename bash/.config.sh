@@ -12,7 +12,8 @@ else
     DIFF_SO_FANCY_INSTALLED=true
 fi
 
-if [ -d "/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" ]; then
+compgen -G "/usr/local/Cellar/git/*/share/git-core/contrib/diff-highlight/diff-highlight" > /dev/null
+if [ $? -ne 0 ]; then
     DIFF_HIGHLIGHT_INSTALLED=false
 else
     DIFF_HIGHLIGHT_INSTALLED=true
