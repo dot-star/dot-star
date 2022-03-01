@@ -7,8 +7,11 @@ shopt -s histappend
 # Match filename (globbing) in a case-insensitive fashion.
 shopt -s nocaseglob
 
+# Commented out due to the following error:
+#     $ shopt -s autocd
+#     -bash: shopt: autocd: invalid shell option name
 # Type only the directory name to change into the directory.
-shopt -s autocd
+# shopt -s autocd
 
 # Use the text that has been typed as the prefix for searching up and down
 # through commands in the history.
