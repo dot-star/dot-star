@@ -51,9 +51,13 @@ _require_watchman() {
         echo -e '\x1b[0;93mWARNING\x1b[0m: watchman-make required'
 
         if [[ "${OSTYPE}" == "darwin"* ]]; then
+            set -x
             brew install watchman
+            set +x
         else
+            set -x
             sudo apt-get install -y watchman
+            set +x
         fi
     fi
 }
