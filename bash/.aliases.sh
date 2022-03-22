@@ -655,8 +655,16 @@ pdf_remove_password() {
     # Remove password from one or more pdf files.
     # @usage: pdf_remove_password file.pdf
     # @usage: echo "thepassword" | pdf_remove_password file.pdf
+
+    if ! which "qpdf" &> /dev/null; then
+        set -x
+        brew install qpdf
+        set +x
+    fi
+
     green=$(tput setaf 64)
     red=$(tput setaf 124)
+
     read -r -s -p "enter pdf password: " "password"; echo
     for filename in "$@"; do
         in="${filename}"
