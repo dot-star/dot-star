@@ -1,8 +1,12 @@
 pomodoro() {
+    # TODO: Play at different volumes depending on sound output device.
+    #   Volume with headphones: 0.25
+    #   Volume with laptop speakers: 0.5
+
     _play_media() {
         prompt="${1}"
 
-        read < <(ffplay -loop -1 -nodisp -loglevel quiet -af "volume=0.01" <(xxd --revert --plain <(echo "${MEDIA}")) & echo "${!}")
+        read < <(ffplay -loop -1 -nodisp -loglevel quiet -af "volume=0.25" <(xxd --revert --plain <(echo "${MEDIA}")) & echo "${!}")
         pid="${REPLY}"
 
         read -p "${prompt}" -n 1 -s
