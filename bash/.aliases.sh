@@ -629,7 +629,7 @@ value = re.sub(r'[/]', '-', value)
 value = re.sub(r'[^\w\s\.-]', '', value.lower())
 print(re.sub(r'[-\s]+', '-', value).strip('-_'))
 "
-    echo "${stdin}" | python -c "${script}"
+    echo "${stdin}" | python3 -c "${script}"
 }
 alias slug="slugify"
 
