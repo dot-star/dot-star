@@ -53,6 +53,7 @@ alias pull="rc_pull"
 alias pull_tags="rc_fetch_tags"
 alias pus="rc_push"
 alias push="rc_push"
+alias rebase="git_rebase"
 alias s.="rc_status ."
 alias shallow_clone="git clone --depth 1"
 alias show="git_stash_show"
@@ -114,6 +115,15 @@ git_diff_last() {
 git_ignore() {
     touch .gitignore
     vim .gitignore
+}
+
+git_rebase() {
+    # `rebase 3' -> `git rebase -i HEAD~3'.
+    target="HEAD~${1}"
+
+    set -x
+    git rebase -i "${target}"
+    set +x
 }
 
 git_reset_author() {
