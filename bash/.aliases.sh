@@ -1210,7 +1210,7 @@ mv() {
 
     # Call modified mv command to edit file name in place when only 1 parameter has been specified.
     elif [[ "${#}" -eq 1 ]] && [[ -f "${file_name}" ]]; then
-        read -e -i "${file_name}" "new_file_name"
+        read -i "${file_name}" -e "new_file_name"
         command mv "${file_name}" "${new_file_name}" &&
             diff_strings_like_files "${file_name}" "${new_file_name}"
 
