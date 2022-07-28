@@ -882,8 +882,9 @@ serve_dir() {
 }
 
 _run_watchman() {
-    pattern_to_watch="${1}"
-    cmd_to_run="${2}"
+    loop="${1}"
+    pattern_to_watch="${2}"
+    cmd_to_run="${3}"
 
     i=0
     while :; do
@@ -923,6 +924,10 @@ _run_watchman() {
                 success "${sep}"
             fi
         else
+            break
+        fi
+
+        if ! $loop; then
             break
         fi
 
@@ -973,11 +978,20 @@ watch_dir() {
     #   $ watch_dir script.js
     #   $ watch_dir script.php
     #   $ watch_dir script.py
+    #   $ while :; do watch_dir; my_alias; done
     _require_watchman
+
+    # Watch the current directory and return on change when no parameters are
+    # specified.
+    if [[ $# -eq 0 ]]; then
+        loop=false
+        pattern_to_watch="**/[!\.]*.*"
+        cmd_to_run=""
 
     # Watch the current directory and run the specified command (parameter 1)
     # when one parameter is specified.
-    if [[ $# -eq 1 ]]; then
+    elif [[ $# -eq 1 ]]; then
+        loop=true
         # Use a glob pattern (not a regular expression) that excludes period-prefixed files which would otherwise cause
         # endless triggering. For example, using watchman-make with --pattern "**" and --run "phpunit [...]" causes a
         # cache file (".phpunit.result.cache") to be continually updated and a another execution.
@@ -989,7 +1003,7 @@ watch_dir() {
         return
     fi
 
-    _run_watchman "${pattern_to_watch}" "${cmd_to_run}"
+    _run_watchman "${loop}" "${pattern_to_watch}" "${cmd_to_run}"
 }
 alias wd="watch_dir"
 
@@ -1008,6 +1022,7 @@ watch_file() {
     # Watch the specified file (parameter 1) for changes and run its related
     # command when only one parameter is specified.
     if [[ $# -eq 1 ]]; then
+        loop=true
         pattern_to_watch="**"
         command_or_file_name="${1}"
         cmd_to_run="$(_get_command_for_file_type "${command_or_file_name}")"
@@ -1015,6 +1030,7 @@ watch_file() {
     # Watch the specified pattern (parameter 1) for changes and run the
     # specified command (parameter 2) when two parameters are specified.
     elif [[ $# -eq 2 ]]; then
+        loop=true
         pattern_to_watch="${1}"
         cmd_to_run="${2}"
 
@@ -1023,7 +1039,7 @@ watch_file() {
         return
     fi
 
-    _run_watchman "${pattern_to_watch}" "${cmd_to_run}"
+    _run_watchman "${loop}" "${pattern_to_watch}" "${cmd_to_run}"
 }
 alias wf="watch_file"
 
