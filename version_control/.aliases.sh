@@ -1,5 +1,6 @@
 # Version Control Aliases
 
+alias a.="git add ."
 alias add.="git add ."
 alias add="rc_add"
 alias addp.="git add --patch ."
