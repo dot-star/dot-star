@@ -1415,17 +1415,17 @@ alias outdated="_outdated"
 _repeat() {
   command_with_args_to_repeatedly_do="${@}"
 
+  sequence=0
   while :; do
     # Recalculate cols each iteration as screen may have been resized.
     cols="$(tput cols)"
     echo
     printf -- '#%.0s' $(seq 1 $cols)
     echo
-    echo
-
-    echo "running \`$command_with_args_to_repeatedly_do'"
+    echo "seq ${sequence} running \`$command_with_args_to_repeatedly_do'"
     $command_with_args_to_repeatedly_do
 
+    (( sequence += 1 ))
     sleep 1
   done
 }
