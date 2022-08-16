@@ -1430,3 +1430,7 @@ _repeat() {
   done
 }
 alias repeat="_repeat"
+
+alias md="mkdir"
+
+alias dsstore="find . -name \".DS_Store\" -type f -print -delete"
