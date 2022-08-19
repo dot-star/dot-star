@@ -979,6 +979,7 @@ watch_dir() {
     #   $ watch_dir script.php
     #   $ watch_dir script.py
     #   $ while :; do watch_dir; my_alias; done
+    #   $ while :; f5_pos="482,425"; do wd; cur_pos="$(cliclick p)"; cliclick "dc:${f5_pos}"; cliclick "c:${cur_pos}"; sleep 1; done
     _require_watchman
 
     # Watch the current directory and return on change when no parameters are
