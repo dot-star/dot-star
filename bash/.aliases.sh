@@ -924,17 +924,23 @@ _run_watchman() {
                 success "${sep}"
             fi
         else
+            echo "watchman exit code: ${watchman_exit_code}; breaking"
             break
         fi
 
         if ! $loop; then
+            echo "not a loop; breaking"
             break
         fi
 
+        echo "sleeping"
         sleep 1
+        echo "done sleeping"
 
         (( i += 1 ))
     done
+
+    echo "done running watchman"
 }
 
 _get_command_for_file_type() {
