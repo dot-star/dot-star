@@ -1225,17 +1225,25 @@ cp() {
 }
 
 _mv() {
-    file_name="${1}"
+    file_or_folder_name="${1}"
 
-    # Display information when parameter is not a file.
-    if [[ "${#}" -eq 1 ]] && [[ ! -f "${file_name}" ]]; then
+    # Call modified mv command to edit folder in place when only 1 parameter has
+    # been specified and it's a folder.
+    if [[ "${#}" -eq 1 ]] && [[ -d "${file_or_folder_name}" ]]; then
+        read -i "${file_or_folder_name}" -e "new_folder_name"
+        command mv "${file_or_folder_name}" "${new_folder_name}" &&
+            diff_strings_like_files "${file_or_folder_name}" "${new_folder_name}"
+
+    # Call modified mv command to edit file name in place when only 1 parameter
+    # has been specified and it's a file.
+    elif [[ "${#}" -eq 1 ]] && [[ -f "${file_or_folder_name}" ]]; then
+        read -i "${file_or_folder_name}" -e "new_file_name"
+        command mv "${file_or_folder_name}" "${new_file_name}" &&
+            diff_strings_like_files "${file_or_folder_name}" "${new_file_name}"
+
+    # Display information when parameter is a file.
+    elif [[ "${#}" -eq 1 ]] && [[ -f "${file_or_folder_name}" ]]; then
         command file "${@}"
-
-    # Call modified mv command to edit file name in place when only 1 parameter has been specified.
-    elif [[ "${#}" -eq 1 ]] && [[ -f "${file_name}" ]]; then
-        read -i "${file_name}" -e "new_file_name"
-        command mv "${file_name}" "${new_file_name}" &&
-            diff_strings_like_files "${file_name}" "${new_file_name}"
 
     # Call original mv command when any other number of parameters have been specified.
     else
