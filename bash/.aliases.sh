@@ -1224,7 +1224,7 @@ cp() {
     fi
 }
 
-mv() {
+_mv() {
     file_name="${1}"
 
     # Display information when parameter is not a file.
@@ -1242,6 +1242,7 @@ mv() {
         command mv "${@}"
     fi
 }
+alias mv="_mv"
 
 alias rp="realpath"
 
