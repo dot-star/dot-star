@@ -1450,3 +1450,16 @@ alias repeat="_repeat"
 alias md="mkdir"
 
 alias dsstore="find . -name \".DS_Store\" -type f -print -delete"
+
+_zip_clean() {
+    archive_path="${1}"
+
+    echo "before:"
+    unzip -l "${archive_path}"
+
+    zip --delete "${archive_path}" "__MACOSX/*"
+
+    echo "after:"
+    unzip -l "${archive_path}"
+}
+alias zip_clean="_zip_clean"
