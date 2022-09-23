@@ -170,7 +170,7 @@ git_stash_list() {
         fzf \
             --exit-0 \
             --info="hidden" \
-            --preview='stash=$(echo {} | sed "s/}.*/}/"); git stash show -p "${stash}" --color=always' \
+            --preview='stash=$(echo {} | sed "s/}.*/}/"); git stash show --patch --include-untracked "${stash}" --color=always' \
             --preview-window="up:100")"
     exit_code="${?}"
     if [[ "${exit_code}" -eq 0 ]]; then
