@@ -47,7 +47,7 @@ alias list="git_stash_list"
 alias log="rc_log"
 alias master="rc_master"
 alias merge="rc_merge"
-alias pop="git stash pop"
+alias pop="git_stash_pop"
 alias pt="rc_fetch_tags"
 alias pul="rc_pull"
 alias pull="rc_pull"
@@ -183,6 +183,22 @@ git_stash_list() {
     elif [[ "${exit_code}" -eq 130 ]]; then
         # Handle Ctrl-C and Esc exit gracefully.
         return
+    fi
+}
+
+git_stash_pop() {
+    # Pop the selected git stash.
+    git_stash="$(git_stash_list)"
+    if [[ ! -z "${git_stash}" ]]; then
+        # Display stash.
+        git stash show --patch --include-untracked "${git_stash}"
+
+        # Confirm before popping the selected git stash.
+        response="$(display_confirm_prompt "Pop stash ${git_stash}?")"
+        if [[ "${response}" =~ ^[Yy]$ ]]; then
+            echo
+            git stash pop "${git_stash}"
+        fi
     fi
 }
 
