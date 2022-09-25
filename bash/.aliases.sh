@@ -933,9 +933,9 @@ _run_watchman() {
             break
         fi
 
-        echo "sleeping"
+        # echo "sleeping"
         sleep 1
-        echo "done sleeping"
+        # echo "done sleeping"
 
         (( i += 1 ))
     done
