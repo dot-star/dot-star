@@ -929,7 +929,7 @@ _run_watchman() {
         fi
 
         if ! $loop; then
-            echo "not a loop; breaking"
+            # echo "not a loop; breaking"
             break
         fi
 
@@ -940,7 +940,7 @@ _run_watchman() {
         (( i += 1 ))
     done
 
-    echo "done running watchman"
+    # echo "done running watchman"
 }
 
 _get_command_for_file_type() {
