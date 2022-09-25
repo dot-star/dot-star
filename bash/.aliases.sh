@@ -1112,12 +1112,16 @@ edit_extension_files() {
         files_to_edit+=" ${manifest_results}"
     fi
 
-    edit ${files_to_edit}
+    if [[ -z "${files_to_edit}" ]]; then
+        echo "no extension files to exit"
+    else
+        edit ${files_to_edit}
 
-    if $scss_found; then
-        echo "running sasswatch"
-        dir="$(dirname "${style_results}")/"
-        sasswatch "${dir}style.scss:${dir}style.css"
+        if $scss_found; then
+            echo "running sasswatch"
+            dir="$(dirname "${style_results}")/"
+            sasswatch "${dir}style.scss:${dir}style.css"
+        fi
     fi
 }
 alias ext="edit_extension_files"
