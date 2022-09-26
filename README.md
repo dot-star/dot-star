@@ -53,7 +53,11 @@
 
 ### Run a smarter git diff
 
-    $ df
+    $ d
+
+### Run a smarter file diff
+
+    $ d before.txt after.txt
 
 ### Set clipboard
 
@@ -64,6 +68,14 @@
 ### Run `git add --patch'
 
     $ addp
+
+### Change file permissions
+
+    $ 644 myfile.txt
+
+### Change folder permissions
+
+    $ 400 ~/.ssh/id_rsa
 
 ### Go up one directory
 
