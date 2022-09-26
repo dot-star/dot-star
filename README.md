@@ -15,17 +15,26 @@
     $ rm *
     cowardly refusing to run `rm' with a dangerous wildcard
 
+### Watch a directory for changes using `wd` and run a test suite
+
+    $ while :; do wd; phpunit MyTest.php; done
+
 ### Debug a jq filter
 
     $ jq api_response.json
     (opens an interactive fzf window for debugging a jq filter)
-    
+
 ![](screenshots/jq.png)
 
 ### View git stashes
 
     $ list
-    (opens an interactive fzf window for viewing git stashes in the current repository)
+    (opens an interactive fzf stash preview window for viewing git stashes in the current repository)
+
+### Apply a git stash
+
+    $ pop
+    (opens an interactive fzf stash preview window for selecting a git stash to apply)
 
 ### Rename file using one parameter
 
@@ -117,6 +126,14 @@
 ### Run git pull
 
     $ pull
+
+### Go up to the root git repository directory
+
+    $ pwd
+    /Users/user/.dot-star/vim/color
+    $ r
+    $ pwd
+    /Users/user/.dot-star
 
 ### Open the current directory
 
