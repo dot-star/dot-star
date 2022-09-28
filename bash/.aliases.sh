@@ -1177,7 +1177,7 @@ unlink() {
     done
 }
 
-cp() {
+_cp() {
     file_name="${1}"
 
     # Call modified cp command to edit file name in place when only 1 parameter has been specified.
@@ -1227,6 +1227,7 @@ cp() {
         command cp "${@}"
     fi
 }
+alias cp="_cp"
 
 _mv() {
     file_or_folder_name="${1}"
