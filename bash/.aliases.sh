@@ -1212,10 +1212,11 @@ _cp() {
         fi
 
         command cp "${file_name}" "${new_file_name}" &&
+            #(
+            #    $DIFF_SO_FANCY_INSTALLED &&
+            #    diff --unified <(echo "${file_name}") <(echo -e "${file_name}\n${new_file_name}") | "diff-so-fancy" | tail -n +5
+            #) ||
             (
-                $DIFF_SO_FANCY_INSTALLED &&
-                diff --unified <(echo "${file_name}") <(echo -e "${file_name}\n${new_file_name}") | "diff-so-fancy" | tail -n +5
-            ) || (
                 $COLORDIFF_INSTALLED &&
                 diff --unified <(echo "${file_name}") <(echo -e "${file_name}\n${new_file_name}") | "colordiff" | tail -n +4
             ) || (
