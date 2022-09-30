@@ -248,10 +248,10 @@ _edit() {
     if [[ $# -eq 0 ]] && is_git; then
         root_dir="$(git rev-parse --show-toplevel)"
 
-        # Look for staged files (added ^A or modified ^M).
+        # Look for staged files (added ^A, modified ^M, staged and modified ^MM).
         result=$(
             git status --porcelain |
-                \grep --extended-regexp "^(A |M )" |
+                \grep --extended-regexp "^(A |M |MM )" |
                 awk '{print $2}'
         )
 
