@@ -700,7 +700,9 @@ change_mac_address() {
 }
 
 difference() {
-    if [ -t 1 ] && $COLORDIFF_INSTALLED; then
+    if [ -t 1 ] && $COLORDIFF_INSTALLED && $DIFF_HIGHLIGHT_INSTALLED; then
+        command='diff --recursive --unified "'"${1}"'" "'"${2}"'" | diff_highlight | colordiff | less -R'
+    elif [ -t 1 ] && $COLORDIFF_INSTALLED; then
         command='diff --recursive --unified "'"${1}"'" "'"${2}"'" | colordiff | less -R'
     elif [ -t 1 ]; then
         command='diff --recursive --unified "'"${1}"'" "'"${2}"'" | less -R'
