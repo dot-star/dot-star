@@ -1471,3 +1471,6 @@ _zip_clean() {
     unzip -l "${archive_path}"
 }
 alias zip_clean="_zip_clean"
+
+alias lower="tr '[:upper:]' '[:lower:]'"
+alias upper="tr '[:lower:]' '[:upper:]'"
