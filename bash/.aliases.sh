@@ -1474,3 +1474,9 @@ alias zip_clean="_zip_clean"
 
 alias lower="tr '[:upper:]' '[:lower:]'"
 alias upper="tr '[:lower:]' '[:upper:]'"
+
+_python_check_syntax() {
+    filename="${1}"
+    python3 -m py_compile "${filename}"
+}
+alias python_check_syntax="_python_check_syntax"
