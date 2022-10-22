@@ -18,8 +18,15 @@ sasswatch() {
         input="${1}"
     fi
 
+    input="${input/.css/}"
+    input="${input/.scss/}"
+    input="${input}.scss"
+
     if [[ -z "${output}" ]] && [[ ! -z "${input}" ]]; then
-        output="${input/.scss/}.css"
+        output="${input}"
+        output="${output/.css/}"
+        output="${output/.scss/}"
+        output="${output}.css"
     fi
 
     if [[ ! -z "${input}" ]]; then
