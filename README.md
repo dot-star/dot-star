@@ -36,6 +36,15 @@
     $ pop
     (opens an interactive fzf stash preview window for selecting a git stash to apply)
 
+### Diff strings
+
+    $ diff_strings_like_files "foo" "foobar"
+    
+```diff
+-foo
++foobar
+```
+
 ### Rename file using one parameter
 
     $ mv download.jpg
