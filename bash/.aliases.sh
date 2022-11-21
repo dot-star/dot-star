@@ -1005,7 +1005,7 @@ watch_dir() {
     # specified.
     if [[ $# -eq 0 ]]; then
         loop=false
-        pattern_to_watch="**/[!\.]*.*"
+        pattern_to_watch='[!\.]*'
         cmd_to_run=""
 
     # Watch the current directory and run the specified command (parameter 1)
@@ -1015,7 +1015,7 @@ watch_dir() {
         # Use a glob pattern (not a regular expression) that excludes period-prefixed files which would otherwise cause
         # endless triggering. For example, using watchman-make with --pattern "**" and --run "phpunit [...]" causes a
         # cache file (".phpunit.result.cache") to be continually updated and a another execution.
-        pattern_to_watch="**/[!\.]*.*"
+        pattern_to_watch='[!\.]*'
         command_or_file_name="${1}"
         cmd_to_run="$(_get_command_for_file_type "${command_or_file_name}")"
     else
