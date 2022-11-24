@@ -1494,3 +1494,5 @@ alias python_check_syntax="_python_check_syntax"
 
 alias numeric="sort --numeric-sort"
 alias numeric_sort="sort --numeric-sort"
+
+alias hd="hexdump"
