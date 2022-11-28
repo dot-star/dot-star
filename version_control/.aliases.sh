@@ -409,6 +409,7 @@ diff_strings_like_files() {
         diff --unified <(echo "${string_1}") <(echo "${string_2}") | tail -n +4
     )
 }
+alias diff_like_files="diff_strings_like_files"
 
 export P4DIFF="~/.dot-star/version_control/p4diff.sh"
 
