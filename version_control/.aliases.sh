@@ -18,6 +18,10 @@ alias br="rc_branch"
 alias branch="rc_branch"
 alias branches="rc_branches"
 alias checkout="rc_checkout"
+
+# TODO: Implement `git cherry-pick' with selection using fzf.
+alias cherry_pick="git cherry-pick"
+
 alias ci="rc_commit"
 alias clone="git clone"
 alias cm="rc_commit"
