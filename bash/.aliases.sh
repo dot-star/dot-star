@@ -1483,6 +1483,18 @@ _zip_clean() {
 }
 alias zip_clean="_zip_clean"
 
+_strip() {
+    script="
+import sys
+for line in sys.stdin.read().splitlines():
+    print(line.strip())
+"
+    cat - | python3 -c "${script}"
+}
+
+alias strip="_strip"
+alias trim="_strip"
+
 alias lower="tr '[:upper:]' '[:lower:]'"
 alias upper="tr '[:lower:]' '[:upper:]'"
 
