@@ -769,7 +769,10 @@ conditional_f() {
             if $interactive; then
                 echo "Searching paths and filenames containing \"*${keyword}*\":" | \grep --color --ignore-case "${keyword}"
             fi
+
+            set -x
             find . -iname "*${keyword}*" | \grep --color --ignore-case "${keyword}"
+            set +x
         fi
     fi
 }
