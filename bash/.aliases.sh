@@ -1475,7 +1475,7 @@ _zip_clean() {
 
     before="$(unzip -l "${archive_path}")"
 
-    zip --delete "${archive_path}" "__MACOSX/*"
+    zip --delete "${archive_path}" "__MACOSX/*" "*/.DS_Store"
 
     after="$(unzip -l "${archive_path}")"
 
