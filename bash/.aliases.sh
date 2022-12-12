@@ -90,6 +90,7 @@ _ls() {
             --ignore=".sass-cache" \
             --ignore=".svn" \
             --ignore=".swp" \
+            --ignore="__pycache__" \
             --literal \
             --time-style=local \
             -X \
