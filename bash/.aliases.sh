@@ -115,7 +115,7 @@ conditional_l() {
 }
 alias l="conditional_l"
 
-bak() {
+_bak() {
     source="${1}"
     timestamp=$(date +"%Y-%m-%d_%H%M%S")
 
@@ -153,7 +153,8 @@ bak() {
         return 1
     fi
 }
-alias b="bak"
+alias b="_bak"
+alias bak="_bak"
 
 conditional_c() {
     # clear, cd $dir, $cat $filename [$filename ...], or clipboard
