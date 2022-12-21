@@ -116,7 +116,6 @@ conditional_l() {
 alias l="conditional_l"
 
 _bak() {
-    source="${1}"
     timestamp=$(date +"%Y-%m-%d_%H%M%S")
 
     local cp_to_use
@@ -125,6 +124,9 @@ _bak() {
     else
       cp_to_use="cp"
     fi
+
+    for source in "${@}"; do
+        echo "source: ${source}"
 
     if [[ -f "${source}" ]]; then
         # Source is a file.
@@ -149,9 +151,10 @@ _bak() {
             file "${new_folder_name}"
         fi
     else
-        echo "Error: source is not a file or directory."
+        echo "Error: source \"${source}\" is not a file or directory."
         return 1
     fi
+    done
 }
 alias b="_bak"
 alias bak="_bak"
