@@ -128,32 +128,32 @@ _bak() {
     for source in "${@}"; do
         echo "source: ${source}"
 
-    if [[ -f "${source}" ]]; then
-        # Source is a file.
-        filename="${source}"
-        extension=$(basename "${filename##*.}")
-        base_filename="${filename%.*}"
-        new_filename="${base_filename}_${timestamp}.${extension}"
-        if [[ ! -f "${new_filename}" ]]; then
-            "$cp_to_use" --interactive --verbose "${filename}" "${new_filename}"
+        if [[ -f "${source}" ]]; then
+            # Source is a file.
+            filename="${source}"
+            extension=$(basename "${filename##*.}")
+            base_filename="${filename%.*}"
+            new_filename="${base_filename}_${timestamp}.${extension}"
+            if [[ ! -f "${new_filename}" ]]; then
+                "$cp_to_use" --interactive --verbose "${filename}" "${new_filename}"
+            else
+                echo "destination \"${new_filename}\" exists"
+                file "${new_filename}"
+            fi
+        elif [[ -d "${source}" ]]; then
+            # Source is a directory.
+            folder_name="${source%/}"
+            new_folder_name="${folder_name}_${timestamp}"
+            if [[ ! -d "${new_folder_name}" ]]; then
+                "$cp_to_use" --interactive --recursive --verbose "${folder_name}" "${new_folder_name}"
+            else
+                echo "destination \"${new_folder_name}\" exists"
+                file "${new_folder_name}"
+            fi
         else
-            echo "destination \"${new_filename}\" exists"
-            file "${new_filename}"
+            echo "Error: source \"${source}\" is not a file or directory."
+            return 1
         fi
-    elif [[ -d "${source}" ]]; then
-        # Source is a directory.
-        folder_name="${source%/}"
-        new_folder_name="${folder_name}_${timestamp}"
-        if [[ ! -d "${new_folder_name}" ]]; then
-            "$cp_to_use" --interactive --recursive --verbose "${folder_name}" "${new_folder_name}"
-        else
-            echo "destination \"${new_folder_name}\" exists"
-            file "${new_folder_name}"
-        fi
-    else
-        echo "Error: source \"${source}\" is not a file or directory."
-        return 1
-    fi
     done
 }
 alias b="_bak"
