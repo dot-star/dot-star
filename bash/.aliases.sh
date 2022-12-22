@@ -907,6 +907,11 @@ _run_watchman() {
     pattern_to_watch="${2}"
     cmd_to_run="${3}"
 
+    # echo "_run_watchman"
+    # echo " loop: ${loop}"
+    # echo " pattern_to_watch: ${pattern_to_watch}"
+    # echo " cmd_to_run: ${cmd_to_run}"
+
     i=0
     while :; do
         set -x
@@ -1065,6 +1070,33 @@ _watch_file() {
     else
         echo "Error: 1 or 2 parameters required"
         return
+    fi
+
+    # Ensure pattern uses a relative path. Without this, specifying an absolute file path as the pattern to watch won't
+    # trigger changes.
+    #
+    # From `watchman-wait --help':
+    #   "Patterns are applied by the watchman server and are matched against the root-relative paths"
+    #
+    # For example:
+    #   Doesn't work:
+    #   $ cd ~/Projects
+    #   $ watchman-wait --max-events=1 --pattern /Users/user/Projects/project/src/parse.php -- .
+    #
+    #   Works:
+    #   $ cd ~/Projects
+    #   $ watchman-wait --max-events=1 --pattern project/src/parse.php -- .
+    if [[ "${pattern_to_watch}" == "/"* ]]; then
+        # echo "pattern is root"
+        # echo "current directory is ${PWD}"
+        # echo "          pattern is ${pattern_to_watch}"
+        pattern_to_watch_before="${pattern_to_watch}"
+        pattern_to_watch_after="${pattern_to_watch/$PWD\//}"
+        # diff_strings_like_files "${pattern_to_watch_before}" "${pattern_to_watch_after}"
+
+        pattern_to_watch="${pattern_to_watch_after}"
+    else
+        echo "pattern is not root"
     fi
 
     _run_watchman "${loop}" "${pattern_to_watch}" "${cmd_to_run}"
