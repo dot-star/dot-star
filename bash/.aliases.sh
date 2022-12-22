@@ -1035,7 +1035,7 @@ watch_dir() {
 }
 alias wd="watch_dir"
 
-watch_file() {
+_watch_file() {
     # Watch a file for changes and run a command.
     # Usage:
     #   $ watch_file file_to_watch.log "bash file_changed.sh"
@@ -1069,7 +1069,8 @@ watch_file() {
 
     _run_watchman "${loop}" "${pattern_to_watch}" "${cmd_to_run}"
 }
-alias wf="watch_file"
+alias watch_file="_watch_file"
+alias wf="_watch_file"
 
 checksum() {
     filename="${1}"
