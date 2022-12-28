@@ -1,3 +1,7 @@
+noop() {
+    :;
+}
+
 _sasswatch() {
     # Usage:
     #   $ sasswatch
@@ -43,6 +47,11 @@ _sasswatch() {
     fi
 
     if [[ ! -z "${input}" ]] && [[ ! -z "${output}" ]]; then
+        # Allow `set +x' command to be run after ctrl-c exiting out of sass
+        # watch command. Without this, `set -x' is still set and output remains
+        # verbose.
+        trap noop INT
+
         set -x
         sass \
             --no-source-map \
