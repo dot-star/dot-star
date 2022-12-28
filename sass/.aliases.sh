@@ -28,6 +28,9 @@ sasswatch() {
         output="${input}"
         output="${output/.css/}"
         output="${output/.scss/}"
+    fi
+
+    if [[ ! -z "${output}" ]] && [[ "${output}" != *".css" ]]; then
         output="${output}.css"
     fi
 
