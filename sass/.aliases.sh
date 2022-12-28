@@ -20,7 +20,9 @@ sasswatch() {
 
     input="${input/.css/}"
     input="${input/.scss/}"
-    input="${input}.scss"
+    if [[ ! -z "${input}" ]] && [[ "${input}" != *".scss" ]]; then
+        input="${input}.scss"
+    fi
 
     if [[ -z "${output}" ]] && [[ ! -z "${input}" ]]; then
         output="${input}"
