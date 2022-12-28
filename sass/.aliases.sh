@@ -1,4 +1,4 @@
-sasswatch() {
+_sasswatch() {
     # Usage:
     #   $ sasswatch
     #   sass [...] --watch "style.scss:style.css"
@@ -52,4 +52,5 @@ sasswatch() {
         set +x
     fi
 }
-alias sw="sasswatch"
+alias sasswatch="_sasswatch"
+alias sw="_sasswatch"
