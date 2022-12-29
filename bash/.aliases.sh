@@ -1174,7 +1174,7 @@ edit_extension_files() {
         if $scss_found; then
             echo "running sasswatch"
             dir="$(dirname "${style_results}")/"
-            sasswatch "${dir}style.scss"
+            _sasswatch "${dir}style.scss"
         fi
     fi
 }
