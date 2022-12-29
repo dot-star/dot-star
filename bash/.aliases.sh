@@ -1052,11 +1052,11 @@ _watch_file() {
     #   $ watch_file script.py
     _require_watchman
 
-    # Watch the specified file (parameter 1) for changes and run its related
-    # command when only one parameter is specified.
+    # Watch the specified file (parameter 1) only for changes and run its
+    # related command when only one parameter is specified.
     if [[ $# -eq 1 ]]; then
         loop=true
-        pattern_to_watch="**"
+        pattern_to_watch="${1}"
         command_or_file_name="${1}"
         cmd_to_run="$(_get_command_for_file_type "${command_or_file_name}")"
 
