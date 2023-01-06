@@ -226,7 +226,7 @@ better_cd() {
         #   -bash: cd: folder_2022-: No such file or directory
 
         if [[ $? -ne 0 ]]; then
-            actual_directory="$(find . -name "${directory}*" -type d -maxdepth 1 | fzf)"
+            actual_directory="$(find . -iname "${directory}*" -type d -maxdepth 1 | fzf)"
             better_cd "${actual_directory}"
         fi
     fi
