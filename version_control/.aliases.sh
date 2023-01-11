@@ -394,9 +394,10 @@ grep_merge() {
     done
 }
 
-diff_highlight() {
+_diff_highlight() {
     "/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" "${@}"
 }
+alias diff_highlight="_diff_highlight"
 
 diff_strings_like_files() {
     string_1="${1}"
