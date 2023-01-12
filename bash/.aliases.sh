@@ -908,16 +908,22 @@ _run_watchman() {
     cmd_to_run="${3}"
 
     # echo "_run_watchman"
-    # echo " loop: ${loop}"
-    # echo " pattern_to_watch: ${pattern_to_watch}"
-    # echo " cmd_to_run: ${cmd_to_run}"
+    # echo "  loop: ${loop}"
+    # echo "  pattern_to_watch: ${pattern_to_watch}"
+    # echo "  cmd_to_run: ${cmd_to_run}"
 
     i=0
     while :; do
         set -x
-        watchman-wait --max-events="1" --pattern "${pattern_to_watch}" -- .
+        file_changed="$(watchman-wait --max-events="1" --pattern "${pattern_to_watch}" -- .)"
         set +x
         watchman_exit_code="${?}"
+
+        # Ignore changes to files starting with periods (e.g. cache files like ".phpunit.result.cache" that could cause
+        # an endless loop).
+        if [[ "${file_changed}" == "."* ]]; then
+            continue
+        fi
 
         # "0 is returned after successfully waiting for event(s)".
         if [ "${watchman_exit_code}" -eq 0 ]; then
@@ -1018,7 +1024,7 @@ watch_dir() {
     # specified.
     if [[ $# -eq 0 ]]; then
         loop=false
-        pattern_to_watch='[!\.]*'
+        pattern_to_watch='**'
         cmd_to_run=""
 
     # Watch the current directory and run the specified command (parameter 1)
@@ -1028,7 +1034,12 @@ watch_dir() {
         # Use a glob pattern (not a regular expression) that excludes period-prefixed files which would otherwise cause
         # endless triggering. For example, using watchman-make with --pattern "**" and --run "phpunit [...]" causes a
         # cache file (".phpunit.result.cache") to be continually updated and a another execution.
-        pattern_to_watch='[!\.]*'
+        #
+        # Update: Use the "**" pattern so that recursive matching works. Even though changes to files like
+        # .phpunit.result.cache will be detected, an additional check has been added to ignore changes to files starting
+        # with a period. Using the '[!\.]*' pattern correctly ignores changes to files starting with periods, but
+        # doesn't correct detect changes to files within directories.
+        pattern_to_watch='**'
         command_or_file_name="${1}"
         cmd_to_run="$(_get_command_for_file_type "${command_or_file_name}")"
     else
