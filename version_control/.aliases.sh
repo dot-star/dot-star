@@ -38,6 +38,7 @@ alias dfl.="git_diff_last ."
 alias difflast="git_diff_last"
 alias difftool="git difftool"
 alias drop="git_stash_drop"
+alias edit_commit="git_rebase_interactive"
 alias fetch="git fetch"
 alias fetch_tags="rc_fetch_tags"
 alias filemode="git config core.filemode false"
@@ -137,6 +138,18 @@ git_rebase() {
 
     set -x
     git rebase -i "${target}"
+    set +x
+}
+
+git_rebase_interactive() {
+    thing="${1}"
+
+    if [[ "${thing}" != *"^" ]]; then
+        thing="${thing}^"
+    fi
+
+    set -x
+    git rebase --interactive "${thing}"
     set +x
 }
 
