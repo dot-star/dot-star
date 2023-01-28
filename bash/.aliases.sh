@@ -1414,16 +1414,17 @@ _man() {
 }
 alias man="_man"
 
+_byobu_detach() {
+    /usr/lib/byobu/include/tmux-detach-all-but-current-client
+}
 if [[ ! -z "${BYOBU_WINDOW_NAME}" ]]; then
-    alias detach="/usr/lib/byobu/include/tmux-detach-all-but-current-client"
+    alias detach="_byobu_detach"
 fi
+
+alias by="byobu"
 
 alias k="kill"
 alias ka="killall"
-
-detach() {
-   /usr/lib/byobu/include/tmux-detach-all-but-current-client
-}
 
 alias pc="pre-commit"
 alias pca="pre-commit run --all-files"
