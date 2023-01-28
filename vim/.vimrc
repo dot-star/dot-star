@@ -39,7 +39,9 @@ let g:syntastic_php_phpcs_args='--standard=PSR2'
 "let g:syntastic_php_phpcs_args='--standard=~/.config/phpcs/ruleset.xml'
 " End Custom Syntastic
 
-set laststatus=2
+" Commented out `set laststatus=2' to fix the following error:
+"   E117: Unknown function: SyntasticStatuslineFlag
+" set laststatus=2
 
 " Show hidden files in nerdtree.
 let g:NERDTreeShowHidden=1
