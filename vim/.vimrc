@@ -91,7 +91,14 @@ set listchars=tab:>·,trail:·,extends:>,precedes:< " show tabs and trailing; wo
 " set numberwidth=5 " We are good up to 99999 lines
 set ruler " display the cursor position in the status
 set scrolloff=3 " Keep X lines (top/bottom) before the horizontal window border
-set showtabline=2 " always show tabbar
+
+" Using showtabline=0 since =2 exits macvim on startup and =1 exits macvim when
+" :tabnew is used.
+set showtabline=0
+"  0: never
+"  1: only if there are at least two tab pages
+"  2: always
+
 set title " Show the filename in the window's titlebar
 set nowrap " Don't wrap long lines
 set textwidth=80 " Set textwidth to wrap. e.g. when using "selection" + gq
