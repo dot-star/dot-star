@@ -87,8 +87,8 @@ set redrawtime=10000
 set incsearch " BUT do highlight as you type you search phrase
 set list " display unprintable characters
 set listchars=tab:>·,trail:·,extends:>,precedes:< " show tabs and trailing; works with 'list'
-set number " turn on line numbers
-set numberwidth=5 " We are good up to 99999 lines
+" set number " turn on line numbers
+" set numberwidth=5 " We are good up to 99999 lines
 set ruler " display the cursor position in the status
 set scrolloff=3 " Keep X lines (top/bottom) before the horizontal window border
 set showtabline=2 " always show tabbar
