@@ -1383,10 +1383,14 @@ _man() {
         # searching, any selected option still copies the incorrect characters
         # to the clipboard so use `sed' to replace instaces of "&minus;" with
         # dashes.
-        man_file_path="$(\man --path "${1}")"
+        man_file_path="$(\man --path "${1}" 2> /dev/null)"
         exit_code="${?}"
         if [[ "${exit_code}" -ne 0 ]]; then
-            return
+            man_file_path="$(\man -w "${1}" 2> /dev/null)"
+            exit_code="${?}"
+            if [[ "${exit_code}" -ne 0 ]]; then
+                return
+            fi
         fi
 
         mkdir -p "${HOME}/man_html/"
