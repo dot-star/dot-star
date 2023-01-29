@@ -79,6 +79,12 @@ alias tag="git tag"
 alias tags="git tag --list | sort --reverse --version-sort | less -X -F"
 alias unshallow="git fetch --unshallow"
 
+_view_diff() {
+    commit="${1}"
+    git diff "${commit}~1" "${commit}"
+}
+alias view_diff="_view_diff"
+
 git_config() {
     filename=$(cat <<EOF | python -
 import os
