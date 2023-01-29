@@ -1397,6 +1397,13 @@ _man() {
 
         man_file_name="$(basename "${man_file_path}")"
         echo "file name: ${man_file_name}"
+
+        if ! which groff &> /dev/null; then
+            set -x
+            brew install groff
+            set +x
+        fi
+
         if [[ "${man_file_name}" == *".gz" ]]; then
             gunzip --to-stdout "${man_file_path}" |
                 groff -mandoc -T html > "${HOME}/man_html/${1}.html"
