@@ -81,7 +81,9 @@ alias unshallow="git fetch --unshallow"
 
 _view_diff() {
     commit="${1}"
-    git diff "${commit}~1" "${commit}"
+
+    # View commit diff with headers.
+    git log --max-count=1 --patch "${commit}~1" "${commit}"
 }
 alias view_diff="_view_diff"
 
