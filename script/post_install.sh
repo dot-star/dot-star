@@ -39,6 +39,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     git config --global diff.tool opendiff
     git config --global difftool.prompt false
 
+    brew install --cask hammerspoon
     brew install bash-completion
     brew install cmake
     brew install diffutils
