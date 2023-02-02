@@ -3,9 +3,12 @@
 # Use grep from brew. Install via `$ brew install grep'.
 which brew &> /dev/null
 if [[ $? -eq 0 ]]; then
-    # Use string path as this brew command is slow.
-    # coreutils_path=$(brew --prefix coreutils)
-    coreutils_path="/usr/local/opt/coreutils"
+    # Use string path as this brew command is slow:
+    #   coreutils_path=$(brew --prefix coreutils)
+    coreutils_path="${HOMEBREW_PREFIX}/opt/coreutils"
+    if [[ -z "${HOMEBREW_PREFIX}" ]]; then
+        coreutils_path="/usr/local/opt/coreutils"
+    fi
 
     export PATH="${coreutils_path}/libexec/gnubin:${PATH}"
     export PATH="/usr/local/opt/grep/libexec/gnubin:$PATH"
