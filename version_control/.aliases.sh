@@ -31,6 +31,12 @@ alias d.="git diff ."
 alias dcommit="git svn dcommit"
 alias default="rc_master"
 alias delete_branch="git_delete_branch"
+
+_delete_commit() {
+    git reset --hard HEAD~1
+}
+alias delete_commit="_delete_commit"
+
 alias delete_tag="git tag -d"
 alias df="rc_diff"
 alias dfl="git_diff_last"
