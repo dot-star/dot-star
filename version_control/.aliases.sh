@@ -288,7 +288,7 @@ rc_checkout() {
 }
 
 rc_commit() {
-    if [ $# == 0 ]; then
+    if [[ $# == 0 ]]; then
         git commit
     else
         git commit -m "${@}"
