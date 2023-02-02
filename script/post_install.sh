@@ -64,7 +64,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     ln -s "/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" "/usr/local/bin/"
 
     # Use wildcard to run diff-highlight under the currently installed version of git.
-    git config --global core.pager '"/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" | less -m'
+    git config --global core.pager "${DOT_STAR_ROOT}/version_control/git_pager.sh"
 else
     sudo apt-get install colordiff
     sudo apt-get install fzf
