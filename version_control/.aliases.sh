@@ -426,7 +426,12 @@ grep_merge() {
 }
 
 _diff_highlight() {
-    "/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" "${@}"
+    local homebrew_prefix="${HOMEBREW_PREFIX}"
+    if [[ -z "${HOMEBREW_PREFIX}" ]]; then
+        homebrew_prefix="/usr/local"
+    fi
+
+    "${homebrew_prefix}/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" | less -m
 }
 alias diff_highlight="_diff_highlight"
 
@@ -450,5 +455,3 @@ diff_strings_like_files() {
 alias diff_like_files="diff_strings_like_files"
 
 export P4DIFF="~/.dot-star/version_control/p4diff.sh"
-
-alias diff-highlight="/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight"
