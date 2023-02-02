@@ -18,9 +18,10 @@ if [[ $? -eq 0 ]]; then
     #   $ brew update
     # After:
     #   $ brew update --debug --verbose
+    _original_brew="$(which brew)"
     _brew() {
         set -x
-        /usr/local/bin/brew $@ --debug --verbose
+        "${_original_brew}" $@ --debug --verbose
         set +x
     }
 
