@@ -321,11 +321,10 @@ _edit() {
         fi
 
         args="${result}"
+        "${editor}" ${args}
     else
-        args="${@}"
+        "${editor}" ${@}
     fi
-
-    "${editor}" ${args}
 }
 alias e="_edit"
 alias edit="_edit"
@@ -475,8 +474,7 @@ case_insensitive_search_edit() {
 
     # TODO(zborboa): Only open if files are found.
 
-    files=$(echo "${results}" | tr '\n' ' ')
-    edit ${files}
+    edit $(echo "${results}" | tr '\n' ' ')
   fi
 }
 
