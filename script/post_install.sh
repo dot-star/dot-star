@@ -66,10 +66,14 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
 
     # Use wildcard to run diff-highlight under the currently installed version of git.
     git config --global core.pager "${DOT_STAR_ROOT}/version_control/git_pager.sh"
-else
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     sudo apt-get install colordiff
     sudo apt-get install fzf
     sudo apt-get install jq
+
+    cd "/usr/share/doc/git/contrib/diff-highlight" &&
+        sudo make &&
+        sudo ln -v -s "/usr/share/doc/git/contrib/diff-highlight/diff-highlight" /usr/local/bin/
 
     # Use git's diff-highlight.
     git config --global core.pager "diff-highlight | less"
