@@ -17,6 +17,7 @@ alias au="git add --update"
 alias br="rc_branch"
 alias branch="rc_branch"
 alias branches="rc_branches"
+alias brs="rc_branches"
 alias checkout="rc_checkout"
 
 # TODO: Implement `git cherry-pick' with selection using fzf.
