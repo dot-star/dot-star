@@ -292,7 +292,7 @@ rc_checkout() {
         branch_name="${branch_name#"${branch_name%%[![:space:]]*}"}"
         if [[ ! -z "${branch_name}" ]]; then
             set -x
-            git checkout -- "${branch_name}"
+            git checkout "${branch_name}"
             set +x
         fi
     else
