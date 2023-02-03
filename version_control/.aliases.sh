@@ -285,7 +285,19 @@ rc_branches() {
 }
 
 rc_checkout() {
-    git checkout $@
+    if [[ "${#}" -eq 0 ]]; then
+        # Display list of branches to checkout when no parameters have been
+        # passed.
+        branch_name="$(branches | fzf)"
+        branch_name="${branch_name#"${branch_name%%[![:space:]]*}"}"
+        if [[ ! -z "${branch_name}" ]]; then
+            set -x
+            git checkout -- "${branch_name}"
+            set +x
+        fi
+    else
+        git checkout $@
+    fi
 }
 
 rc_commit() {
