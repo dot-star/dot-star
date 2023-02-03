@@ -3,7 +3,7 @@
 # Use grep from brew. Install via `$ brew install grep'.
 which brew &> /dev/null
 if [[ $? -eq 0 ]]; then
-    local homebrew_prefix="${HOMEBREW_PREFIX}"
+    homebrew_prefix="${HOMEBREW_PREFIX}"
     if [[ -z "${HOMEBREW_PREFIX}" ]]; then
         homebrew_prefix="/usr/local"
     fi
