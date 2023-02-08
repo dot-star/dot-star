@@ -752,14 +752,14 @@ _chmod() {
 alias chmod="_chmod"
 
 conditional_f() {
-    if [ -t 1 ]; then
+    if [[ -t 1 ]]; then
         interactive=true
     else
         interactive=false
     fi
 
     # Run fg when no parameters are passed, otherwise find files with path containing the specified keyword.
-    if [ $# == 0 ]; then
+    if [[ $# == 0 ]]; then
         fg
     else
         # Find files by keyword.
