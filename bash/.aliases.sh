@@ -1546,8 +1546,19 @@ _open_files() {
     results="${1}"
     result_count=$(echo "${results}" | count_lines)
     if [[ $result_count -gt 10 ]]; then
-        read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
-        if ! [[ $REPLY =~ ^[Yy]$ ]]; then
+        if [ -n "$ZSH_VERSION" ]; then
+            echo -n "Are you sure you want to open ${result_count} files? [y/n] "
+            read -k 1 REPLY; echo
+            if ! [[ $REPLY =~ ^[Yy]$ ]]; then
+                return
+            fi
+        elif [ -n "$BASH_VERSION" ]; then
+            read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
+            if ! [[ $REPLY =~ ^[Yy]$ ]]; then
+                return
+            fi
+        else
+            echo "TODO: Handle other case."
             return
         fi
     fi
