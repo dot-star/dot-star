@@ -28,10 +28,10 @@ count_lines() {
 
 display_confirm_prompt() {
     text="${1}"
-    if [ -n "${BASH_VERSION}" ]; then
+    if [[ -n "${BASH_VERSION}" ]]; then
         read -p "${text} " -n 1 -r
         echo "${REPLY}"
-    elif [ -n "${ZSH_VERSION}" ]; then
+    elif [[ -n "${ZSH_VERSION}" ]]; then
         read "REPLY?${text} "
         echo "${REPLY}"
     fi
@@ -47,7 +47,7 @@ alias xsh="chmod +x *.sh"
 
 _require_watchman() {
     which watchman-make &> /dev/null
-    if [ $? -ne 0 ]; then
+    if [[ $? -ne 0 ]]; then
         echo -e '\x1b[0;93mWARNING\x1b[0m: watchman-make required'
 
         if [[ "${OSTYPE}" == "darwin"* ]]; then
@@ -104,7 +104,7 @@ _ls() {
 }
 
 conditional_l() {
-    if [ -t 0 ]; then
+    if [[ -t 0 ]]; then
         # Run `ls' when shell is interactive (e.g. "$ l").
         _ls "${@}"
     else
@@ -161,14 +161,14 @@ alias bak="_bak"
 
 conditional_c() {
     # clear, cd $dir, $cat $filename [$filename ...], or clipboard
-    if [ -t 0 ]; then
+    if [[ -t 0 ]]; then
         # Keyboard input (interactive).
         param_count="${#}"
         # Call `clear' when no parameters are passed (e.g. c).
         if [[ "${param_count}" -eq 0 ]]; then
             clear
         # Call `cd $dir' when a single parameter is passed and it is a directory (e.g. c ~/dir).
-        elif [ "${param_count}" -eq 1 ] && [ -d "${1}" ]; then
+        elif [[ "${param_count}" -eq 1 ]] && [[ -d "${1}" ]]; then
             cd "${1}"
         # Call `cat $filename [$filename ...]' when one or more parameters are passed (e.g. c file1.log file2.log).
         else
@@ -192,7 +192,7 @@ list_dirstack() {
 alias dirs="list_dirstack"
 
 pushd() {
-    if [ "${#}" -eq 0 ]; then
+    if [[ "${#}" -eq 0 ]]; then
         DIR="${HOME}"
     else
         DIR="${1}"
@@ -244,7 +244,7 @@ conditional_cd() {
     #   (pipes wdiff result to colordiff)
 
     # Keyboard input (interactive).
-    if [ -t 0 ]; then
+    if [[ -t 0 ]]; then
         # Run cd alias when not piped.
         better_cd "${@}"
 
@@ -330,7 +330,7 @@ alias e="_edit"
 alias edit="_edit"
 
 _grep() {
-    if [ -t 0 ]; then
+    if [[ -t 0 ]]; then
         # Run grep with line numbers when shell is interactive (e.g.
         # "$ grep ...").
         grep \
@@ -365,7 +365,7 @@ fin() {
         osascript -e 'display notification "" with title "Done"'
     else
         terminal-notifier -message "" -title "Done" 2> /dev/null
-        if [ $? -eq 127 ]; then
+        if [[ $? -eq 127 ]]; then
             notify-send --expire-time=1000 "Done $(date)"
         fi
     fi
@@ -460,7 +460,7 @@ case_insensitive_search_edit() {
 }
 
 conditional_se() {
-    if [ "${#}" -eq 0 ]; then
+    if [[ "${#}" -eq 0 ]]; then
         quilt series "${@}"
     else
         case_insensitive_search_edit "${@}"
@@ -542,7 +542,7 @@ quit() {
 alias x="quit"
 
 _conditional_q() {
-    if [ "${#}" -eq 0 ]; then
+    if [[ "${#}" -eq 0 ]]; then
         quit
     else
         quilt "${@}"
@@ -554,18 +554,18 @@ _open() {
     args=("${@}")
 
     # Open current directory when no path is specified.
-    if [ "$#" -eq 0 ]; then
+    if [[ "$#" -eq 0 ]]; then
         args[0]="."
     fi
 
     open "${args[@]}" &> /dev/null
-    if [ ! $? -eq 0 ]; then
+    if [[ ! $? -eq 0 ]]; then
         nautilus "${args[@]}"
     fi
 }
 
 _ip() {
-    if [ -x /sbin/ifconfig ]; then
+    if [[ -x /sbin/ifconfig ]]; then
         /sbin/ifconfig
     else
         ifconfig -a | grep -o 'inet6\? \(\([0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\)\|[a-fA-F0-9:]\+\)' | sed -e 's/inet6* //' | sort | sed 's/\('$(ipconfig getifaddr en1)'\)/\1 [LOCAL]/'
@@ -695,11 +695,11 @@ change_mac_address() {
 }
 
 difference() {
-    if [ -t 1 ] && $COLORDIFF_INSTALLED && $DIFF_HIGHLIGHT_INSTALLED; then
+    if [[ -t 1 ]] && $COLORDIFF_INSTALLED && $DIFF_HIGHLIGHT_INSTALLED; then
         command='diff --recursive --unified "'"${1}"'" "'"${2}"'" | diff_highlight | colordiff | less -R'
-    elif [ -t 1 ] && $COLORDIFF_INSTALLED; then
+    elif [[ -t 1 ]] && $COLORDIFF_INSTALLED; then
         command='diff --recursive --unified "'"${1}"'" "'"${2}"'" | colordiff | less -R'
-    elif [ -t 1 ]; then
+    elif [[ -t 1 ]]; then
         command='diff --recursive --unified "'"${1}"'" "'"${2}"'" | less -R'
     else
         command='diff --recursive --unified "'"${1}"'" "'"${2}"'"'
@@ -820,7 +820,7 @@ if match is not None:
 EOF
 )
             cmd=$(echo "${response}" | python -c "${script}")
-            if [ ! -z "${cmd}" ]; then
+            if [[ ! -z "${cmd}" ]]; then
                 ${cmd}
                 return
             fi
@@ -854,7 +854,7 @@ alias file="get_file_info"
 alias ty="get_file_info"
 
 is_ssh() {
-    if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
+    if [[ -n "$SSH_CLIENT" ]] || [[ -n "$SSH_TTY" ]]; then
         # Using ssh.
         return 0
     fi
@@ -897,7 +897,7 @@ _run_watchman() {
         fi
 
         # "0 is returned after successfully waiting for event(s)".
-        if [ "${watchman_exit_code}" -eq 0 ]; then
+        if [[ "${watchman_exit_code}" -eq 0 ]]; then
             cols="$(tput cols)"
             echo "$(bash -c "printf -- '=%.0s' {1..${cols}}")"
             clear
@@ -909,17 +909,17 @@ _run_watchman() {
             # and right before printing the separator to account for resizing.
             cols="$(tput cols)"
 
-            if [ $((i%4)) -eq 0 ]; then
+            if [[ $((i%4)) -eq 0 ]]; then
                 sep="$(bash -c "printf -- '-%.0s' {1..${cols}}")"
-            elif [ $((i%4)) -eq 1 ]; then
+            elif [[ $((i%4)) -eq 1 ]]; then
                 sep="$(bash -c "printf -- '\%.0s' {1..${cols}}")"
-            elif [ $((i%4)) -eq 2 ]; then
+            elif [[ $((i%4)) -eq 2 ]]; then
                 sep="$(bash -c "printf -- '|%.0s' {1..${cols}}")"
-            elif [ $((i%4)) -eq 3 ]; then
+            elif [[ $((i%4)) -eq 3 ]]; then
                 sep="$(bash -c "printf -- '/%.0s' {1..${cols}}")"
             fi
 
-            if [ "${command_exit_code}" -ne 0 ]; then
+            if [[ "${command_exit_code}" -ne 0 ]]; then
                 error "${sep}"
                 echo -e "\\033[4;31mError:\\033[0m exit code ${command_exit_code}"
                 echo -e "\\033[34mCommand:\\033[0m \`${cmd_to_run}'"
@@ -1164,7 +1164,7 @@ alias ext="edit_extension_files"
 
 conditional_d() {
     # Diff when 2 parameters are specified and they both are either files or directories.
-    if [ "${#}" -eq 2 ] && [ -e "${1}" ] && [ -e "${2}" ]; then
+    if [[ "${#}" -eq 2 ]] && [[ -e "${1}" ]] && [[ -e "${2}" ]]; then
         difference "${1}" "${2}"
     # Run version control diff when no parameters are specified.
     elif is_git; then
@@ -1300,7 +1300,7 @@ alias rp="realpath"
 _jq() {
     export JQ_COLORS="1;37:0;33:0;33:0;31:0;32:1;39:1;39"
 
-    if [ $# -eq 1 ] && [ -f "${1}" ]; then
+    if [[ $# -eq 1 ]] && [[ -f "${1}" ]]; then
         file_path="${1}"
 
         # Open an interactive view for entering a jq filter and viewing the
@@ -1443,10 +1443,10 @@ alias type="_type"
 go_to_root() {
     # Go to project root.
     while :; do
-        if [ -d ".git" ]; then
+        if [[ -d ".git" ]]; then
             l
             break
-        elif [ "${PWD}" == "/" ]; then
+        elif [[ "${PWD}" == "/" ]]; then
             break
         else
             cd ..
@@ -1465,7 +1465,7 @@ alias wget="wget"
 alias wg="wget"
 
 _conditional_w() {
-    if [ "${#}" -eq 0 ]; then
+    if [[ "${#}" -eq 0 ]]; then
         w
     else
         wget "${@}"
@@ -1546,13 +1546,13 @@ _open_files() {
     results="${1}"
     result_count=$(echo "${results}" | count_lines)
     if [[ $result_count -gt 10 ]]; then
-        if [ -n "$ZSH_VERSION" ]; then
+        if [[ -n "$ZSH_VERSION" ]]; then
             echo -n "Are you sure you want to open ${result_count} files? [y/n] "
             read -k 1 REPLY; echo
             if ! [[ $REPLY =~ ^[Yy]$ ]]; then
                 return
             fi
-        elif [ -n "$BASH_VERSION" ]; then
+        elif [[ -n "$BASH_VERSION" ]]; then
             read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
             if ! [[ $REPLY =~ ^[Yy]$ ]]; then
                 return

@@ -4,7 +4,7 @@ CWD="${PWD}"
 
 if [[ -n "${BASH_VERSION}" ]]; then
   DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-elif [ -n "${ZSH_VERSION}" ]; then
+elif [[ -n "${ZSH_VERSION}" ]]; then
   DIR="$(dirname $0)"
 fi
 
@@ -13,7 +13,7 @@ cd ..
 source "bash/.config.sh"
 source "bash/.aliases.sh"
 
-if [ -n "${BASH_VERSION}" ]; then
+if [[ -n "${BASH_VERSION}" ]]; then
   source "bash/.behavior.sh"
 fi
 
@@ -42,7 +42,7 @@ source "bash/.settings.sh"
 source "bash/.extra.sh"
 \cd "${CWD}"
 if is_ssh; then
-    if [ -z "${BYOBU_WINDOW_NAME}" ]; then
+    if [[ -z "${BYOBU_WINDOW_NAME}" ]]; then
         if which "byobu" &> /dev/null; then
             byobu
         fi

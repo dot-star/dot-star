@@ -41,11 +41,11 @@ _vim() {
         fi
     elif which "gvim" &> /dev/null; then
         xdotool=$(which xdotool)
-        if [ -z "${xdotool}" ]; then
+        if [[ -z "${xdotool}" ]]; then
             echo -e '\x1b[0;93mWARNING\x1b[0m: xdotool does not seem to be installed.'
         else
           window_id=$(xdotool search --name ") - GVIM")
-          if [ ! -z "${window_id}" ]; then
+          if [[ ! -z "${window_id}" ]]; then
             xdotool windowactivate "${window_id}"
           fi
         fi
