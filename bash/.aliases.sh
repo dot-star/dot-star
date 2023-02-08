@@ -1562,6 +1562,6 @@ _open_files() {
             return
         fi
     fi
-    files=$(echo "${results}" | tr '\n' ' ')
-    edit ${files}
+
+    edit $(echo "${results}" | tr '\n' ' ')
 }
