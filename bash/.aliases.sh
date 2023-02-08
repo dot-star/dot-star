@@ -404,16 +404,7 @@ case_sensitive_search_edit() {
       results=$(grep --dereference-recursive --exclude-dir="node_modules" --files-with-matches --include="*.${extension}" "${keyword}" . "${@:3}")
     fi
 
-    result_count=$(echo "${results}" | count_lines)
-    if [[ $result_count -gt 10 ]]; then
-      read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
-      if ! [[ $REPLY =~ ^[Yy]$ ]]; then
-        return
-      fi
-    fi
-
-    files=$(echo "${results}" | tr '\n' ' ')
-    edit ${files}
+    _open_files "${results}"
   fi
 }
 alias sse="case_sensitive_search_edit"
@@ -464,17 +455,7 @@ case_insensitive_search_edit() {
       results=$(grep --dereference-recursive --exclude-dir="node_modules" --files-with-matches --ignore-case --include="*.${extension}" "${keyword}" . "${@:3}")
     fi
 
-    result_count=$(echo "${results}" | count_lines)
-    if [[ $result_count -gt 10 ]]; then
-      read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
-      if ! [[ $REPLY =~ ^[Yy]$ ]]; then
-        return
-      fi
-    fi
-
-    # TODO(zborboa): Only open if files are found.
-
-    edit $(echo "${results}" | tr '\n' ' ')
+    _open_files "${results}"
   fi
 }
 
@@ -789,15 +770,7 @@ find_and_edit() {
         # Find files by keyword and edit (e.g. `fe keyword').
         keyword="${1}"
         results=$(find . -iname "*${keyword}*" -type "f")
-        result_count=$(echo "${results}" | count_lines)
-        if [[ $result_count -gt 10 ]]; then
-            read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
-            if ! [[ $REPLY =~ ^[Yy]$ ]]; then
-                return
-            fi
-        fi
-        files=$(echo "${results}" | tr '\n' ' ')
-        edit ${files}
+        _open_files "${results}"
     fi
 }
 alias fe="find_and_edit"
@@ -1204,9 +1177,6 @@ conditional_d() {
 alias d="conditional_d"
 
 generate_key() {
-    # read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
-    # if ! [[ $REPLY =~ ^[Yy]$ ]]; then
-
     read -p "authority (e.g. github, etc.)? " -r
     authority="${REPLY}"
 
@@ -1570,3 +1540,17 @@ alias numeric="sort --numeric-sort"
 alias numeric_sort="sort --numeric-sort"
 
 alias hd="hexdump"
+
+_open_files() {
+    # TODO(zborboa): Only open if files are found.
+    results="${1}"
+    result_count=$(echo "${results}" | count_lines)
+    if [[ $result_count -gt 10 ]]; then
+        read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
+        if ! [[ $REPLY =~ ^[Yy]$ ]]; then
+            return
+        fi
+    fi
+    files=$(echo "${results}" | tr '\n' ' ')
+    edit ${files}
+}
