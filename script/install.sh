@@ -41,13 +41,13 @@ if [ ! -L "${HOME}/.colordiffrc" ]; then
 fi
 
 install_ipython() {
-    sudo easy_install pip
-    pip install --upgrade pip
+    python3 -m ensurepip --upgrade
+    python3 -m pip install --upgrade pip
 
     if [[ "${OSTYPE}" == "darwin"* ]]; then
         brew install python
     fi
-    pip install --user ipython
+    python3 -m pip install --user ipython
 
     # Add python binaries to PATH.
     echo -e "export PATH=$PATH:/Users/$(whoami)/Library/Python/2.7/bin\n\n" >> "${HOME}/.bash_profile"
