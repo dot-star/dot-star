@@ -8,28 +8,27 @@ ln -vsf "${DOT_STAR_ROOT}/" "${HOME}/.dot-star"
 dotstar_header="# Begin dot-star bootstrap."
 dotstar_footer="# End dot-star bootstrap."
 
-# Remove any existing bootstrap in bash profile.
-sed -i "" "/${dotstar_header}/,/${dotstar_footer}/d" "${HOME}/.bash_profile" &> /dev/null
+setup_bootstrap() {
+    filename="${1}"
+    script="${2}"
 
-# Add bootstrap header to bash profile.
-echo -e "${dotstar_header}" >> "$HOME/.bash_profile"
+    # Remove any existing bootstrap.
+    sed -i "" "/${dotstar_header}/,/${dotstar_footer}/d" "${filename}" &> /dev/null
 
-echo "if shopt -q login_shell; then
+    echo -e "${dotstar_header}" >> "${filename}"
+    echo -e "${script}"         >> "${filename}"
+    echo -e "${dotstar_footer}" >> "${filename}"
+}
+
+setup_bootstrap "${HOME}/.bash_profile" 'echo "if shopt -q login_shell; then
     [[ -r ~/.bashrc ]] && source ~/.bashrc
-fi" >> "$HOME/.bash_profile"
+fi" >> "$HOME/.bash_profile"'
 
-# Remove any existing bootstrap in bashrc.
-sed -i "" "/${dotstar_header}/,/${dotstar_footer}/d" "${HOME}/.bashrc" &> /dev/null
-
-# Add bootstrap header to bashrc.
-echo -e "${dotstar_header}" >> "$HOME/.bashrc"
-
-echo "if shopt -q login_shell; then
+setup_bootstrap "${HOME}/.bashrc" 'echo "if shopt -q login_shell; then
     [[ -r ~/.dot-star/bash/.bash_profile ]] && source ~/.dot-star/bash/.bash_profile
-fi" >> "$HOME/.bashrc"
+fi" >> "$HOME/.bashrc"'
 
-# Add bootstrap footer to bashrc.
-echo -e "${dotstar_footer}" >> "$HOME/.bashrc"
+setup_bootstrap "${HOME}/.zshrc" '[[ -r ~/.dot-star/bash/.bash_profile ]] && source ~/.dot-star/bash/.bash_profile'
 
 # Install inputrc.
 if [ ! -L "${HOME}/.inputrc" ]; then
