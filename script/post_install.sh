@@ -20,17 +20,17 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     # Install brew.
     command -v brew > /dev/null || /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 
+    # Update: Removed setting bash as the default shell in favor of zsh.
     # Upgrade bash.
     # Fixes "-bash: shopt: autocd: invalid shell option name".
-    brew install bash
-    sudo bash -c "echo /usr/local/bin/bash >> /etc/shells"
-    chsh -s /usr/local/bin/bash
-    echo "${BASH_VERSION}"
+    # brew install bash
+    # sudo bash -c "echo /usr/local/bin/bash >> /etc/shells"
+    # chsh -s /usr/local/bin/bash
+    # echo "${BASH_VERSION}"
 
     # https://github.com/Homebrew/homebrew-core/blob/master/Formula/*.rb
     brew install colordiff
     brew install coreutils
-    brew install grep
 
     brew install diff-so-fancy
     git config --global --bool diff-so-fancy.markEmptyLines false
@@ -45,7 +45,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     brew install diffutils
     brew install git
     brew install git-gui
-    brew install grep --with-default-names
+    brew install grep
     brew install homebrew/dupes/rsync
     brew install macvim --HEAD
     brew install tree
