@@ -1293,11 +1293,26 @@ alias mv="_mv"
 
 alias rp="realpath"
 
+require_jq() {
+    command jq --help &> /dev/null
+    exit_code="${?}"
+
+    if [[ "${exit_code}" -eq 127 ]]; then
+        if [[ "${OSTYPE}" == "darwin"* ]]; then
+            brew install jq
+        elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+            sudo apt-get install jq
+        fi
+    fi
+}
+
 # Wrap jq command to allow debugging a jq filter interactively.
 # To use, run `jq $filename'. Press return when the desired filter has been
 # entered. The entered filter will be displayed and put in the clipboard for
 # immediate use.
 _jq() {
+    require_jq
+
     export JQ_COLORS="1;37:0;33:0;33:0;31:0;32:1;39:1;39"
 
     if [[ $# -eq 1 ]] && [[ -f "${1}" ]]; then
