@@ -1580,3 +1580,18 @@ _open_files() {
 
     edit $(echo "${results}" | tr '\n' ' ')
 }
+
+_first() {
+    # Display first line of output.
+    #
+    # Usage:
+    #  $ echo -e "1\n2\n3"
+    #  1
+    #  2
+    #  3
+    #
+    #  $ echo -e "1\n2\n3" | first
+    #  1
+    head --lines=1
+}
+alias first="_first"
