@@ -94,12 +94,13 @@ set listchars=tab:>·,trail:·,extends:>,precedes:< " show tabs and trailing; wo
 set ruler " display the cursor position in the status
 set scrolloff=3 " Keep X lines (top/bottom) before the horizontal window border
 
-" Using showtabline=0 since =2 exits macvim on startup and =1 exits macvim when
-" :tabnew is used.
-set showtabline=0
+" Show tabs.
+" Previously setting showtabline=2 caused macvim to exit on startup and caused
+" =1 to exit macvim when :tabnew was used.
 "  0: never
 "  1: only if there are at least two tab pages
 "  2: always
+set showtabline=2
 
 set title " Show the filename in the window's titlebar
 set nowrap " Don't wrap long lines
