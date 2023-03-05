@@ -61,6 +61,9 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     # Show all files in Finder (requires a restart of Finder: `killall Finder').
     defaults write com.apple.Finder AppleShowAllFiles true
 
+    # Disable Control-Command-D binding.
+    defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 70 '<dict><key>enabled</key><false/></dict>'
+
     # Use diff highlight.
     ln -s "/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" "/usr/local/bin/"
 
