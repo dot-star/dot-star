@@ -40,6 +40,10 @@ if [ ! -L "${HOME}/.colordiffrc" ]; then
     ln -v -s "${DOT_STAR_ROOT}/colordiff/.colordiffrc" "${HOME}/.colordiffrc"
 fi
 
+if [ ! -L "${HOME}/.screenrc" ]; then
+    ln -v -s "${DOT_STAR_ROOT}/screen/.screenrc" "${HOME}/.screenrc"
+fi
+
 install_ipython() {
     python3 -m ensurepip --upgrade
     python3 -m pip install --upgrade pip
