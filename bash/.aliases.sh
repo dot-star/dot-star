@@ -32,7 +32,7 @@ display_confirm_prompt() {
         read -p "${text} " -n 1 -r
         echo "${REPLY}"
     elif [[ -n "${ZSH_VERSION}" ]]; then
-        read "REPLY?${text} "
+        read -k 1 "REPLY?${text} "
         echo "${REPLY}"
     fi
 }
