@@ -1513,6 +1513,35 @@ _repeat() {
 }
 alias repeat="_repeat"
 
+_repeat_wd() {
+  # Watch directory, run command (or alias!), repeat.
+  #
+  # $ wdrepeat yarn lint
+  # >> while :; do watch_dir; yarn lint; done
+  command_with_args_to_repeatedly_do="${@}"
+
+  screen_name="repeat_command_${RANDOM}"
+
+  # Start screen in "detached" mode with a session name.
+  screen -S "${screen_name}" -t "master" -d -m
+
+  # Wait for screen to be ready before opening new sessions.
+  sleep 1
+
+  # Create a new tab and send a command to it.
+  # TODO: Display command being run and horizontal rule between each execution as in _repeat().
+  screen -S "${screen_name}" -X "screen" -t "my_screen_1"
+  screen -S "${screen_name}" -p "my_screen_1" -X stuff "while :; do watch_dir; ${command_with_args_to_repeatedly_do}; done"$'\n'
+
+  # Exit the first screen.
+  screen -S "${screen_name}" -p "0" -X stuff $'exit\n'
+
+  # Attach.
+  screen -r "${screen_name}"
+}
+alias repeatwd="_repeat_wd"
+alias wdrepeat="_repeat_wd"
+
 alias md="mkdir"
 
 alias dsstore="find . -name \".DS_Store\" -type f -print -delete"
