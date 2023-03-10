@@ -304,7 +304,7 @@ _edit() {
                 --exit-0 \
                 --info="hidden" \
                 --preview-window="up:100" \
-                --preview="cat {}" \
+                --preview="git diff --color=always {}" \
                 --select-1 \
         )"
 
