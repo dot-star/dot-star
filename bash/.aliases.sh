@@ -299,7 +299,15 @@ _edit() {
             )
         fi
 
-        result="$(echo "${result}" | fzf --select-1 --exit-0)"
+        result="$(echo "${result}" |
+            fzf \
+                --exit-0 \
+                --info="hidden" \
+                --preview-window="up:100" \
+                --preview="cat {}" \
+                --select-1 \
+        )"
+
         return_code="${?}"
 
         # Stop edit when canceled.
