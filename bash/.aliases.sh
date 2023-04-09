@@ -1323,6 +1323,19 @@ _jq() {
 
     export JQ_COLORS="1;37:0;33:0;33:0;31:0;32:1;39:1;39"
 
+    if [[ -f "/opt/homebrew/bin/jq" ]]; then
+        jq_bin="/opt/homebrew/bin/jq"
+    elif [[ -f "/usr/local/bin/jq" ]]; then
+        jq_bin="/usr/local/bin/jq"
+    fi
+
+    # TODO: Add additional locations to check for jq.
+
+    if [[ -z "${jq_bin}" ]]; then
+        echo "Err: jq not found"
+        return
+    fi
+
     if [[ $# -eq 1 ]] && [[ -f "${1}" ]]; then
         file_path="${1}"
 
@@ -1342,7 +1355,7 @@ _jq() {
 
         # Display a preview of the file using the selected jq filter.
         echo "$ jq -C \"${jq_filter}\" \"${file_path}\" | head"
-        "$(which jq)" -C "${jq_filter}" "${file_path}" | head
+        "${jq_bin}" -C "${jq_filter}" "${file_path}" | head
 
         # Put the selected jq filter in the clipboard.
         echo "${jq_filter}" | clip
@@ -1352,7 +1365,7 @@ _jq() {
         echo "jq filter (also in clipboard):"
         echo "${jq_filter}"
     else
-        "$(which jq)" "${@}"
+        "${jq_bin}" "${@}"
     fi
 }
 alias jq="_jq"
