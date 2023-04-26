@@ -21,6 +21,7 @@ _extensions() {
         "$HOME/.config/google-chrome/Default/Extensions"
         "$HOME/.config/chromium/Default/Extensions"
     )
+    local path
     for path in "${array[@]}"; do
         if [ -d "${path}" ]; then
             cd "${path}"
