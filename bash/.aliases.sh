@@ -717,6 +717,30 @@ difference() {
 }
 alias d="difference"
 
+_diff_line_numbers() {
+    # Usage:
+    #   diff_line_numbers $filename1 $start1 $stop1 $filename2 $start2 $stop2
+    #   diff_line_numbers file1.py 80 142 file2.py 144 229
+    #
+    # TODO: Add support for
+    #   diff_line_numbers $start1 $stop1 $start2 $stop2 $filename
+
+    file_1_name="${1}"
+    file_1_start="${2}"
+    file_1_end="${3}"
+
+    file_2_name="${4}"
+    file_2_start="${5}"
+    file_2_end="${6}"
+
+    diff \
+        --recursive \
+        --unified \
+        <(sed -n "${file_1_start}","${file_1_end}p" "${file_1_name}") \
+        <(sed -n "${file_2_start}","${file_2_end}p" "${file_2_name}") | diff_highlight | colordiff | less -R
+}
+alias diff_line_numbers="_diff_line_numbers"
+
 _chmod() {
     option_found=false
     for param in "${@}"; do
