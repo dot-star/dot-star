@@ -43,6 +43,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     brew install --cask hammerspoon
     brew install bash-completion
     brew install cmake
+    brew install composer
     brew install diffutils
     brew install git
     brew install git-gui
