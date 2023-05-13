@@ -2,6 +2,14 @@ noop() {
     :;
 }
 
+require_sass() {
+    if ! which "sass" &> /dev/null; then
+        set -x
+        brew install sass/sass/sass
+        set +x
+    fi
+}
+
 _sasswatch() {
     # Usage:
     #   $ sasswatch
@@ -12,6 +20,8 @@ _sasswatch() {
     #
     #   $ sasswatch my_style.scss
     #   sass [...] --watch "my_style.scss:my_style.css"
+
+    require_sass
 
     local input=""
     local output=""
