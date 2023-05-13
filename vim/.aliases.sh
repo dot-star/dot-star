@@ -1,6 +1,6 @@
 # Vim aliases
 
-_vim() {
+alias_vim() {
     # FIXME: Only proceed to open files that exist or were created. (e.g. $ v foo File "foo.txt" doesn't exist. Create
     # file? n The file /path/to/foo.txt does not exist.)
     for filename in "${@}"; do
@@ -56,11 +56,11 @@ _vim() {
     fi
 }
 
-alias v="_vim"
-alias vi="_vim"
-alias vim="_vim"
+alias v="alias_vim"
+alias vi="alias_vim"
+alias vim="alias_vim"
 
-alias vimrc="_vim ~/.vimrc"
+alias vimrc="alias_vim ~/.vimrc"
 
 # Use vi-style command line editing.
 set -o vi

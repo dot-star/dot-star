@@ -257,7 +257,7 @@ conditional_cd() {
 alias "cd"="conditional_cd"
 
 _edit() {
-    editor="_vim"
+    editor="alias_vim"
 
     # Display option for selecting which file to edit when no file has been
     # specified. Automatically select file when there's only one file.
