@@ -1144,20 +1144,20 @@ alias ipy="ipython_wrapper"
 alias py="python"
 
 edit_extension_files() {
-    files_to_edit=""
+    files_to_edit=()
 
     # Open background.js.
     background_results=$(find . -iname "background.js" | head -1)
     if [[ ! -z "${background_results}" ]]; then
         echo "background_results: ${background_results}"
-        files_to_edit+=" ${background_results}"
+        files_to_edit+=("${background_results}")
     fi
 
     # Open JavaScript files.
     javascript_results=$(find . -iname "*.js" ! -path "*/node_modules/*")
     if [[ ! -z "${javascript_results}" ]]; then
         echo -e "javascript_results:\n${javascript_results}"
-        files_to_edit+=" ${javascript_results}"
+        files_to_edit+=("${javascript_results}")
     fi
 
     # Open style.scss or style.css in a child directory.
@@ -1170,20 +1170,20 @@ edit_extension_files() {
     fi
     if [[ ! -z "${style_results}" ]]; then
         echo "style_results: ${style_results}"
-        files_to_edit+=" ${style_results}"
+        files_to_edit+=("${style_results}")
     fi
 
     # Open style.scss or style.css in a child directory.
     manifest_results=$(find . -iname "manifest.json" | head -1)
     if [[ ! -z "${manifest_results}" ]]; then
         echo "manifest_results: ${manifest_results}"
-        files_to_edit+=" ${manifest_results}"
+        files_to_edit+=("${manifest_results}")
     fi
 
     if [[ -z "${files_to_edit}" ]]; then
         echo "no extension files to exit"
     else
-        edit ${files_to_edit}
+        edit "${=files_to_edit}"
 
         if $scss_found; then
             echo "running sasswatch"
