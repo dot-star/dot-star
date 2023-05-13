@@ -1181,7 +1181,7 @@ edit_extension_files() {
     fi
 
     if [[ -z "${files_to_edit}" ]]; then
-        echo "no extension files to exit"
+        echo "no extension files to edit"
     else
         edit "${=files_to_edit}"
 
