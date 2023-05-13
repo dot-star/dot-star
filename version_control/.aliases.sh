@@ -66,7 +66,7 @@ alias pt="rc_fetch_tags"
 alias pul="rc_pull"
 alias pull="rc_pull"
 alias pull_tags="rc_fetch_tags"
-alias pull_with_rebase="rc_pull --rebase"
+alias pull_with_rebase="rc_pull_with_rebase"
 alias pus="rc_push"
 alias push="rc_push"
 alias rb="git_rebase"
@@ -76,7 +76,7 @@ alias rb4="git_rebase 4"
 alias re="git_rebase"
 alias reb="git_rebase"
 alias rebase="git_rebase"
-alias rebase_pull="rc_pull --rebase"
+alias rebase_pull="rc_pull_with_rebase"
 alias s.="rc_status ."
 alias shallow_clone="git clone --depth 1"
 alias show="git_stash_show"
@@ -374,6 +374,10 @@ rc_pull() {
     if [[ $? -ne 0 ]]; then
         echo -e "\ngit pull options: $(git remote show)"
     fi
+}
+
+rc_pull_with_rebase() {
+    git pull --rebase $@
 }
 
 rc_push() {
