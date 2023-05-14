@@ -42,6 +42,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     brew install --cask google-cloud-sdk
     brew install --cask hammerspoon
     brew install bash-completion
+    brew install blueutil
     brew install cmake
     brew install composer
     brew install diffutils
