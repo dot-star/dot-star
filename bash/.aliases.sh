@@ -1669,3 +1669,5 @@ _first() {
     head --lines=1
 }
 alias first="_first"
+
+alias bu="brew update; brew upgrade"
