@@ -1295,7 +1295,7 @@ _cp() {
 }
 alias cp="_cp"
 
-_mv() {
+alias_mv() {
     file_or_folder_name="${1}"
 
     # Call modified mv command to edit folder in place when only 1 parameter has
@@ -1321,7 +1321,7 @@ _mv() {
         command mv "${@}"
     fi
 }
-alias mv="_mv"
+alias mv="alias_mv"
 
 alias rp="realpath"
 
