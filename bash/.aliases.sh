@@ -1295,10 +1295,16 @@ _cp() {
 }
 alias cp="_cp"
 
+response=""
 read_with_initial_editable_input() {
-    prompt="${1}"
-    read -i "${prompt}" -e "new_value"
-    echo "${new_value}"
+    if [[ -n "${ZSH_VERSION}" ]]; then
+        response="${1}"
+        vared -p "Edit: " response
+    elif [[ -n "${BASH_VERSION}" ]]; then
+        inital_input="${1}"
+        read -i "${inital_input}" -e "new_value"
+        response="${new_value}"
+    fi
 }
 
 alias_mv() {
@@ -1307,14 +1313,16 @@ alias_mv() {
     # Call modified mv command to edit folder in place when only 1 parameter has
     # been specified and it's a folder.
     if [[ "${#}" -eq 1 ]] && [[ -d "${file_or_folder_name}" ]]; then
-        new_folder_name="$(read_with_initial_editable_input "${file_or_folder_name}")"
+        read_with_initial_editable_input "${file_or_folder_name}"
+        new_folder_name="${response}"
         command mv "${file_or_folder_name}" "${new_folder_name}" &&
             diff_strings_like_files "${file_or_folder_name}" "${new_folder_name}"
 
     # Call modified mv command to edit file name in place when only 1 parameter
     # has been specified and it's a file.
     elif [[ "${#}" -eq 1 ]] && [[ -f "${file_or_folder_name}" ]]; then
-        new_file_name="$(read_with_initial_editable_input "${file_or_folder_name}")"
+        read_with_initial_editable_input "${file_or_folder_name}"
+        new_file_name="${response}"
         command mv "${file_or_folder_name}" "${new_file_name}" &&
             diff_strings_like_files "${file_or_folder_name}" "${new_file_name}"
 
