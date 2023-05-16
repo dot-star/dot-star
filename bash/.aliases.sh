@@ -365,8 +365,8 @@ alias grep="_grep"
 
 alias h="history"
 alias j="jobs"
-alias o="_open"
-alias oo="_open ."
+alias o="alias_open"
+alias oo="alias_open ."
 
 fin() {
     if [[ "${OSTYPE}" == "darwin"* ]]; then
@@ -558,7 +558,7 @@ _conditional_q() {
 }
 alias q="_conditional_q"
 
-_open() {
+alias_open() {
     args=("${@}")
 
     # Open current directory when no path is specified.
