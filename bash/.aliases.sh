@@ -1242,7 +1242,7 @@ unlink() {
     done
 }
 
-_cp() {
+alias_cp() {
     file_name="${1}"
 
     # Call modified cp command to edit file name in place when only 1 parameter has been specified.
@@ -1293,7 +1293,7 @@ _cp() {
         command cp "${@}"
     fi
 }
-alias cp="_cp"
+alias cp="alias_cp"
 
 response=""
 read_with_initial_editable_input() {
