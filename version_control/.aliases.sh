@@ -216,9 +216,11 @@ git_stash_list() {
         git_stash="$(echo ${result} | sed "s/}.*/}/")"
         echo "${git_stash}"
     elif [[ "${exit_code}" -eq 1 ]]; then
-        echo "(no stashes)"
+        echo "(no stashes found)"
+        exit "${exit_code}"
     elif [[ "${exit_code}" -eq 2 ]]; then
         echo "(fzf error)"
+        exit "${exit_code}"
     elif [[ "${exit_code}" -eq 130 ]]; then
         # Handle Ctrl-C and Esc exit gracefully.
         return
@@ -228,7 +230,11 @@ git_stash_list() {
 git_stash_pop() {
     # Pop the selected git stash.
     git_stash="$(git_stash_list)"
-    if [[ ! -z "${git_stash}" ]]; then
+    exit_code="${?}"
+    if [[ "${exit_code}" -eq 1 ]]; then
+        # Display "(no stashes found)".
+        echo "${git_stash}"
+    elif [[ ! -z "${git_stash}" ]]; then
         # Display stash.
         git stash show --patch --include-untracked "${git_stash}"
 
