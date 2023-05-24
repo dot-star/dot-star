@@ -299,12 +299,13 @@ _edit() {
             )
         fi
 
+        fzf_preview="git diff --color=always {}"
         result="$(echo "${result}" |
             fzf \
                 --exit-0 \
                 --info="hidden" \
                 --preview-window="up:100" \
-                --preview="git diff --color=always {}" \
+                --preview="${fzf_preview}" \
                 --select-1 \
         )"
 
