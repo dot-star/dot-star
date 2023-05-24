@@ -345,7 +345,7 @@ _edit() {
 alias e="_edit"
 alias edit="_edit"
 
-_grep() {
+alias_grep() {
     if [[ -t 0 ]]; then
         # Run grep with line numbers when shell is interactive (e.g.
         # "$ grep ...").
@@ -369,7 +369,7 @@ _grep() {
             "$@"
     fi
 }
-alias grep="_grep"
+alias grep="alias_grep"
 
 alias h="history"
 alias j="jobs"
