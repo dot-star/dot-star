@@ -299,7 +299,14 @@ _edit() {
             )
         fi
 
-        fzf_preview="git diff --color=always {}"
+        fzf_preview='
+            file_diff="$(git diff --color=always {})"
+            if [[ -z "${file_diff}" ]]; then
+                git diff --color=always --cached {}
+            else
+                git diff --color=always {}
+            fi
+        '
         result="$(echo "${result}" |
             fzf \
                 --exit-0 \
