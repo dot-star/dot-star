@@ -115,7 +115,7 @@ conditional_l() {
 }
 alias l="conditional_l"
 
-_bak() {
+alias_bak() {
     timestamp=$(date +"%Y-%m-%d_%H%M%S")
 
     local cp_to_use
@@ -156,8 +156,8 @@ _bak() {
         fi
     done
 }
-alias b="_bak"
-alias bak="_bak"
+alias b="alias_bak"
+alias bak="alias_bak"
 
 conditional_c() {
     # clear, cd $dir, $cat $filename [$filename ...], or clipboard
