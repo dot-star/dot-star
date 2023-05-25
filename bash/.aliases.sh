@@ -749,7 +749,7 @@ _diff_line_numbers() {
 }
 alias diff_line_numbers="_diff_line_numbers"
 
-_chmod() {
+alias_chmod() {
     option_found=false
     for param in "${@}"; do
         if [[ "${param}" == "-"* ]] || [[ "${param}" == "+"* ]]; then
@@ -770,7 +770,7 @@ _chmod() {
         done
     fi
 }
-alias chmod="_chmod"
+alias chmod="alias_chmod"
 
 conditional_f() {
     if [[ -t 1 ]]; then
