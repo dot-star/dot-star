@@ -49,7 +49,17 @@ alias edit_commit="git_rebase_interactive"
 alias fetch="git fetch"
 alias fetch_tags="rc_fetch_tags"
 alias filemode="git config core.filemode false"
-alias g="git"
+
+conditional_g() {
+    if [[ "${#}" -eq 0 ]]; then
+        gitk
+    else
+        git ${@}
+    fi
+
+}
+alias g="conditional_g"
+
 alias gco="grep_checkout"
 alias gconf="git_config"
 alias gitconfig="git_config"
