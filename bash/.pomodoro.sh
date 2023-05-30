@@ -4,7 +4,7 @@ pomodoro() {
     #   Volume with laptop speakers: 0.5
 
     _play_media() {
-        prompt="${1}"
+        local prompt="${1}"
 
         read < <(ffplay -loop -1 -nodisp -loglevel quiet -af "volume=0.25" <(xxd --revert --plain <(echo "${MEDIA}")) & echo "${!}")
         pid="${REPLY}"
