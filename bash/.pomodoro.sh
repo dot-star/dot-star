@@ -9,7 +9,13 @@ pomodoro() {
         read < <(ffplay -loop -1 -nodisp -loglevel quiet -af "volume=0.25" <(xxd --revert --plain <(echo "${MEDIA}")) & echo "${!}")
         pid="${REPLY}"
 
-        read -p "${prompt}" -n 1 -s
+        if [[ -n "${ZSH_VERSION}" ]]; then
+            echo -n "${prompt}"
+            read REPLY
+        elif [[ -n "${BASH_VERSION}" ]]; then
+            read -p "${prompt}" -n 1 -s
+        fi
+
         kill "${pid}"
         echo -e -n "\r${ceol}"
         if [[ $REPLY =~ ^[Qq]$ ]]; then
