@@ -332,19 +332,52 @@ rc_diff() {
         # No arguments passed to `git diff'.
         if [[ $# == 0 ]]; then
 
+            # Prioritize displaying the diff of files listed under the "Unmerged
+            # paths" section over the "Changes to be committed" section when
+            # there is an interactive rebase in progress since the unmerged
+            # files are what need attention for the rebase to continue.
+            #
+            # Check if currently in an interactive rebase. Following
+            # wt_status_check_rebase() which sets
+            # rebase_interactive_in_progress = 1 based on the presence a
+            # directory "rebase-merge" and a file "rebase-merge/interactive"
+            # within the .git directory.
+            # https://github.com/git/git/blob/79bdd48716a4c455bdc8ffd91d57a18d5cd55baa/wt-status.c#L1713-L1715
+            rebase_interactive_in_progress=false
+            git_top_level="$(git rev-parse --show-toplevel)/.git"
+            if [[ -d "${git_top_level}/rebase-merge" ]]; then
+                if [[ -f "${git_top_level}/rebase-merge/interactive" ]]; then
+                    rebase_interactive_in_progress=true
+                fi
+            fi
+
+            # Display non-cached diff when there is an interactive rebase in
+            # progress.
+            if $rebase_interactive_in_progress; then
+                echo "interactive rebase in progress. showing regular diff."
+
+                echo "git diff ."
+                git diff .
+
+            else
+
             # Display staged diff (cached) when available.
             result="$(git diff --cached)"
             if [[ ! -z "${result}" ]] && [[ "${result}" != "* Unmerged path"* ]]; then
                 echo "git diff --cached"
                 git diff --cached
+
             # Display current directory diff.
             elif [[ ! -z "$(git diff .)" ]]; then
                 echo "git diff ."
                 git diff .
+
             # Display diff.
             else
                 echo "git diff"
                 git diff
+            fi
+
             fi
 
         # Arguments passed to `git diff'.
