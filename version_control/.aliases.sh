@@ -360,24 +360,22 @@ rc_diff() {
                 git diff .
 
             else
+                # Display staged diff (cached) when available.
+                result="$(git diff --cached)"
+                if [[ ! -z "${result}" ]] && [[ "${result}" != "* Unmerged path"* ]]; then
+                    echo "git diff --cached"
+                    git diff --cached
 
-            # Display staged diff (cached) when available.
-            result="$(git diff --cached)"
-            if [[ ! -z "${result}" ]] && [[ "${result}" != "* Unmerged path"* ]]; then
-                echo "git diff --cached"
-                git diff --cached
+                # Display current directory diff.
+                elif [[ ! -z "$(git diff .)" ]]; then
+                    echo "git diff ."
+                    git diff .
 
-            # Display current directory diff.
-            elif [[ ! -z "$(git diff .)" ]]; then
-                echo "git diff ."
-                git diff .
-
-            # Display diff.
-            else
-                echo "git diff"
-                git diff
-            fi
-
+                # Display diff.
+                else
+                    echo "git diff"
+                    git diff
+                fi
             fi
 
         # Arguments passed to `git diff'.
