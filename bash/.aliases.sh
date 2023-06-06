@@ -300,11 +300,12 @@ _edit() {
         fi
 
         fzf_preview='
-            file_diff="$(git diff --color=always {})"
+            file_path="'"${root_dir}"'/"{}
+            file_diff="$(git diff --color=always "${file_path}")"
             if [[ -z "${file_diff}" ]]; then
-                git diff --color=always --cached {}
+                git diff --color=always --cached "${file_path}"
             else
-                git diff --color=always {}
+                git diff --color=always "${file_path}"
             fi
         '
         result="$(echo "${result}" |
