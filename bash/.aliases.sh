@@ -1696,3 +1696,20 @@ _first() {
 alias first="_first"
 
 alias bu="brew update; brew upgrade"
+
+format_xml() {
+    file_path="${1}"
+    script='
+    $file_path = trim(stream_get_contents(STDIN));
+    $xml = file_get_contents($file_path);
+    $xml = str_replace("><", ">" . "\n" . "<", $xml);
+    echo $xml;
+'
+    result=$(echo "${file_path}" | php -r "${script}")
+    exit_code="${?}"
+    if [[ "${exit_code}" -ne 0 ]]; then
+        echo "Error: command failed. Exit code: ${exit_code}"
+    else
+        echo "${result}"
+    fi
+}
