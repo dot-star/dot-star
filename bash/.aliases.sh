@@ -263,6 +263,7 @@ _edit() {
     # specified. Automatically select file when there's only one file.
     if [[ $# -eq 0 ]] && is_git; then
         root_dir="$(git rev-parse --show-toplevel)"
+        files_to_edit=()
 
         # Look for staged files (added ^A, modified ^M, staged and modified ^MM).
         result=$(
@@ -278,6 +279,8 @@ _edit() {
                     \grep "^ M " |
                     awk '{print $2}'
             )
+        else
+            files_to_edit+=("${result}")
         fi
 
         # Fallback to looking for files with unmerged changes.
@@ -287,6 +290,8 @@ _edit() {
                     \grep "^UU " |
                     awk '{print $2}'
             )
+        else
+            files_to_edit+=("${result}")
         fi
 
         # Lastly, look for untracked files.
@@ -297,6 +302,8 @@ _edit() {
                     awk '{print $2}' |
                     fzf --select-1 --exit-0
             )
+        else
+            files_to_edit+=("${result}")
         fi
 
         fzf_preview='
@@ -308,10 +315,15 @@ _edit() {
                 git diff --color=always "${file_path}"
             fi
         '
-        result="$(echo "${result}" |
+
+        files_to_edit_lines="$(echo "${files_to_edit[*]}")"
+        files_to_edit_lines="$(echo "${files_to_edit_lines}" | sort | uniq)"
+
+        result="$(echo "${files_to_edit_lines}" |
             fzf \
                 --exit-0 \
                 --info="hidden" \
+                --multi \
                 --preview-window="up:100" \
                 --preview="${fzf_preview}" \
                 --select-1 \
@@ -330,15 +342,14 @@ _edit() {
             echo "(no file selected)"
         fi
 
-        # Prepend root directory to result when not empty. Prepend after instead
-        # of with the fzf selector so that only paths relative from the git root
-        # directory are shown in the fzf selector and not absolute paths.
-        if [[ ! -z "${result}" ]]; then
-            result="${root_dir}/${result}"
-        fi
+        ## Prepend root directory to result when not empty. Prepend after instead
+        ## of with the fzf selector so that only paths relative from the git root
+        ## directory are shown in the fzf selector and not absolute paths.
+        #if [[ ! -z "${result}" ]]; then
+        #    result="${root_dir}/${result}"
+        #fi
 
-        args="${result}"
-        "${editor}" ${args}
+        "${editor}" $(echo "${result}" | tr '\n' ' ')
     else
         "${editor}" ${@}
     fi
