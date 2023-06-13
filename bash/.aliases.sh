@@ -1400,7 +1400,7 @@ require_jq() {
 # To use, run `jq $filename'. Press return when the desired filter has been
 # entered. The entered filter will be displayed and put in the clipboard for
 # immediate use.
-_jq() {
+alias_jq() {
     require_jq
 
     export JQ_COLORS="1;37:0;33:0;33:0;31:0;32:1;39:1;39"
@@ -1450,7 +1450,7 @@ _jq() {
         "${jq_bin}" "${@}"
     fi
 }
-alias jq="_jq"
+alias jq="alias_jq"
 
 _man() {
     # Open man pages as html when on a Mac.
