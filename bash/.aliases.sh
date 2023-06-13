@@ -27,12 +27,33 @@ count_lines() {
 }
 
 display_confirm_prompt() {
+    # Display prompt that accepts 1 character as input and echo reply.
+    # Usage:
+    #   response="$(display_confirm_prompt "Do thing?")"
+    #   if [[ "${response}" =~ ^[Yy]$ ]]; then
+    #       echo
+    #       # Do thing.
+    #   fi
     text="${1}"
     if [[ -n "${BASH_VERSION}" ]]; then
         read -p "${text} " -n 1 -r
         echo "${REPLY}"
     elif [[ -n "${ZSH_VERSION}" ]]; then
         read -k 1 "REPLY?${text} "
+        echo "${REPLY}"
+    fi
+}
+
+display_input_prompt() {
+    # Display prompt that accepts input and echo reply.
+    # Usage:
+    #   message="$(display_input_prompt "Enter a message:")"
+    text="${1}"
+    if [[ -n "${BASH_VERSION}" ]]; then
+        read -p "${text} " -r
+        echo "${REPLY}"
+    elif [[ -n "${ZSH_VERSION}" ]]; then
+        read "REPLY?${text} "
         echo "${REPLY}"
     fi
 }
