@@ -188,7 +188,11 @@ alias reset_author="git_reset_author"
 git_stash() {
     message="${1}"
     if [ -z "${message}" ]; then
-        echo "message required"
+        message="$(display_input_prompt "Enter stash message:")"
+    fi
+
+    if [ -z "${message}" ]; then
+        echo "Error: git stash message required"
     else
         set -x
         git stash save --include-untracked "${message}"
