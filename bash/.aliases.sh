@@ -1427,7 +1427,7 @@ alias_jq() {
             fzf \
                 --info=hidden \
                 --preview "cat \"${file_path}\" | jq --color-output {q}" \
-                --preview-window=up:100 \
+                --preview-window=up:100,wrap \
                 --print-query
         )
         if [[ -z "${jq_filter}" ]]; then
