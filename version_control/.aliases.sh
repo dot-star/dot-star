@@ -24,7 +24,29 @@ alias checkout="rc_checkout"
 alias cherry_pick="git cherry-pick"
 
 alias ci="rc_commit"
-alias clone="git clone"
+
+git_clone() {
+    # Clone the repository and change into the directory.
+
+    tmp_filename="/tmp/git_clone.txt"
+    echo "" > "${tmp_filename}"
+
+    git clone --depth 1 --progress "${@}" 2>&1 |
+        tee "${tmp_filename}"
+
+    humanish_dir="$(
+        cat "${tmp_filename}" |
+        grep "Cloning into '" |
+        perl -pe "s/Cloning into '(.*)'\.\.\.$/\1/"
+    )"
+
+    rm "${tmp_filename}"
+
+    cd "${humanish_dir}" &&
+        l
+}
+
+alias clone="git_clone"
 alias cm="rc_commit"
 alias co="rc_checkout"
 alias commit="rc_commit"
