@@ -91,7 +91,24 @@ alias rebase_pull="rc_pull_with_rebase"
 alias s.="rc_status ."
 
 git_shallow_clone() {
-    git clone --depth 1 "${@}"
+    # Shallow clone the repository and change into the directory.
+
+    tmp_filename="/tmp/git_shallow_clone.txt"
+    echo "" > "${tmp_filename}"
+
+    git clone --depth 1 --progress "${@}" 2>&1 |
+        tee "${tmp_filename}"
+
+    humanish_dir="$(
+        cat "${tmp_filename}" |
+        grep "Cloning into '" |
+        perl -pe "s/Cloning into '(.*)'\.\.\.$/\1/"
+    )"
+
+    rm "${tmp_filename}"
+
+    cd "${humanish_dir}" &&
+        l
 }
 alias shallow_clone="git_shallow_clone"
 
