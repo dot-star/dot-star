@@ -1731,18 +1731,35 @@ alias first="_first"
 alias bu="brew update; brew upgrade"
 
 format_xml() {
-    file_path="${1}"
-    script='
-    $file_path = trim(stream_get_contents(STDIN));
-    $xml = file_get_contents($file_path);
-    $xml = str_replace("><", ">" . "\n" . "<", $xml);
-    echo $xml;
-'
-    result=$(echo "${file_path}" | php -r "${script}")
-    exit_code="${?}"
-    if [[ "${exit_code}" -ne 0 ]]; then
-        echo "Error: command failed. Exit code: ${exit_code}"
+    # Handle interactive (e.g. `format_xml data.xml').
+    if [[ -t 0 ]]; then
+        file_path="${1}"
+        script='
+            $file_path = trim(stream_get_contents(STDIN));
+            $xml = file_get_contents($file_path);
+            $xml = str_replace("><", ">" . "\n" . "<", $xml);
+            echo $xml;'
+        result=$(echo "${file_path}" | php -r "${script}")
+        exit_code="${?}"
+        if [[ "${exit_code}" -ne 0 ]]; then
+            echo "Error: command failed. Exit code: ${exit_code}"
+        else
+            echo "${result}"
+        fi
+
+    # Handle non-interactive (e.g. `cat data.xml | format_xml').
     else
-        echo "${result}"
+        script='
+            $xml = trim(stream_get_contents(STDIN));
+            $xml = str_replace("><", ">" . "\n" . "<", $xml);
+            echo $xml;'
+        result="$(php -r "${script}" < /dev/stdin)"
+        exit_code="${?}"
+        if [[ "${exit_code}" -ne 0 ]]; then
+            echo "Error: command failed. Exit code: ${exit_code}"
+        else
+            echo "${result}"
+        fi
     fi
 }
+alias fx="format_xml"
