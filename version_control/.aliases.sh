@@ -89,7 +89,12 @@ alias reb="git_rebase"
 alias rebase="git_rebase"
 alias rebase_pull="rc_pull_with_rebase"
 alias s.="rc_status ."
-alias shallow_clone="git clone --depth 1"
+
+git_shallow_clone() {
+    git clone --depth 1 "${@}"
+}
+alias shallow_clone="git_shallow_clone"
+
 alias show="git_stash_show"
 alias st="rc_status"
 alias stash="git_stash"
