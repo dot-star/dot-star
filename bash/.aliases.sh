@@ -1367,37 +1367,37 @@ alias_mv() {
     # Handle renaming git-tracked files.
     if $file_is_git_tracked; then
 
-        read_with_initial_editable_input "${file_or_folder_name}" "Rename file: "
+        read_with_initial_editable_input "${file_or_folder_name}" "Rename git file: "
         new_file_name="${response}"
         git mv "${file_or_folder_name}" "${new_file_name}" &&
             diff_strings_like_files "${file_or_folder_name}" "${new_file_name}"
 
     else
 
-    # Call modified mv command to edit folder in place when only 1 parameter has
-    # been specified and it's a folder.
-    if [[ "${#}" -eq 1 ]] && [[ -d "${file_or_folder_name}" ]]; then
-        read_with_initial_editable_input "${file_or_folder_name}" "Edit folder name: "
-        new_folder_name="${response}"
-        command mv "${file_or_folder_name}" "${new_folder_name}" &&
-            diff_strings_like_files "${file_or_folder_name}" "${new_folder_name}"
+        # Call modified mv command to edit folder in place when only 1 parameter has
+        # been specified and it's a folder.
+        if [[ "${#}" -eq 1 ]] && [[ -d "${file_or_folder_name}" ]]; then
+            read_with_initial_editable_input "${file_or_folder_name}" "Edit folder name: "
+            new_folder_name="${response}"
+            command mv "${file_or_folder_name}" "${new_folder_name}" &&
+                diff_strings_like_files "${file_or_folder_name}" "${new_folder_name}"
 
-    # Call modified mv command to edit file name in place when only 1 parameter
-    # has been specified and it's a file.
-    elif [[ "${#}" -eq 1 ]] && [[ -f "${file_or_folder_name}" ]]; then
-        read_with_initial_editable_input "${file_or_folder_name}" "Edit file name: "
-        new_file_name="${response}"
-        command mv "${file_or_folder_name}" "${new_file_name}" &&
-            diff_strings_like_files "${file_or_folder_name}" "${new_file_name}"
+        # Call modified mv command to edit file name in place when only 1 parameter
+        # has been specified and it's a file.
+        elif [[ "${#}" -eq 1 ]] && [[ -f "${file_or_folder_name}" ]]; then
+            read_with_initial_editable_input "${file_or_folder_name}" "Edit file name: "
+            new_file_name="${response}"
+            command mv "${file_or_folder_name}" "${new_file_name}" &&
+                diff_strings_like_files "${file_or_folder_name}" "${new_file_name}"
 
-    # Display information when parameter is a file.
-    elif [[ "${#}" -eq 1 ]] && [[ -f "${file_or_folder_name}" ]]; then
-        command file "${@}"
+        # Display information when parameter is a file.
+        elif [[ "${#}" -eq 1 ]] && [[ -f "${file_or_folder_name}" ]]; then
+            command file "${@}"
 
-    # Call original mv command when any other number of parameters have been specified.
-    else
-        command mv "${@}"
-    fi
+        # Call original mv command when any other number of parameters have been specified.
+        else
+            command mv "${@}"
+        fi
 
     fi
 }
