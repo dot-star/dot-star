@@ -1354,6 +1354,26 @@ read_with_initial_editable_input() {
 alias_mv() {
     file_or_folder_name="${1}"
 
+    file_is_git_tracked=false
+    if [[ -f "${file_or_folder_name}" ]]; then
+        git ls-files --error-unmatch "${file_or_folder_name}" &> /dev/null
+        exit_code="${?}"
+        if [[ "${exit_code}" -eq 1 ]]; then :
+        else
+            file_is_git_tracked=true
+        fi
+    fi
+
+    # Handle renaming git-tracked files.
+    if $file_is_git_tracked; then
+
+        read_with_initial_editable_input "${file_or_folder_name}" "Rename file: "
+        new_file_name="${response}"
+        git mv "${file_or_folder_name}" "${new_file_name}" &&
+            diff_strings_like_files "${file_or_folder_name}" "${new_file_name}"
+
+    else
+
     # Call modified mv command to edit folder in place when only 1 parameter has
     # been specified and it's a folder.
     if [[ "${#}" -eq 1 ]] && [[ -d "${file_or_folder_name}" ]]; then
@@ -1377,6 +1397,8 @@ alias_mv() {
     # Call original mv command when any other number of parameters have been specified.
     else
         command mv "${@}"
+    fi
+
     fi
 }
 alias mv="alias_mv"
