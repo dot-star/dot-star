@@ -538,7 +538,7 @@ case_insensitive_search_python() {
 alias sipy="case_insensitive_search_python"
 
 # Print hidden files.
-_tree() {
+alias_tree() {
   tree \
     -a \
     -F \
@@ -547,8 +547,8 @@ _tree() {
     -I "node_modules" \
     $@
 }
-alias tree="_tree"
-alias t="_tree"
+alias tree="alias_tree"
+alias t="alias_tree"
 
 _top() {
     if ! which htop &> /dev/null; then
