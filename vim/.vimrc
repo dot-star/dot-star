@@ -211,11 +211,11 @@ autocmd BufWritePre        *.js :%s/\s\+$//e
 autocmd BufRead,BufNewFile *.php set tabstop=4
 autocmd BufRead,BufNewFile *.php set softtabstop=4
 autocmd BufRead,BufNewFile *.php set shiftwidth=4
-autocmd BufRead,BufNewFile *.php set textwidth=120
+autocmd BufRead,BufNewFile *.php set textwidth=80
 
 " Python, PEP-008 except textwidth.
 autocmd BufRead,BufNewFile *.py,*.pyw set expandtab
-autocmd BufRead,BufNewFile *.py,*.pyw set textwidth=120
+autocmd BufRead,BufNewFile *.py,*.pyw set textwidth=80
 autocmd BufRead,BufNewFile *.py,*.pyw set tabstop=4
 autocmd BufRead,BufNewFile *.py,*.pyw set softtabstop=4
 autocmd BufRead,BufNewFile *.py,*.pyw set shiftwidth=4
