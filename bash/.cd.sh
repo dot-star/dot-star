@@ -40,7 +40,8 @@ alias music="cd ~/Music"
 alias mus="music"
 
 alias_projects() {
-    cd ~/Projects
+    cd ~/Projects &&
+        l
 }
 alias projects="alias_projects"
 alias p="alias_projects"
