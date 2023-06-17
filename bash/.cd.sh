@@ -38,8 +38,13 @@ alias movies="cd ~/Movies"
 alias mov="movies"
 alias music="cd ~/Music"
 alias mus="music"
-alias projects="cd ~/Projects"
-alias p="projects"
+
+alias_projects() {
+    cd ~/Projects
+}
+alias projects="alias_projects"
+alias p="alias_projects"
+
 alias pictures="cd ~/Pictures"
 alias pics="pictures"
 alias public="cd ~/Public"
