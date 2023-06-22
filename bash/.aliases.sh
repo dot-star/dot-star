@@ -1757,34 +1757,75 @@ alias first="_first"
 alias bu="brew update; brew upgrade"
 
 format_xml() {
-    # Handle interactive (e.g. `format_xml data.xml').
-    if [[ -t 0 ]]; then
+    # Handle interactive without arguments (e.g. `format_xml').
+    if [[ -t 0 ]] && [[ $# -eq 0 ]]; then
+        script='
+            $xml = trim(stream_get_contents(STDIN));
+
+            $dom = new DOMDocument();
+            $dom->preserveWhiteSpace = false;
+            $dom->formatOutput = true;
+            $dom->loadXML($xml);
+            $out = $dom->saveXML();
+            echo $out;'
+        result="$(pbpaste | php -r "${script}")"
+        exit_code="${?}"
+        if [[ "${exit_code}" -ne 0 ]]; then
+            echo "Error: command failed. Exit code: ${exit_code}"
+        else
+            tmp_xml_file="$(mktemp).xml"
+            echo "${result}" > "${tmp_xml_file}"
+
+            echo "Written to temporary XML file:\n${tmp_xml_file}"
+            edit "${tmp_xml_file}"
+        fi
+
+    # Handle interactive with arguments (e.g. `format_xml data.xml').
+    elif [[ -t 0 ]]; then
         file_path="${1}"
         script='
             $file_path = trim(stream_get_contents(STDIN));
             $xml = file_get_contents($file_path);
-            $xml = str_replace("><", ">" . "\n" . "<", $xml);
-            echo $xml;'
+
+            $dom = new DOMDocument();
+            $dom->preserveWhiteSpace = false;
+            $dom->formatOutput = true;
+            $dom->loadXML($xml);
+            $out = $dom->saveXML();
+            echo $out;'
         result=$(echo "${file_path}" | php -r "${script}")
         exit_code="${?}"
         if [[ "${exit_code}" -ne 0 ]]; then
             echo "Error: command failed. Exit code: ${exit_code}"
         else
-            echo "${result}"
+            tmp_xml_file="$(mktemp).xml"
+            echo "${result}" > "${tmp_xml_file}"
+
+            echo "Written to temporary XML file:\n${tmp_xml_file}"
+            edit "${tmp_xml_file}"
         fi
 
     # Handle non-interactive (e.g. `cat data.xml | format_xml').
     else
         script='
             $xml = trim(stream_get_contents(STDIN));
-            $xml = str_replace("><", ">" . "\n" . "<", $xml);
-            echo $xml;'
+
+            $dom = new DOMDocument();
+            $dom->preserveWhiteSpace = false;
+            $dom->formatOutput = true;
+            $dom->loadXML($xml);
+            $out = $dom->saveXML();
+            echo $out;'
         result="$(php -r "${script}" < /dev/stdin)"
         exit_code="${?}"
         if [[ "${exit_code}" -ne 0 ]]; then
             echo "Error: command failed. Exit code: ${exit_code}"
         else
-            echo "${result}"
+            tmp_xml_file="$(mktemp).xml"
+            echo "${result}" > "${tmp_xml_file}"
+
+            echo "Written to temporary XML file:\n${tmp_xml_file}"
+            edit "${tmp_xml_file}"
         fi
     fi
 }
