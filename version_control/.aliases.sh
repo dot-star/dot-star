@@ -253,8 +253,13 @@ git_stash_apply() {
 
 git_stash_drop() {
     # Drop the selected git stash.
-    git_stash="$(git_stash_list)"
-    if [[ ! -z "${git_stash}" ]]; then
+    exit_with_code=true
+    git_stash="$(git_stash_list "${exit_with_code}")"
+    exit_code="${?}"
+    if [[ "${exit_code}" -eq 1 ]]; then
+        # Display "(no stashes found)".
+        echo "${git_stash}"
+    elif [[ ! -z "${git_stash}" ]]; then
         # Confirm before dropping the selected git stash.
         response="$(display_confirm_prompt "Drop stash ${git_stash}?")"
         if [[ "${response}" =~ ^[Yy]$ ]]; then
@@ -265,6 +270,11 @@ git_stash_drop() {
 }
 
 git_stash_list() {
+    exit_with_code="${1}"
+    if [[ -z "${exit_with_code}" ]] then
+        exit_with_code=false
+    fi
+
     result="$(git stash list |
         fzf \
             --exit-0 \
@@ -277,10 +287,14 @@ git_stash_list() {
         echo "${git_stash}"
     elif [[ "${exit_code}" -eq 1 ]]; then
         echo "(no stashes found)"
-        exit "${exit_code}"
+        if ${exit_with_code}; then
+            exit "${exit_code}"
+        fi
     elif [[ "${exit_code}" -eq 2 ]]; then
         echo "(fzf error)"
-        exit "${exit_code}"
+        if ${exit_with_code}; then
+            exit "${exit_code}"
+        fi
     elif [[ "${exit_code}" -eq 130 ]]; then
         # Handle Ctrl-C and Esc exit gracefully.
         return
@@ -289,7 +303,8 @@ git_stash_list() {
 
 git_stash_pop() {
     # Pop the selected git stash.
-    git_stash="$(git_stash_list)"
+    exit_with_code=true
+    git_stash="$(git_stash_list "${exit_with_code}")"
     exit_code="${?}"
     if [[ "${exit_code}" -eq 1 ]]; then
         # Display "(no stashes found)".
