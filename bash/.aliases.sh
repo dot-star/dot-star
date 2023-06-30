@@ -1830,3 +1830,6 @@ format_xml() {
     fi
 }
 alias fx="format_xml"
+
+alias alive="while :; do ping google.com; date; sleep 1; echo; done"
+alias al="alive"
