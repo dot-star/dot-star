@@ -237,12 +237,12 @@ git_stash() {
     fi
 
     if [ -z "${message}" ]; then
-        echo "Error: git stash message required"
-    else
-        set -x
-        git stash save --include-untracked "${message}"
-        set +x
+        message="Stash $(date)"
     fi
+
+    set -x
+    git stash save --include-untracked "${message}"
+    set +x
 }
 
 git_stash_apply() {
@@ -254,7 +254,7 @@ git_stash_apply() {
 git_stash_drop() {
     # Drop the selected git stash.
     exit_with_code=true
-    git_stash="$(git_stash_list "${exit_with_code}")"
+    local git_stash="$(git_stash_list "${exit_with_code}")"
     exit_code="${?}"
     if [[ "${exit_code}" -eq 1 ]]; then
         # Display "(no stashes found)".
@@ -283,7 +283,7 @@ git_stash_list() {
             --preview-window="up:100")"
     exit_code="${?}"
     if [[ "${exit_code}" -eq 0 ]]; then
-        git_stash="$(echo ${result} | sed "s/}.*/}/")"
+        local git_stash="$(echo ${result} | sed "s/}.*/}/")"
         echo "${git_stash}"
     elif [[ "${exit_code}" -eq 1 ]]; then
         echo "(no stashes found)"
@@ -304,7 +304,7 @@ git_stash_list() {
 git_stash_pop() {
     # Pop the selected git stash.
     exit_with_code=true
-    git_stash="$(git_stash_list "${exit_with_code}")"
+    local git_stash="$(git_stash_list "${exit_with_code}")"
     exit_code="${?}"
     if [[ "${exit_code}" -eq 1 ]]; then
         # Display "(no stashes found)".
