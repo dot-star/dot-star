@@ -238,7 +238,9 @@ better_cd() {
         if [[ -f "${directory}" ]]; then
             directory="$(dirname "${directory}")"
         fi
+
         builtin cd "${directory}" 2> /dev/null
+        exit_code="${?}"
 
         # Display list of directories to choose from when `cd' command fails.
         # Reduces errors caused by autocomplete not completing when there are
@@ -246,7 +248,7 @@ better_cd() {
         #   $ cd folder_2022-
         #   -bash: cd: folder_2022-: No such file or directory
 
-        if [[ $? -ne 0 ]]; then
+        if [[ "${exit_code}" -ne 0 ]]; then
             actual_directory="$(find . -iname "${directory}*" -type d -maxdepth 1 | fzf)"
             better_cd "${actual_directory}"
         fi
