@@ -249,7 +249,16 @@ better_cd() {
         #   -bash: cd: folder_2022-: No such file or directory
 
         if [[ "${exit_code}" -ne 0 ]]; then
-            actual_directory="$(find . -iname "${directory}*" -type d -maxdepth 1 | fzf)"
+            # Check for directory starting with the specified directory name.
+            actual_directory="$(find . -iname "${directory}*" -type d -maxdepth 1 | fzf --exit-0)"
+            starts_with_exit_code="${?}"
+
+            # On no match, check for directory containing the specified directory name.
+            if [[ "${starts_with_exit_code}" -eq 1 ]]; then
+                actual_directory="$(find . -iname "*${directory}*" -type d -maxdepth 1 | fzf --exit-0)"
+                contains_exit_code="${?}"
+            fi
+
             better_cd "${actual_directory}"
         fi
     fi
