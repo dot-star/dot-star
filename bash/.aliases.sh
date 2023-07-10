@@ -479,13 +479,13 @@ case_insensitive_search() {
   # Search by keyword (e.g. `s keyword').
   if [[ "${param_count}" -eq 1 ]]; then
     keyword="${1}"
-    grep --exclude-dir="node_modules" --ignore-case -R "${keyword}" . "${@:2}"
+    grep --exclude-dir="node_modules" --exclude-dir="vendor" --ignore-case -R "${keyword}" . "${@:2}"
 
   # Search by extension + keyword (e.g. `s ext keyword').
   elif [[ "${param_count}" -eq 2 ]]; then
     extension="${1}"
     keyword="${2}"
-    grep --exclude-dir="node_modules" --ignore-case -R --include="*.${extension}" "${keyword}" . "${@:3}"
+    grep --exclude-dir="node_modules" --exclude-dir="vendor" --ignore-case -R --include="*.${extension}" "${keyword}" . "${@:3}"
 
   fi
 }
