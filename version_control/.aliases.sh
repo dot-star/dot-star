@@ -75,7 +75,7 @@ alias filemode="git config core.filemode false"
 
 conditional_g() {
     if [[ "${#}" -eq 0 ]]; then
-        gitk
+        git_browser
     else
         git ${@}
     fi
@@ -83,11 +83,20 @@ conditional_g() {
 }
 alias g="conditional_g"
 
+git_browser() {
+    # Remove line causing gitk to crash:
+    #   "set geometry(state) zoomed"
+    sed -i "" '/set geometry(state) /d' ~/.config/git/gitk
+
+    gitk "${@}"
+}
+
 alias gco="grep_checkout"
 alias gconf="git_config"
 alias gitconfig="git_config"
 alias gitignore="git_ignore"
-alias gk="gitk"
+alias gitk="git_browser"
+alias gk="git_browser"
 alias gm="grep_merge"
 alias l.="rc_log ."
 alias list="git_stash_list"
