@@ -383,14 +383,18 @@ _edit() {
             echo "(no file selected)"
         fi
 
-        ## Prepend root directory to result when not empty. Prepend after instead
-        ## of with the fzf selector so that only paths relative from the git root
-        ## directory are shown in the fzf selector and not absolute paths.
-        #if [[ ! -z "${result}" ]]; then
-        #    result="${root_dir}/${result}"
-        #fi
+        # Open files from the git root directory since the paths returned will
+        # be relative to the git root diretory.
+        if [[ ! -z "${result}" ]]; then
+            pushd "${root_dir}"
+        fi
 
-        "${editor}" $(echo "${result}" | tr '\n' ' ')
+        editor_args="$(echo "${result}" | tr '\n' ' ')"
+        "${editor}" $(echo "${editor_args}")
+
+        if [[ ! -z "${result}" ]]; then
+            popd
+        fi
     else
         "${editor}" ${@}
     fi
