@@ -304,42 +304,48 @@ _edit() {
                 awk '{print $2}'
         )
 
+        if [[ ! -z "${staged_files_result}" ]]; then
+            files_to_edit+=("${staged_files_result}")
+        fi
+
         # Fallback to looking for modified files.
-        if [[ -z "${staged_files_result}" ]]; then
+        if [[ "${#files_to_edit[*]}" -eq 0 ]]; then
             modified_files_result=$(
                 git status --porcelain |
                     \grep "^ M " |
                     awk '{print $2}'
             )
-        else
-            files_to_edit+=("${staged_files_result}")
+
+            if [[ ! -z "${modified_files_result}" ]]; then
+                files_to_edit+=("${modified_files_result}")
+            fi
         fi
 
         # Fallback to looking for files with unmerged changes.
-        if [[ -z "${modified_files_result}" ]]; then
+        if [[ "${#files_to_edit[*]}" -eq 0 ]]; then
             unmerged_files_result=$(
                 git status --porcelain |
                     \grep "^UU " |
                     awk '{print $2}'
             )
-        else
-            files_to_edit+=("${modified_files_result}")
+
+            if [[ ! -z "${unmerged_files_result}" ]]; then
+                files_to_edit+=("${unmerged_files_result}")
+            fi
         fi
 
         # Lastly, look for untracked files.
-        if [[ -z "${unmerged_files_result}" ]]; then
+        if [[ "${#files_to_edit[*]}" -eq 0 ]]; then
             untracked_files_result=$(
                 git status --porcelain |
                     \grep "^?? " |
                     awk '{print $2}' |
                     fzf --select-1 --exit-0
             )
-        else
-            files_to_edit+=("${unmerged_files_result}")
-        fi
 
-        if [[ ! -z "${untracked_files_result}" ]]; then
-            files_to_edit+=("${untracked_files_result}")
+            if [[ ! -z "${untracked_files_result}" ]]; then
+                files_to_edit+=("${untracked_files_result}")
+            fi
         fi
 
         fzf_preview='
