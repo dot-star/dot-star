@@ -339,8 +339,7 @@ _edit() {
             untracked_files_result=$(
                 git status --porcelain |
                     \grep "^?? " |
-                    awk '{print $2}' |
-                    fzf --select-1 --exit-0
+                    awk '{print $2}'
             )
 
             if [[ ! -z "${untracked_files_result}" ]]; then
