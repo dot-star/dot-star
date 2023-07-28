@@ -1383,6 +1383,7 @@ alias_mv() {
         git ls-files --error-unmatch "${file_or_folder_name}" &> /dev/null
         exit_code="${?}"
         if [[ "${exit_code}" -eq 1 ]]; then :
+        elif [[ "${exit_code}" -eq 128 ]]; then :
         else
             file_is_git_tracked=true
         fi
