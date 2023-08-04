@@ -53,7 +53,7 @@ alias commit="rc_commit"
 alias cop="git checkout --patch"
 alias d.="git diff ."
 alias dcommit="git svn dcommit"
-alias default="rc_master"
+alias default="rc_checkout_default_branch master"
 alias delete_branch="git_delete_branch"
 
 _delete_commit() {
@@ -102,7 +102,8 @@ alias l.="rc_log ."
 alias list="git_stash_list"
 alias lo="rc_log"
 alias log="rc_log"
-alias master="rc_master"
+alias main="rc_checkout_default_branch main"
+alias master="rc_checkout_default_branch master"
 alias merge="rc_merge"
 alias pop="git_stash_pop"
 alias pt="rc_fetch_tags"
@@ -478,8 +479,31 @@ rc_log() {
     git log --graph --pretty=format:"%C(red)%h%Creset -%C(magenta)%d%Creset %s %C(green)(%cr)%Creset %C(238)%an <%ae>%n%-b" "${@}"
 }
 
-rc_master() {
-    git checkout master
+rc_checkout_default_branch() {
+    branch_name_to_checkout_first="${1}"
+    if [[ "${branch_name_to_checkout_first}" = "master" ]]; then
+        branch_name_to_checkout_first="master"
+        branch_name_to_checkout_next="main"
+    elif [[ "${branch_name_to_checkout_first}" = "main" ]]; then
+        branch_name_to_checkout_first="main"
+        branch_name_to_checkout_next="master"
+    else
+        echo "Error: Unexpected branch name \"${branch_name_to_checkout_first}\""
+        return
+    fi
+
+    # Checkout the primary branch.
+    git checkout "${branch_name_to_checkout_first}"
+    exit_code="${?}"
+    # echo "${branch_name_to_checkout_first} checkout exit_code: ${exit_code}"
+
+    # Attempt to checkout the fallback branch if checking out the primary branch
+    # fails.
+    if [[ "${exit_code}" -ne 0 ]]; then
+        git checkout "${branch_name_to_checkout_next}"
+        exit_code="${?}"
+        # echo "${branch_name_to_checkout_next} checkout exit_code: ${exit_code}"
+    fi
 }
 
 rc_merge() {
