@@ -429,7 +429,18 @@ alias_grep() {
 alias grep="alias_grep"
 
 alias h="history"
-alias j="jobs"
+
+conditional_j() {
+    if [[ -t 0 ]]; then
+        # Run `jobs' when shell is interactive (e.g. "$ jobs").
+        jobs "${@}"
+    else
+        # Run `jq' when shell is non-interactive (e.g. "$ cat response.json | jq").
+        jq
+    fi
+}
+alias j="conditional_j"
+
 alias o="alias_open"
 alias oo="alias_open ."
 
