@@ -436,7 +436,7 @@ conditional_j() {
         jobs "${@}"
     else
         # Run `jq' when shell is non-interactive (e.g. "$ cat response.json | jq").
-        jq
+        alias_jq
     fi
 }
 alias j="conditional_j"
@@ -1476,9 +1476,24 @@ alias_jq() {
         return
     fi
 
+    # Detect when a file has been passed to jq.
     if [[ $# -eq 1 ]] && [[ -f "${1}" ]]; then
+        use_preview=true
         file_path="${1}"
 
+    # Handle non-interactive shell (e.g. "$ cat response.json | jq").
+    elif [[ ! -t 0 ]]; then
+        use_preview=true
+        file_path="$(mktemp).json"
+
+        # Write stdin to temporary file.
+        local input="$(< /dev/stdin)"
+        echo "${input}" > "${file_path}"
+    else
+        use_preview=false
+    fi
+
+    if [[ $use_preview ]]; then
         # Open an interactive view for entering a jq filter and viewing the
         # result in the fzf preview window.
         jq_filter=$(echo "" |
@@ -1504,6 +1519,7 @@ alias_jq() {
         echo ""
         echo "jq filter (also in clipboard):"
         echo "${jq_filter}"
+
     else
         "${jq_bin}" "${@}"
     fi
