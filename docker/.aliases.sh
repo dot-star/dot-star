@@ -1,8 +1,8 @@
 _require_docker() {
-    if [[ ! -f "${HOMEBREW_PREFIX}/bin/docker" ]]; then
-        echo -e '\x1b[0;93mWARNING\x1b[0m: docker required'
+    if [[ "${OSTYPE}" == "darwin"* ]]; then
+        if [[ ! -d "/Applications/Docker.app" ]]; then
+            echo -e '\x1b[0;93mWARNING\x1b[0m: docker required'
 
-        if [[ "${OSTYPE}" == "darwin"* ]]; then
             set -x
             brew install docker --cask
             set +x
