@@ -72,7 +72,7 @@ docker_image_prune() {
     docker image prune --all --filter="until=${until}"
 }
 
-_docker() {
+alias_docker() {
     # Run docker only if is not already running.
     if (! docker stats --no-stream &> /dev/null); then
         if [[ "${OSTYPE}" == "darwin"* ]]; then
@@ -95,9 +95,9 @@ _docker() {
 }
 
 alias attach="docker attach"
-alias dc="_docker"
-alias doc="_docker"
-alias docker="_docker"
+alias dc="alias_docker"
+alias doc="alias_docker"
+alias docker="alias_docker"
 alias img="clear; docker images; echo; docker ps -a"
 alias pause="docker pause"
 alias prune="docker_image_prune"
