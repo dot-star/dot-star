@@ -1,6 +1,5 @@
 _require_docker() {
-    which docker &> /dev/null
-    if [[ $? -ne 0 ]]; then
+    if [[ ! -f "${HOMEBREW_PREFIX}/bin/docker" ]]; then
         echo -e '\x1b[0;93mWARNING\x1b[0m: docker required'
 
         if [[ "${OSTYPE}" == "darwin"* ]]; then
