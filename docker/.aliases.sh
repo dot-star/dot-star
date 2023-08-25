@@ -1,3 +1,16 @@
+_require_docker() {
+    which docker &> /dev/null
+    if [[ $? -ne 0 ]]; then
+        echo -e '\x1b[0;93mWARNING\x1b[0m: docker required'
+
+        if [[ "${OSTYPE}" == "darwin"* ]]; then
+            set -x
+            brew install docker --cask
+            set +x
+        fi
+    fi
+}
+
 docker_psa() {
     clear
 
@@ -73,10 +86,12 @@ docker_image_prune() {
 }
 
 alias_docker() {
+    _require_docker
+
     # Run docker only if is not already running.
     if (! docker stats --no-stream &> /dev/null); then
         if [[ "${OSTYPE}" == "darwin"* ]]; then
-            open /Applications/Docker.app
+            open "/Applications/Docker.app"
 
             # Wait until docker daemon is running and has completed initialization.
             echo -n "Waiting for docker."
