@@ -1486,9 +1486,37 @@ alias_jq() {
         use_preview=true
         file_path="$(mktemp).json"
 
-        # Write stdin to temporary file.
+        # Read stdin into variable.
         local input="$(< /dev/stdin)"
+
+        # Handle formatting the string representation of a python dictionary as
+        # well.
+        #
+        # Both supported:
+        #   $ echo "{'errors': [{'override': None, 'message': 'An error occurred.', 'code': None}]}" | jq
+        #   $ echo '{"errors": [{"override": null, "message": "An error occurred.", "code": null}]}' | jq
+        script="
+import ast
+import json
+import sys
+
+stdin = sys.stdin.read()
+try:
+    result = ast.literal_eval(stdin)
+except ValueError:
+    pass
+else:
+    formatted = json.dumps(result, indent=4, sort_keys=False)
+    print(formatted)
+"
+        formatted="$(echo "${input}" | python3 -c "${script}")"
+        if [[ ! -z "${formatted}" ]]; then
+            input="${formatted}"
+        fi
+
+        # Write stdin to temporary file.
         echo "${input}" > "${file_path}"
+
     else
         use_preview=false
     fi
