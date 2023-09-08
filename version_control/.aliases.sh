@@ -432,8 +432,14 @@ rc_diff() {
             if $rebase_interactive_in_progress; then
                 echo "interactive rebase in progress. showing regular diff."
 
-                echo "git diff ."
-                git diff .
+                # Display non-cached diff when available.
+                if [[ ! -z "$(git diff)" ]]; then
+                    echo "git diff"
+                    git diff
+                else
+                    echo "git diff --cached"
+                    git diff --cached
+                fi
 
             else
                 # Display staged diff (cached) when available.
