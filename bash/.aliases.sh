@@ -1505,17 +1505,21 @@ try:
     result = ast.literal_eval(stdin)
 except ValueError:
     pass
+except SyntaxError:
+    pass
 else:
     formatted = json.dumps(result, indent=4, sort_keys=False)
     print(formatted)
 "
-        formatted="$(echo "${input}" | python3 -c "${script}")"
-        if [[ ! -z "${formatted}" ]]; then
+        formatted="$(echo -E "${input}" | python3 -c "${script}")"
+        exit_code="${?}"
+        if [[ "${exit_code}" -eq 0 ]] && [[ ! -z "${formatted}" ]]; then
             input="${formatted}"
         fi
 
         # Write stdin to temporary file.
-        echo "${input}" > "${file_path}"
+        # Use -E to avoid duplicate newlines in the resulting file.
+        echo -E "${input}" > "${file_path}"
 
     else
         use_preview=false
