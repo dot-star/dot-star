@@ -31,7 +31,7 @@ git_clone() {
     tmp_filename="/tmp/git_clone.txt"
     echo "" > "${tmp_filename}"
 
-    git clone --depth 1 --progress "${@}" 2>&1 |
+    git clone --progress "${@}" 2>&1 |
         tee "${tmp_filename}"
 
     humanish_dir="$(
