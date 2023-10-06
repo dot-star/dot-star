@@ -375,6 +375,7 @@ _edit() {
         # Stop edit when canceled.
         # "130 Interrupted with CTRL-C or ESC"
         if [[ "${return_code}" -eq 130 ]]; then
+            echo "(canceled)"
             return
         fi
 
@@ -385,14 +386,16 @@ _edit() {
 
         # Open files from the git root directory since the paths returned will
         # be relative to the git root diretory.
-        if [[ ! -z "${result}" ]]; then
+        pushed_dir=false
+        if [[ ! -z "${result}" ]] && [[ "${PWD}" != "${root_dir}" ]]; then
             pushd "${root_dir}"
+            pushed_dir=true
         fi
 
         editor_args="$(echo "${result}" | tr '\n' ' ')"
         "${editor}" $(echo "${editor_args}")
 
-        if [[ ! -z "${result}" ]]; then
+        if $pushed_dir; then
             popd
         fi
     else
