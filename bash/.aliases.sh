@@ -1002,10 +1002,19 @@ _run_watchman() {
                 --max-events="1" \
                 --pattern "${pattern_to_watch}" \
                 -- \
-                .
+                . \
+                2>&1
         )"
         set +x
         watchman_exit_code="${?}"
+
+        # Detect when permission is denied even though exit code is unexpectedly 0.
+        # Error message: "watchman: watchman command error:
+        # std::__1::system_error: open: /path/to/dir: Operation not permitted".
+        if [[ "${file_changed}" == *"Operation not permitted" ]]; then
+            echo "Error: ${file_changed}"
+            return
+        fi
 
         # Ignore changes to files starting with periods (e.g. cache files like ".phpunit.result.cache" that could cause
         # an endless loop).
