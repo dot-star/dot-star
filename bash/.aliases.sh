@@ -997,7 +997,13 @@ _run_watchman() {
     i=0
     while :; do
         set -x
-        file_changed="$(watchman-wait --max-events="1" --pattern "${pattern_to_watch}" -- .)"
+        file_changed="$(
+            watchman-wait \
+                --max-events="1" \
+                --pattern "${pattern_to_watch}" \
+                -- \
+                .
+        )"
         set +x
         watchman_exit_code="${?}"
 
