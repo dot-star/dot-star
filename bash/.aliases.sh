@@ -1531,6 +1531,7 @@ else:
 "
         formatted="$(echo -E "${input}" | python3 -c "${script}")"
         exit_code="${?}"
+        # echo "exit_code: ${exit_code}"
         if [[ "${exit_code}" -eq 0 ]] && [[ ! -z "${formatted}" ]]; then
             input="${formatted}"
         fi
@@ -1543,7 +1544,18 @@ else:
         use_preview=false
     fi
 
+    # echo "input: <<<${input}>>>"
+    # echo "use_preview: ${use_preview}"
+
     if [[ $use_preview ]]; then
+        # echo "using preview"
+
+        # Start fzf finder with an initial query of "." to avoid error on
+        # initial load:
+        #   jq: error: Top-level program not given (try ".")
+        #   jq: 1 compile error
+        local query="."
+
         # Open an interactive view for entering a jq filter and viewing the
         # result in the fzf preview window.
         jq_filter=$(echo "" |
@@ -1551,7 +1563,8 @@ else:
                 --info=hidden \
                 --preview "cat \"${file_path}\" | jq --color-output {q}" \
                 --preview-window=up:100,wrap \
-                --print-query
+                --print-query \
+                --query="${query}"
         )
         if [[ -z "${jq_filter}" ]]; then
             echo "(no filter submitted)"
@@ -1571,6 +1584,8 @@ else:
         echo "${jq_filter}"
 
     else
+        # echo "not using preview"
+
         "${jq_bin}" "${@}"
     fi
 }
