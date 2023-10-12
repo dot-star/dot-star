@@ -1956,3 +1956,59 @@ from_clipboard() {
     pbpaste
 }
 alias fc="from_clipboard"
+
+htmlspecialchars_decode() {
+    php -r '
+        $stdin = stream_get_contents(STDIN);
+        echo htmlspecialchars_decode($stdin);
+    '
+}
+alias decode="htmlspecialchars_decode"
+alias without_htmlspecialchars="htmlspecialchars_decode"
+
+strip_tags() {
+    script=$(cat <<"EOF"
+        function remove_empty_lines($string) {
+            $lines = explode("\n", $string);
+            $lines = array_filter($lines, function($line) {
+                return trim($line) !== '';
+            });
+            return implode("\n", $lines);
+        }
+
+        $stdin = stream_get_contents(STDIN);
+        $without_tags = strip_tags($stdin);
+        $without_empty_lines = remove_empty_lines($without_tags);
+        echo $without_empty_lines;
+EOF
+)
+    php -r "${script}"
+}
+alias without_tags="strip_tags"
+
+with_newlines() {
+    script=$(cat <<"EOF"
+        $stdin = stream_get_contents(STDIN);
+        $with_newlines = str_replace('\r\n', "\n", $stdin);
+        echo $with_newlines;
+EOF
+)
+    php -r "${script}"
+}
+alias newlines="with_newlines"
+
+without_whitespace() {
+    script=$(cat <<"EOF"
+        function remove_line_whitespace($string) {
+            $lines = explode("\n", $string);
+            $lines = array_map('trim', $lines);
+            return implode("\n", $lines);
+        }
+
+        $stdin = stream_get_contents(STDIN);
+        $without_line_whitespace = remove_line_whitespace($stdin);
+        echo $without_line_whitespace;
+EOF
+)
+    php -r "${script}"
+}
