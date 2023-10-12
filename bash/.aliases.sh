@@ -1946,3 +1946,13 @@ alias fx="format_xml"
 
 alias alive="while :; do ping google.com; date; sleep 1; echo; done"
 alias al="alive"
+
+from_clipboard() {
+    # Usage:
+    #   $ from_clipboard | jq
+    #   $ fc | jq
+
+    # TODO: Add support for non-macos
+    pbpaste
+}
+alias fc="from_clipboard"
