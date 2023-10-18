@@ -1212,6 +1212,12 @@ alias_watch_file() {
 alias watch_file="alias_watch_file"
 alias wf="alias_watch_file"
 
+alias watch_del_all="watchman watch-del-all"
+alias wda="watchman watch-del-all"
+
+alias watch_list="watchman watch-list"
+alias wl="watchman watch-list"
+
 checksum() {
     filename="${1}"
     echo -e "\nmd5sum:"
