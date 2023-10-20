@@ -468,12 +468,14 @@ rc_diff() {
 
         # Arguments passed to `git diff'.
         else
-            if [ -z "$(git diff --cached $@)" ]; then
-                echo "git diff $@"
-                git diff $@
-            else
+            # Display staged diff (cached) when available.
+            result="$(git diff --cached $@)"
+            if [[ ! -z "${result}" ]] && [[ "${result}" != "* Unmerged path"* ]]; then
                 echo "git diff --cached $@"
                 git diff --cached $@
+            else
+                echo "git diff $@"
+                git diff $@
             fi
         fi
     else
