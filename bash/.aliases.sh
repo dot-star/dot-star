@@ -1766,7 +1766,12 @@ _repeat_wd() {
   #
   # $ wdrepeat yarn lint
   # >> while :; do watch_dir; yarn lint; done
+  #
+  # $ repeatwd 'clear; pyenv activate myenv; python -m pytest -rP some_test.py -k "somekeyword"'
+  # >> while :; do watch_dir; clear; pyenv activate myenv; python -m pytest -rP some_test.py -k "somekeyword"; done
+
   command_with_args_to_repeatedly_do="${@}"
+  # echo "command_with_args_to_repeatedly_do: \"${command_with_args_to_repeatedly_do}\""
 
   screen_name="repeat_command_${RANDOM}"
 
