@@ -106,6 +106,7 @@ alias log="rc_log"
 alias main="rc_checkout_default_branch main"
 alias master="rc_checkout_default_branch master"
 alias merge="rc_merge"
+alias nv="rc_no_verify"
 alias patch_last="git format-patch -n HEAD^"
 alias pop="git_stash_pop"
 alias pt="rc_fetch_tags"
@@ -405,6 +406,10 @@ rc_commit() {
     else
         git commit -m "${@}"
     fi
+}
+
+rc_no_verify() {
+    git commit --no-verify -m "${@}"
 }
 
 rc_diff() {
