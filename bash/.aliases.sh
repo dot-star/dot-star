@@ -1012,7 +1012,17 @@ _run_watchman() {
         # Error message: "watchman: watchman command error:
         # std::__1::system_error: open: /path/to/dir: Operation not permitted".
         if [[ "${file_changed}" == *"Operation not permitted" ]]; then
-            echo "Error: ${file_changed}"
+            echo "Error running watchman: ${file_changed}"
+            echo "exit code: ${watchman_exit_code}"
+            echo
+
+            echo "Maybe try the following to fix the \"Operation not permitted\" error:"
+            echo "  brew uninstall watchman"
+            echo "  brew install watchman"
+            echo "  watchman shutdown-server"
+            echo "  watchman watch-del-all"
+            echo
+
             return
         fi
 
