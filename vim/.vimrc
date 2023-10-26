@@ -25,6 +25,22 @@ call vundle#end()
 filetype plugin indent on
 " End Vundle configuration.
 
+" Fix files on save.
+let g:ale_fix_on_save = 1
+
+" https://github.com/dense-analysis/ale/blob/master/ale_linters/
+let g:ale_linters = {
+\   'javascript': ['eslint'],
+\   'python': ['pyright'],
+\}
+
+let g:ale_fixers = {
+\   '*': ['remove_trailing_lines', 'trim_whitespace'],
+\   'javascript': ['eslint', 'prettier'],
+\}
+
+let g:airline#extensions#ale#enabled = 1
+
 set laststatus=2
 
 " Show hidden files in nerdtree.
