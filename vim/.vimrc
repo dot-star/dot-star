@@ -1,11 +1,14 @@
-" Install plugins by running :PluginInstall inside vim.
-" Begin Vundle
+" Install plugins by running the following command inside vim:
+" :PluginInstall
+
+" Begin Vundle configuration.
+" https://github.com/VundleVim/Vundle.vim
 set nocompatible
 filetype off
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
+Plugin 'dense-analysis/ale'
 Plugin 'VundleVim/Vundle.vim'
-Plugin 'vim-syntastic/syntastic'
 Plugin 'scrooloose/nerdtree'
 Plugin 'tpope/vim-surround'
 Plugin 'ctrlpvim/ctrlp.vim'
@@ -20,28 +23,9 @@ Plugin 'valloric/youcompleteme'
 Plugin 'google/vim-searchindex'
 call vundle#end()
 filetype plugin indent on
-" End Vundle
+" End Vundle configuration.
 
-" Begin syntastic recommended settings
-set statusline+=%#warningmsg#
-set statusline+=%{SyntasticStatuslineFlag()}
-set statusline+=%*
-
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_auto_loc_list = 1
-let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 0
-let g:syntastic_loc_list_height=3
-" End syntastic
-
-" Custom Syntastic
-let g:syntastic_php_phpcs_args='--standard=PSR2'
-"let g:syntastic_php_phpcs_args='--standard=~/.config/phpcs/ruleset.xml'
-" End Custom Syntastic
-
-" Commented out `set laststatus=2' to fix the following error:
-"   E117: Unknown function: SyntasticStatuslineFlag
-" set laststatus=2
+set laststatus=2
 
 " Show hidden files in nerdtree.
 let g:NERDTreeShowHidden=1
