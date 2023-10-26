@@ -409,7 +409,11 @@ rc_commit() {
 }
 
 rc_no_verify() {
-    git commit --no-verify -m "${@}"
+    if [[ $# == 0 ]]; then
+        git commit --no-verify
+    else
+        git commit --no-verify -m "${@}"
+    fi
 }
 
 rc_diff() {
