@@ -1023,7 +1023,15 @@ _run_watchman() {
             echo "  watchman watch-del-all"
             echo
 
-            return
+            break
+        fi
+
+        if [[ "${watchman_exit_code}" -ne 0 ]]; then
+            echo "Error running watchman: ${file_changed}"
+            echo "exit code: ${watchman_exit_code}"
+            echo
+
+            break
         fi
 
         # Ignore changes to files starting with periods (e.g. cache files like ".phpunit.result.cache" that could cause
@@ -1062,9 +1070,6 @@ _run_watchman() {
             else
                 success "${sep}"
             fi
-        else
-            echo "watchman exit code: ${watchman_exit_code}; breaking"
-            break
         fi
 
         if ! $loop; then
