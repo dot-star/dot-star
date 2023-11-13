@@ -1005,8 +1005,8 @@ _run_watchman() {
                 . \
                 2>&1
         )"
-        set +x
         watchman_exit_code="${?}"
+        set +x
 
         # Detect when permission is denied even though exit code is unexpectedly 0.
         # Error message: "watchman: watchman command error:
