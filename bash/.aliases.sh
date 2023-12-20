@@ -2046,3 +2046,14 @@ EOF
 )
     php -r "${script}"
 }
+
+with_readability() {
+    script=$(cat <<"EOF"
+        $stdin = stream_get_contents(STDIN);
+        $s = str_replace('><', '>' . "\n" . '<', $stdin);
+        echo $s;
+EOF
+)
+    php -r "${script}"
+}
+alias readability="with_readability"
