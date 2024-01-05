@@ -1883,7 +1883,19 @@ _open_files() {
         fi
     fi
 
-    edit $(echo "${results}" | tr '\n' ' ')
+    # Convert result lines to array.
+    files_array=()
+    while IFS= read -r line; do
+        files_array+=("${line}")
+    done <<< "${results}"
+
+    # Open results as a list of file path arguments.
+    # Pass an expanded array containing the list of file paths to the edit
+    # command using the at sign:
+    #   $ edit "${files_array[@]}"
+    # instead of just using:
+    #   $ edit "${files_array}"
+    edit "${files_array[@]}"
 }
 
 _first() {
