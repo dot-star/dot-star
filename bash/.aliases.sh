@@ -2061,8 +2061,9 @@ EOF
 
 with_readability() {
     script=$(cat <<"EOF"
-        $stdin = stream_get_contents(STDIN);
-        $s = str_replace('><', '>' . "\n" . '<', $stdin);
+        $s = stream_get_contents(STDIN);
+        $s = str_replace('><', '>' . "\n" . '<', $s);
+        $s = str_replace('\n', "\n", $s);
         echo $s;
 EOF
 )
