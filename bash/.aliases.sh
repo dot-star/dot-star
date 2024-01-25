@@ -804,6 +804,12 @@ _diff_line_numbers() {
     # TODO: Add support for
     #   diff_line_numbers $start1 $stop1 $start2 $stop2 $filename
 
+    if [[ $# == 0 ]]; then
+        echo "Syntax:"
+        echo "$ diff_line_numbers filename1 start stop filename2 start stop"
+        return
+    fi
+
     file_1_name="${1}"
     file_1_start="${2}"
     file_1_end="${3}"
