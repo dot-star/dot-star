@@ -816,7 +816,10 @@ _diff_line_numbers() {
         --recursive \
         --unified \
         <(sed -n "${file_1_start}","${file_1_end}p" "${file_1_name}") \
-        <(sed -n "${file_2_start}","${file_2_end}p" "${file_2_name}") | diff_highlight | colordiff | less -R
+        <(sed -n "${file_2_start}","${file_2_end}p" "${file_2_name}") |
+        diff_highlight |
+        colordiff |
+        less -R
 }
 alias diff_line_numbers="_diff_line_numbers"
 
