@@ -823,8 +823,16 @@ _diff_line_numbers() {
         --unified \
         <(sed -n "${file_1_start}","${file_1_end}p" "${file_1_name}") \
         <(sed -n "${file_2_start}","${file_2_end}p" "${file_2_name}") |
-        diff_highlight |
-        colordiff |
+        if $DIFF_HIGHLIGHT_INSTALLED; then
+            diff_highlight
+        else
+            cat
+        fi |
+        if $COLORDIFF_INSTALLED; then
+            colordiff
+        else
+            cat
+        fi |
         less -R
 }
 alias diff_line_numbers="_diff_line_numbers"

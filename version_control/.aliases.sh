@@ -612,7 +612,7 @@ grep_merge() {
     done
 }
 
-_diff_highlight() {
+diff_highlight() {
     if $DIFF_HIGHLIGHT_INSTALLED; then
         if [[ "${OSTYPE}" == "darwin"* ]]; then
             local homebrew_prefix="${HOMEBREW_PREFIX}"
@@ -626,7 +626,6 @@ _diff_highlight() {
         fi
     fi
 }
-alias diff_highlight="_diff_highlight"
 
 diff_strings_like_files() {
     string_1="${1}"
