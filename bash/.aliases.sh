@@ -1878,6 +1878,26 @@ alias numeric_sort="sort --numeric-sort"
 
 alias hd="hexdump"
 
+alias_before_after() {
+    # Edit files to run a comparison and display live diff.
+
+    local before_file_name=~"/Desktop/before.txt"
+    local after_file_name=~"/Desktop/after.txt"
+
+    touch "${before_file_name}" "${after_file_name}"
+    edit "${before_file_name}" "${after_file_name}"
+
+    cd ~/Desktop &&
+        while :; do
+            wd
+            diff --unified "${before_file_name}" "${after_file_name}" |
+                diff_highlight |
+                colordiff
+        done
+}
+alias ab="alias_before_after"
+alias ba="alias_before_after"
+
 _open_files() {
     # TODO(zborboa): Only open if files are found.
     results="${1}"
