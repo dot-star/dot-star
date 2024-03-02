@@ -60,7 +60,6 @@ difference() {
     echo "${command}"
     eval $command
 }
-alias d="difference"
 
 _diff_line_numbers() {
     # Usage:
