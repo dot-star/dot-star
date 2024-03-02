@@ -18,6 +18,8 @@ if [[ -n "${BASH_VERSION}" ]]; then
 fi
 
 source "bash/.cd.sh"
+source "bash/.data_analysis.sh"
+source "bash/.data_transform.sh"
 source "bash/.history.sh"
 source "bash/.path.sh"
 source "bash/.pomodoro.sh"
