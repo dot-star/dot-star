@@ -10,9 +10,14 @@ alias_before_after() {
     cd ~/Desktop &&
         while :; do
             wd
-            diff --unified "${before_file_name}" "${after_file_name}" |
-                diff_highlight |
-                colordiff
+            exit_code="${?}"
+            if [[ "${exit_code}" -eq 0 ]]; then
+                diff --unified "${before_file_name}" "${after_file_name}" |
+                    diff_highlight |
+                    colordiff
+            else
+                return "${exit_code}"
+            fi
         done
 }
 alias ab="alias_before_after"

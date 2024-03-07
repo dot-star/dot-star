@@ -937,8 +937,9 @@ _run_watchman() {
     # echo "  cmd_to_run: ${cmd_to_run}"
 
     i=0
+    watchman_exit_code="0"
     while :; do
-        set -x
+        # set -x
         response="$(
             watchman-wait \
                 --max-events="1" \
@@ -948,7 +949,7 @@ _run_watchman() {
                 2>&1
         )"
         watchman_exit_code="${?}"
-        set +x
+        # set +x
 
         # Detect when permission is denied even though exit code is unexpectedly 0.
         # Error message: "watchman: watchman command error:
@@ -957,7 +958,10 @@ _run_watchman() {
             echo "Error running watchman."
             echo
 
+            echo "Response:"
             echo "${response}"
+            echo ""
+
             echo "exit code: ${watchman_exit_code}"
             echo
 
@@ -1035,6 +1039,7 @@ _run_watchman() {
     done
 
     # echo "done running watchman"
+    return "${watchman_exit_code}"
 }
 
 _get_command_for_file_type() {
