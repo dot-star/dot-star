@@ -822,7 +822,11 @@ find_and_edit() {
     else
         # Find files by keyword and edit (e.g. `fe keyword').
         keyword="${1}"
-        results=$(find . -iname "*${keyword}*" -type "f")
+        results=$(
+            find . \
+                -iname "*${keyword}*" \
+                -type "f"
+        )
         _open_files "${results}"
     fi
 }
