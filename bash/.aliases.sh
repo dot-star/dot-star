@@ -825,6 +825,7 @@ find_and_edit() {
         results=$(
             find . \
                 -iname "*${keyword}*" \
+                -not -path "./__pycache__/*" \
                 -type "f"
         )
         _open_files "${results}"
