@@ -496,7 +496,12 @@ case_insensitive_search() {
     keyword="${1}"
 
     set -x
-    grep --exclude-dir="node_modules" --exclude-dir="vendor" --ignore-case -R "${keyword}" . "${@:2}"
+    grep \
+        --exclude-dir="node_modules" \
+        --exclude-dir="vendor" \
+        --ignore-case \
+        --recursive \
+        "${keyword}" . "${@:2}"
     set +x
 
   # Search by extension + keyword (e.g. `s ext keyword').
@@ -505,7 +510,13 @@ case_insensitive_search() {
     keyword="${2}"
 
     set -x
-    grep --exclude-dir="node_modules" --exclude-dir="vendor" --ignore-case -R --include="*.${extension}" "${keyword}" . "${@:3}"
+    grep \
+        --exclude-dir="node_modules" \
+        --exclude-dir="vendor" \
+        --ignore-case \
+        --include="*.${extension}" \
+        --recursive \
+        "${keyword}" . "${@:3}"
     set +x
 
   fi
