@@ -26,13 +26,22 @@ alias cherry_pick="git cherry-pick"
 alias ci="rc_commit"
 
 git_clone() {
-    # Clone the repository and change into the directory.
+    # Clone the repository and change into the directory automatically.
 
     tmp_filename="/tmp/git_clone.txt"
     echo "" > "${tmp_filename}"
 
+    set -o pipefail
+
     git clone --progress "${@}" 2>&1 |
         tee "${tmp_filename}"
+    exit_code="${?}"
+
+    set +o pipefail
+
+    if [[ "${exit_code}" -ne 0 ]]; then
+        return
+    fi
 
     humanish_dir="$(
         cat "${tmp_filename}" |
