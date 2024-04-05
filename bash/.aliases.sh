@@ -451,19 +451,22 @@ fin() {
 }
 
 case_sensitive_search() {
-  param_count="${#}"
-  if [[ "${param_count}" -eq 0 ]]; then
-    return
-  # Search by keyword (e.g. `s keyword').
-  elif [[ "${param_count}" -eq 1 ]]; then
-    keyword="${1}"
-    grep --exclude-dir="node_modules" --recursive "${keyword}" . "${@:2}"
-  # Search by extension + keyword (e.g. `s ext keyword').
-  elif [[ "${param_count}" -eq 2 ]]; then
-    extension="${1}"
-    keyword="${2}"
-    grep --exclude-dir="node_modules" --recursive --include="*.${extension}" "${keyword}" . "${@:3}"
-  fi
+    param_count="${#}"
+
+    # Search by keyword (e.g. `s keyword').
+    if [[ "${param_count}" -eq 0 ]]; then
+        return
+
+    elif [[ "${param_count}" -eq 1 ]]; then
+        keyword="${1}"
+        grep --exclude-dir="node_modules" --recursive "${keyword}" . "${@:2}"
+
+    # Search by extension + keyword (e.g. `s ext keyword').
+    elif [[ "${param_count}" -eq 2 ]]; then
+        extension="${1}"
+        keyword="${2}"
+        grep --exclude-dir="node_modules" --recursive --include="*.${extension}" "${keyword}" . "${@:3}"
+    fi
 }
 alias ss="case_sensitive_search"
 
@@ -489,37 +492,37 @@ case_sensitive_search_edit() {
 alias sse="case_sensitive_search_edit"
 
 case_insensitive_search() {
-  param_count="${#}"
+    param_count="${#}"
 
-  # Search by keyword (e.g. `s keyword').
-  if [[ "${param_count}" -eq 1 ]]; then
-    keyword="${1}"
+    # Search by keyword (e.g. `s keyword').
+    if [[ "${param_count}" -eq 1 ]]; then
+        keyword="${1}"
 
-    set -x
-    grep \
-        --exclude-dir="node_modules" \
-        --exclude-dir="vendor" \
-        --ignore-case \
-        --recursive \
-        "${keyword}" . "${@:2}"
-    set +x
+        set -x
+        grep \
+            --exclude-dir="node_modules" \
+            --exclude-dir="vendor" \
+            --ignore-case \
+            --recursive \
+            "${keyword}" . "${@:2}"
+        set +x
 
-  # Search by extension + keyword (e.g. `s ext keyword').
-  elif [[ "${param_count}" -eq 2 ]]; then
-    extension="${1}"
-    keyword="${2}"
+    # Search by extension + keyword (e.g. `s ext keyword').
+    elif [[ "${param_count}" -eq 2 ]]; then
+        extension="${1}"
+        keyword="${2}"
 
-    set -x
-    grep \
-        --exclude-dir="node_modules" \
-        --exclude-dir="vendor" \
-        --ignore-case \
-        --include="*.${extension}" \
-        --recursive \
-        "${keyword}" . "${@:3}"
-    set +x
+        set -x
+        grep \
+            --exclude-dir="node_modules" \
+            --exclude-dir="vendor" \
+            --ignore-case \
+            --include="*.${extension}" \
+            --recursive \
+            "${keyword}" . "${@:3}"
+        set +x
 
-  fi
+    fi
 }
 alias si="case_insensitive_search"
 
