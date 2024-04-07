@@ -289,10 +289,14 @@ _edit() {
         root_dir="$(git rev-parse --show-toplevel)"
         files_to_edit=()
 
-        # Look for staged files (added ^A, modified ^M, staged and modified ^MM).
+        # Look for staged files.
+        #  Added - "^A "
+        #  Modified - "^M "
+        #  Staged and modified - "^MM ".
+        #  Renamed - "^R ".
         staged_files_result=$(
             git status --porcelain |
-                \grep --extended-regexp "^(A |M |MM )" |
+                \grep --extended-regexp "^(A |M |MM |R )" |
                 awk '{print $2}'
         )
 
