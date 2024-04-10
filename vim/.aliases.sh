@@ -13,7 +13,7 @@ alias_vim() {
         if [[ ! -d "${filename}" ]]; then
             # Not (file exists).
             if [[ ! -e "${filename}" ]]; then
-                response="$(display_confirm_prompt "File \"${filename}\" doesn't exist. Create file?")"
+                response="$(display_confirm_prompt "File \"${filename}\" doesn't exist. Create file? [y/n]")"
                 if [[ "${response}" =~ ^[Yy]$ ]]; then
                     touch "${filename}"
                 fi
