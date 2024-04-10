@@ -3,6 +3,8 @@
 alias_vim() {
     # FIXME: Only proceed to open files that exist or were created. (e.g. $ v foo File "foo.txt" doesn't exist. Create
     # file? n The file /path/to/foo.txt does not exist.)
+
+    create_all_subsequent_files=false
     for filename in "${@}"; do
         # Skip parameter specified for setting cursor line position.
         if [[ "${filename}" == "+"* ]]; then
@@ -13,9 +15,23 @@ alias_vim() {
         if [[ ! -d "${filename}" ]]; then
             # Not (file exists).
             if [[ ! -e "${filename}" ]]; then
-                response="$(display_confirm_prompt "File \"${filename}\" doesn't exist. Create file? [y/n]")"
+
+                if $create_all_subsequent_files; then
+                    response="y"
+                else
+                    response="$(display_confirm_prompt "File \"${filename}\" doesn't exist. Create file? [y/n/a]")"
+                    if [[ "${response}" =~ ^[Aa]$ ]]; then
+                        create_all_subsequent_files=true
+                        response="y"
+                    fi
+                fi
+                # echo "response: ${response}"
+
                 if [[ "${response}" =~ ^[Yy]$ ]]; then
+                    # echo "creating file: ${filename}"
                     touch "${filename}"
+                else
+                    echo "not creating file: ${filename}"
                 fi
             fi
         fi
