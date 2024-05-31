@@ -299,7 +299,7 @@ git_stash_drop() {
 
 git_stash_list() {
     exit_with_code="${1}"
-    if [[ -z "${exit_with_code}" ]] then
+    if [[ -z "${exit_with_code}" ]]; then
         exit_with_code=false
     fi
 
