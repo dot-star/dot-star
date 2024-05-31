@@ -131,14 +131,17 @@ alias_jq() {
 
     if [[ -f "/opt/homebrew/bin/jq" ]]; then
         jq_bin="/opt/homebrew/bin/jq"
+
     elif [[ -f "/usr/local/bin/jq" ]]; then
         jq_bin="/usr/local/bin/jq"
+
     else
         jq_bin=""
     fi
 
     if [[ -z "${jq_bin}" ]]; then
-        echo "Err: jq not found"
+        echo "Error: jq not found"
+        which jq
         return
     fi
 
