@@ -1500,6 +1500,7 @@ _man() {
             man_file_path="$(\man -w "${1}" 2> /dev/null)"
             exit_code="${?}"
             if [[ "${exit_code}" -ne 0 ]]; then
+                echo "error. exit_code: ${exit_code}"
                 return
             fi
         fi
