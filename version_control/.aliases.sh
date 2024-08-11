@@ -404,6 +404,22 @@ rc_checkout() {
             git checkout "${branch_name}"
             set +x
         fi
+    elif [[ "${#}" -eq 1 ]]; then
+        # Attempt to checkout the specified branch name.
+        branch_name="$(echo "${1}" | lower)"
+
+        git checkout "${branch_name}" 2>/dev/null
+        exit_code="${?}"
+        if [[ "${exit_code}" -ne 0 ]]; then
+            # Attempt to checkout the branch filtering by keyword.
+            branch_name="$(
+                branches |
+                grep "${branch_name}" |
+                trim |
+                fzf --select-1
+            )"
+            git checkout "${branch_name}"
+        fi
     else
         git checkout $@
     fi
