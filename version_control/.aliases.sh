@@ -542,7 +542,7 @@ rc_checkout_default_branch() {
         branch_name_to_checkout_next="main"
     else
         echo "Error: Unexpected branch name \"${branch_name_to_checkout_first}\""
-        return
+        return 1
     fi
 
     # Checkout the primary branch.
@@ -675,3 +675,10 @@ diff_strings_like_files() {
 alias diff_like_files="diff_strings_like_files"
 
 export P4DIFF="~/.dot-star/version_control/p4diff.sh"
+
+main_and_pull() {
+    rc_checkout_default_branch &&
+    git pull
+}
+
+alias mp="main_and_pull"
