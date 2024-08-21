@@ -537,6 +537,9 @@ rc_checkout_default_branch() {
     elif [[ "${branch_name_to_checkout_first}" = "main" ]]; then
         branch_name_to_checkout_first="main"
         branch_name_to_checkout_next="master"
+    elif [[ "${branch_name_to_checkout_first}" = "" ]]; then
+        branch_name_to_checkout_first="master"
+        branch_name_to_checkout_next="main"
     else
         echo "Error: Unexpected branch name \"${branch_name_to_checkout_first}\""
         return
