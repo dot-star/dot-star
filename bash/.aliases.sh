@@ -293,15 +293,25 @@ _edit() {
         #  Added - "^A "
         #  Modified - "^M "
         #  Staged and modified - "^MM ".
-        #  Renamed - "^R ".
         staged_files_result=$(
             git status --porcelain |
-                \grep --extended-regexp "^(A |M |MM |R )" |
+                \grep --extended-regexp "^(A |M |MM )" |
                 awk '{print $2}'
         )
 
         if [[ ! -z "${staged_files_result}" ]]; then
             files_to_edit+=("${staged_files_result}")
+        fi
+
+        # Look for renamed files.
+        #  Renamed - "^R ".
+        renamed_files_result=$(
+            git status --porcelain |
+                \grep --extended-regexp "^(R )" |
+                awk '{print $4}'
+        )
+        if [[ ! -z "${renamed_files_result}" ]]; then
+            files_to_edit+=("${renamed_files_result}")
         fi
 
         # Fallback to looking for modified files.
