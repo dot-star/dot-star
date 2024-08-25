@@ -1750,3 +1750,16 @@ alias bu="brew update; brew upgrade"
 
 alias alive="while :; do ping google.com; date; sleep 1; echo; done"
 alias al="alive"
+
+conditional_a() {
+    # Handle a -> `alive'.
+    if [[ $# -eq 0 ]]; then
+        alive
+
+    # Handle a -> `git add'.
+    else
+        git add $@
+    fi
+}
+
+alias a="conditional_a"
