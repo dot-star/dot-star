@@ -72,6 +72,7 @@ alias_vim() {
     fi
 }
 
+alias v.="alias_vim ."
 alias v="alias_vim"
 alias vi="alias_vim"
 alias vim="alias_vim"
