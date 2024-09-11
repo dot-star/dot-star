@@ -691,3 +691,9 @@ main_and_pull() {
 }
 
 alias mp="main_and_pull"
+
+commit_work_in_progress() {
+    rc_commit "wip"
+}
+alias wi="commit_work_in_progress"
+alias wip="commit_work_in_progress"
