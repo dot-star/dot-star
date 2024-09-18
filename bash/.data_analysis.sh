@@ -45,12 +45,21 @@ alias clip="clipboard"
 alias copy="clipboard"
 
 count_lines() {
+    # $ echo -n "a\nb\nc" | wc -l
+    # 2
+    #
+    # $ echo -n "a\nb\nc" | awk 'NF' | wc -l
+    # 3
     if which "gwc" &> /dev/null; then
+        awk 'NF' |
         gwc --lines
     else
+        awk 'NF' |
         wc --lines
     fi
 }
+alias lines_count="count_lines"
+alias wcl="count_lines"
 
 difference() {
     if [[ -t 1 ]] && $COLORDIFF_INSTALLED && $DIFF_HIGHLIGHT_INSTALLED; then
