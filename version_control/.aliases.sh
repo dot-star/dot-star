@@ -399,7 +399,13 @@ rc_branch() {
 }
 
 rc_branches() {
-    git branch --all
+    # Display a list of local branches.
+    # An improvement on `git branch --all'.
+    local_branches="refs/heads/"
+    git for-each-ref \
+      --sort="committerdate" \
+      --format=$'\e[33m%(refname:short)\e[0m \e[32m(%(committerdate:relative))\e[0m' \
+      "${local_branches}"
 }
 
 rc_checkout() {
