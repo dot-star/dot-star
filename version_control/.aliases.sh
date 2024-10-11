@@ -412,8 +412,9 @@ rc_checkout() {
     if [[ "${#}" -eq 0 ]]; then
         # Display list of branches to checkout when no parameters have been
         # passed.
-        branch_name="$(branches | fzf -i)"
+        branch_name="$(branches | fzf --ansi --ignore-case)"
         branch_name="${branch_name#"${branch_name%%[![:space:]]*}"}"
+        branch_name="$(echo "${branch_name}" | perl -pe 's/(.*) \(.*\)/\1/')"
         if [[ ! -z "${branch_name}" ]]; then
             set -x
             git checkout "${branch_name}"
