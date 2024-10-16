@@ -250,3 +250,4 @@ else:
     fi
 }
 alias jq="alias_jq"
+alias pretty="alias_jq"
