@@ -440,8 +440,11 @@ rc_checkout() {
                 branches |
                 grep "${branch_name}" |
                 trim |
-                fzf --select-1
+                fzf --ansi --ignore-case --select-1
             )"
+            branch_name="${branch_name#"${branch_name%%[![:space:]]*}"}"
+            branch_name="$(echo "${branch_name}" | perl -pe 's/(.*) \(.*\)/\1/')"
+
             git checkout "${branch_name}"
         fi
     else
