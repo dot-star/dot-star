@@ -239,8 +239,8 @@ git_diff_last() {
         git log --max-count=1 --patch
     else
         # Display last diff of path when path is specified.
-        path="${1}"
-        git log --max-count=1 --patch "${path}"
+        file_path="${1}"
+        git log --max-count=1 --patch "${file_path}"
     fi
 }
 
