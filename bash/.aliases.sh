@@ -1716,6 +1716,14 @@ curl_example() {
 }
 alias ce="curl_example"
 
+curl_neverssl() {
+    set -x
+    curl -i "http://www.neverssl.com/" |
+        head --lines=20
+    set +x
+}
+alias cn="curl_neverssl"
+
 alias alive="while :; do ping google.com; date; sleep 1; echo; done"
 alias al="alive"
 
