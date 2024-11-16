@@ -1712,7 +1712,10 @@ alias python_check_syntax="_python_check_syntax"
 alias bu="brew update; brew upgrade"
 
 curl_example() {
-    curl -i "http://www.example.com/"
+    set -x
+    curl -i "http://www.example.com/" |
+        head --lines=20
+    set +x
 }
 alias ce="curl_example"
 
