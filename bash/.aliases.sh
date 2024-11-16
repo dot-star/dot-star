@@ -1709,6 +1709,24 @@ _python_check_syntax() {
 }
 alias python_check_syntax="_python_check_syntax"
 
+alias bu="brew update; brew upgrade"
+
+alias alive="while :; do ping google.com; date; sleep 1; echo; done"
+alias al="alive"
+
+conditional_a() {
+    # Handle a -> `alive'.
+    if [[ $# -eq 0 ]]; then
+        alive
+
+    # Handle a -> `git add'.
+    else
+        git add $@
+    fi
+}
+
+alias a="conditional_a"
+
 _open_files() {
     # TODO(zborboa): Only open if files are found.
     results="${1}"
@@ -1745,21 +1763,3 @@ _open_files() {
     #   $ edit "${files_array}"
     edit "${files_array[@]}"
 }
-
-alias bu="brew update; brew upgrade"
-
-alias alive="while :; do ping google.com; date; sleep 1; echo; done"
-alias al="alive"
-
-conditional_a() {
-    # Handle a -> `alive'.
-    if [[ $# -eq 0 ]]; then
-        alive
-
-    # Handle a -> `git add'.
-    else
-        git add $@
-    fi
-}
-
-alias a="conditional_a"
