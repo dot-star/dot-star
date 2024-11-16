@@ -1711,6 +1711,11 @@ alias python_check_syntax="_python_check_syntax"
 
 alias bu="brew update; brew upgrade"
 
+curl_example() {
+    curl -i "http://www.example.com/"
+}
+alias ce="curl_example"
+
 alias alive="while :; do ping google.com; date; sleep 1; echo; done"
 alias al="alive"
 
