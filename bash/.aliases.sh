@@ -169,7 +169,6 @@ alias_bak() {
         fi
     done
 }
-alias b="alias_bak"
 alias bak="alias_bak"
 
 conditional_c() {
