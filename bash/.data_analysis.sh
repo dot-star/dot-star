@@ -63,14 +63,15 @@ alias wcl="count_lines"
 
 difference() {
     if [[ -t 1 ]] && $COLORDIFF_INSTALLED && $DIFF_HIGHLIGHT_INSTALLED; then
-        command='diff --recursive --unified "'"${1}"'" "'"${2}"'" | diff_highlight | colordiff | less -R'
+        command='diff --exclude=".git" --recursive --unified "'"${1}"'" "'"${2}"'" | diff_highlight | colordiff | less -R'
     elif [[ -t 1 ]] && $COLORDIFF_INSTALLED; then
-        command='diff --recursive --unified "'"${1}"'" "'"${2}"'" | colordiff | less -R'
+        command='diff --exclude=".git" --recursive --unified "'"${1}"'" "'"${2}"'" | colordiff | less -R'
     elif [[ -t 1 ]]; then
-        command='diff --recursive --unified "'"${1}"'" "'"${2}"'" | less -R'
+        command='diff --exclude=".git" --recursive --unified "'"${1}"'" "'"${2}"'" | less -R'
     else
-        command='diff --recursive --unified "'"${1}"'" "'"${2}"'"'
+        command='diff --exclude=".git" --recursive --unified "'"${1}"'" "'"${2}"'"'
     fi
+
     echo "${command}"
     eval $command
 }
