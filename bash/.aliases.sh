@@ -420,6 +420,8 @@ alias_grep() {
             --exclude-dir=".git" \
             --exclude-dir=".hg" \
             --exclude-dir=".svn" \
+            --exclude-dir="node_modules" \
+            --exclude-dir="vendor" \
             --line-number \
             "$@"
     else
@@ -431,6 +433,8 @@ alias_grep() {
             --exclude-dir=".git" \
             --exclude-dir=".hg" \
             --exclude-dir=".svn" \
+            --exclude-dir="node_modules" \
+            --exclude-dir="vendor" \
             "$@"
     fi
 }
@@ -472,8 +476,6 @@ case_sensitive_search() {
 
         set -x
         grep \
-            --exclude-dir="node_modules" \
-            --exclude-dir="vendor" \
             --recursive \
             "${keyword}" . "${@:2}"
         set +x
@@ -485,8 +487,6 @@ case_sensitive_search() {
 
         set -x
         grep \
-            --exclude-dir="node_modules" \
-            --exclude-dir="vendor" \
             --include="*.${extension}" \
             --recursive \
             "${keyword}" . "${@:3}"
@@ -504,12 +504,12 @@ case_sensitive_search_edit() {
     # Search by keyword and edit (e.g. `sse keyword').
     if [[ "${param_count}" -eq 1 ]]; then
       keyword="${1}"
-      results=$(grep --dereference-recursive --exclude-dir="node_modules" --files-with-matches "${keyword}" . "${@:2}")
+      results=$(grep --dereference-recursive --files-with-matches "${keyword}" . "${@:2}")
     # Search by extension + keyword and edit (e.g. `sse ext keyword').
     elif [[ "${param_count}" -eq 2 ]]; then
       extension="${1}"
       keyword="${2}"
-      results=$(grep --dereference-recursive --exclude-dir="node_modules" --files-with-matches --include="*.${extension}" "${keyword}" . "${@:3}")
+      results=$(grep --dereference-recursive --files-with-matches --include="*.${extension}" "${keyword}" . "${@:3}")
     fi
 
     _open_files "${results}"
@@ -526,8 +526,6 @@ case_insensitive_search() {
 
         set -x
         grep \
-            --exclude-dir="node_modules" \
-            --exclude-dir="vendor" \
             --ignore-case \
             --recursive \
             "${keyword}" . "${@:2}"
@@ -540,8 +538,6 @@ case_insensitive_search() {
 
         set -x
         grep \
-            --exclude-dir="node_modules" \
-            --exclude-dir="vendor" \
             --ignore-case \
             --include="*.${extension}" \
             --recursive \
@@ -572,12 +568,12 @@ case_insensitive_search_edit() {
     # Search by keyword and edit (e.g. `se keyword').
     if [[ "${param_count}" -eq 1 ]]; then
       keyword="${1}"
-      results=$(grep --dereference-recursive --exclude-dir="node_modules" --files-with-matches --ignore-case "${keyword}" . "${@:2}")
+      results=$(grep --dereference-recursive --files-with-matches --ignore-case "${keyword}" . "${@:2}")
     # Search by extension + keyword and edit (e.g. `se ext keyword').
     elif [[ "${param_count}" -eq 2 ]]; then
       extension="${1}"
       keyword="${2}"
-      results=$(grep --dereference-recursive --exclude-dir="node_modules" --files-with-matches --ignore-case --include="*.${extension}" "${keyword}" . "${@:3}")
+      results=$(grep --dereference-recursive --files-with-matches --ignore-case --include="*.${extension}" "${keyword}" . "${@:3}")
     fi
 
     _open_files "${results}"
