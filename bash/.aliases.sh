@@ -419,6 +419,7 @@ alias_grep() {
             --color \
             --exclude-dir=".git" \
             --exclude-dir=".hg" \
+            --exclude-dir=".pytest_cache" \
             --exclude-dir=".svn" \
             --exclude-dir="node_modules" \
             --exclude-dir="vendor" \
@@ -432,6 +433,7 @@ alias_grep() {
             --color \
             --exclude-dir=".git" \
             --exclude-dir=".hg" \
+            --exclude-dir=".pytest_cache" \
             --exclude-dir=".svn" \
             --exclude-dir="node_modules" \
             --exclude-dir="vendor" \
