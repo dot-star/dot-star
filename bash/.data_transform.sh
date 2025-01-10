@@ -175,3 +175,20 @@ EOF
     php -r "${script}"
 }
 alias readability="with_readability"
+
+escape_sed() {
+    # Escape characters / and & for sed find and replace.
+    printf '%s' "${1}" | sed 's/[\/&]/\\&/g'
+}
+
+find_and_replace() {
+    find_str="$(escape_sed "${1}")"
+    replace_str="$(escape_sed "${2}")"
+
+    if sed v < /dev/null 2> /dev/null; then
+        LC_ALL=C find . -type f -exec sed -i"" -e "s/${find_str}/${replace_str}/g" {} +
+    else
+        LC_ALL=C find . -type f -exec sed -i "" -e "s/${find_str}/${replace_str}/g" {} +
+    fi
+}
+alias fr="find_and_replace"
