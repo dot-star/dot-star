@@ -87,6 +87,7 @@ alias delete_tag="git tag -d"
 alias df="rc_diff"
 alias dfl.="git_diff_last ."
 alias dfl="git_diff_last"
+alias dfm="git_diff_master"
 alias difflast="git_diff_last"
 alias difftool="git difftool"
 alias drop="git_stash_drop"
@@ -229,6 +230,26 @@ git_delete_branch() {
     if [[ ! -z "${branch_name}" ]]; then
         git branch --delete -- "${branch_name}"
     fi
+}
+
+git_diff_master() {
+    local_branches="refs/heads/"
+    branches="$(git for-each-ref \
+        --format="%(refname:short)" \
+        "${local_branches}"
+    )"
+
+    if echo "${branches}" | grep -q "^main$"; then
+        branch_to_compare="origin/main"
+    elif echo "${branches}" | grep -q "^master$"; then
+        branch_to_compare="origin/master"
+    else
+        echo 'Error: Neither "master" nor "main" branch was detected'
+        return
+    fi
+
+    first_unmerged_commit="$(git log "${branch_to_compare}..HEAD" --oneline --format=%H | tail -n 1)"
+    git diff "${first_unmerged_commit}~1"
 }
 
 git_diff_last() {
