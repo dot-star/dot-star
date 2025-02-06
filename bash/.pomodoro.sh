@@ -57,6 +57,11 @@ pomodoro() {
 
 alias pom="pomodoro"
 
+play_jingle() {
+    ffplay -loop -1 -nodisp -loglevel quiet -af "volume=0.25" <(xxd --revert --plain <(echo "${MEDIA}"))
+}
+alias jingle="play_jingle"
+
 MEDIA="
 49443304000000000017545353450000000d0000034c61766635322e39332e3000fffb904400000260184b053180004bc6f9
 21a4a0008cfd6f6fb8f680019fa470b71ed00273b6ff8c54960707474ecfe0305057020071436bdff96cc0c1cd6d7bf7999c
