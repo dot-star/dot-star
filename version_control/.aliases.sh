@@ -249,7 +249,11 @@ git_diff_master() {
     fi
 
     first_unmerged_commit="$(git log "${branch_to_compare}..HEAD" --oneline --format=%H | tail -n 1)"
-    git diff "${first_unmerged_commit}~1"
+    if [[ -z "${first_unmerged_commit}" ]]; then
+        echo "(no local unmerged commits found)"
+    else
+        git diff "${first_unmerged_commit}~1"
+    fi
 }
 
 git_diff_last() {
