@@ -60,6 +60,9 @@ alias pom="pomodoro"
 play_jingle() {
     ffplay -loop -1 -nodisp -loglevel quiet -af "volume=0.25" <(xxd --revert --plain <(echo "${MEDIA}"))
 }
+alias ji="play_jingle"
+alias jin="play_jingle"
+alias jing="play_jingle"
 alias jingle="play_jingle"
 
 MEDIA="
