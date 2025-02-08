@@ -1747,6 +1747,9 @@ conditional_a() {
 
 alias a="conditional_a"
 
+# Attempt to install pipdeptree as pip-sync or similar may have uninstalled it.
+alias pipdeptree="pip install pipdeptree; pipdeptree"
+
 _open_files() {
     # TODO(zborboa): Only open if files are found.
     results="${1}"
