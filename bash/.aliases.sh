@@ -1485,6 +1485,12 @@ alias mv="alias_mv"
 
 alias rp="realpath"
 
+realpath_copy_to_clipboard() {
+    thing="${1}"
+    realpath "${thing}" | c
+}
+alias rpc="realpath_copy_to_clipboard"
+
 _man() {
     # Open man pages as html when on a Mac.
     if [[ "${OSTYPE}" == "darwin"* ]]; then
