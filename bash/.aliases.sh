@@ -1750,6 +1750,16 @@ alias a="conditional_a"
 # Attempt to install pipdeptree as pip-sync or similar may have uninstalled it.
 alias pipdeptree="pip install pipdeptree; pipdeptree"
 
+_conditional_hs() {
+    if [[ ${#} -eq 0 ]]; then
+        cd ~/.hammerspoon/ && l
+    else
+        "$(which hs)" $@
+    fi
+}
+alias .hs="_conditional_hs"
+alias hs="_conditional_hs"
+
 _open_files() {
     # TODO(zborboa): Only open if files are found.
     results="${1}"
