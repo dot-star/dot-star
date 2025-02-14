@@ -12,6 +12,7 @@ cd "${DIR}"
 cd ..
 source "bash/.config.sh"
 source "bash/.aliases.sh"
+source "zsh/.aliases.sh"
 
 if [[ -n "${BASH_VERSION}" ]]; then
   source "bash/.behavior.sh"

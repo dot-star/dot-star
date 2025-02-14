@@ -707,7 +707,6 @@ alias sshconfig="vim ${HOME}/.ssh/config"
 alias aliases="vim ${HOME}/.dot-star/bash/.aliases.sh"
 alias bashprofile="vim ${HOME}/.bash_profile"
 alias bashrc="vim ${HOME}/.bashrc"
-alias zshrc="vim ${HOME}/.zshrc"
 alias inputrc="vim ${HOME}/.inputrc"
 alias screenrc="vim ${HOME}/.screenrc"
 
