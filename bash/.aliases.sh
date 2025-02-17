@@ -911,14 +911,17 @@ get_file_info() {
         response=$(command type "${1}" 2> /dev/null)
         if [[ $? -eq 0 ]]; then
             script=$(cat <<"EOF"
-import pipes
+try:
+    from shlex import quote
+except ImportError:
+    from pipes import quote
 import re
 import sys
 
 response = sys.stdin.read().rstrip()
 match = re.match(r".* is aliased to \`([\w]+)'", response)
 if match is not None:
-    print('builtin type {0}'.format(pipes.quote(match.group(1))))
+    print('builtin type {0}'.format(quote(match.group(1))))
 EOF
 )
             cmd=$(echo "${response}" | python -c "${script}")
@@ -1095,7 +1098,10 @@ _get_command_for_file_type() {
     # Add prefix to command based on file name extension.
     python_script=$(cat <<'EOF'
 import os
-import pipes
+try:
+    from shlex import quote
+except ImportError:
+    from pipes import quote
 import sys
 
 command_or_file_name = sys.argv[1]
@@ -1105,15 +1111,15 @@ if os.path.isfile(command_or_file_name):
     filepath = os.path.abspath(file_name)
     cmd = ''
     if file_extension == '.sh':
-        cmd = 'bash {0}'.format(pipes.quote(file_name))
+        cmd = 'bash {0}'.format(quote(file_name))
     elif file_extension == '.go':
-        cmd = 'go run {0}'.format(pipes.quote(file_name))
+        cmd = 'go run {0}'.format(quote(file_name))
     elif file_extension == '.js':
-        cmd = 'node {0}'.format(pipes.quote(file_name))
+        cmd = 'node {0}'.format(quote(file_name))
     elif file_extension == '.php':
-        cmd = 'php {0}'.format(pipes.quote(file_name))
+        cmd = 'php {0}'.format(quote(file_name))
     elif file_extension == '.py':
-        cmd = 'python3 {0}'.format(pipes.quote(file_name))
+        cmd = 'python3 {0}'.format(quote(file_name))
 else:
     cmd = command_or_file_name
 print(cmd)
