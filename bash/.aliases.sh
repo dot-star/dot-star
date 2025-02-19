@@ -1765,6 +1765,63 @@ _conditional_hs() {
 alias .hs="_conditional_hs"
 alias hs="_conditional_hs"
 
+_calendar() {
+    # Allow passing arbitrary dates to calendar.
+    #
+    # before:
+    #   $ calendar jul2025
+    #   usage: calendar [-A days] [-a] [-B days] [-D sun|moon] [-d]
+    #                   [-F friday] [-f calendarfile] [-l longitude]
+    #                   [-t dd[.mm[.year]]] [-U utcoffset] [-W days]
+    #
+    # after:
+    #   $ cal jul2025
+    #        July 2025
+    #   Su Mo Tu We Th Fr Sa
+    #          1  2  3  4  5
+    #    6  7  8  9 10 11 12
+    #   13 14 15 16 17 18 19
+    #   20 21 22 23 24 25 26
+    #   27 28 29 30 31
+
+    user_date="${@}"
+    # echo "user date: ${user_date}"
+
+    if [[ -z "${user_date}" ]]; then
+        user_date="$(date +"%Y-%m-%d")"
+        # echo "user date: ${user_date}"
+    fi
+
+    # echo "user date: ${user_date}"
+    # echo
+
+    code="$(cat <<\EOF
+$user_input_arg_1 = 'first day of ' . $argv['1'];
+
+$timezone = 'America/Los_Angeles';
+$timezone = 'America/New_York';
+date_default_timezone_set($timezone);
+
+$datetime = new DateTime($user_input_arg_1);
+echo json_encode(array(
+    'month' => $datetime->format('m'),
+    'year' => $datetime->format('Y'),
+));
+EOF
+)"
+    result="$(php -r "${code}" "${user_date}")"
+    # echo "result: ${result}"
+
+    month="$(echo "${result}" | \jq --raw-output ".month")"
+    # echo "month: ${month}"
+
+    year="$(echo "${result}" | \jq --raw-output ".year")"
+    # echo "year: ${year}"
+
+    /usr/bin/cal -m "${month}" "${year}"
+}
+alias cal="_calendar"
+
 _open_files() {
     # TODO(zborboa): Only open if files are found.
     results="${1}"
