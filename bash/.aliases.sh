@@ -398,13 +398,15 @@ edit() {
         fi
 
         editor_args="$(echo "${result}" | tr '\n' ' ')"
-        "${editor}" $(echo "${editor_args}")
+        # "${editor}" $(echo "${editor_args}")
+        open -a "Visual Studio Code.app" $(echo "${editor_args}")
 
         if $pushed_dir; then
             popd
         fi
     else
-        "${editor}" ${@}
+        # "${editor}" ${@}
+        open -a "Visual Studio Code.app" "${@}"
     fi
 }
 alias e="edit"
