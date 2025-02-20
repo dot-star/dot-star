@@ -144,7 +144,7 @@ alias pull_tags="rc_fetch_tags"
 alias pull_with_rebase="rc_pull_with_rebase"
 alias pus="rc_push"
 alias push="rc_push"
-alias rb="git_rebase 2"
+alias rb="git_rebase"
 alias rb0="git_rebase 10"
 alias rb2="git_rebase 2"
 alias rb3="git_rebase 3"
@@ -276,8 +276,20 @@ git_ignore() {
 }
 
 git_rebase() {
-    # `rebase 3' -> `git rebase -i HEAD~3'.
-    target="HEAD~${1}"
+    # $ rebase
+    # git rebase -i HEAD~2
+    #
+    # $ rebase 3
+    # git rebase -i HEAD~3
+    #
+    # $ rebase 4
+    # git rebase -i HEAD~4
+
+    if [[ "${#}" -eq 0 ]]; then
+        target="HEAD~2"
+    else
+        target="HEAD~${1}"
+    fi
 
     set -x
     git rebase -i "${target}"
