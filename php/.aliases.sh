@@ -1,3 +1,51 @@
+php80_switch_to() {
+    echo "current version:"
+    php -v
+    which php
+    echo
+
+    echo "switching to php 8.0"
+    brew install php@8.0
+    brew link --overwrite php@8.0
+    echo
+
+    echo "current version is now:"
+    php -v
+    which php
+}
+
+php81_switch_to() {
+    echo "current version:"
+    php -v
+    which php
+    echo
+
+    echo "switching to php 8.1"
+    brew install php@8.1
+    brew link --overwrite php@8.1
+    echo
+
+    echo "current version is now:"
+    php -v
+    which php
+}
+
+php82_switch_to() {
+    echo "current version:"
+    php -v
+    which php
+    echo
+
+    echo "switching to php 8.2"
+    brew install php@8.2
+    brew link --overwrite php@8.2
+    echo
+
+    echo "current version is now:"
+    php -v
+    which php
+}
+
 php83_switch_to() {
     echo "current version:"
     php -v
