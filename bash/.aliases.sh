@@ -279,7 +279,7 @@ conditional_cd() {
 }
 alias "cd"="conditional_cd"
 
-_edit() {
+edit() {
     editor="alias_vim"
 
     # Display option for selecting which file to edit when no file has been
@@ -407,8 +407,7 @@ _edit() {
         "${editor}" ${@}
     fi
 }
-alias e="_edit"
-alias edit="_edit"
+alias e="edit"
 
 alias_grep() {
     if [[ -t 0 ]]; then
