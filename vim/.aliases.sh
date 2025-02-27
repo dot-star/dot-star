@@ -38,7 +38,7 @@ alias_vim() {
     fi
 }
 
-alias v.="alias_vim ."
+alias v.="edit ."
 alias v="edit"
 alias vi="alias_vim"
 alias vim="alias_vim"
