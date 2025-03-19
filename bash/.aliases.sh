@@ -894,7 +894,7 @@ conditional_f() {
             fi
 
             set -x
-            find . -iname "*${keyword}*" |
+            find . -iname "*${keyword}*" \( -path "*/__pycache__/" -prune \) -o -print |
                 \grep --color --ignore-case "${keyword}"
             set +x
         fi
