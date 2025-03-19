@@ -1,6 +1,7 @@
 # Version Control Aliases
 
 alias a.="git add ."
+alias abort="git rebase --abort"
 alias add.="git add ."
 alias add="rc_add"
 alias addp.="git add --patch ."
