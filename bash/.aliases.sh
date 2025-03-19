@@ -896,6 +896,7 @@ conditional_f() {
             set -x
             find . -iname "*${keyword}*" \( \
                     -path "*/__pycache__/*" -prune \
+                    -o -iname "*.pyc" -prune \
                 \) -o -print |
                 \grep --color --ignore-case "${keyword}"
             set +x
