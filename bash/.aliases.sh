@@ -894,7 +894,8 @@ conditional_f() {
             fi
 
             set -x
-            find . -iname "*${keyword}*" | \grep --color --ignore-case "${keyword}"
+            find . -iname "*${keyword}*" |
+                \grep --color --ignore-case "${keyword}"
             set +x
         fi
     fi
