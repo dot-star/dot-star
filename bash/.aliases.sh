@@ -465,6 +465,7 @@ alias_grep() {
             --exclude-dir=".svn" \
             --exclude-dir="node_modules" \
             --exclude-dir="vendor" \
+            --exclude=".phpunit.result.cache" \
             --line-number \
             "$@"
     else
@@ -479,6 +480,7 @@ alias_grep() {
             --exclude-dir=".svn" \
             --exclude-dir="node_modules" \
             --exclude-dir="vendor" \
+            --exclude=".phpunit.result.cache" \
             "$@"
     fi
 }
