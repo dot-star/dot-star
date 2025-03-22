@@ -1811,6 +1811,27 @@ _conditional_hs() {
 alias .hs="_conditional_hs"
 alias hs="_conditional_hs"
 
+remove_empty_directories() {
+    # Remove pycache directories that can cause rmdir command to fail.
+    find . -type d -name "__pycache__" |
+        xargs -L 1 rm -rf
+
+    # Attempt to remove empty directories. Using rmdir which errors when the
+    # directory is not empty as we only want to remove empty directories.
+    find . \
+        -type d \
+        -empty \
+        \(  \
+            -path "*/.*" -prune -o \
+            -path "*/.git" -prune -o \
+            -print \
+        \) |
+        xargs -L 1 -I {} sh -c 'echo "Removing directory: {}"; rmdir "{}"'
+}
+
+alias rm_empty_dir="remove_empty_directories"
+alias rmdir_empty="remove_empty_directories"
+
 _calendar() {
     # Allow passing arbitrary dates to calendar.
     #
