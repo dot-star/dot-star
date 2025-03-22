@@ -227,8 +227,9 @@ EOF
 }
 
 git_delete_branch() {
-    branch_name="$(branches | fzf)"
+    branch_name="$(branches | fzf --ansi --ignore-case)"
     branch_name="${branch_name#"${branch_name%%[![:space:]]*}"}"
+    branch_name="$(echo "${branch_name}" | perl -pe 's/(.*) \(.*\)/\1/')"
     if [[ ! -z "${branch_name}" ]]; then
         git branch --delete -- "${branch_name}"
     fi
