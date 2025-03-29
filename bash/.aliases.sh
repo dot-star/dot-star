@@ -100,6 +100,8 @@ _ls() {
             --ignore=".DS_Store" \
             --ignore=".git" \
             --ignore=".hg" \
+            --ignore=".pytest_cache" \
+            --ignore=".ruff_cache" \
             --ignore=".sass-cache" \
             --ignore=".svn" \
             --ignore=".swp" \
