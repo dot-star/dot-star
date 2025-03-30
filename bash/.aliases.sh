@@ -481,9 +481,11 @@ alias_grep() {
             --exclude-dir=".hg" \
             --exclude-dir=".pytest_cache" \
             --exclude-dir=".svn" \
+            --exclude-dir="chunks" \
             --exclude-dir="node_modules" \
             --exclude-dir="vendor" \
             --exclude=".phpunit.result.cache" \
+            --line-number \
             "$@"
     fi
 }
