@@ -711,7 +711,33 @@ quit() {
     fi
     exit
 }
-alias x="quit"
+
+conditional_x() {
+    if [[ "${#}" -eq 0 ]]; then
+        # Quit as no parameters were passed.
+        quit
+    else
+        # Make files executable when all parameters passed are files.
+        all_are_files=true
+        for filename in "${@}"; do
+            if [[ ! -f "${filename}" ]]; then
+                echo "Warning: \"${filename}\" is not a file."
+                all_are_files=false
+            fi
+        done
+
+        if ! $all_are_files; then
+            echo "Error: Not all specified parameters are files. Stopping."
+            return 1
+        else
+            for filename in "${@}"; do
+                echo "+x ${filename}"
+                chmod +x "${filename}"
+            done
+        fi
+    fi
+}
+alias x="conditional_x"
 
 _conditional_q() {
     if [[ "${#}" -eq 0 ]]; then
