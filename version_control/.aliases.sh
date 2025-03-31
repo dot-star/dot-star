@@ -20,7 +20,7 @@ alias branch="rc_branch"
 alias branches="rc_branches"
 alias brs="rc_branches"
 alias checkout="rc_checkout"
-alias cu="git commit -m 'Clean up'"
+alias cu='git commit -m "Clean up"'
 
 # TODO: Implement `git cherry-pick' with selection using fzf.
 alias cherry_pick="git cherry-pick"
@@ -97,6 +97,7 @@ alias edit_commit="git_rebase_interactive"
 alias fetch="git fetch"
 alias fetch_tags="rc_fetch_tags"
 alias filemode="git config core.filemode false"
+alias fix='git commit -m "Fix"'
 
 conditional_g() {
     if [[ "${#}" -eq 0 ]]; then
