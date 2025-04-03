@@ -62,18 +62,27 @@ alias lines_count="count_lines"
 alias wcl="count_lines"
 
 difference() {
-    if [[ -t 1 ]] && $COLORDIFF_INSTALLED && $DIFF_HIGHLIGHT_INSTALLED; then
-        command='diff --exclude=".git" --recursive --unified "'"${1}"'" "'"${2}"'" | diff_highlight | colordiff | less -R'
-    elif [[ -t 1 ]] && $COLORDIFF_INSTALLED; then
-        command='diff --exclude=".git" --recursive --unified "'"${1}"'" "'"${2}"'" | colordiff | less -R'
-    elif [[ -t 1 ]]; then
-        command='diff --exclude=".git" --recursive --unified "'"${1}"'" "'"${2}"'" | less -R'
+    diff_result="$(diff --exclude='.git' --recursive --unified ${1} ${2})"
+    exit_code="${?}"
+    if [[ "${exit_code}" -eq 1 ]]; then
+        if [[ -t 1 ]] && $COLORDIFF_INSTALLED && $DIFF_HIGHLIGHT_INSTALLED; then
+            echo "${diff_result}" | diff_highlight | colordiff | less -R
+            command='| '
+        elif [[ -t 1 ]] && $COLORDIFF_INSTALLED; then
+            echo "${diff_result}" | colordiff | less -R
+        elif [[ -t 1 ]]; then
+            echo "${diff_result}" | less -R
+        else
+            echo "${diff_result}"
+        fi
+    elif [[ "${exit_code}" -eq 0 ]]; then
+        echo "No differences found."
+        md5sum "${1}" "${2}"
     else
-        command='diff --exclude=".git" --recursive --unified "'"${1}"'" "'"${2}"'"'
+        echo "Error running diff."
     fi
 
-    echo "${command}"
-    eval $command
+    return "${exit_code}"
 }
 
 _diff_line_numbers() {
