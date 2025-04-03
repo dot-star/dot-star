@@ -1326,17 +1326,24 @@ checksum() {
     filename="${1}"
     echo -e "\nmd5sum:"
     md5sum "${filename}"
+
     echo -e "\nsha1sum:"
     sha1sum "${filename}"
+
     echo -e "\nsha224sum:"
     sha224sum "${filename}"
+
     echo -e "\nsha256sum:"
     sha256sum "${filename}"
+
     echo -e "\nsha384sum:"
     sha384sum "${filename}"
+
     echo -e "\nsha512sum:"
     sha512sum "${filename}"
 }
+
+alias m="md5sum"
 
 ipython_wrapper() {
     ipython \
