@@ -60,6 +60,7 @@ git_clone() {
 alias clone="git_clone"
 alias cm="rc_commit"
 alias co="rc_checkout"
+alias cob="rc_checkout_before"
 alias commit="rc_commit"
 alias con="git rebase --continue"
 alias cont="git rebase --continue"
@@ -492,6 +493,17 @@ rc_checkout() {
     else
         git checkout $@
     fi
+}
+
+rc_checkout_before() {
+    # Checks out the commit before the specified commit hash.
+    commit_hash="${1}"
+    commit_before="$(git rev-parse "${commit_hash}^")"
+
+    # echo "commit_hash: ${commit_hash}"
+    # echo "commit_before: ${commit_before}"
+
+    git checkout "${commit_before}"
 }
 
 rc_commit() {
