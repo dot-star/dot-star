@@ -481,7 +481,7 @@ rc_checkout() {
             # Attempt to checkout the branch filtering by keyword.
             branch_name="$(
                 branches |
-                grep "${branch_name}" |
+                \grep "${branch_name}" |
                 trim |
                 fzf --ansi --ignore-case --select-1
             )"
