@@ -126,6 +126,7 @@ alias gitk="git_browser"
 alias gk="git_browser"
 alias gm="grep_merge"
 alias l.="rc_log ."
+alias lint='git commit -m "Lint"'
 alias list="git_stash_list"
 alias lo="rc_log"
 alias log="rc_log"
