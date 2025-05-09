@@ -100,7 +100,19 @@ alias fetch_tags="rc_fetch_tags"
 alias filemode="git config core.filemode false"
 
 fix() {
-    git commit -m "Fix"
+    # $ fix
+    # >> git commit -m "Fix"
+    # $ fix the thing
+    # >> git commit -m "Fix the thing"
+    thing="${@}"
+
+    if [[ -z "${thing}" ]]; then
+        message="Fix"
+    else
+        message="Fix ${thing}"
+    fi
+
+    git commit -m "${message}"
 }
 
 conditional_g() {
