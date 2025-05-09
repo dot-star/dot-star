@@ -98,7 +98,10 @@ alias edit_commit="git_rebase_interactive"
 alias fetch="git fetch"
 alias fetch_tags="rc_fetch_tags"
 alias filemode="git config core.filemode false"
-alias fix='git commit -m "Fix"'
+
+fix() {
+    git commit -m "Fix"
+}
 
 conditional_g() {
     if [[ "${#}" -eq 0 ]]; then
