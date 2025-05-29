@@ -947,12 +947,17 @@ find_and_edit() {
     else
         # Find files by keyword and edit (e.g. `fe keyword').
         keyword="${1}"
+        set -x
         results=$(
             find . \
-                -iname "*${keyword}*" \
-                -not -path "./__pycache__/*" \
-                -type "f"
+                -type "f" \
+                -iname "*${keyword}*" \( \
+                    -path "*/__pycache__/*" -prune \
+                    -o -iname "*.pyc" -prune \
+                \) -o -print |
+                \grep --color --ignore-case "${keyword}"
         )
+        set +x
         _open_files "${results}"
     fi
 }
