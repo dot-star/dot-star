@@ -927,7 +927,9 @@ conditional_f() {
             fi
 
             set -x
-            find . -iname "*${keyword}*" \( \
+            find . \
+                -type "f" \
+                -iname "*${keyword}*" \( \
                     -path "*/__pycache__/*" -prune \
                     -o -iname "*.pyc" -prune \
                 \) -o -print |
