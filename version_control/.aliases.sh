@@ -99,7 +99,7 @@ alias fetch="git fetch"
 alias fetch_tags="rc_fetch_tags"
 alias filemode="git config core.filemode false"
 
-fix() {
+commit_fix() {
     # $ fix
     # >> git commit -m "Fix"
     # $ fix the thing
@@ -112,8 +112,9 @@ fix() {
         message="Fix ${thing}"
     fi
 
-    git commit -m "${message}"
+    rc_commit "${message}"
 }
+alias fix="commit_fix"
 
 conditional_g() {
     if [[ "${#}" -eq 0 ]]; then
@@ -781,7 +782,19 @@ main_and_pull() {
 alias mp="main_and_pull"
 
 commit_work_in_progress() {
-    rc_commit "wip"
+    # $ wip
+    # >> git commit -m "wip"
+    # $ wip the thing
+    # >> git commit -m "wip the thing"
+    thing="${@}"
+
+    if [[ -z "${thing}" ]]; then
+        message="wip"
+    else
+        message="wip ${thing}"
+    fi
+
+    rc_commit "${message}"
 }
 alias wi="commit_work_in_progress"
 alias wip="commit_work_in_progress"
