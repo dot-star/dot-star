@@ -42,6 +42,7 @@ alias v.="edit ."
 alias v="edit"
 alias vi="alias_vim"
 alias vim="alias_vim"
+alias vpy="edit *.py"
 
 alias vimrc="alias_vim ~/.vimrc"
 
