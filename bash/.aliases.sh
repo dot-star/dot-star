@@ -196,6 +196,8 @@ conditional_c() {
 }
 alias c="conditional_c"
 
+alias ct="clear && alias_tree"
+
 list_dirstack() {
     i=0
     for dir in $(\dirs -p | awk '!x[$0]++' | head -n 10); do
