@@ -1583,7 +1583,16 @@ alias_mv() {
 }
 alias mv="alias_mv"
 
-alias rp="realpath"
+real_path() {
+    # Display real path of the current directory when no parameters have been
+    # specified.
+    if [[ "${#}" -eq 0 ]]; then
+        realpath .
+    else
+        realpath "${@}"
+    fi
+}
+alias rp="real_path"
 
 realpath_copy_to_clipboard() {
     thing="${1}"
