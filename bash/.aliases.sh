@@ -1595,8 +1595,7 @@ real_path() {
 alias rp="real_path"
 
 realpath_copy_to_clipboard() {
-    thing="${1}"
-    realpath "${thing}" | c
+    real_path "${@}" | c
 }
 alias rpc="realpath_copy_to_clipboard"
 
