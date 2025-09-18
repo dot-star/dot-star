@@ -134,6 +134,7 @@ git_browser() {
     gitk "${@}"
 }
 
+alias g.="git_browser ."
 alias gco="grep_checkout"
 alias gconf="git_config"
 alias gitconfig="git_config"
