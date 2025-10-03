@@ -797,5 +797,7 @@ commit_work_in_progress() {
 
     rc_commit "${message}"
 }
+alias nvwip="nv commit_work_in_progress"
+alias nwip="nv commit_work_in_progress"
 alias wi="commit_work_in_progress"
 alias wip="commit_work_in_progress"
