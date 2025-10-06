@@ -529,7 +529,7 @@ case_sensitive_search() {
 
         set -x
         grep \
-            --recursive \
+            --dereference-recursive \
             "${keyword}" . "${@:2}"
         set +x
 
@@ -541,7 +541,7 @@ case_sensitive_search() {
         set -x
         grep \
             --include="*.${extension}" \
-            --recursive \
+            --dereference-recursive \
             "${keyword}" . "${@:3}"
         set +x
 
@@ -580,7 +580,7 @@ case_insensitive_search() {
         set -x
         grep \
             --ignore-case \
-            --recursive \
+            --dereference-recursive \
             "${keyword}" . "${@:2}"
         set +x
 
@@ -593,7 +593,7 @@ case_insensitive_search() {
         grep \
             --ignore-case \
             --include="*.${extension}" \
-            --recursive \
+            --dereference-recursive \
             "${keyword}" . "${@:3}"
         set +x
 
