@@ -667,7 +667,13 @@ rc_merge() {
 }
 
 rc_pull() {
-    git pull $@
+    if [[ "${#}" -eq 0 ]]; then
+        refspec="$(git rev-parse --abbrev-ref HEAD)"
+        git pull "origin" "${refspec}"
+    else
+        git pull $@
+    fi
+
     if [[ $? -ne 0 ]]; then
         echo -e "\ngit pull options: $(git remote show)"
     fi
