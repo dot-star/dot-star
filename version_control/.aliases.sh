@@ -19,6 +19,25 @@ alias br="rc_branch"
 alias branch="rc_branch"
 alias branches="rc_branches"
 alias brs="rc_branches"
+
+commit_bump {
+    # $ bump
+    # >> git commit -m "Bump"
+    # $ bump the thing
+    # >> git commit -m "Bump the thing"
+    thing="${@}"
+
+    if [[ -z "${thing}" ]]; then
+        message="Bump"
+    else
+        message="Bump ${thing}"
+    fi
+
+    rc_commit "${message}"
+}
+
+alias bump="commit_bump"
+
 alias checkout="rc_checkout"
 alias cu='git commit -m "Clean up"'
 
