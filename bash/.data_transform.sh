@@ -184,11 +184,29 @@ escape_sed() {
 find_and_replace() {
     find_str="$(escape_sed "${1}")"
     replace_str="$(escape_sed "${2}")"
+    file_path="${3}"
 
-    if sed v < /dev/null 2> /dev/null; then
-        LC_ALL=C find . -type f -not -path '*/\.git/*' -exec sed -i"" -e "s/${find_str}/${replace_str}/g" {} +
+    # Run find and replace on all files in the current directory recursively
+    # when no file path given.
+    if [[ -z "${file_path}" ]]; then
+        if sed v < /dev/null 2> /dev/null; then
+            LC_ALL=C find . -type f -not -path '*/\.git/*' -exec sed -i"" -e "s/${find_str}/${replace_str}/g" {} +
+        else
+            LC_ALL=C find . -type f -not -path '*/\.git/*' -exec sed -i "" -e "s/${find_str}/${replace_str}/g" {} +
+        fi
+    
+    # Show error when specified file does not exist.
+    elif [[ ! -f "${file_path}" ]]; then
+        echo "Error: file not found: ${file_path}"
+        return 1
+
+    # Run find and replace on the specified file a file path is given.
     else
-        LC_ALL=C find . -type f -not -path '*/\.git/*' -exec sed -i "" -e "s/${find_str}/${replace_str}/g" {} +
+        if sed v < /dev/null 2> /dev/null; then
+            sed -i"" -e "s/${find_str}/${replace_str}/g" "${file_path}"
+        else
+            sed -i "" -e "s/${find_str}/${replace_str}/g" "${file_path}"
+        fi
     fi
 }
 alias fr="find_and_replace"
