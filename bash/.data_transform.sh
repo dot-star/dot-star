@@ -186,7 +186,7 @@ find_and_replace() {
     replace_str="$(escape_sed "${2}")"
 
     if sed v < /dev/null 2> /dev/null; then
-        LC_ALL=C find . -type f -not -path '*/\.git/*' -exec sed -i "" -e "s/${find_str}/${replace_str}/g" {} +
+        LC_ALL=C find . -type f -not -path '*/\.git/*' -exec sed -i"" -e "s/${find_str}/${replace_str}/g" {} +
     else
         LC_ALL=C find . -type f -not -path '*/\.git/*' -exec sed -i "" -e "s/${find_str}/${replace_str}/g" {} +
     fi
