@@ -20,7 +20,7 @@ alias branch="rc_branch"
 alias branches="rc_branches"
 alias brs="rc_branches"
 
-commit_bump {
+commit_bump() {
     # $ bump
     # >> git commit -m "Bump"
     # $ bump the thing
