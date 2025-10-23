@@ -930,11 +930,16 @@ conditional_f() {
 
             set -x
             find . \
+                \( \
+                    -path "*/__pycache__" \
+                    -o -path "/__pycache__/" \
+                    -o -iname "*.pyc" \
+                \) \
+                -prune \
+                -o \
                 -type "f" \
-                -iname "*${keyword}*" \( \
-                    -path "*/__pycache__/*" -prune \
-                    -o -iname "*.pyc" -prune \
-                \) -o -print |
+                -iname "${keyword}" \
+                -print |
                 \grep --color --ignore-case "${keyword}"
             set +x
         fi
@@ -952,11 +957,16 @@ find_and_edit() {
         set -x
         results=$(
             find . \
+                \( \
+                    -path "*/__pycache__" \
+                    -o -path "/__pycache__/" \
+                    -o -iname "*.pyc" \
+                \) \
+                -prune \
+                -o \
                 -type "f" \
-                -iname "*${keyword}*" \( \
-                    -path "*/__pycache__/*" -prune \
-                    -o -iname "*.pyc" -prune \
-                \) -o -print |
+                -iname "${keyword}" \
+                -print |
                 \grep --color --ignore-case "${keyword}"
         )
         set +x
