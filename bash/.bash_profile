@@ -10,6 +10,9 @@ fi
 
 cd "${DIR}"
 cd ..
+
+# source "bash/.timer.sh"
+
 source "bash/.config.sh"
 source "bash/.requires.sh"
 source "bash/.aliases.sh"
