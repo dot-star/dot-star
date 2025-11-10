@@ -3,9 +3,9 @@
 CWD="${PWD}"
 
 if [[ -n "${BASH_VERSION}" ]]; then
-  DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 elif [[ -n "${ZSH_VERSION}" ]]; then
-  DIR="$(dirname $0)"
+    DIR="$(dirname $0)"
 fi
 
 cd "${DIR}"
@@ -16,7 +16,7 @@ source "bash/.aliases.sh"
 source "zsh/.aliases.sh"
 
 if [[ -n "${BASH_VERSION}" ]]; then
-  source "bash/.behavior.sh"
+    source "bash/.behavior.sh"
 fi
 
 source "bash/.cd.sh"
@@ -27,7 +27,7 @@ source "bash/.path.sh"
 source "bash/.pomodoro.sh"
 
 if [[ -n "${BASH_VERSION}" ]]; then
-  source "bash/.prompt.sh"
+    source "bash/.prompt.sh"
 fi
 
 source "bash/.safer_rm.sh"
