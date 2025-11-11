@@ -196,6 +196,16 @@ alias rb7="git_rebase 7"
 alias rb8="git_rebase 8"
 alias rb9="git_rebase 9"
 
+git_rebase_last_two() {
+    # Squash the last two commits into one commit.
+    combined_message="$(git log -2 --pretty=format:"%B")"
+
+    git reset --soft HEAD~2 &&
+        git commit --message "${combined_message}"
+}
+alias rbl2="git_rebase_last_two"
+alias rbl="git_rebase_last_two"
+
 git_rebase_self() {
     # Rebase the current branch onto its remote tracking branch.
     current_branch="$(git rev-parse --abbrev-ref HEAD)"
