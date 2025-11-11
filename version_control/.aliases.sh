@@ -195,6 +195,17 @@ alias rb6="git_rebase 6"
 alias rb7="git_rebase 7"
 alias rb8="git_rebase 8"
 alias rb9="git_rebase 9"
+
+git_rebase_self() {
+    # Rebase the current branch onto its remote tracking branch.
+    current_branch="$(git rev-parse --abbrev-ref HEAD)"
+    echo "rebasing current branch (${current_branch})"
+    set -x
+    git pull "origin" "${current_branch}" --rebase
+    set +x
+}
+
+alias rbs="git_rebase_self"
 alias re="git_rebase"
 alias reb="git_rebase"
 alias rebase="git_rebase"
