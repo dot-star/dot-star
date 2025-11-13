@@ -206,6 +206,28 @@ git_rebase_last_two() {
 alias rbl2="git_rebase_last_two"
 alias rbl="git_rebase_last_two"
 
+git_rebase_master() {
+    local_branches="refs/heads/"
+    branches="$(git for-each-ref \
+        --format="%(refname:short)" \
+        "${local_branches}"
+    )"
+
+    if echo "${branches}" | grep -q "^master$"; then
+        base_branch="master"
+    elif echo "${branches}" | grep -q "^main$"; then
+        base_branch="main"
+    else
+        echo 'Error: Neither "master" nor "main" branch was detected'
+        return
+    fi
+
+    set -x
+    git pull origin "${base_branch}" --rebase
+    set +x
+}
+alias rbm="git_rebase_master"
+
 git_rebase_self() {
     # Rebase the current branch onto its remote tracking branch.
     current_branch="$(git rev-parse --abbrev-ref HEAD)"
