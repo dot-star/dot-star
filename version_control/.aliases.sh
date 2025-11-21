@@ -169,6 +169,7 @@ alias log="rc_log"
 alias main="rc_checkout_default_branch main"
 alias master="rc_checkout_default_branch master"
 alias merge="rc_merge"
+alias n="rc_no_verify"
 alias nv="rc_no_verify"
 _patch_changes() {
     file_name="patch_$(uuidgen).patch"
