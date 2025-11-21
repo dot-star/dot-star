@@ -1831,7 +1831,12 @@ _python_check_syntax() {
 }
 alias python_check_syntax="_python_check_syntax"
 
-alias bu="brew update; brew upgrade"
+brew_update() {
+    brew update
+    brew upgrade
+    brew cleanup
+}
+alias bu="brew_update"
 
 curl_example() {
     set -x
