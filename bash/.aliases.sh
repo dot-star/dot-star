@@ -1893,7 +1893,7 @@ remove_empty_directories() {
     find . \
         -type d \
         -empty \
-        \(  \
+        \( \
             -path "*/.*" -prune -o \
             -path "*/.git" -prune -o \
             -print \
