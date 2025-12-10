@@ -109,3 +109,12 @@ php85_switch_to() {
     php -v
     which php
 }
+
+php_version() {
+    php -v
+
+    echo -e "\nwhich php:"
+    which php
+}
+alias phpv="php_version"
+alias pv="php_version"
