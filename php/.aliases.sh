@@ -117,4 +117,4 @@ php_version() {
     which php
 }
 alias phpv="php_version"
-alias pv="php_version"
+alias phv="php_version"
