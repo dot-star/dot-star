@@ -270,7 +270,7 @@ git_shallow_clone() {
 }
 alias shallow_clone="git_shallow_clone"
 
-alias show="git_stash_show"
+alias show="git_shows"
 alias st="rc_status"
 alias stash="git_stash"
 alias tag="git tag"
@@ -496,8 +496,26 @@ git_stash_pop() {
 
 git_stash_show() {
     # Show the specified git stash.
-    # Usage: show 0
+    # Usage:
+    #   $ show 0
     git stash show -p "stash@{$@}"
+}
+
+git_show() {
+    # Show the specified git commit.
+    # Usage:
+    #   $ show <commit-hash>
+    #   $ show <commit-hash>:path/to/file.txt
+    git show "${@}"
+}
+
+git_shows() {
+    # Handle both git stash show and git show based on parameters passed.
+    if [[ "${1}" =~ ^[0-9]+$ ]]; then
+        git_stash_show "${1}"
+    else
+        git_show "${@}"
+    fi
 }
 
 is_g() {
