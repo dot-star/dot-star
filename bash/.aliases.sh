@@ -322,8 +322,6 @@ ask_to_create_files() {
 }
 
 edit() {
-    editor="alias_vim"
-
     # Display option for selecting which file to edit when no file has been
     # specified. Automatically select file when there's only one file.
     if [[ $# -eq 0 ]] && is_git; then
@@ -440,8 +438,7 @@ edit() {
         fi
 
         editor_args="$(echo "${result}" | tr '\n' ' ')"
-        # "${editor}" $(echo "${editor_args}")
-        open -a "Visual Studio Code.app" $(echo "${editor_args}")
+        open -a "${MY_OPEN_EDITOR}" $(echo "${editor_args}")
 
         if $pushed_dir; then
             popd
@@ -450,8 +447,7 @@ edit() {
         # Ask to create the file if it doesn't exist.
         ask_to_create_files "${@}"
 
-        # "${editor}" ${@}
-        open -a "Visual Studio Code.app" "${@}"
+        open -a "${MY_OPEN_EDITOR}" "${@}"
     fi
 }
 alias e="edit"

@@ -9,6 +9,8 @@ if which "mvim" &> /dev/null; then
     export VISUAL="mvim -f"
 fi
 
+export MY_OPEN_EDITOR="Visual Studio Code.app"
+
 colordiff="$(which colordiff)"
 if [[ -z "${colordiff}" ]]; then
     COLORDIFF_INSTALLED=false
