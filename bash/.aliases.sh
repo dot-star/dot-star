@@ -322,8 +322,9 @@ ask_to_create_files() {
 }
 
 edit() {
-    # Display option for selecting which file to edit when no file has been
-    # specified. Automatically select file when there's only one file.
+    # Display an interface for selecting from a list of files to edit when no
+    # file has been specified. Automatically select file when there's only one
+    # file.
     if [[ $# -eq 0 ]] && is_git; then
         root_dir="$(git rev-parse --show-toplevel)"
         files_to_edit=()
