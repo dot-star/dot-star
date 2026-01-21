@@ -137,8 +137,13 @@ commit_fix() {
 alias fix="commit_fix"
 
 conditional_g() {
+    # Supports alias g with and without arguments.
     if [[ "${#}" -eq 0 ]]; then
         git_browser
+    elif [[ "${#}" -eq 1 ]] && [[ -f "${1}" ]]; then
+        git_browser "${1}"
+    elif [[ "${#}" -eq 1 ]] && [[ -d "${1}" ]]; then
+        git_browser "${1}"
     else
         git ${@}
     fi
