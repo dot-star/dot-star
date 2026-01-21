@@ -1078,10 +1078,10 @@ _run_watchman() {
     pattern_to_watch="${2}"
     cmd_to_run="${3}"
 
-    # echo "_run_watchman"
-    # echo "  loop: ${loop}"
-    # echo "  pattern_to_watch: ${pattern_to_watch}"
-    # echo "  cmd_to_run: ${cmd_to_run}"
+    echo "_run_watchman"
+    echo "  loop: ${loop}"
+    echo "  pattern_to_watch: ${pattern_to_watch}"
+    echo "  cmd_to_run: ${cmd_to_run}"
 
     i=0
     watchman_exit_code="0"
