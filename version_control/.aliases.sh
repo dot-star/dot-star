@@ -253,6 +253,16 @@ alias rebase="git_rebase"
 alias rebase_pull="rc_pull_with_rebase"
 alias s.="rc_status ."
 
+git_revert_select_files() {
+    # Reverts the specified files to their state in the previous commit.
+    files_to_revert="${@}"
+    set -x &&
+        git checkout HEAD~1 -- ${files_to_revert} &&
+        set +x &&
+        echo "✅ Reverted files to the previous commit: ${files_to_revert}"
+}
+alias revert_select_files="git_revert_select_files"
+
 git_shallow_clone() {
     # Shallow clone the repository and change into the directory.
 
