@@ -906,3 +906,14 @@ alias nvwip="nv commit_work_in_progress"
 alias nwip="nv commit_work_in_progress"
 alias wi="commit_work_in_progress"
 alias wip="commit_work_in_progress"
+
+conditional_gh() {
+    if [[ "${#}" -eq 0 ]]; then
+        github_repositories
+    else
+        gh ${@}
+    fi
+}
+alias gh="conditional_gh"
+alias ghr="github_repositories"
+alias gr="github_repositories"
