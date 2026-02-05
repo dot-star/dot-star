@@ -917,3 +917,50 @@ conditional_gh() {
 alias gh="conditional_gh"
 alias ghr="github_repositories"
 alias gr="github_repositories"
+
+git_swap_last_two_commits() {
+    # Ensure working directory is clean.
+    if ! git diff-index --quiet HEAD --; then
+        echo "Error: There are unstaged changes. Commit or stash them first."
+        return 1
+    fi
+
+    local current_branch="$(git rev-parse --abbrev-ref @{-2})"
+    echo "current_branch: ${current_branch}"
+
+    # Grab hashes of the last two commits.
+    local commit_a="$(git rev-parse HEAD)"
+    local commit_b="$(git rev-parse HEAD~1)"
+    local commit_parent="$(git rev-parse HEAD~2)"
+
+    echo "commit_a: ${commit_a}"
+    echo "commit_b: ${commit_b}"
+    echo "commit_parent: ${commit_parent}"
+
+    # Move to the parent commit (detached HEAD).
+    git checkout "${commit_parent}" ||
+        return 1
+
+    # Apply the first commit.
+    if ! git cherry-pick "${commit_a}"; then
+        git cherry-pick --abort &&
+            git checkout -
+
+        echo "Error: Conflict detected while applying ${commit_a}. Aborting."
+        return 1
+    fi
+
+    # Apply the second commit.
+    if ! git cherry-pick "${commit_b}"; then
+        git cherry-pick --abort &&
+            git checkout -
+
+        echo "Error: Conflict detected while applying ${commit_b}. Aborting."
+        return 1
+    fi
+
+    git branch -f "${current_branch}" HEAD &&
+        git checkout "${current_branch}" &&
+        echo "✅ Successfully swapped the last 2 commits: ${commit_b} and ${commit_a})"
+}
+alias swap="git_swap_last_two_commits"
