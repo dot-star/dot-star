@@ -922,7 +922,8 @@ conditional_f() {
             fi
         else
             if $interactive; then
-                echo "Searching paths and filenames containing \"*${keyword}*\":" | \grep --color --ignore-case "${keyword}"
+                echo "Searching paths and filenames containing \"*${keyword}*\":" |
+                    \grep --color --ignore-case "${keyword}"
             fi
 
             set -x
