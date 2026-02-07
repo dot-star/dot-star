@@ -932,7 +932,7 @@ find_files_by_keyword() {
             -prune \
             -o \
             -type "f" \
-            -iname "*${keyword}*" \
+            -ipath "*${keyword}*" \
             -print |
             \grep --color --ignore-case "${keyword}"
         set +x
@@ -968,7 +968,7 @@ find_and_edit() {
                 -prune \
                 -o \
                 -type "f" \
-                -iname "*${keyword}*" \
+                -ipath "*${keyword}*" \
                 -print |
                 \grep --color --ignore-case "${keyword}"
         )
