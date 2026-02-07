@@ -1886,10 +1886,16 @@ _conditional_hs() {
 alias .hs="_conditional_hs"
 alias hs="_conditional_hs"
 
-remove_empty_directories() {
-    # Remove pycache directories that can cause rmdir command to fail.
+remove_pycache_directories() {
+    # Remove pycache directories.
     find . -type d -name "__pycache__" |
         xargs -L 1 rm -rf
+}
+alias pyc="remove_pycache_directories"
+
+remove_empty_directories() {
+    # Remove pycache directories that can cause rmdir command to fail.
+    remove_pycache_directories
 
     # Attempt to remove empty directories. Using rmdir which errors when the
     # directory is not empty as we only want to remove empty directories.
