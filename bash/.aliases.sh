@@ -1967,10 +1967,13 @@ EOF
 alias cal="_calendar"
 
 _open_files() {
-    # TODO(zborboa): Only open if files are found.
     results="${1}"
     result_count=$(echo "${results}" | count_lines)
-    if [[ $result_count -gt 10 ]]; then
+
+    if [[ $result_count -eq 0 ]]; then
+        echo "no files to open"
+        return
+    elif [[ $result_count -gt 10 ]]; then
         if [[ -n "$ZSH_VERSION" ]]; then
             echo -n "Are you sure you want to open ${result_count} files? [y/n] "
             read -k 1 REPLY; echo
