@@ -903,44 +903,49 @@ alias_chmod() {
 }
 alias chmod="alias_chmod"
 
-conditional_f() {
+find_files_by_keyword() {
     if [[ -t 1 ]]; then
         interactive=true
     else
         interactive=false
     fi
 
+    # Find files with path containing the specified keyword (e.g. `f keyword').
+    keyword="${1}"
+    if [[ -z "${keyword}" ]] ; then
+        if $interactive; then
+            echo "Search is empty"
+        fi
+    else
+        if $interactive; then
+            echo "Searching paths and filenames containing \"*${keyword}*\":" |
+                \grep --color --ignore-case "${keyword}"
+        fi
+
+        set -x
+        find . \
+            \( \
+                -path "*/__pycache__" \
+                -o -path "/__pycache__/" \
+                -o -iname "*.pyc" \
+            \) \
+            -prune \
+            -o \
+            -type "f" \
+            -iname "*${keyword}*" \
+            -print |
+            \grep --color --ignore-case "${keyword}"
+        set +x
+    fi
+}
+
+conditional_f() {
     # Run fg when no parameters are passed, otherwise find files with path containing the specified keyword.
     if [[ $# == 0 ]]; then
         fg
     else
         # Find files by keyword.
-        keyword="${1}"
-        if [[ -z "${keyword}" ]] ; then
-            if $interactive; then
-                echo "Search is empty"
-            fi
-        else
-            if $interactive; then
-                echo "Searching paths and filenames containing \"*${keyword}*\":" |
-                    \grep --color --ignore-case "${keyword}"
-            fi
-
-            set -x
-            find . \
-                \( \
-                    -path "*/__pycache__" \
-                    -o -path "/__pycache__/" \
-                    -o -iname "*.pyc" \
-                \) \
-                -prune \
-                -o \
-                -type "f" \
-                -iname "*${keyword}*" \
-                -print |
-                \grep --color --ignore-case "${keyword}"
-            set +x
-        fi
+        find_files_by_keyword "${@}"
     fi
 }
 alias f="conditional_f"
