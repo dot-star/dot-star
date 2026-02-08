@@ -1,3 +1,8 @@
+load_nvm() {
+    # Load nvm when this function is called.
+    [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"
+}
+
 alias_node() {
     # Lazy-load nvm when node is called.
 
@@ -6,7 +11,7 @@ alias_node() {
     unalias npx
 
     # ...because this is slow:
-    [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
+    load_nvm
 
     node "${@}"
 }
@@ -19,7 +24,7 @@ alias_npm() {
     unalias npx
 
     # ...because this is slow:
-    [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
+    load_nvm
 
     npm "${@}"
 }
@@ -32,7 +37,7 @@ alias_npx() {
     unalias npx
 
     # ...because this is slow:
-    [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
+    load_nvm
 
     npx "${@}"
 }
