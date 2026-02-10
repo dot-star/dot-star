@@ -82,8 +82,17 @@ alias cm="rc_commit"
 alias co="rc_checkout"
 alias cob="rc_checkout_before"
 alias commit="rc_commit"
-alias con="git rebase --continue"
-alias cont="git rebase --continue"
+
+git_continue() {
+    if [[ -d ".git/rebase-apply" ]]; then
+        git rebase --continue
+    else
+        echo "Error: Nothing to continue detected."
+        return 1
+    fi
+}
+alias con="git_continue"
+alias cont="git_continue"
 alias cop="git checkout --patch"
 alias create_patch_from_changes="patch_changes"
 alias create_patch_from_last="patch_last"
