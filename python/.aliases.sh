@@ -23,3 +23,11 @@ update_pip() {
 alias pipup="update_pip"
 alias upip="update_pip"
 alias uppip="update_pip"
+
+pyenv_deactivate() {
+    if [[ -n "${VIRTUAL_ENV}" ]]; then
+        deactivate
+    fi
+}
+
+alias deactivate="pyenv_deactivate"
