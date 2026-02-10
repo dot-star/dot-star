@@ -84,8 +84,12 @@ alias cob="rc_checkout_before"
 alias commit="rc_commit"
 
 git_continue() {
-    if [[ -d ".git/rebase-apply" ]]; then
+    # Check for Rebase (both apply and merge variants)
+    if [[ -d ".git/rebase-apply" || -d ".git/rebase-merge" ]]; then
         git rebase --continue
+    # Check for Revert (sequencer handles revert and cherry-pick)
+    elif [[ -f ".git/sequencer/todo" ]] && grep -q "revert" ".git/sequencer/todo"; then
+        git revert --continue
     else
         echo "Error: Nothing to continue detected."
         return 1
