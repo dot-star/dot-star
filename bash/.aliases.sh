@@ -748,16 +748,17 @@ _conditional_q() {
 alias q="_conditional_q"
 
 alias_open() {
-    args=("${@}")
-
     # Open current directory when no path is specified.
-    if [[ "$#" -eq 0 ]]; then
-        args[0]="."
-    fi
-
-    open "${args[@]}" &> /dev/null
-    if [[ ! $? -eq 0 ]]; then
-        nautilus "${args[@]}"
+    if [[ "${#}" -eq 0 ]]; then
+        open . &> /dev/null
+        if [[ "${?}" -ne 0 ]]; then
+            nautilus .
+        fi
+    else
+        open "${@}" &> /dev/null
+        if [[ "${?}" -ne 0 ]]; then
+            nautilus "${@}"
+        fi
     fi
 }
 
