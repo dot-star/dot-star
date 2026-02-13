@@ -58,6 +58,24 @@ commit_clean_up() {
 }
 alias cu="commit_clean_up"
 
+commit_no_verify_clean_up() {
+    # $ nvcu
+    # >> git commit --no-verify -m "Clean up"
+    # $ nvcu the thing
+    # >> git commit --no-verify -m "Clean up the thing"
+    thing="${@}"
+
+    if [[ -z "${thing}" ]]; then
+        message="Clean up"
+    else
+        message="Clean up ${thing}"
+    fi
+
+    rc_no_verify "${message}"
+}
+alias ncu="commit_no_verify_clean_up"
+alias nvcu="commit_no_verify_clean_up"
+
 # TODO: Implement `git cherry-pick' with selection using fzf.
 alias cherry_pick="git cherry-pick"
 
