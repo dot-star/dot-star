@@ -40,7 +40,23 @@ commit_bump() {
 alias bump="commit_bump"
 
 alias checkout="rc_checkout"
-alias cu='git commit -m "Clean up"'
+
+commit_clean_up() {
+    # $ cu
+    # >> git commit -m "Clean up"
+    # $ cu the thing
+    # >> git commit -m "Clean up the thing"
+    thing="${@}"
+
+    if [[ -z "${thing}" ]]; then
+        message="Clean up"
+    else
+        message="Clean up ${thing}"
+    fi
+
+    rc_commit "${message}"
+}
+alias cu="commit_clean_up"
 
 # TODO: Implement `git cherry-pick' with selection using fzf.
 alias cherry_pick="git cherry-pick"
