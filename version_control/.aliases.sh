@@ -145,7 +145,7 @@ alias d7="git diff HEAD~7"
 alias d8="git diff HEAD~8"
 alias d9="git diff HEAD~9"
 alias dcommit="git svn dcommit"
-alias default="rc_checkout_default_branch master"
+alias default="rc_checkout_default_branch"
 alias delete_branch="git_delete_branch"
 
 _delete_commit() {
@@ -221,8 +221,8 @@ alias lint='git commit -m "Lint"'
 alias list="git_stash_list"
 alias lo="rc_log"
 alias log="rc_log"
-alias main="rc_checkout_default_branch main"
-alias master="rc_checkout_default_branch master"
+alias main="rc_checkout_default_branch"
+alias master="rc_checkout_default_branch"
 alias merge="rc_merge"
 alias n="rc_no_verify"
 alias nv="rc_no_verify"
@@ -774,34 +774,14 @@ rc_log() {
     git log --graph --pretty=format:"%C(red)%h%Creset -%C(magenta)%d%Creset %s %C(green)(%cr)%Creset %C(238)%an <%ae>%n%-b" "${@}"
 }
 
+rc_get_default_branch_name() {
+    local ref="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null)"
+    echo "${ref#origin/}"
+}
+
 rc_checkout_default_branch() {
-    branch_name_to_checkout_first="${1}"
-    if [[ "${branch_name_to_checkout_first}" = "master" ]]; then
-        branch_name_to_checkout_first="master"
-        branch_name_to_checkout_next="main"
-    elif [[ "${branch_name_to_checkout_first}" = "main" ]]; then
-        branch_name_to_checkout_first="main"
-        branch_name_to_checkout_next="master"
-    elif [[ "${branch_name_to_checkout_first}" = "" ]]; then
-        branch_name_to_checkout_first="master"
-        branch_name_to_checkout_next="main"
-    else
-        echo "Error: Unexpected branch name \"${branch_name_to_checkout_first}\""
-        return 1
-    fi
-
-    # Checkout the primary branch.
-    git checkout "${branch_name_to_checkout_first}"
-    exit_code="${?}"
-    # echo "${branch_name_to_checkout_first} checkout exit_code: ${exit_code}"
-
-    # Attempt to checkout the fallback branch if checking out the primary branch
-    # fails.
-    if [[ "${exit_code}" -ne 0 ]]; then
-        git checkout "${branch_name_to_checkout_next}"
-        exit_code="${?}"
-        # echo "${branch_name_to_checkout_next} checkout exit_code: ${exit_code}"
-    fi
+    branch_name_to_checkout="$(rc_get_default_branch_name)"
+    git checkout "${branch_name_to_checkout}"
 }
 
 rc_merge() {
