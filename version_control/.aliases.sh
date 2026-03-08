@@ -101,13 +101,13 @@ git_clone() {
 
     humanish_dir="$(
         cat "${tmp_filename}" |
-        grep "Cloning into '" |
+        \grep "Cloning into '" |
         perl -pe "s/Cloning into '(.*)'\.\.\.$/\1/"
     )"
+    echo "humanish_dir: ${humanish_dir}"
 
-    rm "${tmp_filename}"
-
-    cd "${humanish_dir}" &&
+    rm "${tmp_filename}" &&
+        cd "${humanish_dir}" &&
         l
 }
 
