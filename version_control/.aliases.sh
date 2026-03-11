@@ -930,10 +930,26 @@ commit_work_in_progress() {
 
     rc_commit "${message}"
 }
-alias nvwip="nv commit_work_in_progress"
-alias nwip="nv commit_work_in_progress"
 alias wi="commit_work_in_progress"
 alias wip="commit_work_in_progress"
+
+commit_work_in_progress_no_verify() {
+    # $ nwip
+    # >> git commit -m "wip" --no-verify
+    # $ nwip the thing
+    # >> git commit -m "wip the thing" --no-verify
+    thing="${@}"
+
+    if [[ -z "${thing}" ]]; then
+        message="wip"
+    else
+        message="wip ${thing}"
+    fi
+
+    rc_commit_no_verify "${message}"
+}
+alias nvwip="commit_work_in_progress_no_verify"
+alias nwip="commit_work_in_progress_no_verify"
 
 conditional_gh() {
     if [[ "${#}" -eq 0 ]]; then
