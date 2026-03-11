@@ -71,7 +71,7 @@ commit_no_verify_clean_up() {
         message="Clean up ${thing}"
     fi
 
-    rc_no_verify "${message}"
+    rc_commit_no_verify "${message}"
 }
 alias ncu="commit_no_verify_clean_up"
 alias nvcu="commit_no_verify_clean_up"
@@ -225,8 +225,8 @@ alias log="rc_log"
 alias main="rc_checkout_default_branch"
 alias master="rc_checkout_default_branch"
 alias merge="rc_merge"
-alias n="rc_no_verify"
-alias nv="rc_no_verify"
+alias n="rc_commit_no_verify"
+alias nv="rc_commit_no_verify"
 _patch_changes() {
     file_name="patch_$(uuidgen).patch"
     git diff > "${file_name}"
@@ -679,7 +679,7 @@ rc_commit() {
     fi
 }
 
-rc_no_verify() {
+rc_commit_no_verify() {
     if [[ $# == 0 ]]; then
         git commit --no-verify
     else
