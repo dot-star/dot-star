@@ -1008,3 +1008,9 @@ git_swap_last_two_commits() {
         echo "✅ Successfully swapped the last 2 commits: ${commit_b} and ${commit_a})"
 }
 alias swap="git_swap_last_two_commits"
+
+open_pull_request() {
+    gh pr view --web
+}
+
+alias pr="open_pull_request"
