@@ -22,6 +22,7 @@ if [[ -n "${BASH_VERSION}" ]]; then
     source "bash/.behavior.sh"
 fi
 
+source "ai/.aliases.sh"
 source "bash/.cd.sh"
 source "bash/.data_analysis.sh"
 source "bash/.data_transform.sh"

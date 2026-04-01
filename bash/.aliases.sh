@@ -1914,8 +1914,6 @@ remove_empty_directories() {
 alias rm_empty_dir="remove_empty_directories"
 alias rmdir_empty="remove_empty_directories"
 
-alias cl="claude"
-
 _calendar() {
     # Allow passing arbitrary dates to calendar.
     #
