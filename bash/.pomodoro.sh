@@ -6,7 +6,10 @@ pomodoro() {
     _play_media() {
         local prompt="${1}"
 
-        read < <(ffplay -loop -1 -nodisp -loglevel quiet -af "volume=0.25" <(xxd --revert --plain <(echo "${MEDIA}")) & echo "${!}")
+        read < <(
+            ffplay -loop -1 -nodisp -loglevel quiet -af "volume=0.25" <(xxd --revert --plain <(echo "${MEDIA}")) &
+            echo "${!}"
+        )
         pid="${REPLY}"
 
         if [[ -n "${ZSH_VERSION}" ]]; then

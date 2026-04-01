@@ -1,4 +1,4 @@
-safer_rm(){
+safer_rm() {
     # Prohibited: rm *
     # Prohibited: rm * foo.txt
     # Prohibited: rm foo.txt *

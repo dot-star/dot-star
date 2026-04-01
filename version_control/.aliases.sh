@@ -85,7 +85,7 @@ git_clone() {
     # Clone the repository and change into the directory automatically.
 
     tmp_filename="/tmp/git_clone.txt"
-    echo "" > "${tmp_filename}"
+    echo "" >"${tmp_filename}"
 
     set -o pipefail
 
@@ -101,8 +101,8 @@ git_clone() {
 
     humanish_dir="$(
         cat "${tmp_filename}" |
-        \grep "Cloning into '" |
-        perl -pe "s/Cloning into '(.*)'\.\.\.$/\1/"
+            \grep "Cloning into '" |
+            perl -pe "s/Cloning into '(.*)'\.\.\.$/\1/"
     )"
     echo "humanish_dir: ${humanish_dir}"
 
@@ -229,7 +229,7 @@ alias n="rc_commit_no_verify"
 alias nv="rc_commit_no_verify"
 _patch_changes() {
     file_name="patch_$(uuidgen).patch"
-    git diff > "${file_name}"
+    git diff >"${file_name}"
     echo "Created patch file: ${file_name}"
 }
 alias patch_changes="_patch_changes"
@@ -265,9 +265,10 @@ alias rbl="git_rebase_last_two"
 
 git_rebase_master() {
     local_branches="refs/heads/"
-    branches="$(git for-each-ref \
-        --format="%(refname:short)" \
-        "${local_branches}"
+    branches="$(
+        git for-each-ref \
+            --format="%(refname:short)" \
+            "${local_branches}"
     )"
 
     if echo "${branches}" | grep -q "^master$"; then
@@ -315,15 +316,15 @@ git_shallow_clone() {
     # Shallow clone the repository and change into the directory.
 
     tmp_filename="/tmp/git_shallow_clone.txt"
-    echo "" > "${tmp_filename}"
+    echo "" >"${tmp_filename}"
 
     git clone --depth 1 --progress "${@}" 2>&1 |
         tee "${tmp_filename}"
 
     humanish_dir="$(
         cat "${tmp_filename}" |
-        grep "Cloning into '" |
-        perl -pe "s/Cloning into '(.*)'\.\.\.$/\1/"
+            grep "Cloning into '" |
+            perl -pe "s/Cloning into '(.*)'\.\.\.$/\1/"
     )"
 
     rm "${tmp_filename}"
@@ -349,7 +350,8 @@ _view_diff() {
 alias view_diff="_view_diff"
 
 git_config() {
-    filename=$(cat <<EOF | python -
+    filename=$(
+        cat <<EOF | python -
 import os
 
 
@@ -367,7 +369,7 @@ for i, _ in enumerate(dirs):
         print(filename)
         break
 EOF
-)
+    )
     if [[ -z "${filename}" ]]; then
         echo ".git/config not found"
     else
@@ -386,9 +388,10 @@ git_delete_branch() {
 
 git_diff_master() {
     local_branches="refs/heads/"
-    branches="$(git for-each-ref \
-        --format="%(refname:short)" \
-        "${local_branches}"
+    branches="$(
+        git for-each-ref \
+            --format="%(refname:short)" \
+            "${local_branches}"
     )"
 
     if echo "${branches}" | grep -q "^main$"; then
@@ -582,7 +585,7 @@ git_shows() {
 }
 
 is_g() {
-    search=$(find . -mindepth 1 -maxdepth 1 -type f -print -quit | xargs g4 log -m 1 2> /dev/null)
+    search=$(find . -mindepth 1 -maxdepth 1 -type f -print -quit | xargs g4 log -m 1 2>/dev/null)
     if [ ! -z "${search}" ]; then
         return 0
     fi
@@ -591,13 +594,13 @@ is_g() {
 }
 
 is_git() {
-    git log -1 &> /dev/null
+    git log -1 &>/dev/null
     if [ $? -eq 0 ]; then
         return 0
     else
         # Check again in case this is a new repository that doesn't have
         # history.
-        git status &> /dev/null
+        git status &>/dev/null
         if [ $? -eq 0 ]; then
             return 0
         fi
@@ -619,9 +622,9 @@ rc_branches() {
     # An improvement on `git branch --all'.
     local_branches="refs/heads/"
     git for-each-ref \
-      --sort="committerdate" \
-      --format=$'\e[33m%(refname:short)\e[0m \e[32m(%(committerdate:relative))\e[0m' \
-      "${local_branches}"
+        --sort="committerdate" \
+        --format=$'\e[33m%(refname:short)\e[0m \e[32m(%(committerdate:relative))\e[0m' \
+        "${local_branches}"
 }
 
 rc_checkout() {
@@ -646,9 +649,9 @@ rc_checkout() {
             # Attempt to checkout the branch filtering by keyword.
             branch_name="$(
                 branches |
-                \grep "${branch_name}" |
-                trim |
-                fzf --ansi --ignore-case --select-1
+                    \grep "${branch_name}" |
+                    trim |
+                    fzf --ansi --ignore-case --select-1
             )"
             branch_name="${branch_name#"${branch_name%%[![:space:]]*}"}"
             branch_name="$(echo "${branch_name}" | perl -pe 's/(.*) \(.*\)/\1/')"
@@ -892,14 +895,14 @@ diff_strings_like_files() {
     string_2="${2}"
     (
         $DIFF_HIGHLIGHT_INSTALLED &&
-        $COLORDIFF_INSTALLED &&
-        diff --unified <(echo "${string_1}") <(echo "${string_2}") | diff_highlight | colordiff | tail -n +4
+            $COLORDIFF_INSTALLED &&
+            diff --unified <(echo "${string_1}") <(echo "${string_2}") | diff_highlight | colordiff | tail -n +4
     ) || (
         $DIFF_SO_FANCY_INSTALLED &&
-        diff --unified <(echo "${string_1}") <(echo "${string_2}") | diff-so-fancy | tail -n +5
+            diff --unified <(echo "${string_1}") <(echo "${string_2}") | diff-so-fancy | tail -n +5
     ) || (
         $COLORDIFF_INSTALLED &&
-        diff --unified <(echo "${string_1}") <(echo "${string_2}") | colordiff | tail -n +4
+            diff --unified <(echo "${string_1}") <(echo "${string_2}") | colordiff | tail -n +4
     ) || (
         diff --unified <(echo "${string_1}") <(echo "${string_2}") | tail -n +4
     )
@@ -910,7 +913,7 @@ export P4DIFF="~/.dot-star/version_control/p4diff.sh"
 
 main_and_pull() {
     rc_checkout_default_branch &&
-    git pull
+        git pull
 }
 
 alias mp="main_and_pull"

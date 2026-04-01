@@ -17,32 +17,32 @@ docker_psa() {
     ps_table_header=$(echo "${ps_result}" | head --lines=1)
     ps_table_rows_up=$(
         echo "${ps_result}" |
-        tail --lines=+2 |
-        \grep "Up" |
-        # List running instances first.
-        sort --ignore-leading-blanks --version-sort --key=4 --key=2 --key=1
+            tail --lines=+2 |
+            \grep "Up" |
+            # List running instances first.
+            sort --ignore-leading-blanks --version-sort --key=4 --key=2 --key=1
     )
     ps_table_rows_exited=$(
         echo "${ps_result}" |
-        tail --lines=+2 |
-        \grep "Exited" |
-        # List running instances first.
-        sort --ignore-leading-blanks --version-sort --key=4 --key=2 --key=1
+            tail --lines=+2 |
+            \grep "Exited" |
+            # List running instances first.
+            sort --ignore-leading-blanks --version-sort --key=4 --key=2 --key=1
     )
 
     i=0
     echo "${ps_table_header}"
     echo "${ps_table_rows_up}" | while read row; do
-        if [ $(( $i % 2 )) -eq 0 ]; then
+        if [ $(($i % 2)) -eq 0 ]; then
             echo -e "\e[48;5;235m${row}\e[0m"
         else
             echo -e "\e[48;5;232m${row}\e[0m"
         fi
-        ((i+=1))
+        ((i += 1))
     done
     echo "${ps_table_rows_exited}" | while read row; do
         echo -e "\e[2;40;97m${row}\e[0m"
-        ((i+=1))
+        ((i += 1))
     done
     echo
 
@@ -50,16 +50,16 @@ docker_psa() {
     images_table_header=$(echo "${images_result}" | head --lines=1)
     images_table_rows=$(
         echo "${images_result}" |
-        tail --lines=+2
+            tail --lines=+2
     )
     echo "${images_table_header}"
     echo "${images_table_rows}" | while read row; do
-        if [ $(( $i % 2 )) -eq 0 ]; then
+        if [ $(($i % 2)) -eq 0 ]; then
             echo -e "\e[48;5;235m${row}\e[0m"
         else
             echo -e "\e[48;5;232m${row}\e[0m"
         fi
-        ((i+=1))
+        ((i += 1))
     done
 }
 
@@ -88,13 +88,13 @@ alias_docker() {
     _require_docker
 
     # Run docker only if is not already running.
-    if (! docker stats --no-stream &> /dev/null); then
+    if (! docker stats --no-stream &>/dev/null); then
         if [[ "${OSTYPE}" == "darwin"* ]]; then
             open "/Applications/Docker.app"
 
             # Wait until docker daemon is running and has completed initialization.
             echo -n "Waiting for docker."
-            while (! docker stats --no-stream &> /dev/null); do
+            while (! docker stats --no-stream &>/dev/null); do
                 echo -n "."
                 sleep 1
             done

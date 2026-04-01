@@ -1,7 +1,7 @@
 # Make commands available without needing the "g" prefix (e.g. gls -> ls, ggrep -> grep).
 # Use coreutils from brew. Install via `$ brew install coreutils'.
 # Use grep from brew. Install via `$ brew install grep'.
-which brew &> /dev/null
+which brew &>/dev/null
 if [[ $? -eq 0 ]]; then
     homebrew_prefix="${HOMEBREW_PREFIX}"
     if [[ -z "${HOMEBREW_PREFIX}" ]]; then

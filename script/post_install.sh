@@ -18,7 +18,7 @@ git config --global color.diff.meta blue
 
 if [[ "${OSTYPE}" == "darwin"* ]]; then
     # Install brew.
-    command -v brew > /dev/null || /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    command -v brew >/dev/null || /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 
     # Update: Removed setting bash as the default shell in favor of zsh.
     # Upgrade bash.

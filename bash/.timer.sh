@@ -33,7 +33,7 @@
 #    557 ms └ Doing something
 
 # Config.
-BT_LEFTW=9  # width for left column like " 1001 ms "
+BT_LEFTW=9 # width for left column like " 1001 ms "
 
 # Box characters.
 BT_OPEN="┌"
@@ -53,7 +53,7 @@ _bt_indent() {
     local s=""
     local i
 
-    for ((i=1;i<depth;i++)); do
+    for ((i = 1; i < depth; i++)); do
         s+="${BT_PIPE}  "
     done
 
@@ -74,7 +74,7 @@ bt_comment() {
     local msg="$1"
     local depth=${#_BT_LABELS}
 
-    if (( depth == 0 )); then
+    if ((depth == 0)); then
         echo "bt_comment: no active block" >&2
         return 1
     fi
@@ -88,7 +88,7 @@ bt_pop() {
     local end idx depth label ns_start elapsed_ns elapsed_ms left indent
 
     depth=${#_BT_LABELS}
-    if (( depth < 1 )); then
+    if ((depth < 1)); then
         print -ru2 -- "bt_pop: stack underflow"
         return 1
     fi
@@ -99,11 +99,11 @@ bt_pop() {
     label="${_BT_LABELS[$idx]}"
     ns_start="${_BT_STARTS[$idx]}"
 
-    _BT_LABELS=("${(@)_BT_LABELS[1,$((idx-1))]}")
-    _BT_STARTS=("${(@)_BT_STARTS[1,$((idx-1))]}")
+    _BT_LABELS=("${(@)_BT_LABELS[1,$((idx - 1))]}")
+    _BT_STARTS=("${(@)_BT_STARTS[1,$((idx - 1))]}")
 
-    elapsed_ns=$(( end - ns_start ))
-    elapsed_ms=$(( (elapsed_ns + 500000) / 1000000 ))
+    elapsed_ns=$((end - ns_start))
+    elapsed_ms=$(((elapsed_ns + 500000) / 1000000))
 
     left="$(printf '%6d ms' $elapsed_ms)"
     printf "%*s %s%s %s\n" \

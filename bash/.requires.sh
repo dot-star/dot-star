@@ -1,5 +1,5 @@
 _require_jq() {
-    command jq --help &> /dev/null
+    command jq --help &>/dev/null
     exit_code="${?}"
 
     if [[ "${exit_code}" -eq 127 ]]; then
@@ -10,4 +10,3 @@ _require_jq() {
         fi
     fi
 }
-

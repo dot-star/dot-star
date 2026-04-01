@@ -28,7 +28,7 @@ _quilt_set_alias() {
     existing_alias_to_override="${1}"
     new_alias_value="${2}"
 
-    if type "${existing_alias_to_override}" &> /dev/null; then
+    if type "${existing_alias_to_override}" &>/dev/null; then
         unalias "${existing_alias_to_override}"
     fi
 
@@ -95,49 +95,49 @@ _quilt_push() {
 }
 
 _quilt_override_aliases() {
-    _quilt_set_alias "e"    "quilt edit"
+    _quilt_set_alias "e" "quilt edit"
     _quilt_set_alias "edit" "quilt edit"
 
     _quilt_set_alias "files" "quilt files"
 
-    _quilt_set_alias "n"   "_quilt_new"
+    _quilt_set_alias "n" "_quilt_new"
     _quilt_set_alias "new" "_quilt_new"
 
-    _quilt_set_alias "o"   "_quilt_pop"
-    _quilt_set_alias "po"  "_quilt_pop"
+    _quilt_set_alias "o" "_quilt_pop"
+    _quilt_set_alias "po" "_quilt_pop"
     _quilt_set_alias "pop" "_quilt_pop"
 
-    _quilt_set_alias "oa"     "quilt pop -a"
-    _quilt_set_alias "poa"    "quilt pop -a"
-    _quilt_set_alias "popa"   "quilt pop -a"
+    _quilt_set_alias "oa" "quilt pop -a"
+    _quilt_set_alias "poa" "quilt pop -a"
+    _quilt_set_alias "popa" "quilt pop -a"
     _quilt_set_alias "popall" "quilt pop -a"
 
-    _quilt_set_alias "pa"      "quilt patches"
+    _quilt_set_alias "pa" "quilt patches"
     _quilt_set_alias "patches" "quilt patches"
 
-    _quilt_set_alias "pu"   "_quilt_push"
-    _quilt_set_alias "pus"  "_quilt_push"
+    _quilt_set_alias "pu" "_quilt_push"
+    _quilt_set_alias "pus" "_quilt_push"
     _quilt_set_alias "push" "_quilt_push"
-    _quilt_set_alias "u"    "_quilt_push"
+    _quilt_set_alias "u" "_quilt_push"
 
-    _quilt_set_alias "pua"     "quilt push -a"
-    _quilt_set_alias "pusha"   "quilt push -a"
+    _quilt_set_alias "pua" "quilt push -a"
+    _quilt_set_alias "pusha" "quilt push -a"
     _quilt_set_alias "pushall" "quilt push -a"
-    _quilt_set_alias "ua"      "quilt push -a"
+    _quilt_set_alias "ua" "quilt push -a"
 
     _quilt_set_alias "q" "quilt"
 
-    _quilt_set_alias "r"       "quilt refresh"
-    _quilt_set_alias "re"      "quilt refresh"
-    _quilt_set_alias "ref"     "quilt refresh"
+    _quilt_set_alias "r" "quilt refresh"
+    _quilt_set_alias "re" "quilt refresh"
+    _quilt_set_alias "ref" "quilt refresh"
     _quilt_set_alias "refresh" "quilt refresh"
 
-    _quilt_set_alias "se"     "_quilt_series"
-    _quilt_set_alias "ser"    "_quilt_series"
+    _quilt_set_alias "se" "_quilt_series"
+    _quilt_set_alias "ser" "_quilt_series"
     _quilt_set_alias "series" "_quilt_series"
 
-    _quilt_set_alias "t"   "quilt top"
-    _quilt_set_alias "to"  "quilt top"
+    _quilt_set_alias "t" "quilt top"
+    _quilt_set_alias "to" "quilt top"
     _quilt_set_alias "top" "quilt top"
 }
 

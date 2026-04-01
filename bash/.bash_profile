@@ -3,7 +3,7 @@
 CWD="${PWD}"
 
 if [[ -n "${BASH_VERSION}" ]]; then
-    DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 elif [[ -n "${ZSH_VERSION}" ]]; then
     DIR="$(dirname $0)"
 fi
@@ -55,7 +55,7 @@ source "bash/.extra.sh"
 \cd "${CWD}"
 if is_ssh; then
     if [[ -z "${BYOBU_WINDOW_NAME}" ]]; then
-        if which "byobu" &> /dev/null; then
+        if which "byobu" &>/dev/null; then
             byobu
         fi
     fi
