@@ -1417,7 +1417,7 @@ edit_extension_files() {
     if [[ -z "${files_to_edit}" ]]; then
         echo "no extension files to edit"
     else
-        edit "${=files_to_edit}"
+        edit ${files_to_edit[@]}
 
         if $scss_found; then
             echo "running sasswatch"

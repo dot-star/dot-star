@@ -7,3 +7,4 @@ repos:
         additional_dependencies: ["mvdan.cc/sh/v3/cmd/shfmt@v3.13.0"]
         entry: shfmt --indent=4 --diff --write
         types: [shell]
+        exclude: version_control/git-completion\.bash
