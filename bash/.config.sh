@@ -2,7 +2,7 @@
 export EDITOR="vim"
 export VISUAL="vim"
 
-if which "mvim" &> /dev/null; then
+if which "mvim" &>/dev/null; then
     export EDITOR="mvim"
 
     # Background MacVim when using visual selection on the command line.
@@ -26,12 +26,12 @@ else
 fi
 
 DIFF_HIGHLIGHT_INSTALLED=false
-if which diff-highlight &> /dev/null; then
+if which diff-highlight &>/dev/null; then
     DIFF_HIGHLIGHT_INSTALLED=true
 else
-    compgen &> /dev/null
+    compgen &>/dev/null
     if [[ $? -ne 127 ]]; then
-        compgen -G "/usr/local/Cellar/git/*/share/git-core/contrib/diff-highlight/diff-highlight" > /dev/null
+        compgen -G "/usr/local/Cellar/git/*/share/git-core/contrib/diff-highlight/diff-highlight" >/dev/null
         if [ $? -eq 0 ]; then
             DIFF_HIGHLIGHT_INSTALLED=true
         fi

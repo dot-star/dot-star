@@ -35,9 +35,9 @@ alias fc="from_clipboard"
 
 clipboard() {
     # Remove trailing newline from stdin and copy it to the clipboard.
-    if which "xsel" &> /dev/null; then
+    if which "xsel" &>/dev/null; then
         perl -p -e 'chomp if eof' | xsel --clipboard
-    elif which "pbcopy" &> /dev/null; then
+    elif which "pbcopy" &>/dev/null; then
         perl -p -e 'chomp if eof' | pbcopy
     fi
 }
@@ -50,12 +50,12 @@ count_lines() {
     #
     # $ echo -n "a\nb\nc" | awk 'NF' | wc -l
     # 3
-    if which "gwc" &> /dev/null; then
+    if which "gwc" &>/dev/null; then
         awk 'NF' |
-        gwc --lines
+            gwc --lines
     else
         awk 'NF' |
-        wc --lines
+            wc --lines
     fi
 }
 alias lines_count="count_lines"
@@ -162,7 +162,7 @@ alias_jq() {
         file_path="$(mktemp).json"
 
         # Read stdin into variable.
-        local input="$(< /dev/stdin)"
+        local input="$(</dev/stdin)"
 
         # Handle formatting the string representation of a python dictionary as
         # well.
@@ -195,7 +195,7 @@ else:
 
         # Write stdin to temporary file.
         # Use -E to avoid duplicate newlines in the resulting file.
-        echo -E "${input}" > "${file_path}"
+        echo -E "${input}" >"${file_path}"
 
     else
         use_preview=false
@@ -215,13 +215,14 @@ else:
 
         # Open an interactive view for entering a jq filter and viewing the
         # result in the fzf preview window.
-        jq_filter=$(echo "" |
-            fzf \
-                --info=hidden \
-                --preview "cat \"${file_path}\" | jq --color-output {q}" \
-                --preview-window=up:100,wrap \
-                --print-query \
-                --query="${query}"
+        jq_filter=$(
+            echo "" |
+                fzf \
+                    --info=hidden \
+                    --preview "cat \"${file_path}\" | jq --color-output {q}" \
+                    --preview-window=up:100,wrap \
+                    --print-query \
+                    --query="${query}"
         )
         if [[ -z "${jq_filter}" ]]; then
             echo "(no filter submitted)"

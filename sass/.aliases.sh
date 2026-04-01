@@ -1,9 +1,9 @@
 noop() {
-    :;
+    :
 }
 
 require_sass() {
-    if ! which "sass" &> /dev/null; then
+    if ! which "sass" &>/dev/null; then
         set -x
         brew install sass/sass/sass
         set +x

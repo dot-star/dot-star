@@ -51,7 +51,7 @@ format_xml() {
             echo "Error: command failed. Exit code: ${exit_code}"
         else
             tmp_xml_file="$(mktemp).xml"
-            echo "${result}" > "${tmp_xml_file}"
+            echo "${result}" >"${tmp_xml_file}"
 
             echo "Written to temporary XML file:\n${tmp_xml_file}"
             edit "${tmp_xml_file}"
@@ -76,7 +76,7 @@ format_xml() {
             echo "Error: command failed. Exit code: ${exit_code}"
         else
             tmp_xml_file="$(mktemp).xml"
-            echo "${result}" > "${tmp_xml_file}"
+            echo "${result}" >"${tmp_xml_file}"
 
             echo "Written to temporary XML file:\n${tmp_xml_file}"
             edit "${tmp_xml_file}"
@@ -93,13 +93,13 @@ format_xml() {
             $dom->loadXML($xml);
             $out = $dom->saveXML();
             echo $out;'
-        result="$(php -r "${script}" < /dev/stdin)"
+        result="$(php -r "${script}" </dev/stdin)"
         exit_code="${?}"
         if [[ "${exit_code}" -ne 0 ]]; then
             echo "Error: command failed. Exit code: ${exit_code}"
         else
             tmp_xml_file="$(mktemp).xml"
-            echo "${result}" > "${tmp_xml_file}"
+            echo "${result}" >"${tmp_xml_file}"
 
             echo "Written to temporary XML file:\n${tmp_xml_file}"
             edit "${tmp_xml_file}"
@@ -118,7 +118,8 @@ alias decode="htmlspecialchars_decode"
 alias without_htmlspecialchars="htmlspecialchars_decode"
 
 strip_tags() {
-    script=$(cat <<"EOF"
+    script=$(
+        cat <<"EOF"
         function remove_empty_lines($string) {
             $lines = explode("\n", $string);
             $lines = array_filter($lines, function($line) {
@@ -132,24 +133,26 @@ strip_tags() {
         $without_empty_lines = remove_empty_lines($without_tags);
         echo $without_empty_lines;
 EOF
-)
+    )
     php -r "${script}"
 }
 alias without_tags="strip_tags"
 
 with_newlines() {
-    script=$(cat <<"EOF"
+    script=$(
+        cat <<"EOF"
         $stdin = stream_get_contents(STDIN);
         $with_newlines = str_replace('\r\n', "\n", $stdin);
         echo $with_newlines;
 EOF
-)
+    )
     php -r "${script}"
 }
 alias newlines="with_newlines"
 
 without_whitespace() {
-    script=$(cat <<"EOF"
+    script=$(
+        cat <<"EOF"
         function remove_line_whitespace($string) {
             $lines = explode("\n", $string);
             $lines = array_map('trim', $lines);
@@ -160,18 +163,19 @@ without_whitespace() {
         $without_line_whitespace = remove_line_whitespace($stdin);
         echo $without_line_whitespace;
 EOF
-)
+    )
     php -r "${script}"
 }
 
 with_readability() {
-    script=$(cat <<"EOF"
+    script=$(
+        cat <<"EOF"
         $s = stream_get_contents(STDIN);
         $s = str_replace('><', '>' . "\n" . '<', $s);
         $s = str_replace('\n', "\n", $s);
         echo $s;
 EOF
-)
+    )
     php -r "${script}"
 }
 alias readability="with_readability"
@@ -189,12 +193,12 @@ find_and_replace() {
     # Run find and replace on all files in the current directory recursively
     # when no file path given.
     if [[ -z "${file_path}" ]]; then
-        if sed v < /dev/null 2> /dev/null; then
+        if sed v </dev/null 2>/dev/null; then
             LC_ALL=C find . -type f -not -path '*/\.git/*' -exec sed -i"" -e "s/${find_str}/${replace_str}/g" {} +
         else
             LC_ALL=C find . -type f -not -path '*/\.git/*' -exec sed -i "" -e "s/${find_str}/${replace_str}/g" {} +
         fi
-    
+
     # Show error when specified file does not exist.
     elif [[ ! -f "${file_path}" ]]; then
         echo "Error: file not found: ${file_path}"
@@ -202,7 +206,7 @@ find_and_replace() {
 
     # Run find and replace on the specified file a file path is given.
     else
-        if sed v < /dev/null 2> /dev/null; then
+        if sed v </dev/null 2>/dev/null; then
             sed -i"" -e "s/${find_str}/${replace_str}/g" "${file_path}"
         else
             sed -i "" -e "s/${find_str}/${replace_str}/g" "${file_path}"

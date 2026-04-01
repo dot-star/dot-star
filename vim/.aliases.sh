@@ -5,7 +5,7 @@ alias_vim() {
 
     if is_ssh; then
         \vim -p "${@}"
-    elif which "mvim" &> /dev/null; then
+    elif which "mvim" &>/dev/null; then
         if [[ $# -eq 0 ]]; then
             mvim
         else
@@ -21,18 +21,18 @@ alias_vim() {
             # each file so that subsequent files are opened in new tabs in the existing window.
             open -a "MacVim.app" "${@}"
         fi
-    elif which "gvim" &> /dev/null; then
+    elif which "gvim" &>/dev/null; then
         xdotool=$(which xdotool)
         if [[ -z "${xdotool}" ]]; then
             echo -e '\x1b[0;93mWARNING\x1b[0m: xdotool does not seem to be installed.'
         else
-          window_id=$(xdotool search --name ") - GVIM")
-          if [[ ! -z "${window_id}" ]]; then
-            xdotool windowactivate "${window_id}"
-          fi
+            window_id=$(xdotool search --name ") - GVIM")
+            if [[ ! -z "${window_id}" ]]; then
+                xdotool windowactivate "${window_id}"
+            fi
         fi
 
-        (gvim -f -p --remote-tab-silent "${@}" &> /dev/null &)
+        (gvim -f -p --remote-tab-silent "${@}" &>/dev/null &)
     else
         \vim -p "${@}"
     fi

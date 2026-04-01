@@ -59,7 +59,7 @@ alias 777="\chmod 777"
 alias xsh="chmod +x *.sh"
 
 _require_watchman() {
-    which watchman-make &> /dev/null
+    which watchman-make &>/dev/null
     if [[ $? -ne 0 ]]; then
         echo -e '\x1b[0;93mWARNING\x1b[0m: watchman-make required'
 
@@ -81,13 +81,13 @@ _ls() {
 
     local ls_to_use
     if [[ "${OSTYPE}" == "darwin"* ]]; then
-      # GNU `ls`. Available with `brew install coreutils'.
-      ls_to_use="gls"
+        # GNU `ls`. Available with `brew install coreutils'.
+        ls_to_use="gls"
     else
-      ls_to_use="ls"
+        ls_to_use="ls"
     fi
 
-    if which "$ls_to_use" &> /dev/null; then
+    if which "$ls_to_use" &>/dev/null; then
         "$ls_to_use" \
             --almost-all \
             --classify \
@@ -134,10 +134,10 @@ alias_bak() {
     timestamp=$(date +"%Y-%m-%d_%H%M%S")
 
     local cp_to_use
-    if which "gcp" &> /dev/null; then
-      cp_to_use="gcp"
+    if which "gcp" &>/dev/null; then
+        cp_to_use="gcp"
     else
-      cp_to_use="cp"
+        cp_to_use="cp"
     fi
 
     for source in "${@}"; do
@@ -214,7 +214,7 @@ pushd() {
         DIR="${1}"
     fi
 
-    builtin pushd "${DIR}" > /dev/null
+    builtin pushd "${DIR}" >/dev/null
 
     i=0
     for dir in $(\dirs -p | awk '!x[$0]++' | head -n 10); do
@@ -234,7 +234,7 @@ better_cd() {
             directory="$(dirname "${directory}")"
         fi
 
-        builtin cd "${directory}" 2> /dev/null
+        builtin cd "${directory}" 2>/dev/null
         exit_code="${?}"
 
         # Display list of directories to choose from when `cd' command fails.
@@ -406,14 +406,15 @@ edit() {
         files_to_edit_lines="$(echo "${files_to_edit[*]}")"
         files_to_edit_lines="$(echo "${files_to_edit_lines}" | sort | uniq)"
 
-        result="$(echo "${files_to_edit_lines}" |
-            fzf \
-                --exit-0 \
-                --info="hidden" \
-                --multi \
-                --preview-window="up:100" \
-                --preview="${fzf_preview}" \
-                --select-1 \
+        result="$(
+            echo "${files_to_edit_lines}" |
+                fzf \
+                    --exit-0 \
+                    --info="hidden" \
+                    --multi \
+                    --preview-window="up:100" \
+                    --preview="${fzf_preview}" \
+                    --select-1
         )"
 
         return_code="${?}"
@@ -510,7 +511,7 @@ fin() {
     if [[ "${OSTYPE}" == "darwin"* ]]; then
         osascript -e 'display notification "" with title "Done"'
     else
-        terminal-notifier -message "" -title "Done" 2> /dev/null
+        terminal-notifier -message "" -title "Done" 2>/dev/null
         if [[ $? -eq 127 ]]; then
             notify-send --expire-time=1000 "Done $(date)"
         fi
@@ -547,23 +548,23 @@ case_sensitive_search() {
 alias ss="case_sensitive_search"
 
 case_sensitive_search_edit() {
-  param_count="${#}"
-  if [[ "${param_count}" -eq 0 ]]; then
-    return
-  else
-    # Search by keyword and edit (e.g. `sse keyword').
-    if [[ "${param_count}" -eq 1 ]]; then
-      keyword="${1}"
-      results=$(grep --dereference-recursive --files-with-matches "${keyword}" . "${@:2}")
-    # Search by extension + keyword and edit (e.g. `sse ext keyword').
-    elif [[ "${param_count}" -eq 2 ]]; then
-      extension="${1}"
-      keyword="${2}"
-      results=$(grep --dereference-recursive --files-with-matches --include="*.${extension}" "${keyword}" . "${@:3}")
-    fi
+    param_count="${#}"
+    if [[ "${param_count}" -eq 0 ]]; then
+        return
+    else
+        # Search by keyword and edit (e.g. `sse keyword').
+        if [[ "${param_count}" -eq 1 ]]; then
+            keyword="${1}"
+            results=$(grep --dereference-recursive --files-with-matches "${keyword}" . "${@:2}")
+        # Search by extension + keyword and edit (e.g. `sse ext keyword').
+        elif [[ "${param_count}" -eq 2 ]]; then
+            extension="${1}"
+            keyword="${2}"
+            results=$(grep --dereference-recursive --files-with-matches --include="*.${extension}" "${keyword}" . "${@:3}")
+        fi
 
-    _open_files "${results}"
-  fi
+        _open_files "${results}"
+    fi
 }
 alias sse="case_sensitive_search_edit"
 
@@ -599,35 +600,35 @@ case_insensitive_search() {
 alias si="case_insensitive_search"
 
 conditional_s() {
-  param_count="${#}"
-  if [[ "${param_count}" -eq 0 ]]; then
-    # Show version control status when no parameters are passed.
-    rc_status
+    param_count="${#}"
+    if [[ "${param_count}" -eq 0 ]]; then
+        # Show version control status when no parameters are passed.
+        rc_status
 
-  else
-    case_insensitive_search "${@}"
-  fi
+    else
+        case_insensitive_search "${@}"
+    fi
 }
 alias s="conditional_s"
 
 case_insensitive_search_edit() {
-  param_count="${#}"
-  if [[ "${param_count}" -eq 0 ]]; then
-    return
-  else
-    # Search by keyword and edit (e.g. `se keyword').
-    if [[ "${param_count}" -eq 1 ]]; then
-      keyword="${1}"
-      results=$(grep --dereference-recursive --files-with-matches --ignore-case "${keyword}" . "${@:2}")
-    # Search by extension + keyword and edit (e.g. `se ext keyword').
-    elif [[ "${param_count}" -eq 2 ]]; then
-      extension="${1}"
-      keyword="${2}"
-      results=$(grep --dereference-recursive --files-with-matches --ignore-case --include="*.${extension}" "${keyword}" . "${@:3}")
-    fi
+    param_count="${#}"
+    if [[ "${param_count}" -eq 0 ]]; then
+        return
+    else
+        # Search by keyword and edit (e.g. `se keyword').
+        if [[ "${param_count}" -eq 1 ]]; then
+            keyword="${1}"
+            results=$(grep --dereference-recursive --files-with-matches --ignore-case "${keyword}" . "${@:2}")
+        # Search by extension + keyword and edit (e.g. `se ext keyword').
+        elif [[ "${param_count}" -eq 2 ]]; then
+            extension="${1}"
+            keyword="${2}"
+            results=$(grep --dereference-recursive --files-with-matches --ignore-case --include="*.${extension}" "${keyword}" . "${@:3}")
+        fi
 
-    _open_files "${results}"
-  fi
+        _open_files "${results}"
+    fi
 }
 
 conditional_se() {
@@ -640,40 +641,40 @@ conditional_se() {
 alias se="conditional_se"
 
 case_sensitive_search_python() {
-  if [[ -z "${1}" ]]; then
-    return
-  fi
-  set -x
-  grep -R --include="*.py" "${1}" . "${@:2}"
-  set +x
+    if [[ -z "${1}" ]]; then
+        return
+    fi
+    set -x
+    grep -R --include="*.py" "${1}" . "${@:2}"
+    set +x
 }
 alias spy="case_sensitive_search_python"
 
 case_insensitive_search_python() {
-  if [[ -z "${1}" ]]; then
-    return
-  fi
-  set -x
-  grep -Ri --include="*.py" "${1}" . "${@:2}"
-  set +x
+    if [[ -z "${1}" ]]; then
+        return
+    fi
+    set -x
+    grep -Ri --include="*.py" "${1}" . "${@:2}"
+    set +x
 }
 alias sipy="case_insensitive_search_python"
 
 # Print hidden files.
 alias_tree() {
-  tree \
-    -a \
-    -F \
-    -I ".git" \
-    -I "__pycache__" \
-    -I "node_modules" \
-    $@
+    tree \
+        -a \
+        -F \
+        -I ".git" \
+        -I "__pycache__" \
+        -I "node_modules" \
+        $@
 }
 alias tree="alias_tree"
 alias t="alias_tree"
 
 _top() {
-    if ! which htop &> /dev/null; then
+    if ! which htop &>/dev/null; then
         if [[ "$OSTYPE" == "linux-gnu"* ]]; then
             set -x
             sudo apt-get install -y htop
@@ -681,7 +682,7 @@ _top() {
         fi
     fi
 
-    if which htop &> /dev/null; then
+    if which htop &>/dev/null; then
         htop --sort-key=PERCENT_MEM
     else
         top -o cpu
@@ -750,12 +751,12 @@ alias q="_conditional_q"
 alias_open() {
     # Open current directory when no path is specified.
     if [[ "${#}" -eq 0 ]]; then
-        open . &> /dev/null
+        open . &>/dev/null
         if [[ "${?}" -ne 0 ]]; then
             nautilus .
         fi
     else
-        open "${@}" &> /dev/null
+        open "${@}" &>/dev/null
         if [[ "${?}" -ne 0 ]]; then
             nautilus "${@}"
         fi
@@ -822,7 +823,8 @@ slugify_mv() {
             # TODO: Ensure destination doesn't exist. Append the first available number to file name if needed.
             # TODO: Display result file rename without asking for confirmation.
             message='Rename "'${filename}'" to "'${new_filename}'"?'
-            read -p "${message} [y/n] " -n 1 -r; echo
+            read -p "${message} [y/n] " -n 1 -r
+            echo
             if [[ $REPLY =~ ^[Yy]$ ]]; then
                 mv "${filename}" "${new_filename}"
             fi
@@ -838,7 +840,7 @@ pdf_remove_password() {
     # @usage: pdf_remove_password file.pdf
     # @usage: echo "thepassword" | pdf_remove_password file.pdf
 
-    if ! which "qpdf" &> /dev/null; then
+    if ! which "qpdf" &>/dev/null; then
         set -x
         brew install qpdf
         set +x
@@ -847,7 +849,8 @@ pdf_remove_password() {
     green=$(tput setaf 64)
     red=$(tput setaf 124)
 
-    read -r -s -p "enter pdf password: " "password"; echo
+    read -r -s -p "enter pdf password: " "password"
+    echo
     for filename in "$@"; do
         in="${filename}"
         out=$(echo "${in}" | perl -pe 's/^(.*)(\.pdf)$/\1_passwordless.pdf/')
@@ -913,7 +916,7 @@ find_files_by_keyword() {
 
     # Find files with path containing the specified keyword (e.g. `f keyword').
     keyword="${1}"
-    if [[ -z "${keyword}" ]] ; then
+    if [[ -z "${keyword}" ]]; then
         if $interactive; then
             echo "Search is empty"
         fi
@@ -926,9 +929,9 @@ find_files_by_keyword() {
         set -x
         find . \
             \( \
-                -path "*/__pycache__" \
-                -o -path "/__pycache__/" \
-                -o -iname "*.pyc" \
+            -path "*/__pycache__" \
+            -o -path "/__pycache__/" \
+            -o -iname "*.pyc" \
             \) \
             -prune \
             -o \
@@ -962,9 +965,9 @@ find_and_edit() {
         results=$(
             find . \
                 \( \
-                    -path "*/__pycache__" \
-                    -o -path "/__pycache__/" \
-                    -o -iname "*.pyc" \
+                -path "*/__pycache__" \
+                -o -path "/__pycache__/" \
+                -o -iname "*.pyc" \
                 \) \
                 -prune \
                 -o \
@@ -1010,9 +1013,10 @@ else:
 
 get_file_info() {
     if [[ "${#}" -eq 1 ]]; then
-        response=$(command type "${1}" 2> /dev/null)
+        response=$(command type "${1}" 2>/dev/null)
         if [[ $? -eq 0 ]]; then
-            script=$(cat <<"EOF"
+            script=$(
+                cat <<"EOF"
 try:
     from shlex import quote
 except ImportError:
@@ -1025,7 +1029,7 @@ match = re.match(r".* is aliased to \`([\w]+)'", response)
 if match is not None:
     print('builtin type {0}'.format(quote(match.group(1))))
 EOF
-)
+            )
             cmd=$(echo "${response}" | python -c "${script}")
             if [[ ! -z "${cmd}" ]]; then
                 ${cmd}
@@ -1039,7 +1043,7 @@ EOF
             # command -v ffmpeg >/dev/null 2>&1 && ffmpeg -i "${1}" 2>&1 | \grep "Duration: "
 
             info=$(afinfo "${1}" | grep "estimated duration: ")
-            python - << EOF
+            python - <<EOF
 import datetime
 import re
 info = """${info}"""
@@ -1071,7 +1075,8 @@ is_ssh() {
 
 serve_dir() {
     port="8080"
-    read -p "Are you sure you want to serve the current directory over port ${port}? [y/n] " -n 1 -r; echo
+    read -p "Are you sure you want to serve the current directory over port ${port}? [y/n] " -n 1 -r
+    echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         echo "http://localhost:${port}/"
         set -x
@@ -1161,13 +1166,13 @@ _run_watchman() {
             # and right before printing the separator to account for resizing.
             cols="$(tput cols)"
 
-            if [[ $((i%4)) -eq 0 ]]; then
+            if [[ $((i % 4)) -eq 0 ]]; then
                 sep="$(bash -c "printf -- '-%.0s' {1..${cols}}")"
-            elif [[ $((i%4)) -eq 1 ]]; then
+            elif [[ $((i % 4)) -eq 1 ]]; then
                 sep="$(bash -c "printf -- '\%.0s' {1..${cols}}")"
-            elif [[ $((i%4)) -eq 2 ]]; then
+            elif [[ $((i % 4)) -eq 2 ]]; then
                 sep="$(bash -c "printf -- '|%.0s' {1..${cols}}")"
-            elif [[ $((i%4)) -eq 3 ]]; then
+            elif [[ $((i % 4)) -eq 3 ]]; then
                 sep="$(bash -c "printf -- '/%.0s' {1..${cols}}")"
             fi
 
@@ -1189,7 +1194,7 @@ _run_watchman() {
         sleep 1
         # echo "done sleeping"
 
-        (( i += 1 ))
+        ((i += 1))
     done
 
     # echo "done running watchman"
@@ -1198,7 +1203,8 @@ _run_watchman() {
 
 _get_command_for_file_type() {
     # Add prefix to command based on file name extension.
-    python_script=$(cat <<'EOF'
+    python_script=$(
+        cat <<'EOF'
 import os
 try:
     from shlex import quote
@@ -1226,7 +1232,7 @@ else:
     cmd = command_or_file_name
 print(cmd)
 EOF
-)
+    )
     cmd_to_run=$(python -c "${python_script}" "${command_or_file_name}")
     echo "${cmd_to_run}"
 }
@@ -1461,7 +1467,8 @@ generate_key() {
         return 1
     fi
 
-    read -p "Look good? [y/n] " -n 1 -r; echo
+    read -p "Look good? [y/n] " -n 1 -r
+    echo
     if ! [[ $REPLY =~ ^[Yy]$ ]]; then
         echo "exiting"
         return
@@ -1519,10 +1526,10 @@ alias_cp() {
             #) ||
             (
                 $COLORDIFF_INSTALLED &&
-                diff --unified <(echo "${file_name}") <(echo -e "${file_name}\n${new_file_name}") | "colordiff" | tail -n +4
+                    diff --unified <(echo "${file_name}") <(echo -e "${file_name}\n${new_file_name}") | "colordiff" | tail -n +4
             ) || (
-                diff --unified <(echo "${file_name}") <(echo -e "${file_name}\n${new_file_name}") | tail -n +4
-            )
+            diff --unified <(echo "${file_name}") <(echo -e "${file_name}\n${new_file_name}") | tail -n +4
+        )
 
     # Call original cp command when any other number of parameters have been specified.
     else
@@ -1549,10 +1556,12 @@ alias_mv() {
 
     file_is_git_tracked=false
     if [[ -f "${file_or_folder_name}" ]]; then
-        git ls-files --error-unmatch "${file_or_folder_name}" &> /dev/null
+        git ls-files --error-unmatch "${file_or_folder_name}" &>/dev/null
         exit_code="${?}"
-        if [[ "${exit_code}" -eq 1 ]]; then :
-        elif [[ "${exit_code}" -eq 128 ]]; then :
+        if [[ "${exit_code}" -eq 1 ]]; then
+            :
+        elif [[ "${exit_code}" -eq 128 ]]; then
+            :
         else
             file_is_git_tracked=true
         fi
@@ -1630,10 +1639,10 @@ _man() {
         # searching, any selected option still copies the incorrect characters
         # to the clipboard so use `sed' to replace instaces of "&minus;" with
         # dashes.
-        man_file_path="$(\man --path "${1}" 2> /dev/null)"
+        man_file_path="$(\man --path "${1}" 2>/dev/null)"
         exit_code="${?}"
         if [[ "${exit_code}" -ne 0 ]]; then
-            man_file_path="$(\man -w "${1}" 2> /dev/null)"
+            man_file_path="$(\man -w "${1}" 2>/dev/null)"
             exit_code="${?}"
             if [[ "${exit_code}" -ne 0 ]]; then
                 echo "error. exit_code: ${exit_code}"
@@ -1646,7 +1655,7 @@ _man() {
         man_file_name="$(basename "${man_file_path}")"
         echo "file name: ${man_file_name}"
 
-        if ! which groff &> /dev/null; then
+        if ! which groff &>/dev/null; then
             set -x
             brew install groff
             set +x
@@ -1654,9 +1663,9 @@ _man() {
 
         if [[ "${man_file_name}" == *".gz" ]]; then
             gunzip --to-stdout "${man_file_path}" |
-                groff -mandoc -T html > "${HOME}/man_html/${1}.html"
+                groff -mandoc -T html >"${HOME}/man_html/${1}.html"
         else
-            groff -mandoc -T html "${man_file_path}" > "${HOME}/man_html/${1}.html"
+            groff -mandoc -T html "${man_file_path}" >"${HOME}/man_html/${1}.html"
         fi
 
         sed -i "" $'s/&minus;/-/g' "${HOME}/man_html/${1}.html"
@@ -1694,14 +1703,14 @@ _type() {
     if [[ "${#}" -eq 0 ]]; then
         result=$(
             set |
-            \grep -E "^_?[a-z][a-z_]+ \()" |
-            awk '{ print $1 }' |
-            fzf \
-                --exit-0 \
-                --info="hidden" \
-                --preview-window="right:70%" \
-                --preview='source ~/.dot-star/bash/.bash_profile; type {}' \
-                --select-1
+                \grep -E "^_?[a-z][a-z_]+ \()" |
+                awk '{ print $1 }' |
+                fzf \
+                    --exit-0 \
+                    --info="hidden" \
+                    --preview-window="right:70%" \
+                    --preview='source ~/.dot-star/bash/.bash_profile; type {}' \
+                    --select-1
         )
         return_code="${?}"
 
@@ -1760,54 +1769,54 @@ _outdated() {
 alias outdated="_outdated"
 
 _repeat() {
-  command_with_args_to_repeatedly_do="${@}"
+    command_with_args_to_repeatedly_do="${@}"
 
-  sequence=0
-  while :; do
-    # Recalculate cols each iteration as screen may have been resized.
-    cols="$(tput cols)"
-    echo
-    printf -- '#%.0s' $(seq 1 $cols)
-    echo
-    echo "seq ${sequence} running \`$command_with_args_to_repeatedly_do'"
-    $command_with_args_to_repeatedly_do
+    sequence=0
+    while :; do
+        # Recalculate cols each iteration as screen may have been resized.
+        cols="$(tput cols)"
+        echo
+        printf -- '#%.0s' $(seq 1 $cols)
+        echo
+        echo "seq ${sequence} running \`$command_with_args_to_repeatedly_do'"
+        $command_with_args_to_repeatedly_do
 
-    (( sequence += 1 ))
-    sleep 1
-  done
+        ((sequence += 1))
+        sleep 1
+    done
 }
 alias repeat="_repeat"
 
 _repeat_wd() {
-  # Watch directory, run command (or alias!), repeat.
-  #
-  # $ wdrepeat yarn lint
-  # >> while :; do watch_dir; yarn lint; done
-  #
-  # $ repeatwd 'clear; pyenv activate myenv; python -m pytest -rP some_test.py -k "somekeyword"'
-  # >> while :; do watch_dir; clear; pyenv activate myenv; python -m pytest -rP some_test.py -k "somekeyword"; done
+    # Watch directory, run command (or alias!), repeat.
+    #
+    # $ wdrepeat yarn lint
+    # >> while :; do watch_dir; yarn lint; done
+    #
+    # $ repeatwd 'clear; pyenv activate myenv; python -m pytest -rP some_test.py -k "somekeyword"'
+    # >> while :; do watch_dir; clear; pyenv activate myenv; python -m pytest -rP some_test.py -k "somekeyword"; done
 
-  command_with_args_to_repeatedly_do="${@}"
-  # echo "command_with_args_to_repeatedly_do: \"${command_with_args_to_repeatedly_do}\""
+    command_with_args_to_repeatedly_do="${@}"
+    # echo "command_with_args_to_repeatedly_do: \"${command_with_args_to_repeatedly_do}\""
 
-  screen_name="repeat_command_${RANDOM}"
+    screen_name="repeat_command_${RANDOM}"
 
-  # Start screen in "detached" mode with a session name.
-  screen -S "${screen_name}" -t "master" -d -m
+    # Start screen in "detached" mode with a session name.
+    screen -S "${screen_name}" -t "master" -d -m
 
-  # Wait for screen to be ready before opening new sessions.
-  sleep 1
+    # Wait for screen to be ready before opening new sessions.
+    sleep 1
 
-  # Create a new tab and send a command to it.
-  # TODO: Display command being run and horizontal rule between each execution as in _repeat().
-  screen -S "${screen_name}" -X "screen" -t "my_screen_1"
-  screen -S "${screen_name}" -p "my_screen_1" -X stuff "while :; do watch_dir; ${command_with_args_to_repeatedly_do}; done"$'\n'
+    # Create a new tab and send a command to it.
+    # TODO: Display command being run and horizontal rule between each execution as in _repeat().
+    screen -S "${screen_name}" -X "screen" -t "my_screen_1"
+    screen -S "${screen_name}" -p "my_screen_1" -X stuff "while :; do watch_dir; ${command_with_args_to_repeatedly_do}; done"$'\n'
 
-  # Exit the first screen.
-  screen -S "${screen_name}" -p "0" -X stuff $'exit\n'
+    # Exit the first screen.
+    screen -S "${screen_name}" -p "0" -X stuff $'exit\n'
 
-  # Attach.
-  screen -r "${screen_name}"
+    # Attach.
+    screen -r "${screen_name}"
 }
 alias repeatwd="_repeat_wd"
 alias wdrepeat="_repeat_wd"
@@ -1904,9 +1913,9 @@ remove_empty_directories() {
         -type d \
         -empty \
         \( \
-            -path "*/.*" -prune -o \
-            -path "*/.git" -prune -o \
-            -print \
+        -path "*/.*" -prune -o \
+        -path "*/.git" -prune -o \
+        -print \
         \) |
         xargs -L 1 -I {} sh -c 'echo "Removing directory: {}"; rmdir "{}"'
 }
@@ -1946,7 +1955,8 @@ _calendar() {
     # echo "user date: ${user_date}"
     # echo
 
-    code="$(cat <<\EOF
+    code="$(
+        cat <<\EOF
 $user_input_arg_1 = 'first day of ' . $argv['1'];
 
 $timezone = 'America/Los_Angeles';
@@ -1959,7 +1969,7 @@ echo json_encode(array(
     'year' => $datetime->format('Y'),
 ));
 EOF
-)"
+    )"
     result="$(php -r "${code}" "${user_date}")"
     # echo "result: ${result}"
 
@@ -1983,12 +1993,14 @@ _open_files() {
     elif [[ $result_count -gt 10 ]]; then
         if [[ -n "$ZSH_VERSION" ]]; then
             echo -n "Are you sure you want to open ${result_count} files? [y/n] "
-            read -k 1 REPLY; echo
+            read -k 1 REPLY
+            echo
             if ! [[ $REPLY =~ ^[Yy]$ ]]; then
                 return
             fi
         elif [[ -n "$BASH_VERSION" ]]; then
-            read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r; echo
+            read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r
+            echo
             if ! [[ $REPLY =~ ^[Yy]$ ]]; then
                 return
             fi
@@ -2002,7 +2014,7 @@ _open_files() {
     files_array=()
     while IFS= read -r line; do
         files_array+=("${line}")
-    done <<< "${results}"
+    done <<<"${results}"
 
     # Open results as a list of file path arguments.
     # Pass an expanded array containing the list of file paths to the edit

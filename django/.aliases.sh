@@ -15,7 +15,7 @@ createsuperuser() {
 _runserver() {
     production="${1}"
 
-    if "${production}" 2> /dev/null; then
+    if "${production}" 2>/dev/null; then
         export PRODUCTION=1
     else
         export PRODUCTION=0
@@ -30,7 +30,7 @@ alias runserver="_runserver true"
 alias rs="runserver"
 
 shell() {
-    python manage.py help debugsqlshell &> /dev/null
+    python manage.py help debugsqlshell &>/dev/null
     if [ $? -eq 0 ]; then
         python manage.py debugsqlshell
     else
