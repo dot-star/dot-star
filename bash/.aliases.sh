@@ -1743,6 +1743,7 @@ go_to_root() {
     done
 }
 alias r="go_to_root"
+alias rv="go_to_root && v."
 
 wget() {
     set -x
