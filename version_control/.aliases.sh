@@ -469,9 +469,10 @@ git_reset_author() {
 alias reset_author="git_reset_author"
 
 git_stash() {
-    message="${1}"
-    if [ -z "${message}" ]; then
+    if [[ "${#}" -eq 0 ]]; then
         message="$(display_input_prompt "Enter stash message:")"
+    else
+        message="${@}"
     fi
 
     if [ -z "${message}" ]; then
