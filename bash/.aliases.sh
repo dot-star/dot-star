@@ -806,10 +806,11 @@ slugify() {
     script="
 import re
 import sys
+import unicodedata
 
 value = sys.stdin.read().rstrip()
-value = re.sub(r'[/]', '-', value)
-value = re.sub(r'[^\w\s\.-]', '', value.lower())
+value = unicodedata.normalize('NFKC', value)
+value = re.sub(r'[^\w\s-]', '', value.lower())
 print(re.sub(r'[-\s]+', '-', value).strip('-_'))
 "
     echo "${stdin}" | python3 -c "${script}"
