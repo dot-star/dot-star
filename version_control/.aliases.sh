@@ -955,17 +955,6 @@ commit_work_in_progress_no_verify() {
 alias nvwip="commit_work_in_progress_no_verify"
 alias nwip="commit_work_in_progress_no_verify"
 
-conditional_gh() {
-    if [[ "${#}" -eq 0 ]]; then
-        github_repositories
-    else
-        gh ${@}
-    fi
-}
-alias gh="conditional_gh"
-alias ghr="github_repositories"
-alias gr="github_repositories"
-
 git_swap_last_two_commits() {
     # Ensure working directory is clean.
     if ! git diff-index --quiet HEAD --; then
@@ -1018,6 +1007,17 @@ open_pull_request() {
 }
 
 alias pr="open_pull_request"
+
+conditional_gh() {
+    if [[ "${#}" -eq 0 ]]; then
+        github_repositories
+    else
+        gh ${@}
+    fi
+}
+alias gh="conditional_gh"
+alias ghr="github_repositories"
+alias gr="github_repositories"
 
 open_repository() {
     gh browse
