@@ -1009,6 +1009,17 @@ open_pull_request() {
 alias pr="open_pull_request"
 
 conditional_gh() {
+    # Open the current repository or list repositories; passthrough to gh
+    # otherwise.
+    # (in a git repo, no args)
+    # $ gh
+    # >> gh browse
+    # (not in a git repo, no args)
+    # $ gh
+    # >> github_repositories
+    # (with args, passthrough)
+    # $ gh pr list
+    # >> gh pr list
     if [[ "${#}" -eq 0 ]]; then
         if is_git; then
             open_repository
@@ -1024,6 +1035,13 @@ alias ghr="github_repositories"
 alias gr="github_repositories"
 
 open_repository() {
-    gh browse
+    # Open the current repository on GitHub or a specific file on GitHub.
+    # $ repo
+    # >> gh browse
+    # $ repo src/main.py
+    # >> gh browse src/main.py
+    # $ repo src/main.py:100
+    # >> gh browse src/main.py:100
+    command gh browse ${@}
 }
 alias repo="open_repository"
