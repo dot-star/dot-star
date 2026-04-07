@@ -1010,7 +1010,11 @@ alias pr="open_pull_request"
 
 conditional_gh() {
     if [[ "${#}" -eq 0 ]]; then
-        github_repositories
+        if is_git; then
+            open_repository
+        else
+            github_repositories
+        fi
     else
         gh ${@}
     fi
