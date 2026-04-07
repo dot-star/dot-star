@@ -1018,3 +1018,8 @@ open_pull_request() {
 }
 
 alias pr="open_pull_request"
+
+open_repository() {
+    gh browse
+}
+alias repo="open_repository"
