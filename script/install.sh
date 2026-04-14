@@ -12,8 +12,10 @@ setup_bootstrap() {
     filename="${1}"
     script="${2}"
 
-    # Remove any existing bootstrap.
-    sed -i "" "/${dotstar_header}/,/${dotstar_footer}/d" "${filename}" &>/dev/null
+    # Remove any existing bootstrap block(s).
+    while grep -q "${dotstar_header}" "${filename}" 2>/dev/null; do
+        sed -i "" "/${dotstar_header}/,/${dotstar_footer}/d" "${filename}"
+    done
 
     echo -e "${dotstar_header}" >>"${filename}"
     echo -e "${script}" >>"${filename}"
