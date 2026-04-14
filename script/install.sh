@@ -53,19 +53,12 @@ if [ ! -L "${HOME}/.screenrc" ]; then
 fi
 
 install_ipython() {
-    python3 -m ensurepip --upgrade
-    python3 -m pip install --upgrade pip
-
     if [[ "${OSTYPE}" == "darwin"* ]]; then
-        brew install python
+        brew install ipython
+    elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
+        sudo apt-get install -y ipython3
     fi
-    python3 -m pip install --user ipython
 
-    # Add python binaries to PATH.
-    echo -e "export PATH=$PATH:/Users/$(whoami)/Library/Python/2.7/bin\n\n" >>"${HOME}/.bash_profile"
-
-    # Disable IPython's "Do you really want to exit ([y]/n)?".
-    export PATH="$PATH:/Users/$(whoami)/Library/Python/2.7/bin"
     ipython profile create
     echo -e "c.TerminalInteractiveShell.confirm_exit = False\n" >>~/.ipython/profile_default/ipython_config.py
     echo -e "c.TerminalInteractiveShell.editing_mode = 'vi'\n" >>~/.ipython/profile_default/ipython_config.py
