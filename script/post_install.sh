@@ -60,7 +60,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
 
     # Install command-line fuzzy finder with key bindings and fuzzy completion.
     brew install fzf
-    $(brew --prefix)/opt/fzf/install
+    $(brew --prefix)/opt/fzf/install --all
 
     # Disable chime sound when power is connected.
     defaults write com.apple.PowerChime ChimeOnNoHardware -bool true
