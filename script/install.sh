@@ -31,8 +31,6 @@ setup_bootstrap "${HOME}/.bashrc" 'echo "if shopt -q login_shell; then
     [[ -r ~/.dot-star/bash/.bash_profile ]] && source ~/.dot-star/bash/.bash_profile
 fi" >> "$HOME/.bashrc"'
 
-setup_bootstrap "${HOME}/.zshrc" '[[ -r ~/.dot-star/bash/.bash_profile ]] && source ~/.dot-star/bash/.bash_profile'
-
 # Install inputrc.
 if [ ! -L "${HOME}/.inputrc" ]; then
     ln -v -s "${DOT_STAR_ROOT}/bash/.inputrc" "${HOME}/.inputrc"
