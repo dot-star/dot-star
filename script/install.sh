@@ -66,9 +66,6 @@ install_ipython() {
 }
 install_ipython
 
-# Add bootstrap footer to bash profile.
-echo -e "${dotstar_footer}" >>"$HOME/.bash_profile"
-
 # TODO: Consolidate post install script into install script.
 # Run post installation script.
 source "${DOT_STAR_ROOT}/script/post_install.sh"
