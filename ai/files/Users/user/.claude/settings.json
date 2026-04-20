@@ -12,6 +12,19 @@
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true
   },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.last_assistant_message' | head -c 100 | osascript -e 'on run' -e 'set msg to do shell script \"cat /dev/stdin\"' -e 'display notification msg with title \"Claude Code\"' -e 'end run'"
+          }
+        ]
+      }
+    ]
+  },
   "attribution": {
     "commit": "",
     "pr": ""
