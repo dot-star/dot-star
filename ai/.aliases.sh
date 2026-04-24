@@ -30,7 +30,7 @@ EOF
 
     selected="$(
         echo "${options}" |
-            fzf --no-sort --prompt='Select commit message: ' --height=40%
+            fzf --no-sort --reverse --prompt='Select commit message: ' --height=40%
     )"
     if [[ -z "${selected}" ]]; then
         return 1
@@ -38,4 +38,11 @@ EOF
 
     git commit -m "${selected}"
 }
+
+# Adding various. Let's see which one sticks.
+alias aic="claude_git_commit"
+alias cgc="claude_git_commit"
+alias clc="claude_git_commit"
 alias clcm="claude_git_commit"
+alias cma="claude_git_commit"
+alias cmc="claude_git_commit"
