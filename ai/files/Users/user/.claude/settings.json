@@ -25,6 +25,7 @@
       }
     ]
   },
+  "editorMode": "vim",
   "attribution": {
     "commit": "",
     "pr": ""
