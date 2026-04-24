@@ -30,7 +30,7 @@ EOF
 
     selected="$(
         echo "${options}" |
-            fzf --prompt='Select commit message: ' --height=40%
+            fzf --no-sort --prompt='Select commit message: ' --height=40%
     )"
     if [[ -z "${selected}" ]]; then
         return 1
