@@ -1,13 +1,13 @@
 alias_before_after() {
     # Edit files to run a comparison and display live diff.
 
-    local before_file_name=~"/Desktop/before.txt"
-    local after_file_name=~"/Desktop/after.txt"
+    local before_file_name="/tmp/before.txt"
+    local after_file_name="/tmp/after.txt"
 
     touch "${before_file_name}" "${after_file_name}"
     edit "${before_file_name}" "${after_file_name}"
 
-    cd ~/Desktop &&
+    cd "/tmp/" &&
         while :; do
             wd
             exit_code="${?}"
