@@ -850,10 +850,9 @@ grep_checkout() {
     done
     for branch in ${branch_list}; do
         colorful_branch=$(echo -e "\033[38;5;141m${branch}\033[39m")
-        question="Checkout ${colorful_branch}?"
-        read -p "${question} " -n 1 -r
+        response="$(display_confirm_prompt_info "Checkout ${colorful_branch}?")"
         echo # Move to a new line.
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
+        if [[ $response =~ ^[Yy]$ ]]; then
             echo "checking out ${branch}"
             checkout "${branch}"
             break
@@ -871,10 +870,9 @@ grep_merge() {
     done
     for branch in ${branch_list}; do
         colorful_branch=$(echo -e "\033[38;5;141m${branch}\033[39m")
-        question="Merge ${colorful_branch}?"
-        read -p "${question} " -n 1 -r
+        response="$(display_confirm_prompt_caution "Merge ${colorful_branch}?")"
         echo # Move to a new line.
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
+        if [[ $response =~ ^[Yy]$ ]]; then
             echo "merging ${branch}"
             merge "${branch}"
             break

@@ -848,10 +848,10 @@ slugify_mv() {
         if [[ "${new_filename}" != "${filename}" ]]; then
             # TODO: Ensure destination doesn't exist. Append the first available number to file name if needed.
             # TODO: Display result file rename without asking for confirmation.
-            message='Rename "'${filename}'" to "'${new_filename}'"?'
-            read -p "${message} [y/n] " -n 1 -r
+            message='Rename "'${filename}'" to "'${new_filename}'"? [y/n]'
+            response="$(display_confirm_prompt_caution "${message}")"
             echo
-            if [[ $REPLY =~ ^[Yy]$ ]]; then
+            if [[ $response =~ ^[Yy]$ ]]; then
                 mv "${filename}" "${new_filename}"
             fi
         else
@@ -1101,9 +1101,9 @@ is_ssh() {
 
 serve_dir() {
     port="8080"
-    read -p "Are you sure you want to serve the current directory over port ${port}? [y/n] " -n 1 -r
+    response="$(display_confirm_prompt_caution "Are you sure you want to serve the current directory over port ${port}? [y/n]")"
     echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
+    if [[ $response =~ ^[Yy]$ ]]; then
         echo "http://localhost:${port}/"
         set -x
         python -m SimpleHTTPServer "${port}"
@@ -1493,9 +1493,9 @@ generate_key() {
         return 1
     fi
 
-    read -p "Look good? [y/n] " -n 1 -r
+    response="$(display_confirm_prompt_info "Look good? [y/n]")"
     echo
-    if ! [[ $REPLY =~ ^[Yy]$ ]]; then
+    if ! [[ $response =~ ^[Yy]$ ]]; then
         echo "exiting"
         return
     fi
@@ -2068,21 +2068,9 @@ _open_files() {
         echo "no files to open"
         return
     elif [[ $result_count -gt 10 ]]; then
-        if [[ -n "$ZSH_VERSION" ]]; then
-            echo -n "Are you sure you want to open ${result_count} files? [y/n] "
-            read -k 1 REPLY
-            echo
-            if ! [[ $REPLY =~ ^[Yy]$ ]]; then
-                return
-            fi
-        elif [[ -n "$BASH_VERSION" ]]; then
-            read -p "Are you sure you want to open ${result_count} files? [y/n] " -n 1 -r
-            echo
-            if ! [[ $REPLY =~ ^[Yy]$ ]]; then
-                return
-            fi
-        else
-            echo "TODO: Handle other case."
+        response="$(display_confirm_prompt_caution "Are you sure you want to open ${result_count} files? [y/n]")"
+        echo
+        if ! [[ $response =~ ^[Yy]$ ]]; then
             return
         fi
     fi
