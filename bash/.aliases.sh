@@ -1771,6 +1771,56 @@ go_to_root() {
 alias r="go_to_root"
 alias rv="go_to_root && v."
 
+git_worktree_cd() {
+    # cd into a git worktree. Without args, fzf-pick from `git worktree list'.
+    # Usage:
+    #   $ wt
+    #   $ wt pattern
+
+    if ! git rev-parse --is-inside-work-tree &>/dev/null; then
+        echo "not in a git repository"
+        return 1
+    fi
+
+    local worktree_list
+    worktree_list="$(git worktree list)"
+
+    local source_list
+    if [[ "${#}" -eq 0 ]]; then
+        source_list="${worktree_list}"
+    else
+        source_list="$(echo "${worktree_list}" | \grep --ignore-case -- "${1}")"
+        if [[ -z "${source_list}" ]]; then
+            echo "no worktree matching \"${1}\""
+            return 1
+        fi
+    fi
+
+    local selected
+    selected="$(
+        echo "${source_list}" |
+            fzf \
+                --exit-0 \
+                --info="hidden" \
+                --select-1
+    )"
+    local return_code="${?}"
+
+    # "130 Interrupted with CTRL-C or ESC"
+    if [[ "${return_code}" -eq 130 ]]; then
+        return
+    fi
+
+    if [[ -z "${selected}" ]]; then
+        return
+    fi
+
+    local worktree_path
+    worktree_path="$(echo "${selected}" | awk '{print $1}')"
+    cd "${worktree_path}"
+}
+alias wt="git_worktree_cd"
+
 wget() {
     set -x
     curl --remote-name --user-agent "" "${@}"
