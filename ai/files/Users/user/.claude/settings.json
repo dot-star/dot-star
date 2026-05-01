@@ -1,6 +1,7 @@
 {
   "permissions": {
     "allow": [
+      "Bash(bash -n *)",
       "Bash(gh pr checks*)",
       "Bash(gh pr diff*)",
       "Bash(gh pr list*)",
