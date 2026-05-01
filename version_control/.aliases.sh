@@ -500,7 +500,7 @@ git_stash_drop() {
         echo "${git_stash}"
     elif [[ ! -z "${git_stash}" ]]; then
         # Confirm before dropping the selected git stash.
-        response="$(display_confirm_prompt "Drop stash ${git_stash}?")"
+        response="$(display_confirm_prompt_destructive "Drop stash ${git_stash}?")"
         if [[ "${response}" =~ ^[Yy]$ ]]; then
             echo
             git stash drop "${git_stash}"
@@ -553,7 +553,7 @@ git_stash_pop() {
         git stash show --patch --include-untracked "${git_stash}"
 
         # Confirm before popping the selected git stash.
-        response="$(display_confirm_prompt "Pop stash ${git_stash}?")"
+        response="$(display_confirm_prompt_info "Pop stash ${git_stash}?")"
         if [[ "${response}" =~ ^[Yy]$ ]]; then
             echo
             git stash pop "${git_stash}"
