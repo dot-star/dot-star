@@ -557,6 +557,12 @@ git_stash_pop() {
         if [[ "${response}" =~ ^[Yy]$ ]]; then
             echo
             git stash pop "${git_stash}"
+            local pop_exit_code="${?}"
+            if [[ "${pop_exit_code}" -ne 0 ]]; then
+                echo
+                echo -e "\033[38;5;160mWARNING: stash did not pop cleanly — ${git_stash} was kept.\033[39m" >&2
+                return "${pop_exit_code}"
+            fi
         fi
     fi
 }
