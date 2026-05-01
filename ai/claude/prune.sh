@@ -10,7 +10,7 @@ set -euo pipefail
 
 source "${HOME}/.dot-star/bash/.confirm_prompts.sh"
 
-target_title="ok-to-delete"
+target_titles=("ok-to-delete" "ok-to-del" "delete" "del" "tmp")
 projects_dir="${HOME}/.claude/projects"
 
 if [[ ! -d "${projects_dir}" ]]; then
@@ -18,23 +18,37 @@ if [[ ! -d "${projects_dir}" ]]; then
     exit 1
 fi
 
+is_target_title() {
+    local candidate="${1}"
+    local target
+    for target in "${target_titles[@]}"; do
+        if [[ "${candidate}" == "${target}" ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
 matches=()
 while IFS= read -r -d '' file; do
     title="$(
         \jq -r 'select(.type == "custom-title") | .customTitle' "${file}" 2>/dev/null |
             tail -n 1
     )"
-    if [[ "${title}" == "${target_title}" ]]; then
+    if is_target_title "${title}"; then
         matches+=("${file}")
     fi
 done < <(find "${projects_dir}" -type f -name '*.jsonl' -print0)
 
+quoted_titles="$(printf '"%s", ' "${target_titles[@]}")"
+quoted_titles="${quoted_titles%, }"
+
 if [[ "${#matches[@]}" -eq 0 ]]; then
-    echo "No sessions with customTitle \"${target_title}\" found."
+    echo "No sessions with customTitle in {${quoted_titles}} found."
     exit 0
 fi
 
-echo "Found ${#matches[@]} session(s) with customTitle \"${target_title}\":"
+echo "Found ${#matches[@]} session(s) with customTitle in {${quoted_titles}}:"
 for file in "${matches[@]}"; do
     echo "  ${file}"
 done
