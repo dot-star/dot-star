@@ -2,8 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(chmod +x:*)",
-      "Read(/tmp/claude-*)",
+      "Bash(command -v jq)",
+      "Bash(git add *)",
+      "Bash(pbcopy)",
+      "Bash(pbpaste)",
       "Edit(/tmp/claude-*)",
+      "Read(/tmp/claude-*)",
       "Write(/tmp/claude-*)"
     ]
   },
