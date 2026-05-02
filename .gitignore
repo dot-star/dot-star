@@ -1,6 +1,4 @@
-# Ignore everything under .claude/ by default (personal settings, caches, logs)
-.claude/*
-# ...except the shared project config, which is committed.
-!.claude/settings.json
+# Ignore any .claude/ artifacts (personal settings, caches, logs).
+.claude/
 
 bash/extra.sh

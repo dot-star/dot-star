@@ -2,12 +2,20 @@
   "permissions": {
     "allow": [
       "Bash(bash -n *)",
+      "Bash(chmod +x:*)",
+      "Bash(command -v jq)",
       "Bash(gh pr checks*)",
       "Bash(gh pr diff*)",
       "Bash(gh pr list*)",
       "Bash(gh pr status*)",
       "Bash(gh pr view*)",
-      "Bash(git fetch *)"
+      "Bash(git add *)",
+      "Bash(git fetch *)",
+      "Bash(pbcopy)",
+      "Bash(pbpaste)",
+      "Edit(/tmp/claude-*)",
+      "Read(/tmp/claude-*)",
+      "Write(/tmp/claude-*)"
     ]
   },
   "enabledPlugins": {
@@ -21,6 +29,16 @@
           {
             "type": "command",
             "command": "jq -r '.tool_response.filePath // .tool_input.file_path' | { read -r f; case \"$f\" in *.sh) chmod +x \"$f\" ;; esac; } 2>/dev/null || true"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command jq -r '.session_id' | { read -r sid; dir=\"/tmp/claude-$sid\"; mkdir -p \"$dir\" && command jq -nc --arg dir \"$dir\" '{hookSpecificOutput:{hookEventName:\"SessionStart\",additionalContext:(\"Session-scoped tmp directory: \"+$dir+\" \\u2014 use this for any temporary files instead of /tmp directly.\")}}'; }"
           }
         ]
       }
