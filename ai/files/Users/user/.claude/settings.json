@@ -40,7 +40,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command jq -r '.session_id' | { read -r sid; dir=\"/tmp/claude-$sid\"; mkdir -p \"$dir\" && command jq -nc --arg dir \"$dir\" '{hookSpecificOutput:{hookEventName:\"SessionStart\",additionalContext:(\"Session-scoped tmp directory: \"+$dir+\" \\u2014 use this for any temporary files instead of /tmp directly.\")}}'; }"
+            "command": "command jq -r '.session_id' | { read -r sid; sid=${sid//[^a-zA-Z0-9-]/}; dir=\"/tmp/claude-$sid\"; mkdir -p \"$dir\" && command jq -nc --arg dir \"$dir\" '{hookSpecificOutput:{hookEventName:\"SessionStart\",additionalContext:(\"Session-scoped tmp directory: \"+$dir+\" \\u2014 use this for any temporary files instead of /tmp directly.\")}}'; }"
           }
         ]
       }
