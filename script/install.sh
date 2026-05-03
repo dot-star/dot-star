@@ -42,6 +42,9 @@ mkdir -p "${HOME}/.claude"
 if [ ! -L "${HOME}/.claude/settings.json" ]; then
     ln -v -s "${DOT_STAR_ROOT}/ai/files/Users/user/.claude/settings.json" "${HOME}/.claude/settings.json"
 fi
+if [ ! -L "${HOME}/.claude/CLAUDE.md" ]; then
+    ln -v -s "${DOT_STAR_ROOT}/ai/files/Users/user/.claude/CLAUDE.md" "${HOME}/.claude/CLAUDE.md"
+fi
 
 # Install colordiff configuration.
 if [ ! -L "${HOME}/.colordiffrc" ]; then
