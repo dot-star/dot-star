@@ -8,6 +8,44 @@
     cd dot-star
     ./install.sh
 
+## Everyday aliases
+
+### Git
+
+| Example | Resolves to |
+|---------|-------------|
+| `cm "Some commit message"` | `git commit -m "Some commit message"` |
+| `add file.txt` | `git add file.txt` |
+| `co branch` | `git checkout branch` |
+| `push` | `git push` |
+| `nv "wip"` | `git commit --no-verify -m "wip"` |
+
+### Search
+
+| Example | Resolves to |
+|---------|-------------|
+| `s` (bare) | `git status` |
+| `s "keyword"` | case-insensitive grep for `keyword` |
+| `ss "Keyword"` | case-sensitive grep |
+| `se "keyword"` | grep, then open matching files in vim |
+| `f filter` | find files whose name contains `filter` |
+
+### Diff
+
+| Example | Resolves to |
+|---------|-------------|
+| `d` (in a git repo) | `git diff` |
+| `d before.txt after.txt` | file diff |
+| `d ps` (outside a git repo) | `docker ps` |
+
+### Files / editing
+
+| Example | Resolves to |
+|---------|-------------|
+| `v file.txt` | open `file.txt` in vim |
+| `rp ./symlink` | resolve to absolute real path |
+| `rm *` | refuses with a warning |
+
 ## Examples
 
 ### Prevent accidental wildcard deletion
