@@ -42,6 +42,11 @@ Consequences for changes:
 
 ### Claude Code config lives in the user-global slot only
 
+There are two `CLAUDE.md` files in this repo with different scopes:
+
+- `./CLAUDE.md` (this file) is the project guide for working *on* dot-star itself.
+- `ai/files/Users/user/.claude/CLAUDE.md` is the user-global memory that ships with this repo and applies when *using* dot-star (and anywhere else Claude runs on this machine).
+
 There is no project-scoped `.claude/settings.json` here on purpose (`.claude/` is gitignored). The user's global config at `~/.claude/settings.json` is itself a symlink into this repo at `ai/files/Users/user/.claude/settings.json` (set up by `script/install.sh`), so editing that file is how you change Claude Code behavior, both inside this checkout and everywhere else on the machine.
 
 ## Project conventions
