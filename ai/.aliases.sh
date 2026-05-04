@@ -46,3 +46,6 @@ alias clc="claude_git_commit"
 alias clcm="claude_git_commit"
 alias cma="claude_git_commit"
 alias cmc="claude_git_commit"
+
+alias clp="~/.dot-star/ai/claude/prune.sh"
+alias prune="~/.dot-star/ai/claude/prune.sh"
