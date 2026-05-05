@@ -3,12 +3,10 @@
 # Prune Claude sessions.
 #
 # Scans ~/.claude/projects/*/*.jsonl, reads the most recent
-# `{"type":"custom-title", ...}` entry from each file, and lists sessions for
-# confirmation before removal.
+# `{"type":"custom-title", ...}` entry from each file, and removes any session
+# whose title matches a target.
 
 set -euo pipefail
-
-source "${HOME}/.dot-star/bash/.confirm_prompts.sh"
 
 target_titles=("ok-to-delete" "ok-to-del" "delete" "del" "tmp")
 projects_dir="${HOME}/.claude/projects"
@@ -48,18 +46,7 @@ if [[ "${#matches[@]}" -eq 0 ]]; then
     exit 0
 fi
 
-echo "Found ${#matches[@]} session(s) with customTitle in {${quoted_titles}}:"
+echo "Pruning ${#matches[@]} session(s) with customTitle in {${quoted_titles}}:"
 for file in "${matches[@]}"; do
-    echo "  ${file}"
+    rm -v "${file}"
 done
-echo
-
-reply="$(display_confirm_prompt_destructive "Prune these ${#matches[@]} session(s)? [y/N]")"
-echo
-if [[ "${reply}" =~ ^[Yy]$ ]]; then
-    for file in "${matches[@]}"; do
-        rm -v "${file}"
-    done
-else
-    echo "Aborted."
-fi
