@@ -32,8 +32,14 @@ ensure_symlink() {
         fi
     # Check for any existing path (regular file, directory, socket, FIFO, etc.) as destination.
     elif [ -e "${dest}" ]; then
-        # Don't clobber.
-        warn "${dest} exists but is not a symlink, expected symlink to ${src}"
+        # Check for a regular file with content matching src; safe to replace with symlink.
+        if [ -f "${dest}" ] && [ -f "${src}" ] && cmp -s "${dest}" "${src}"; then
+            rm "${dest}"
+            ln -v -s "${src}" "${dest}"
+        else
+            # Don't clobber.
+            warn "${dest} exists but is not a symlink, expected symlink to ${src}"
+        fi
     # No entry at destination.
     else
         ln -v -s "${src}" "${dest}"
