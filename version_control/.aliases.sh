@@ -118,11 +118,18 @@ alias cob="rc_checkout_before"
 alias commit="rc_commit"
 
 git_continue() {
+    local git_dir
+    git_dir="$(git rev-parse --git-dir 2>/dev/null)"
+    if [[ -z "${git_dir}" ]]; then
+        echo "Error: Not inside a git repository."
+        return 1
+    fi
+
     # Check for Rebase (both apply and merge variants)
-    if [[ -d ".git/rebase-apply" || -d ".git/rebase-merge" ]]; then
+    if [[ -d "${git_dir}/rebase-apply" || -d "${git_dir}/rebase-merge" ]]; then
         git rebase --continue
     # Check for Revert (sequencer handles revert and cherry-pick)
-    elif [[ -f ".git/sequencer/todo" ]] && grep -q "revert" ".git/sequencer/todo"; then
+    elif [[ -f "${git_dir}/sequencer/todo" ]] && grep -q "revert" "${git_dir}/sequencer/todo"; then
         git revert --continue
     else
         echo "Error: Nothing to continue detected."
