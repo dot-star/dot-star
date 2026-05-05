@@ -1733,7 +1733,9 @@ alias r="go_to_root"
 alias rv="go_to_root && v."
 
 git_worktree_cd() {
-    # cd into a git worktree. Without args, fzf-pick from `git worktree list'.
+    # cd into a git worktree, mirroring the cwd's path within the current
+    # worktree into the target worktree when that subdirectory exists.
+    # Without args, fzf-pick from `git worktree list'.
     # Usage:
     #   $ wt
     #   $ wt pattern
@@ -1783,7 +1785,24 @@ git_worktree_cd() {
 
     local worktree_path
     worktree_path="$(echo "${selected}" | awk '{print $1}')"
-    cd "${worktree_path}"
+
+    # Path of cwd relative to the current worktree's top-level.
+    local current_toplevel
+    current_toplevel="$(git rev-parse --show-toplevel)"
+    local relative_path="${PWD#"${current_toplevel}"}"
+    relative_path="${relative_path#/}"
+
+    local target_path="${worktree_path}"
+    if [[ -n "${relative_path}" ]]; then
+        target_path="${worktree_path}/${relative_path}"
+        # Fall back to the deepest existing ancestor when the mirrored
+        # subdirectory doesn't exist in the target worktree.
+        while [[ ! -d "${target_path}" && "${target_path}" != "${worktree_path}" ]]; do
+            target_path="$(dirname -- "${target_path}")"
+        done
+    fi
+
+    cd "${target_path}"
 }
 alias wt="git_worktree_cd"
 
