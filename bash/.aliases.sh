@@ -1744,7 +1744,12 @@ git_worktree_cd() {
     fi
 
     local worktree_list
-    worktree_list="$(git worktree list)"
+    # Keep only entries whose path is under a "worktrees/" directory.
+    worktree_list="$(git worktree list | awk '$1 ~ "/worktrees/"')"
+    if [[ -z "${worktree_list}" ]]; then
+        echo "no worktrees under a worktrees/ directory"
+        return 1
+    fi
 
     local source_list
     if [[ "${#}" -eq 0 ]]; then
