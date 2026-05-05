@@ -33,8 +33,18 @@ ensure_symlink() {
 
 # Create symlink to project files in home directory.
 DOT_STAR_ROOT="$(dirname $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd))"
-rm -f "${HOME}/.dot-star"
-ln -vs "${DOT_STAR_ROOT}" "${HOME}/.dot-star"
+DOT_STAR="${HOME}/.dot-star"
+if [ -L "${DOT_STAR}" ]; then
+    # Replace existing symlink.
+    rm "${DOT_STAR}"
+    ln -vs "${DOT_STAR_ROOT}" "${DOT_STAR}"
+elif [ -e "${DOT_STAR}" ]; then
+    # Refuse to clobber a real file or directory.
+    warn "${DOT_STAR} exists and is not a symlink, refusing to clobber"
+else
+    # Create symlink.
+    ln -vs "${DOT_STAR_ROOT}" "${DOT_STAR}"
+fi
 
 dotstar_header="# Begin dot-star bootstrap."
 dotstar_footer="# End dot-star bootstrap."
@@ -63,17 +73,17 @@ setup_bootstrap "${HOME}/.bashrc" 'echo "if shopt -q login_shell; then
 fi" >> "$HOME/.bashrc"'
 
 # Install inputrc.
-ensure_symlink "${DOT_STAR_ROOT}/bash/.inputrc" "${HOME}/.inputrc"
+ensure_symlink "${DOT_STAR}/bash/.inputrc" "${HOME}/.inputrc"
 
 # Install Claude Code settings.
 mkdir -p "${HOME}/.claude"
-ensure_symlink "${DOT_STAR_ROOT}/ai/files/Users/user/.claude/settings.json" "${HOME}/.claude/settings.json"
-ensure_symlink "${DOT_STAR_ROOT}/ai/files/Users/user/.claude/CLAUDE.md" "${HOME}/.claude/CLAUDE.md"
+ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/settings.json" "${HOME}/.claude/settings.json"
+ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/CLAUDE.md" "${HOME}/.claude/CLAUDE.md"
 
 # Install colordiff configuration.
-ensure_symlink "${DOT_STAR_ROOT}/colordiff/.colordiffrc" "${HOME}/.colordiffrc"
+ensure_symlink "${DOT_STAR}/colordiff/.colordiffrc" "${HOME}/.colordiffrc"
 
-ensure_symlink "${DOT_STAR_ROOT}/screen/.screenrc" "${HOME}/.screenrc"
+ensure_symlink "${DOT_STAR}/screen/.screenrc" "${HOME}/.screenrc"
 
 install_ipython() {
     if [[ "${OSTYPE}" == "darwin"* ]]; then
