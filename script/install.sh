@@ -15,20 +15,29 @@ warn() {
 ensure_symlink() {
     local src="${1}"
     local dest="${2}"
+    # Check for any symlink (working or broken) as destination.
     if [ -L "${dest}" ]; then
         local actual_src
         actual_src="$(readlink "${dest}")"
         if [ "${actual_src}" = "${src}" ]; then
+            # Already canonical.
             return 0
+        elif [ -e "${dest}" ] && [ -e "${src}" ] && [ "${dest}" -ef "${src}" ]; then
+            # Check that both paths exist (-e) and resolve to the same inode (-ef); refresh to canonical src path.
+            rm "${dest}"
+            ln -v -s "${src}" "${dest}"
+        else
+            # Symlink points at a different file; don't clobber.
+            warn "${dest} is a symlink to ${actual_src}, expected ${src}"
         fi
-        warn "${dest} is a symlink to ${actual_src}, expected ${src}"
-        return 0
-    fi
-    if [ -e "${dest}" ]; then
+    # Check for any existing path (regular file, directory, socket, FIFO, etc.) as destination.
+    elif [ -e "${dest}" ]; then
+        # Don't clobber.
         warn "${dest} exists but is not a symlink, expected symlink to ${src}"
-        return 0
+    # No entry at destination.
+    else
+        ln -v -s "${src}" "${dest}"
     fi
-    ln -v -s "${src}" "${dest}"
 }
 
 # Create symlink to project files in home directory.
