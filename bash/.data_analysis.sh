@@ -76,7 +76,7 @@ difference() {
             echo "${diff_result}"
         fi
     elif [[ "${exit_code}" -eq 0 ]]; then
-        echo "No differences found."
+        echo "⚖️ No differences found."
         md5sum "${1}" "${2}"
     else
         echo "Error running diff."
