@@ -1377,10 +1377,14 @@ edit_extension_files() {
     fi
 
     # Open JavaScript files.
-    javascript_results=$(find . -iname "*.js" ! -path "*/node_modules/*")
-    if [[ ! -z "${javascript_results}" ]]; then
-        echo -e "javascript_results:\n${javascript_results}"
-        files_to_edit+=("${javascript_results}")
+    javascript_results=()
+    while IFS= read -r line; do
+        javascript_results+=("${line}")
+    done < <(find . -iname "*.js" ! -path "*/node_modules/*")
+    if ((${#javascript_results[@]} > 0)); then
+        echo "javascript_results:"
+        printf '%s\n' "${javascript_results[@]}"
+        files_to_edit+=("${javascript_results[@]}")
     fi
 
     # Open style.scss or style.css in a child directory.
@@ -1403,10 +1407,10 @@ edit_extension_files() {
         files_to_edit+=("${manifest_results}")
     fi
 
-    if [[ -z "${files_to_edit}" ]]; then
+    if ((${#files_to_edit[@]} == 0)); then
         echo "no extension files to edit"
     else
-        edit ${files_to_edit[@]}
+        edit "${files_to_edit[@]}"
 
         if $scss_found; then
             echo "running sasswatch"
