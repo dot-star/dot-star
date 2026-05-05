@@ -1,6 +1,36 @@
 #!/usr/bin/env bash
 set -x
 
+WARNINGS=()
+
+# Append a warning to WARNINGS and emit it to stderr without xtrace noise.
+warn() {
+    WARNINGS+=("${1}")
+    set +x
+    echo "WARNING: ${1}" >&2
+    set -x
+}
+
+# Symlink path -> expected_target; warn instead of overwriting if path already exists.
+ensure_symlink() {
+    local path="${1}"
+    local expected_target="${2}"
+    if [ -L "${path}" ]; then
+        local actual_target
+        actual_target="$(readlink "${path}")"
+        if [ "${actual_target}" = "${expected_target}" ]; then
+            return 0
+        fi
+        warn "${path} is a symlink to ${actual_target}, expected ${expected_target}"
+        return 0
+    fi
+    if [ -e "${path}" ]; then
+        warn "${path} exists but is not a symlink, expected symlink to ${expected_target}"
+        return 0
+    fi
+    ln -v -s "${expected_target}" "${path}"
+}
+
 # Create symlink to project files in home directory.
 DOT_STAR_ROOT="$(dirname $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd))"
 rm -f "${HOME}/.dot-star"
@@ -33,27 +63,17 @@ setup_bootstrap "${HOME}/.bashrc" 'echo "if shopt -q login_shell; then
 fi" >> "$HOME/.bashrc"'
 
 # Install inputrc.
-if [ ! -L "${HOME}/.inputrc" ]; then
-    ln -v -s "${DOT_STAR_ROOT}/bash/.inputrc" "${HOME}/.inputrc"
-fi
+ensure_symlink "${HOME}/.inputrc" "${DOT_STAR_ROOT}/bash/.inputrc"
 
 # Install Claude Code settings.
 mkdir -p "${HOME}/.claude"
-if [ ! -L "${HOME}/.claude/settings.json" ]; then
-    ln -v -s "${DOT_STAR_ROOT}/ai/files/Users/user/.claude/settings.json" "${HOME}/.claude/settings.json"
-fi
-if [ ! -L "${HOME}/.claude/CLAUDE.md" ]; then
-    ln -v -s "${DOT_STAR_ROOT}/ai/files/Users/user/.claude/CLAUDE.md" "${HOME}/.claude/CLAUDE.md"
-fi
+ensure_symlink "${HOME}/.claude/settings.json" "${DOT_STAR_ROOT}/ai/files/Users/user/.claude/settings.json"
+ensure_symlink "${HOME}/.claude/CLAUDE.md" "${DOT_STAR_ROOT}/ai/files/Users/user/.claude/CLAUDE.md"
 
 # Install colordiff configuration.
-if [ ! -L "${HOME}/.colordiffrc" ]; then
-    ln -v -s "${DOT_STAR_ROOT}/colordiff/.colordiffrc" "${HOME}/.colordiffrc"
-fi
+ensure_symlink "${HOME}/.colordiffrc" "${DOT_STAR_ROOT}/colordiff/.colordiffrc"
 
-if [ ! -L "${HOME}/.screenrc" ]; then
-    ln -v -s "${DOT_STAR_ROOT}/screen/.screenrc" "${HOME}/.screenrc"
-fi
+ensure_symlink "${HOME}/.screenrc" "${DOT_STAR_ROOT}/screen/.screenrc"
 
 install_ipython() {
     if [[ "${OSTYPE}" == "darwin"* ]]; then
@@ -72,5 +92,16 @@ install_ipython
 # TODO: Consolidate post install script into install script.
 # Run post installation script.
 source "${DOT_STAR_ROOT}/script/post_install.sh"
+
+if [ ${#WARNINGS[@]} -gt 0 ]; then
+    set +x
+    echo
+    echo "warnings:"
+    for warning in "${WARNINGS[@]}"; do
+        echo "  - ${warning}"
+    done
+    echo
+    set -x
+fi
 
 echo "install complete"
