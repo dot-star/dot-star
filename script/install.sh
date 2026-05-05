@@ -11,24 +11,24 @@ warn() {
     set -x
 }
 
-# Symlink path -> expected_target; warn instead of overwriting if path already exists.
+# `ln -s src dest`, but warn instead of overwriting if dest already exists.
 ensure_symlink() {
-    local path="${1}"
-    local expected_target="${2}"
-    if [ -L "${path}" ]; then
-        local actual_target
-        actual_target="$(readlink "${path}")"
-        if [ "${actual_target}" = "${expected_target}" ]; then
+    local src="${1}"
+    local dest="${2}"
+    if [ -L "${dest}" ]; then
+        local actual_src
+        actual_src="$(readlink "${dest}")"
+        if [ "${actual_src}" = "${src}" ]; then
             return 0
         fi
-        warn "${path} is a symlink to ${actual_target}, expected ${expected_target}"
+        warn "${dest} is a symlink to ${actual_src}, expected ${src}"
         return 0
     fi
-    if [ -e "${path}" ]; then
-        warn "${path} exists but is not a symlink, expected symlink to ${expected_target}"
+    if [ -e "${dest}" ]; then
+        warn "${dest} exists but is not a symlink, expected symlink to ${src}"
         return 0
     fi
-    ln -v -s "${expected_target}" "${path}"
+    ln -v -s "${src}" "${dest}"
 }
 
 # Create symlink to project files in home directory.
@@ -63,17 +63,17 @@ setup_bootstrap "${HOME}/.bashrc" 'echo "if shopt -q login_shell; then
 fi" >> "$HOME/.bashrc"'
 
 # Install inputrc.
-ensure_symlink "${HOME}/.inputrc" "${DOT_STAR_ROOT}/bash/.inputrc"
+ensure_symlink "${DOT_STAR_ROOT}/bash/.inputrc" "${HOME}/.inputrc"
 
 # Install Claude Code settings.
 mkdir -p "${HOME}/.claude"
-ensure_symlink "${HOME}/.claude/settings.json" "${DOT_STAR_ROOT}/ai/files/Users/user/.claude/settings.json"
-ensure_symlink "${HOME}/.claude/CLAUDE.md" "${DOT_STAR_ROOT}/ai/files/Users/user/.claude/CLAUDE.md"
+ensure_symlink "${DOT_STAR_ROOT}/ai/files/Users/user/.claude/settings.json" "${HOME}/.claude/settings.json"
+ensure_symlink "${DOT_STAR_ROOT}/ai/files/Users/user/.claude/CLAUDE.md" "${HOME}/.claude/CLAUDE.md"
 
 # Install colordiff configuration.
-ensure_symlink "${HOME}/.colordiffrc" "${DOT_STAR_ROOT}/colordiff/.colordiffrc"
+ensure_symlink "${DOT_STAR_ROOT}/colordiff/.colordiffrc" "${HOME}/.colordiffrc"
 
-ensure_symlink "${HOME}/.screenrc" "${DOT_STAR_ROOT}/screen/.screenrc"
+ensure_symlink "${DOT_STAR_ROOT}/screen/.screenrc" "${HOME}/.screenrc"
 
 install_ipython() {
     if [[ "${OSTYPE}" == "darwin"* ]]; then
