@@ -1,7 +1,16 @@
 export DISABLE_TELEMETRY=1
 
-alias cl="claude"
-alias clr="claude --resume"
+claude_run() {
+    claude "$@"
+    ~/.dot-star/ai/claude/prune.sh
+}
+alias cl="claude_run"
+
+claude_resume() {
+    claude --resume "$@"
+    ~/.dot-star/ai/claude/prune.sh
+}
+alias clr="claude_resume"
 
 claude_git_commit() {
     local prompt options selected
