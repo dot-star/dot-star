@@ -1806,6 +1806,84 @@ git_worktree_cd() {
 }
 alias wt="git_worktree_cd"
 
+git_worktree_done() {
+    # Merge the current worktree's branch into master in the main checkout,
+    # remove the worktree, and delete the branch. Local only; no push.
+    # Usage:
+    #   $ wtd
+
+    if ! git rev-parse --is-inside-work-tree &>/dev/null; then
+        echo "not in a git repository"
+        return 1
+    fi
+
+    local worktree_path
+    worktree_path="$(git rev-parse --show-toplevel)"
+    # Refuse to run from the main checkout.
+    if [[ "${worktree_path}" != *"/worktrees/"* ]]; then
+        echo "not inside a worktree under a worktrees/ directory"
+        return 1
+    fi
+
+    local branch
+    branch="$(git symbolic-ref --quiet --short HEAD)"
+    if [[ -z "${branch}" ]]; then
+        echo "worktree HEAD is detached"
+        return 1
+    fi
+
+    # Refuse if the worktree has uncommitted or untracked changes.
+    if [[ -n "$(git status --porcelain)" ]]; then
+        echo "worktree has uncommitted changes"
+        return 1
+    fi
+
+    # Main checkout is always the first entry in `git worktree list'.
+    local main_checkout
+    main_checkout="$(git worktree list | awk 'NR==1 {print $1}')"
+    if [[ -z "${main_checkout}" || ! -d "${main_checkout}" ]]; then
+        echo "could not locate main checkout"
+        return 1
+    fi
+
+    # Path of cwd relative to the worktree top, so we can land in the
+    # equivalent directory inside the main checkout.
+    local relative_path="${PWD#"${worktree_path}"}"
+    relative_path="${relative_path#/}"
+
+    cd "${main_checkout}" || return 1
+
+    if ! git checkout master; then
+        echo "failed to checkout master"
+        return 1
+    fi
+
+    if ! git merge --ff-only "${branch}"; then
+        echo "fast-forward merge of \"${branch}\" into master failed"
+        return 1
+    fi
+
+    if ! git worktree remove "${worktree_path}"; then
+        echo "failed to remove worktree at \"${worktree_path}\""
+        return 1
+    fi
+
+    if ! git branch --delete "${branch}"; then
+        echo "failed to delete branch \"${branch}\""
+        return 1
+    fi
+
+    # Mirror the worktree's relative subdirectory in the main checkout
+    # when it exists; otherwise stay at the top level.
+    local target_path="${main_checkout}"
+    if [[ -n "${relative_path}" && -d "${main_checkout}/${relative_path}" ]]; then
+        target_path="${main_checkout}/${relative_path}"
+    fi
+    cd "${target_path}"
+}
+alias wtd="git_worktree_done"
+alias wtdone="git_worktree_done"
+
 wget() {
     set -x
     curl --remote-name --user-agent "" "${@}"
