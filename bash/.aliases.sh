@@ -1851,7 +1851,9 @@ git_worktree_done() {
     local relative_path="${PWD#"${worktree_path}"}"
     relative_path="${relative_path#/}"
 
-    cd "${main_checkout}" || return 1
+    # Use builtin cd to bypass the conditional_cd alias, which no-ops in
+    # non-interactive shells and would leave us in the worktree.
+    builtin cd "${main_checkout}" || return 1
 
     if ! git checkout master; then
         echo "failed to checkout master"
@@ -1879,7 +1881,7 @@ git_worktree_done() {
     if [[ -n "${relative_path}" && -d "${main_checkout}/${relative_path}" ]]; then
         target_path="${main_checkout}/${relative_path}"
     fi
-    cd "${target_path}"
+    builtin cd "${target_path}"
 }
 alias wtd="git_worktree_done"
 alias wtdone="git_worktree_done"
