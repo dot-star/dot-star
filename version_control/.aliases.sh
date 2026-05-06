@@ -857,6 +857,22 @@ rc_status() {
                     fi
                 fi
             fi
+
+            # Notice uncleaned linked worktrees, only from the main checkout.
+            local main_toplevel current_toplevel
+            main_toplevel="$(git worktree list | awk 'NR==1 {print $1}')"
+            current_toplevel="$(git rev-parse --show-toplevel)"
+            if [[ "${main_toplevel}" == "${current_toplevel}" ]]; then
+                local worktree_count
+                worktree_count="$(git worktree list | awk 'NR>1' | wc -l | tr -d ' ')"
+                if [[ "${worktree_count}" -gt 0 ]]; then
+                    echo -e "\033[38;5;208mNotice: There are uncleaned worktrees: ${worktree_count}\033[0m"
+                    git worktree list | awk 'NR>1 {print "    " $0}' | head -n 10
+                    if [[ "${worktree_count}" -gt 10 ]]; then
+                        echo "    ... and $((worktree_count - 10)) more"
+                    fi
+                fi
+            fi
         fi
     elif is_g; then
         pending
