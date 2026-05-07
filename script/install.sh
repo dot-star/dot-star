@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -x
 
+if [[ -z "${HOME:-}" ]]; then
+    echo "HOME must be set" >&2
+    exit 1
+fi
+
 WARNINGS=()
 
 # Append a warning to WARNINGS and emit it to stderr without xtrace noise.
@@ -49,6 +54,12 @@ ensure_symlink() {
 # Create symlink to project files in home directory.
 DOT_STAR_ROOT="$(dirname $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd))"
 DOT_STAR="${HOME}/.dot-star"
+
+# Remove stray /.dot-star at filesystem root from a prior empty-HOME run.
+if [ -L "/.dot-star" ]; then
+    unlink "/.dot-star"
+fi
+
 if [ -L "${DOT_STAR}" ]; then
     # Replace existing symlink.
     rm "${DOT_STAR}"
