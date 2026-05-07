@@ -1861,8 +1861,16 @@ git_worktree_done() {
     fi
 
     if ! git merge --ff-only "${branch}"; then
-        echo "fast-forward merge of \"${branch}\" into master failed"
-        return 1
+        echo "branch \"${branch}\" has diverged from master; rebasing onto master"
+        if ! git -C "${worktree_path}" rebase master; then
+            echo "rebase of \"${branch}\" onto master failed"
+            return 1
+        fi
+
+        if ! git merge --ff-only "${branch}"; then
+            echo "fast-forward merge of \"${branch}\" into master failed after rebase"
+            return 1
+        fi
     fi
 
     if ! git worktree remove "${worktree_path}"; then
