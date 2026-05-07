@@ -1893,7 +1893,92 @@ git_worktree_done() {
 }
 alias wtd="git_worktree_done"
 alias wtdone="git_worktree_done"
-alias wtp="git worktree prune"
+
+git_worktree_prune() {
+    # Prune git's stale worktree metadata, then remove any linked
+    # worktree whose branch is fully merged into master and whose tree
+    # is clean. Skip and report on anything dirty, detached, or unmerged.
+    # Usage:
+    #   $ wtp
+
+    if ! git rev-parse --is-inside-work-tree &>/dev/null; then
+        echo "not in a git repository"
+        return 1
+    fi
+
+    git worktree prune
+
+    local main_checkout
+    main_checkout="$(git worktree list | awk 'NR==1 {print $1}')"
+    if [[ -z "${main_checkout}" || ! -d "${main_checkout}" ]]; then
+        echo "could not locate main checkout"
+        return 1
+    fi
+
+    local worktree_path=""
+    local branch=""
+    local detached=0
+    local line
+    while IFS= read -r line || [[ -n "${line}" ]]; do
+        if [[ -z "${line}" ]]; then
+            _git_worktree_prune_one "${main_checkout}" "${worktree_path}" "${branch}" "${detached}"
+            worktree_path=""
+            branch=""
+            detached=0
+        elif [[ "${line}" == "worktree "* ]]; then
+            worktree_path="${line#worktree }"
+        elif [[ "${line}" == "branch "* ]]; then
+            branch="${line#branch refs/heads/}"
+        elif [[ "${line}" == "detached" ]]; then
+            detached=1
+        fi
+    done < <(git worktree list --porcelain)
+    _git_worktree_prune_one "${main_checkout}" "${worktree_path}" "${branch}" "${detached}"
+}
+
+_git_worktree_prune_one() {
+    # Per-worktree helper for git_worktree_prune. Removes the linked
+    # worktree at ${2} and deletes its branch ${3} (in main checkout
+    # ${1}) iff the tree is clean, HEAD is on a branch, and the branch
+    # is fully merged into master. Echoes a skip reason otherwise.
+    # Args:
+    #   1: main_checkout  path of the main checkout
+    #   2: worktree_path  path of the linked worktree to consider
+    #   3: branch         short branch name, or empty if detached
+    #   4: detached       1 if HEAD is detached, 0 otherwise
+
+    local main_checkout="${1}"
+    local worktree_path="${2}"
+    local branch="${3}"
+    local detached="${4}"
+
+    if [[ -z "${worktree_path}" ]]; then
+        return
+    elif [[ "${worktree_path}" == "${main_checkout}" ]]; then
+        return
+    elif ((detached)); then
+        echo "skip worktree \"${worktree_path}\": detached HEAD"
+        return
+    elif [[ -z "${branch}" ]]; then
+        echo "skip worktree \"${worktree_path}\": no branch"
+        return
+    elif [[ -n "$(git -C "${worktree_path}" status --porcelain 2>/dev/null)" ]]; then
+        echo "skip worktree \"${worktree_path}\": uncommitted changes"
+        return
+    elif ! git -C "${main_checkout}" merge-base --is-ancestor "${branch}" master &>/dev/null; then
+        echo "skip worktree \"${worktree_path}\": branch \"${branch}\" not merged into master"
+        return
+    elif ! git -C "${main_checkout}" worktree remove "${worktree_path}"; then
+        echo "failed to remove worktree at \"${worktree_path}\""
+        return
+    elif ! git -C "${main_checkout}" branch --delete "${branch}"; then
+        echo "failed to delete branch \"${branch}\""
+        return
+    fi
+
+    echo "removed \"${worktree_path}\" (branch \"${branch}\")"
+}
+alias wtp="git_worktree_prune"
 
 wget() {
     set -x
