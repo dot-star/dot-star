@@ -866,7 +866,7 @@ rc_status() {
                 local worktree_count
                 worktree_count="$(git worktree list | awk 'NR>1' | wc -l | tr -d ' ')"
                 if [[ "${worktree_count}" -gt 0 ]]; then
-                    echo -e "\033[38;5;208mNotice: There are uncleaned worktrees: ${worktree_count}\033[0m"
+                    echo -e "\033[38;5;208mNotice:\033[0m There are uncleaned worktrees: ${worktree_count}"
 
                     # TODO: Consider shortening further to just the basename.
                     # The style that's currently being displayed:

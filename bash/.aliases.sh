@@ -703,7 +703,7 @@ conditional_x() {
         all_are_files=true
         for filename in "${@}"; do
             if [[ ! -f "${filename}" ]]; then
-                echo "Warning: \"${filename}\" is not a file."
+                echo -e "\033[38;5;208mWarning:\033[0m \"${filename}\" is not a file."
                 all_are_files=false
             fi
         done
