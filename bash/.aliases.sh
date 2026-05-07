@@ -1965,7 +1965,7 @@ _git_worktree_prune_one() {
     elif [[ -n "$(git -C "${worktree_path}" status --porcelain 2>/dev/null)" ]]; then
         echo "skip worktree \"${worktree_path}\": uncommitted changes"
         return
-    elif ! git -C "${main_checkout}" merge-base --is-ancestor "${branch}" master &>/dev/null; then
+    elif ! _branch_is_absorbed_by_master "${main_checkout}" "${branch}"; then
         echo "skip worktree \"${worktree_path}\": branch \"${branch}\" not merged into master"
         return
     elif ! git -C "${main_checkout}" worktree remove "${worktree_path}"; then
@@ -1977,6 +1977,39 @@ _git_worktree_prune_one() {
     fi
 
     echo "removed \"${worktree_path}\" (branch \"${branch}\")"
+}
+
+_branch_is_absorbed_by_master() {
+    # Returns 0 iff <branch> contributes nothing new to master:
+    # either branch is an ancestor of master (fast-forward / merge
+    # commit), or merging branch into master would yield master's
+    # existing tree (squash merge / rebase merge / cherry-pick).
+    # Args:
+    #   1: main_checkout  path of the main checkout
+    #   2: branch         short branch name to test
+
+    local main_checkout="${1}"
+    local branch="${2}"
+
+    # Accept branches whose tip is already in master's history.
+    if git -C "${main_checkout}" merge-base --is-ancestor "${branch}" master &>/dev/null; then
+        return 0
+    fi
+
+    local merged_tree
+    # Compute the tree that merging branch into master would produce.
+    if ! merged_tree="$(git -C "${main_checkout}" merge-tree --write-tree master "${branch}" 2>/dev/null)"; then
+        return 1
+    fi
+
+    local master_tree
+    # Resolve master's current tree for comparison.
+    if ! master_tree="$(git -C "${main_checkout}" rev-parse master^{tree} 2>/dev/null)"; then
+        return 1
+    fi
+
+    # Treat equal trees as evidence that the branch added nothing new to master.
+    [[ -n "${merged_tree}" && "${merged_tree}" == "${master_tree}" ]]
 }
 alias wtp="git_worktree_prune"
 
