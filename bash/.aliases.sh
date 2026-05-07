@@ -1872,9 +1872,7 @@ git_worktree_done() {
         if ! git -C "${worktree_path}" rebase "${default_branch}"; then
             echo "rebase of \"${branch}\" onto branch ${default_branch} failed"
             return 1
-        fi
-
-        if ! git merge --ff-only "${branch}"; then
+        elif ! git merge --ff-only "${branch}"; then
             echo "fast-forward merge of \"${branch}\" into branch ${default_branch} failed after rebase"
             return 1
         fi
@@ -1883,9 +1881,7 @@ git_worktree_done() {
     if ! git worktree remove "${worktree_path}"; then
         echo "failed to remove worktree at \"${worktree_path}\""
         return 1
-    fi
-
-    if ! git branch --delete "${branch}"; then
+    elif ! git branch --delete "${branch}"; then
         echo "failed to delete branch \"${branch}\""
         return 1
     fi
