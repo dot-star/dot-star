@@ -1,3 +1,14 @@
+_pretty_diff_filter() {
+    # Pipe diff conditionally through the highlight chain based on installed tools.
+    if $DIFF_HIGHLIGHT_INSTALLED && $COLORDIFF_INSTALLED; then
+        diff_highlight | colordiff
+    elif $COLORDIFF_INSTALLED; then
+        colordiff
+    else
+        cat
+    fi
+}
+
 alias_before_after() {
     # Edit files to run a comparison and display live diff.
 
@@ -12,8 +23,7 @@ alias_before_after() {
 
     # Run once initially to show the current diff.
     diff --unified "${before_file_name}" "${after_file_name}" |
-        diff_highlight |
-        colordiff
+        _pretty_diff_filter
 
     # Run repeatedly to update the diff displayed as the files are modified.
     while :; do
@@ -21,8 +31,7 @@ alias_before_after() {
         exit_code="${?}"
         if [[ "${exit_code}" -eq 0 ]]; then
             diff --unified "${before_file_name}" "${after_file_name}" |
-                diff_highlight |
-                colordiff
+                _pretty_diff_filter
         else
             return "${exit_code}"
         fi
@@ -73,13 +82,8 @@ difference() {
     diff_result="$(diff --exclude='.git' --recursive --unified ${1} ${2})"
     exit_code="${?}"
     if [[ "${exit_code}" -eq 1 ]]; then
-        if [[ -t 1 ]] && $COLORDIFF_INSTALLED && $DIFF_HIGHLIGHT_INSTALLED; then
-            echo "${diff_result}" | diff_highlight | colordiff | less -R
-            command='| '
-        elif [[ -t 1 ]] && $COLORDIFF_INSTALLED; then
-            echo "${diff_result}" | colordiff | less -R
-        elif [[ -t 1 ]]; then
-            echo "${diff_result}" | less -R
+        if [[ -t 1 ]]; then
+            echo "${diff_result}" | _pretty_diff_filter | less -R
         else
             echo "${diff_result}"
         fi
