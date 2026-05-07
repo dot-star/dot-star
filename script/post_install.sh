@@ -49,7 +49,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     brew install git
     brew install git-gui
     brew install grep
-    brew install homebrew/dupes/rsync
+    brew install rsync
     brew install macvim --HEAD
 
     brew install php@8.0
