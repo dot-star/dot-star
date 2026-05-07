@@ -1885,6 +1885,7 @@ git_worktree_done() {
 }
 alias wtd="git_worktree_done"
 alias wtdone="git_worktree_done"
+alias wtp="git worktree prune"
 
 wget() {
     set -x
