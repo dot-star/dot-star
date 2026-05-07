@@ -7,18 +7,26 @@ alias_before_after() {
     touch "${before_file_name}" "${after_file_name}"
     edit "${before_file_name}" "${after_file_name}"
 
-    cd "/tmp/" &&
-        while :; do
-            wd
-            exit_code="${?}"
-            if [[ "${exit_code}" -eq 0 ]]; then
-                diff --unified "${before_file_name}" "${after_file_name}" |
-                    diff_highlight |
-                    colordiff
-            else
-                return "${exit_code}"
-            fi
-        done
+    cd "/tmp/" ||
+        return
+
+    # Run once initially to show the current diff.
+    diff --unified "${before_file_name}" "${after_file_name}" |
+        diff_highlight |
+        colordiff
+
+    # Run repeatedly to update the diff displayed as the files are modified.
+    while :; do
+        wd
+        exit_code="${?}"
+        if [[ "${exit_code}" -eq 0 ]]; then
+            diff --unified "${before_file_name}" "${after_file_name}" |
+                diff_highlight |
+                colordiff
+        else
+            return "${exit_code}"
+        fi
+    done
 }
 alias ab="alias_before_after"
 alias ba="alias_before_after"
