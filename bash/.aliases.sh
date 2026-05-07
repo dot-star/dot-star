@@ -1896,8 +1896,9 @@ alias wtdone="git_worktree_done"
 
 git_worktree_prune() {
     # Prune git's stale worktree metadata, then remove any linked
-    # worktree whose branch is fully merged into master and whose tree
-    # is clean. Skip and report on anything dirty, detached, or unmerged.
+    # worktree whose branch is fully merged into the default branch
+    # and whose tree is clean. Skip and report on anything dirty,
+    # detached, or unmerged.
     # Usage:
     #   $ wtp
 
@@ -1915,13 +1916,19 @@ git_worktree_prune() {
         return 1
     fi
 
+    local default_branch
+    if ! default_branch="$(_git_default_branch "${main_checkout}")"; then
+        echo "could not determine default branch in \"${main_checkout}\""
+        return 1
+    fi
+
     local worktree_path=""
     local branch=""
     local detached=0
     local line
     while IFS= read -r line || [[ -n "${line}" ]]; do
         if [[ -z "${line}" ]]; then
-            _git_worktree_prune_one "${main_checkout}" "${worktree_path}" "${branch}" "${detached}"
+            _git_worktree_prune_one "${main_checkout}" "${worktree_path}" "${branch}" "${detached}" "${default_branch}"
             worktree_path=""
             branch=""
             detached=0
@@ -1933,24 +1940,26 @@ git_worktree_prune() {
             detached=1
         fi
     done < <(git worktree list --porcelain)
-    _git_worktree_prune_one "${main_checkout}" "${worktree_path}" "${branch}" "${detached}"
+    _git_worktree_prune_one "${main_checkout}" "${worktree_path}" "${branch}" "${detached}" "${default_branch}"
 }
 
 _git_worktree_prune_one() {
     # Per-worktree helper for git_worktree_prune. Removes the linked
     # worktree at ${2} and deletes its branch ${3} (in main checkout
     # ${1}) iff the tree is clean, HEAD is on a branch, and the branch
-    # is fully merged into master. Echoes a skip reason otherwise.
+    # is fully merged into ${5}. Echoes a skip reason otherwise.
     # Args:
-    #   1: main_checkout  path of the main checkout
-    #   2: worktree_path  path of the linked worktree to consider
-    #   3: branch         short branch name, or empty if detached
-    #   4: detached       1 if HEAD is detached, 0 otherwise
+    #   1: main_checkout    path of the main checkout
+    #   2: worktree_path    path of the linked worktree to consider
+    #   3: branch           short branch name, or empty if detached
+    #   4: detached         1 if HEAD is detached, 0 otherwise
+    #   5: default_branch   branch to compare against (e.g. main / master)
 
     local main_checkout="${1}"
     local worktree_path="${2}"
     local branch="${3}"
     local detached="${4}"
+    local default_branch="${5}"
 
     if [[ -z "${worktree_path}" ]]; then
         return
@@ -1965,8 +1974,8 @@ _git_worktree_prune_one() {
     elif [[ -n "$(git -C "${worktree_path}" status --porcelain 2>/dev/null)" ]]; then
         echo "skip worktree \"${worktree_path}\": uncommitted changes"
         return
-    elif ! _branch_is_absorbed_by_master "${main_checkout}" "${branch}"; then
-        echo "skip worktree \"${worktree_path}\": branch \"${branch}\" not merged into master"
+    elif ! _branch_is_absorbed "${main_checkout}" "${branch}" "${default_branch}"; then
+        echo "skip worktree \"${worktree_path}\": branch \"${branch}\" not merged into ${default_branch}"
         return
     elif ! git -C "${main_checkout}" worktree remove "${worktree_path}"; then
         echo "failed to remove worktree at \"${worktree_path}\""
@@ -1979,37 +1988,60 @@ _git_worktree_prune_one() {
     echo "removed \"${worktree_path}\" (branch \"${branch}\")"
 }
 
-_branch_is_absorbed_by_master() {
-    # Returns 0 iff <branch> contributes nothing new to master:
-    # either branch is an ancestor of master (fast-forward / merge
-    # commit), or merging branch into master would yield master's
-    # existing tree (squash merge / rebase merge / cherry-pick).
+_branch_is_absorbed() {
+    # Returns 0 iff <branch> contributes nothing new to <default_branch>:
+    # either branch is an ancestor of default_branch (fast-forward /
+    # merge commit), or merging branch into default_branch would yield
+    # default_branch's existing tree (squash / rebase / cherry-pick).
     # Args:
-    #   1: main_checkout  path of the main checkout
-    #   2: branch         short branch name to test
+    #   1: main_checkout    path of the main checkout
+    #   2: branch           short branch name to test
+    #   3: default_branch   branch to compare against (e.g. main / master)
 
     local main_checkout="${1}"
     local branch="${2}"
+    local default_branch="${3}"
 
-    # Accept branches whose tip is already in master's history.
-    if git -C "${main_checkout}" merge-base --is-ancestor "${branch}" master &>/dev/null; then
+    # Accept branches whose tip is already in default_branch's history.
+    if git -C "${main_checkout}" merge-base --is-ancestor "${branch}" "${default_branch}" &>/dev/null; then
         return 0
     fi
 
     local merged_tree
-    # Compute the tree that merging branch into master would produce.
-    if ! merged_tree="$(git -C "${main_checkout}" merge-tree --write-tree master "${branch}" 2>/dev/null)"; then
+    # Compute the tree that merging branch into default_branch would produce.
+    if ! merged_tree="$(git -C "${main_checkout}" merge-tree --write-tree "${default_branch}" "${branch}" 2>/dev/null)"; then
         return 1
     fi
 
-    local master_tree
-    # Resolve master's current tree for comparison.
-    if ! master_tree="$(git -C "${main_checkout}" rev-parse master^{tree} 2>/dev/null)"; then
+    local default_tree
+    # Resolve default_branch's current tree for comparison.
+    if ! default_tree="$(git -C "${main_checkout}" rev-parse "${default_branch}^{tree}" 2>/dev/null)"; then
         return 1
     fi
 
-    # Treat equal trees as evidence that the branch added nothing new to master.
-    [[ -n "${merged_tree}" && "${merged_tree}" == "${master_tree}" ]]
+    # Treat equal trees as evidence that the branch added nothing new to default_branch.
+    [[ -n "${merged_tree}" && "${merged_tree}" == "${default_tree}" ]]
+}
+
+_git_default_branch() {
+    # Print the repository's default branch name. Tries origin/HEAD
+    # first, then falls back to a local "main" or "master" branch.
+    # Returns 1 with empty output if none can be determined.
+    # Args:
+    #   1: main_checkout    path of the main checkout
+
+    local main_checkout="${1}"
+
+    local symbolic_ref
+    if symbolic_ref="$(git -C "${main_checkout}" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null)"; then
+        echo "${symbolic_ref#origin/}"
+    elif git -C "${main_checkout}" show-ref --verify --quiet refs/heads/main; then
+        echo "main"
+    elif git -C "${main_checkout}" show-ref --verify --quiet refs/heads/master; then
+        echo "master"
+    else
+        return 1
+    fi
 }
 alias wtp="git_worktree_prune"
 
