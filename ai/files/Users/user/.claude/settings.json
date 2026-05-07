@@ -1,28 +1,9 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(bash -n *)",
-      "Bash(chmod +x *)",
-      "Bash(command -v jq)",
-      "Bash(gh pr checks *)",
-      "Bash(gh pr diff *)",
-      "Bash(gh pr list *)",
-      "Bash(gh pr status *)",
-      "Bash(gh pr view *)",
-      "Bash(git add *)",
-      "Bash(git diff *)",
-      "Bash(git fetch *)",
-      "Bash(git log *)",
-      "Bash(git rev-list *)",
-      "Bash(git show *)",
-      "Bash(git status *)",
-      "Bash(pbcopy)",
-      "Bash(pbpaste)",
-      "Edit(/tmp/claude-*)",
-      "Read(/tmp/claude-*)",
-      "Write(/tmp/claude-*)"
-    ]
+  "attribution": {
+    "commit": "",
+    "pr": ""
   },
+  "editorMode": "vim",
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true
   },
@@ -60,9 +41,28 @@
       }
     ]
   },
-  "editorMode": "vim",
-  "attribution": {
-    "commit": "",
-    "pr": ""
+  "permissions": {
+    "allow": [
+      "Bash(bash -n *)",
+      "Bash(chmod +x *)",
+      "Bash(command -v jq)",
+      "Bash(gh pr checks *)",
+      "Bash(gh pr diff *)",
+      "Bash(gh pr list *)",
+      "Bash(gh pr status *)",
+      "Bash(gh pr view *)",
+      "Bash(git add *)",
+      "Bash(git diff *)",
+      "Bash(git fetch *)",
+      "Bash(git log *)",
+      "Bash(git rev-list *)",
+      "Bash(git show *)",
+      "Bash(git status *)",
+      "Bash(pbcopy)",
+      "Bash(pbpaste)",
+      "Edit(/tmp/claude-*)",
+      "Read(/tmp/claude-*)",
+      "Write(/tmp/claude-*)"
+    ]
   }
 }
