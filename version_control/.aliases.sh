@@ -845,12 +845,12 @@ rc_status() {
         if [[ "${#}" -eq 0 ]]; then
             # Warn when no remote is configured.
             if [[ -z "$(git remote)" ]]; then
-                echo -e "\033[38;5;208mWarning: no remote configured; commits cannot be pushed\033[0m"
+                echo -e "\033[38;5;208mWarning:\033[0m no remote configured; commits cannot be pushed"
             else
                 # Warn about commits in HEAD that aren't on any remote-tracking ref.
                 unpushed=$(git rev-list --count HEAD --not --remotes 2>/dev/null)
                 if [[ "${unpushed}" -gt 0 ]]; then
-                    echo -e "\033[38;5;208mWarning: There are unpushed commits: ${unpushed}\033[0m"
+                    echo -e "\033[38;5;208mWarning:\033[0m There are unpushed commits: ${unpushed}"
                     git log -n 10 --pretty=tformat:"    %C(auto)%h%C(reset) %s %C(dim)(%cr)%C(reset)" HEAD --not --remotes
                     if [[ "${unpushed}" -gt 10 ]]; then
                         echo "    ... and $((unpushed - 10)) more"
