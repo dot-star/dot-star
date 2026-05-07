@@ -28,7 +28,7 @@ ensure_symlink() {
             ln -v -s "${src}" "${dest}"
         else
             # Symlink points at a different file; don't clobber.
-            warn "${dest} is a symlink to ${actual_src}, expected ${src}"
+            warn "${dest} is a symlink to ${actual_src}, expected ${src}. Run: diff ${actual_src} ${src}"
         fi
     # Check for any existing path (regular file, directory, socket, FIFO, etc.) as destination.
     elif [ -e "${dest}" ]; then
@@ -38,7 +38,7 @@ ensure_symlink() {
             ln -v -s "${src}" "${dest}"
         else
             # Don't clobber.
-            warn "${dest} exists but is not a symlink, expected symlink to ${src}"
+            warn "${dest} exists but is not a symlink, expected symlink to ${src}. Run: diff ${dest} ${src}"
         fi
     # No entry at destination.
     else
