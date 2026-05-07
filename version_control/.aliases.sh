@@ -850,7 +850,7 @@ rc_status() {
                 # Warn about commits in HEAD that aren't on any remote-tracking ref.
                 unpushed=$(git rev-list --count HEAD --not --remotes 2>/dev/null)
                 if [[ "${unpushed}" -gt 0 ]]; then
-                    echo -e "\033[38;5;208mWarning:\033[0m There are unpushed commits: ${unpushed}"
+                    echo -e "\n\033[38;5;208mWarning:\033[0m There are unpushed commits: ${unpushed}"
                     git log -n 10 --pretty=tformat:"    %C(auto)%h%C(reset) %s %C(dim)(%cr)%C(reset)" HEAD --not --remotes
                     if [[ "${unpushed}" -gt 10 ]]; then
                         echo "    ... and $((unpushed - 10)) more"
