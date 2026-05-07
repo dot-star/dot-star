@@ -867,7 +867,17 @@ rc_status() {
                 worktree_count="$(git worktree list | awk 'NR>1' | wc -l | tr -d ' ')"
                 if [[ "${worktree_count}" -gt 0 ]]; then
                     echo -e "\033[38;5;208mNotice: There are uncleaned worktrees: ${worktree_count}\033[0m"
-                    git worktree list | awk 'NR>1 {print "    " $0}' | head -n 10
+
+                    # TODO: Consider shortening further to just the basename.
+                    # The style that's currently being displayed:
+                    #   .claude/worktrees/difference-json-autodetect b24351a [worktree-difference-json-autodetect]
+                    # Can be shortened to just the basename of the path:
+                    #                     difference-json-autodetect b24351a [worktree-difference-json-autodetect]
+
+                    # Show worktree paths relative to the main checkout to keep lines short.
+                    git worktree list |
+                        awk -v base="${main_toplevel}/" 'NR>1 {sub("^"base, "", $1); print "    " $0}' |
+                        head -n 10
                     if [[ "${worktree_count}" -gt 10 ]]; then
                         echo "    ... and $((worktree_count - 10)) more"
                     fi
