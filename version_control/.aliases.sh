@@ -874,9 +874,12 @@ rc_status() {
                     # Can be shortened to just the basename of the path:
                     #                     difference-json-autodetect b24351a [worktree-difference-json-autodetect]
 
-                    # Show worktree paths relative to the main checkout to keep lines short.
+                    # Show worktree paths relative to the main checkout to keep lines short,
+                    # then realign columns since stripping the prefix breaks git's padding.
                     git worktree list |
-                        awk -v base="${main_toplevel}/" 'NR>1 {sub("^"base, "", $1); print "    " $0}' |
+                        awk -v base="${main_toplevel}/" 'NR>1 {sub("^"base, "", $1); print}' |
+                        column -t |
+                        sed 's/^/    /' |
                         head -n 10
                     if [[ "${worktree_count}" -gt 10 ]]; then
                         echo "    ... and $((worktree_count - 10)) more"
