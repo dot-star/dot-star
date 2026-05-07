@@ -79,8 +79,24 @@ alias lines_count="count_lines"
 alias wcl="count_lines"
 
 difference() {
-    diff_result="$(diff --exclude='.git' --recursive --unified ${1} ${2})"
-    exit_code="${?}"
+    local use_json_normalization=false
+
+    # Auto-detect a pair of JSON files and normalize key order before diffing,
+    # so reordered keys do not show up as fake differences.
+    local is_valid_json="jq empty"
+    if [[ -f "${1}" ]] && [[ -f "${2}" ]] && command -v jq &>/dev/null; then
+        if $is_valid_json "${1}" &>/dev/null && $is_valid_json "${2}" &>/dev/null; then
+            use_json_normalization=true
+        fi
+    fi
+
+    if $use_json_normalization; then
+        diff_result="$(diff --unified <(jq --sort-keys . "${1}") <(jq --sort-keys . "${2}"))"
+        exit_code="${?}"
+    else
+        diff_result="$(diff --exclude='.git' --recursive --unified ${1} ${2})"
+        exit_code="${?}"
+    fi
     if [[ "${exit_code}" -eq 1 ]]; then
         if [[ -t 1 ]]; then
             echo "${diff_result}" | _pretty_diff_filter | less -R
