@@ -1807,8 +1807,9 @@ git_worktree_cd() {
 alias wt="git_worktree_cd"
 
 git_worktree_done() {
-    # Merge the current worktree's branch into master in the main checkout,
-    # remove the worktree, and delete the branch. Local only; no push.
+    # Merge the current worktree's branch into the default branch in
+    # the main checkout, remove the worktree, and delete the branch.
+    # Local only; no push.
     # Usage:
     #   $ wtd
 
@@ -1846,6 +1847,12 @@ git_worktree_done() {
         return 1
     fi
 
+    local default_branch
+    if ! default_branch="$(_git_default_branch "${main_checkout}")"; then
+        echo "could not determine default branch in \"${main_checkout}\""
+        return 1
+    fi
+
     # Path of cwd relative to the worktree top, so we can land in the
     # equivalent directory inside the main checkout.
     local relative_path="${PWD#"${worktree_path}"}"
@@ -1855,20 +1862,20 @@ git_worktree_done() {
     # non-interactive shells and would leave us in the worktree.
     builtin cd "${main_checkout}" || return 1
 
-    if ! git checkout master; then
-        echo "failed to checkout master"
+    if ! git checkout "${default_branch}"; then
+        echo "failed to checkout ${default_branch}"
         return 1
     fi
 
     if ! git merge --ff-only "${branch}"; then
-        echo "branch \"${branch}\" has diverged from master; rebasing onto master"
-        if ! git -C "${worktree_path}" rebase master; then
-            echo "rebase of \"${branch}\" onto master failed"
+        echo "branch \"${branch}\" has diverged from ${default_branch}; rebasing onto ${default_branch}"
+        if ! git -C "${worktree_path}" rebase "${default_branch}"; then
+            echo "rebase of \"${branch}\" onto branch ${default_branch} failed"
             return 1
         fi
 
         if ! git merge --ff-only "${branch}"; then
-            echo "fast-forward merge of \"${branch}\" into master failed after rebase"
+            echo "fast-forward merge of \"${branch}\" into branch ${default_branch} failed after rebase"
             return 1
         fi
     fi
