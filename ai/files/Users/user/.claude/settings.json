@@ -63,6 +63,19 @@
       "Edit(/tmp/claude-*)",
       "Read(/tmp/claude-*)",
       "Write(/tmp/claude-*)"
+    ],
+    "deny": [
+      "Bash(gh api:*)",
+      "Bash(gh pr checkout:*)",
+      "Bash(gh pr close:*)",
+      "Bash(gh pr comment:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr edit:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh pr ready:*)",
+      "Bash(gh pr reopen:*)",
+      "Bash(gh pr review:*)",
+      "Bash(gh pr update-branch:*)"
     ]
   }
 }
