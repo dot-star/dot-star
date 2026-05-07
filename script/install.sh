@@ -114,6 +114,8 @@ ensure_symlink "${DOT_STAR}/screen/.screenrc" "${HOME}/.screenrc"
 install_ipython() {
     if [[ "${OSTYPE}" == "darwin"* ]]; then
         brew install ipython
+        # Re-link in case a prior install left the keg unlinked.
+        brew link --overwrite ipython
     elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
         sudo apt-get install -y ipython3
     fi
