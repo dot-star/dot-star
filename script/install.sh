@@ -52,7 +52,7 @@ ensure_symlink() {
 }
 
 # Create symlink to project files in home directory.
-DOT_STAR_ROOT="$(dirname $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd))"
+DOT_STAR_ROOT="$(dirname $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P))"
 DOT_STAR="${HOME}/.dot-star"
 
 # Remove stray /.dot-star at filesystem root from a prior empty-HOME run.
