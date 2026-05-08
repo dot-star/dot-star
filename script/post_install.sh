@@ -42,6 +42,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     brew install --cask google-cloud-sdk
     brew install --cask hammerspoon
     brew install bash-completion
+    brew install bat
     brew install blueutil
     brew install cmake
     brew install composer
@@ -77,6 +78,9 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     # Use wildcard to run diff-highlight under the currently installed version of git.
     git config --global core.pager "${DOT_STAR_ROOT}/version_control/git_pager.sh"
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # Package is `bat' on Debian/Ubuntu but installs the binary as `batcat'
+    # to avoid clashing with an unrelated `bat' package.
+    sudo apt-get install bat
     sudo apt-get install colordiff
     sudo apt-get install fzf
     sudo apt-get install jq

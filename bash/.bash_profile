@@ -36,6 +36,7 @@ if [[ -n "${BASH_VERSION}" ]]; then
 fi
 
 source "bash/.safer_rm.sh"
+source "bat/.aliases.sh"
 source "brew/.aliases.sh"
 source "coffeescript/.aliases.sh"
 source "django/.aliases.sh"
