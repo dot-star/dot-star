@@ -850,7 +850,7 @@ rc_status() {
                 # Warn about commits in HEAD that aren't on any remote-tracking ref.
                 unpushed=$(git rev-list --count HEAD --not --remotes 2>/dev/null)
                 if [[ "${unpushed}" -gt 0 ]]; then
-                    echo -e "\n\033[38;5;208mWarning:\033[0m There are unpushed commits: ${unpushed}"
+                    echo -e "\n\033[38;5;208mWarning:\033[0m There are unpushed commits: \033[1;36m${unpushed}\033[0m"
                     git log -n 10 --pretty=tformat:"    %C(auto)%h%C(reset) %s %C(dim)(%cr)%C(reset)" HEAD --not --remotes
                     if [[ "${unpushed}" -gt 10 ]]; then
                         echo "    ... and $((unpushed - 10)) more"
@@ -866,7 +866,7 @@ rc_status() {
                 local worktree_count
                 worktree_count="$(git worktree list | awk 'NR>1' | wc -l | tr -d ' ')"
                 if [[ "${worktree_count}" -gt 0 ]]; then
-                    echo -e "\n\033[38;5;208mNotice:\033[0m There are uncleaned worktrees: ${worktree_count}"
+                    echo -e "\n\033[38;5;208mNotice:\033[0m There are uncleaned worktrees: \033[1;36m${worktree_count}\033[0m"
 
                     # TODO: Consider shortening further to just the basename.
                     # The style that's currently being displayed:
