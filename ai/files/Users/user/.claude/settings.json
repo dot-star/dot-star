@@ -89,5 +89,8 @@
     "enabled": true,
     "mode": "tap"
   },
-  "voiceEnabled": true
+  "voiceEnabled": true,
+  "worktree": {
+    "baseRef": "head"
+  }
 }
