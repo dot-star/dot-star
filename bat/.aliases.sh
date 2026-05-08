@@ -12,7 +12,7 @@ pretty_cat() {
 
     # Pretty-print interactively; pass through plain cat for pipes and scripts.
     if [[ -t 1 ]] && [[ -n "${bat_cmd}" ]]; then
-        "${bat_cmd}" --paging=never --style=plain "${@}"
+        "${bat_cmd}" --style=plain "${@}"
     else
         command cat "${@}"
     fi
