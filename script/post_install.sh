@@ -111,4 +111,6 @@ if [ ! -e "${HOME}/.vimrc" ]; then
     ln -s -v "${DOT_STAR_ROOT}/vim/.vimrc" "${HOME}"
 fi
 
-ln -s -v "${DOT_STAR_ROOT}/bash/.jshintrc" "${HOME}"
+if [ ! -e "${HOME}/.jshintrc" ]; then
+    ln -s -v "${DOT_STAR_ROOT}/bash/.jshintrc" "${HOME}"
+fi
