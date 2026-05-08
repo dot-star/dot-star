@@ -105,6 +105,7 @@ ensure_symlink "${DOT_STAR}/bash/.inputrc" "${HOME}/.inputrc"
 mkdir -p "${HOME}/.claude"
 ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/settings.json" "${HOME}/.claude/settings.json"
 ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/CLAUDE.md" "${HOME}/.claude/CLAUDE.md"
+ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/commit-message-style.md" "${HOME}/.claude/commit-message-style.md"
 
 # Install Claude Code skills and hooks.
 mkdir -p "${HOME}/.claude/skills"
