@@ -107,13 +107,24 @@ ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/settings.json" "${HOME}/
 ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/CLAUDE.md" "${HOME}/.claude/CLAUDE.md"
 ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/commit-message-style.md" "${HOME}/.claude/commit-message-style.md"
 
-# Install Claude Code skills and hooks.
-mkdir -p "${HOME}/.claude/skills"
-ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/skills/triage-permissions" "${HOME}/.claude/skills/triage-permissions"
+# Install Claude Code skills and hooks by symlinking the parent dirs. New
+# files in the repo show up automatically, and any unexpected entry under
+# ~/.claude/skills or ~/.claude/hooks surfaces as untracked in `git status`.
+# The first loop migrates the prior per-entry-symlink layout: drop legacy
+# symlinks and the now-empty parent so the directory symlink can land.
+for parent in "${HOME}/.claude/skills" "${HOME}/.claude/hooks"; do
+    if [ -d "${parent}" ] && [ ! -L "${parent}" ]; then
+        for legacy in "${parent}"/*; do
+            if [ -L "${legacy}" ]; then
+                unlink "${legacy}"
+            fi
+        done
+        rmdir "${parent}" 2>/dev/null || true
+    fi
+done
 
-mkdir -p "${HOME}/.claude/hooks"
-ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/hooks/triage_nudge.sh" "${HOME}/.claude/hooks/triage_nudge.sh"
-ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/hooks/validate_bash_command.sh" "${HOME}/.claude/hooks/validate_bash_command.sh"
+ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/skills" "${HOME}/.claude/skills"
+ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/hooks" "${HOME}/.claude/hooks"
 
 # Install colordiff configuration.
 ensure_symlink "${DOT_STAR}/colordiff/.colordiffrc" "${HOME}/.colordiffrc"
