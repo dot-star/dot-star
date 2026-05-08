@@ -80,5 +80,10 @@
       "Bash(gh pr review:*)",
       "Bash(gh pr update-branch:*)"
     ]
-  }
+  },
+  "voice": {
+    "enabled": true,
+    "mode": "tap"
+  },
+  "voiceEnabled": true
 }
