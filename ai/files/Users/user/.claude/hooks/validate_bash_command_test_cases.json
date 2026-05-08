@@ -1,0 +1,37 @@
+[
+    {"cmd": "git log", "expected": "allow", "name": "bare git log"},
+    {"cmd": "git log --oneline", "expected": "allow", "name": "git log --oneline"},
+    {"cmd": "git log -n 5", "expected": "allow", "name": "git log -n 5"},
+    {"cmd": "git log --pretty=format:%h", "expected": "allow", "name": "git log --pretty=format"},
+    {"cmd": "git log master..HEAD", "expected": "allow", "name": "git log range"},
+    {"cmd": "git log --author=alice -- path/to/file", "expected": "allow", "name": "git log --author with -- path"},
+    {"cmd": "git log -p --follow path", "expected": "allow", "name": "git log -p --follow"},
+
+    {"cmd": "git status", "expected": "fall-through", "name": "git status"},
+    {"cmd": "git diff", "expected": "fall-through", "name": "git diff"},
+    {"cmd": "git show HEAD", "expected": "fall-through", "name": "git show"},
+    {"cmd": "git --no-pager log", "expected": "fall-through", "name": "git --no-pager log"},
+    {"cmd": "cat /tmp/claude-XYZ/file", "expected": "fall-through", "name": "cat in tmp"},
+    {"cmd": "rm -rf /tmp/claude-XYZ", "expected": "fall-through", "name": "rm -rf in tmp"},
+    {"cmd": "ls /tmp/claude-XYZ", "expected": "fall-through", "name": "ls in tmp"},
+
+    {"cmd": "git logger", "expected": "fall-through", "name": "git logger prefix-collision"},
+    {"cmd": "git logout", "expected": "fall-through", "name": "git logout prefix-collision"},
+    {"cmd": "gitlog", "expected": "fall-through", "name": "gitlog (no space)"},
+    {"cmd": "git", "expected": "fall-through", "name": "bare git"},
+    {"cmd": "git lo", "expected": "fall-through", "name": "git lo (truncated)"},
+
+    {"cmd": "git log; rm -rf /", "expected": "fall-through", "name": "metachar: semicolon chain"},
+    {"cmd": "git log && rm -rf /", "expected": "fall-through", "name": "metachar: && chain"},
+    {"cmd": "git log | tee /etc/x", "expected": "fall-through", "name": "metachar: pipe"},
+    {"cmd": "git log > out.txt", "expected": "fall-through", "name": "metachar: redirect out"},
+    {"cmd": "git log < in.txt", "expected": "fall-through", "name": "metachar: redirect in"},
+    {"cmd": "git log $(whoami)", "expected": "fall-through", "name": "metachar: command substitution"},
+    {"cmd": "git log `whoami`", "expected": "fall-through", "name": "metachar: backtick substitution"},
+    {"cmd": "git log \"quoted\"", "expected": "fall-through", "name": "metachar: double quote"},
+    {"cmd": "git log 'quoted'", "expected": "fall-through", "name": "metachar: single quote"},
+    {"cmd": "git log \\foo", "expected": "fall-through", "name": "metachar: backslash"},
+    {"cmd": "git log {a,b}", "expected": "fall-through", "name": "metachar: brace expansion"},
+    {"cmd": "git log\necho leaked", "expected": "fall-through", "name": "metachar: newline chain"},
+    {"cmd": "git log\trm -rf /", "expected": "fall-through", "name": "metachar: tab smuggle"}
+]

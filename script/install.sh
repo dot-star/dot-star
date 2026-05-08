@@ -113,6 +113,7 @@ ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/skills/triage-permission
 
 mkdir -p "${HOME}/.claude/hooks"
 ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/hooks/triage_nudge.sh" "${HOME}/.claude/hooks/triage_nudge.sh"
+ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/hooks/validate_bash_command.sh" "${HOME}/.claude/hooks/validate_bash_command.sh"
 
 # Install colordiff configuration.
 ensure_symlink "${DOT_STAR}/colordiff/.colordiffrc" "${HOME}/.colordiffrc"

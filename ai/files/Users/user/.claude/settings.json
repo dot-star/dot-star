@@ -19,6 +19,17 @@
         "matcher": "Write|Edit"
       }
     ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "${HOME}/.claude/hooks/validate_bash_command.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash"
+      }
+    ],
     "SessionStart": [
       {
         "hooks": [
