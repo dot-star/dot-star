@@ -11,9 +11,9 @@
     {"cmd": "git diff", "expected": "fall-through", "name": "git diff"},
     {"cmd": "git show HEAD", "expected": "fall-through", "name": "git show"},
     {"cmd": "git --no-pager log", "expected": "fall-through", "name": "git --no-pager log"},
-    {"cmd": "cat /tmp/claude-XYZ/file", "expected": "fall-through", "name": "cat in tmp"},
-    {"cmd": "rm -rf /tmp/claude-XYZ", "expected": "fall-through", "name": "rm -rf in tmp"},
-    {"cmd": "ls /tmp/claude-XYZ", "expected": "fall-through", "name": "ls in tmp"},
+    {"cmd": "cat /tmp/claude/XYZ/file", "expected": "fall-through", "name": "cat in tmp"},
+    {"cmd": "rm -rf /tmp/claude/XYZ", "expected": "fall-through", "name": "rm -rf in tmp"},
+    {"cmd": "ls /tmp/claude/XYZ", "expected": "fall-through", "name": "ls in tmp"},
 
     {"cmd": "git logger", "expected": "fall-through", "name": "git logger prefix-collision"},
     {"cmd": "git logout", "expected": "fall-through", "name": "git logout prefix-collision"},
