@@ -106,6 +106,13 @@ mkdir -p "${HOME}/.claude"
 ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/settings.json" "${HOME}/.claude/settings.json"
 ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/CLAUDE.md" "${HOME}/.claude/CLAUDE.md"
 
+# Install Claude Code skills and hooks.
+mkdir -p "${HOME}/.claude/skills"
+ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/skills/triage-permissions" "${HOME}/.claude/skills/triage-permissions"
+
+mkdir -p "${HOME}/.claude/hooks"
+ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/hooks/triage_nudge.sh" "${HOME}/.claude/hooks/triage_nudge.sh"
+
 # Install colordiff configuration.
 ensure_symlink "${DOT_STAR}/colordiff/.colordiffrc" "${HOME}/.colordiffrc"
 
