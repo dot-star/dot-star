@@ -878,9 +878,19 @@ rc_status() {
 
                     # Show worktree paths relative to the main checkout to keep lines short,
                     # then realign columns since stripping the prefix breaks git's padding.
+                    # Pair sha with dim relative committer time; alignment stays intact
+                    # because every row carries the same escape-sequence overhead.
+                    # Cache git's absolute path: zsh fails to find it inside the nested
+                    # $(...) under a `while read` pipeline once dot-star aliases load.
+                    local git_bin
+                    git_bin="$(\command -v git)"
                     git worktree list |
                         awk -v base="${main_toplevel}/" 'NR>1 {sub("^"base, "", $1); print}' |
-                        column -t |
+                        while read -r path sha branch; do
+                            rel="$("${git_bin}" log -1 --format=%cr "${sha}" 2>/dev/null)"
+                            printf '%s\t%s \033[2m(%s)\033[0m\t%s\n' "${path}" "${sha}" "${rel}" "${branch}"
+                        done |
+                        column -t -s $'\t' |
                         sed 's/^/    /' |
                         head -n 10
                     if [[ "${worktree_count}" -gt 10 ]]; then
