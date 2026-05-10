@@ -9,10 +9,28 @@ fi
 WARNINGS=()
 
 # Append a warning to WARNINGS and emit it to stderr without xtrace noise.
+# Optional second arg is a suggested command, shown on its own line in cyan.
 warn() {
-    WARNINGS+=("${1}")
+    local cyan=$'\033[36m'
+    local reset=$'\033[0m'
+
+    local message="${1}"
+    local suggested_command="${2:-}"
+    local entry="${message}"
+
+    # Include the suggested command in the warning message if provided.
+    if [ -n "${suggested_command}" ]; then
+        entry="${message}"$'\n'"    ${cyan}Run: ${suggested_command}${reset}"
+    fi
+
+    WARNINGS+=("${entry}")
+
     set +x
-    echo "WARNING: ${1}" >&2
+    echo "WARNING: ${message}" >&2
+    # Print the suggested command on its own line if provided.
+    if [ -n "${suggested_command}" ]; then
+        printf '    %sRun: %s%s\n' "${cyan}" "${suggested_command}" "${reset}" >&2
+    fi
     set -x
 }
 
@@ -33,7 +51,7 @@ ensure_symlink() {
             ln -v -s "${src}" "${dest}"
         else
             # Symlink points at a different file; don't clobber.
-            warn "${dest} is a symlink to ${actual_src}, expected ${src}. Run: diff ${actual_src} ${src}"
+            warn "${dest} is a symlink to ${actual_src}, expected ${src}." "diff ${actual_src} ${src}"
         fi
     # Check for any existing path (regular file, directory, socket, FIFO, etc.) as destination.
     elif [ -e "${dest}" ]; then
@@ -43,7 +61,7 @@ ensure_symlink() {
             ln -v -s "${src}" "${dest}"
         else
             # Don't clobber.
-            warn "${dest} exists but is not a symlink, expected symlink to ${src}. Run: diff ${dest} ${src}"
+            warn "${dest} exists but is not a symlink, expected symlink to ${src}." "diff ${dest} ${src}"
         fi
     # No entry at destination.
     else
