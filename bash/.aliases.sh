@@ -252,14 +252,14 @@ conditional_cd() {
     #   $ wdiff original.txt changed.txt | cd
     #   (pipes wdiff result to colordiff)
 
-    # Keyboard input (interactive).
-    if [[ -t 0 ]]; then
-        # Run cd alias when not piped.
+    # Any path arg means a real cd, even in non-interactive shells (scripts,
+    # Claude's bash subshell). Only the bare-pipe form `... | cd` (no args,
+    # stdin not a tty) falls through to colordiff.
+    if [[ "${#}" -gt 0 ]]; then
         better_cd "${@}"
-
-    # Pipe input (non-interactive).
+    elif [[ -t 0 ]]; then
+        better_cd
     else
-        # Run colordiff when alias cd is piped.
         colordiff
     fi
 }
@@ -1859,9 +1859,7 @@ git_worktree_done() {
     local relative_path="${PWD#"${worktree_path}"}"
     relative_path="${relative_path#/}"
 
-    # Use builtin cd to bypass the conditional_cd alias, which no-ops in
-    # non-interactive shells and would leave us in the worktree.
-    builtin cd "${main_checkout}" || return 1
+    cd "${main_checkout}" || return 1
 
     if ! git checkout "${default_branch}"; then
         echo "failed to checkout ${default_branch}"
@@ -1893,7 +1891,7 @@ git_worktree_done() {
     if [[ -n "${relative_path}" && -d "${main_checkout}/${relative_path}" ]]; then
         target_path="${main_checkout}/${relative_path}"
     fi
-    builtin cd "${target_path}"
+    cd "${target_path}"
 }
 alias wtd="git_worktree_done"
 alias wtdone="git_worktree_done"
