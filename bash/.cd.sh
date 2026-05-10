@@ -44,7 +44,17 @@ alias_projects() {
         l
 }
 alias projects="alias_projects"
-alias p="alias_projects"
+
+conditional_p() {
+    # Interactive: cd to projects.
+    if [[ -t 1 ]]; then
+        alias_projects
+    # Piped (e.g. `p|c'): print pwd for clipboard.
+    else
+        echo "${PWD}"
+    fi
+}
+alias p="conditional_p"
 
 alias pictures="cd ~/Pictures"
 alias pics="pictures"
