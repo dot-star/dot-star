@@ -877,25 +877,26 @@ rc_status() {
 
                     echo -e "\n\033[1;36m${worktree_count}\033[0m ${worktree_label}:"
 
-                    # TODO: Consider shortening further to just the basename.
-                    # The style that's currently being displayed:
-                    #   .claude/worktrees/difference-json-autodetect b24351a [worktree-difference-json-autodetect]
-                    # Can be shortened to just the basename of the path:
-                    #                     difference-json-autodetect b24351a [worktree-difference-json-autodetect]
-
-                    # Show worktree paths relative to the main checkout to keep lines short,
-                    # then realign columns since stripping the prefix breaks git's padding.
-                    # Pair sha with dim relative committer time; alignment stays intact
-                    # because every row carries the same escape-sequence overhead.
+                    # Show basenames only and drop the branch column when it matches
+                    # the auto-generated `worktree-<name>` convention; realign with
+                    # column -t since git's padding assumed the full path.
+                    # Example output:
+                    #     pretty-tail-glow  e762c60 (2 days ago)
+                    #     custom-checkout   abc1234 (1 day ago)   [feature/foo]
                     # Cache git's absolute path: zsh fails to find it inside the nested
                     # $(...) under a `while read` pipeline once dot-star aliases load.
                     local git_bin
                     git_bin="$(\command -v git)"
                     git worktree list |
-                        awk -v base="${main_toplevel}/" 'NR>1 {sub("^"base, "", $1); print}' |
+                        awk 'NR>1' |
                         while read -r path sha branch; do
+                            name="${path##*/}"
                             rel="$("${git_bin}" log -1 --format=%cr "${sha}" 2>/dev/null)"
-                            printf '%s\t%s \033[2m(%s)\033[0m\t%s\n' "${path}" "${sha}" "${rel}" "${branch}"
+                            if [[ "${branch}" == "[worktree-${name}]" ]]; then
+                                printf '%s\t%s \033[2m(%s)\033[0m\n' "${name}" "${sha}" "${rel}"
+                            else
+                                printf '%s\t%s \033[2m(%s)\033[0m\t%s\n' "${name}" "${sha}" "${rel}" "${branch}"
+                            fi
                         done |
                         column -t -s $'\t' |
                         sed 's/^/    /' |
