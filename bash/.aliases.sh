@@ -756,6 +756,7 @@ alias ip="_ip"
 
 alias dotfiles="dotstar"
 alias dotstar="cd ${HOME}/.dot-star && l"
+alias ds="dotstar"
 alias ".*"="dotstar"
 alias extra="edit ${HOME}/.dot-star/bash/extra.sh"
 alias hosts="sudo vim /etc/hosts"
