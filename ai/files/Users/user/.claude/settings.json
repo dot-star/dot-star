@@ -83,8 +83,10 @@
       "Read(/tmp/claude/**)",
       "Write(/tmp/claude/**)"
     ],
+    "ask": [
+      "Bash(gh api:*)"
+    ],
     "deny": [
-      "Bash(gh api:*)",
       "Bash(gh pr checkout:*)",
       "Bash(gh pr close:*)",
       "Bash(gh pr comment:*)",
