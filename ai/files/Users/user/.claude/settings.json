@@ -97,6 +97,7 @@
       "Bash(gh pr update-branch:*)"
     ]
   },
+  "theme": "dark",
   "voice": {
     "enabled": true,
     "mode": "tap"
