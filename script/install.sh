@@ -90,6 +90,33 @@ else
     ln -vs "${DOT_STAR_ROOT}" "${DOT_STAR}"
 fi
 
+# Install Claude Code settings.
+mkdir -p "${HOME}/.claude"
+ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/settings.json" "${HOME}/.claude/settings.json"
+ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/CLAUDE.md" "${HOME}/.claude/CLAUDE.md"
+ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/commit-message-style.md" "${HOME}/.claude/commit-message-style.md"
+
+# Install Claude Code skills, commands, and hooks by symlinking the parent
+# dirs. New files in the repo show up automatically, and any unexpected entry
+# under ~/.claude/skills, ~/.claude/commands, or ~/.claude/hooks surfaces as
+# untracked in `git status`. The first loop migrates the prior
+# per-entry-symlink layout: drop legacy symlinks and the now-empty parent so
+# the directory symlink can land.
+for parent in "${HOME}/.claude/skills" "${HOME}/.claude/commands" "${HOME}/.claude/hooks"; do
+    if [ -d "${parent}" ] && [ ! -L "${parent}" ]; then
+        for legacy in "${parent}"/*; do
+            if [ -L "${legacy}" ]; then
+                unlink "${legacy}"
+            fi
+        done
+        rmdir "${parent}" 2>/dev/null || true
+    fi
+done
+
+ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/skills" "${HOME}/.claude/skills"
+ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/commands" "${HOME}/.claude/commands"
+ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/hooks" "${HOME}/.claude/hooks"
+
 dotstar_header="# Begin dot-star bootstrap."
 dotstar_footer="# End dot-star bootstrap."
 
@@ -118,33 +145,6 @@ fi" >> "$HOME/.bashrc"'
 
 # Install inputrc.
 ensure_symlink "${DOT_STAR}/bash/.inputrc" "${HOME}/.inputrc"
-
-# Install Claude Code settings.
-mkdir -p "${HOME}/.claude"
-ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/settings.json" "${HOME}/.claude/settings.json"
-ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/CLAUDE.md" "${HOME}/.claude/CLAUDE.md"
-ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/commit-message-style.md" "${HOME}/.claude/commit-message-style.md"
-
-# Install Claude Code skills, commands, and hooks by symlinking the parent
-# dirs. New files in the repo show up automatically, and any unexpected entry
-# under ~/.claude/skills, ~/.claude/commands, or ~/.claude/hooks surfaces as
-# untracked in `git status`. The first loop migrates the prior
-# per-entry-symlink layout: drop legacy symlinks and the now-empty parent so
-# the directory symlink can land.
-for parent in "${HOME}/.claude/skills" "${HOME}/.claude/commands" "${HOME}/.claude/hooks"; do
-    if [ -d "${parent}" ] && [ ! -L "${parent}" ]; then
-        for legacy in "${parent}"/*; do
-            if [ -L "${legacy}" ]; then
-                unlink "${legacy}"
-            fi
-        done
-        rmdir "${parent}" 2>/dev/null || true
-    fi
-done
-
-ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/skills" "${HOME}/.claude/skills"
-ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/commands" "${HOME}/.claude/commands"
-ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/hooks" "${HOME}/.claude/hooks"
 
 # Install colordiff configuration.
 ensure_symlink "${DOT_STAR}/colordiff/.colordiffrc" "${HOME}/.colordiffrc"
