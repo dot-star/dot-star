@@ -54,6 +54,7 @@ source "quilt/.aliases.sh"
 source "bash/.conditionals.sh"
 source "bash/.settings.sh"
 source "bash/.extra.sh"
+source "bash/.install_check.sh"
 \cd "${CWD}"
 if is_ssh; then
     if [[ -z "${BYOBU_WINDOW_NAME}" ]]; then

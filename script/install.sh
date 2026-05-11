@@ -182,4 +182,8 @@ if [ ${#WARNINGS[@]} -gt 0 ]; then
     set -x
 fi
 
+# Stamp the installed commit so bash/.install_check.sh can detect later
+# pulls that change install.sh or post_install.sh.
+git -C "${DOT_STAR_ROOT}" rev-parse HEAD >"${HOME}/.dot-star-installed-commit"
+
 echo "✅ install complete"
