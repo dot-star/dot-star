@@ -23,6 +23,7 @@
 - When consecutive `if` statements each end in `return` (or `throw`), chain them as `else if` rather than leaving them as separate `if` blocks; this includes side-effecting actions (e.g. `if ! git rebase master`) where chaining is possible. Plain side-effect `if`s without a terminating return stay separate.
 - Self-documenting command variables: when a command's intent isn't obvious from its literal text, bind it to a descriptively-named local variable so the call site reads as prose. Example: `local is_valid_json="jq empty"` lets the conditional read `if $is_valid_json "${file}"; then`. Skip when the literal command is already clear on its own.
 - Two comment shapes: block comments (TODOs, design notes) get a blank line above and below; line-doc comments (describing the next line/pipeline) stay flush with the code, no blank line between.
+- Blank lines around `if` blocks track logical grouping. Keep an assignment flush with the `if` that consumes its result (`x="$(...)"` immediately above `if [[ -z "${x}" ]]; then`); same for consecutive assignments feeding the same conditional. Insert a blank line above standalone `if`s not fed by the previous line, after a closing `fi`, and after the function's `local` declaration block. A line-doc comment describing the `if` stays flush with it, so the blank line goes above the comment.
 
 ## Output
 
