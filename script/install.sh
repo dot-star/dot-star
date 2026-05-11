@@ -182,4 +182,4 @@ if [ ${#WARNINGS[@]} -gt 0 ]; then
     set -x
 fi
 
-echo "install complete"
+echo "✅ install complete"
