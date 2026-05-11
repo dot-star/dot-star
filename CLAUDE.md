@@ -49,6 +49,8 @@ There are two `CLAUDE.md` files in this repo with different scopes:
 
 There is no project-scoped `.claude/settings.json` here on purpose (`.claude/` is gitignored). The user's global config at `~/.claude/settings.json` is itself a symlink into this repo at `ai/files/Users/user/.claude/settings.json` (set up by `script/install.sh`), so editing that file is how you change Claude Code behavior, both inside this checkout and everywhere else on the machine.
 
+`script/install.sh` also symlinks the parent dirs `ai/files/Users/user/.claude/skills`, `commands`, and `hooks` into `~/.claude/`, so new files under any of them are picked up automatically after install. To alias a slash command, symlink the new name to the existing one (e.g. `cm.md -> commit.md`); the same trick works for skills and hooks.
+
 ## Project conventions
 
 - Shell style: prefer explicit `if` blocks over `&&`/`||` one-liners in functions; this is enforced in review (separate from `shfmt`, which only handles indentation).
