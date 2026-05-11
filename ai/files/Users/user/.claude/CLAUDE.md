@@ -1,6 +1,7 @@
 # User preferences
 
 - Explicit is better than implicit.
+- Organize this file semantically by topic, not by order added.
 - For temporary files, write only to the session-scoped directory `/tmp/claude/<session_id>/` (surfaced via SessionStart). Do not write directly under `/tmp/` or `/tmp/claude/`.
 - When the working directory is already inside a git repository, prefer plain `git ...` invocations over `git -C <path> ...`. The cwd already has the right scope, and `-C` triggers extra permission prompts.
 - Prefer long `--flag` forms over short `-f` forms when invoking shell commands. Long flags are self-describing (e.g. `grep --recursive --files-with-matches`, not `grep -rl`).
