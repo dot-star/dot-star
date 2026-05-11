@@ -875,7 +875,7 @@ rc_status() {
                         worktree_label="worktree"
                     fi
 
-                    echo -e "\n\033[1;36m${worktree_count}\033[0m ${worktree_label}:"
+                    echo -e "\n\033[1;36m${worktree_count}\033[0m \033[2m${worktree_label}:\033[0m"
 
                     # Show basenames only and drop the branch column when it matches
                     # the auto-generated `worktree-<name>` convention; realign with
@@ -893,9 +893,9 @@ rc_status() {
                             name="${path##*/}"
                             rel="$("${git_bin}" log -1 --format=%cr "${sha}" 2>/dev/null)"
                             if [[ "${branch}" == "[worktree-${name}]" ]]; then
-                                printf '%s\t%s \033[2m(%s)\033[0m\n' "${name}" "${sha}" "${rel}"
+                                printf '\033[38;5;80m%s\033[0m\t\033[33m%s\033[0m \033[2m(%s)\033[0m\n' "${name}" "${sha}" "${rel}"
                             else
-                                printf '%s\t%s \033[2m(%s)\033[0m\t%s\n' "${name}" "${sha}" "${rel}" "${branch}"
+                                printf '\033[38;5;80m%s\033[0m\t\033[33m%s\033[0m \033[2m(%s)\033[0m\t\033[38;5;177m%s\033[0m\n' "${name}" "${sha}" "${rel}" "${branch}"
                             fi
                         done |
                         column -t -s $'\t' |
