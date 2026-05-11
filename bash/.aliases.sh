@@ -1765,10 +1765,47 @@ git_worktree_cd() {
         fi
     fi
 
+    # Cache git's absolute path: zsh fails to find it inside the nested
+    # $(...) under a `while read` pipeline once dot-star aliases load.
+    local git_bin
+    git_bin="$(\command -v git)"
+
+    # Compute the longest basename so we can right-pad without `column -t`,
+    # which would also pad the hidden path column. Avoid the name `path`: in zsh
+    # it's tied to `$PATH`, and assigning to it here would clobber the PATH.
+    local name max_name=0 entry
+    while read -r entry _; do
+        name="${entry##*/}"
+        if [[ "${#name}" -gt "${max_name}" ]]; then
+            max_name="${#name}"
+        fi
+    done <<<"${source_list}"
+
+    # Build TSV with path hidden in column 1 and a colored display in column 2+.
+    # fzf shows only the display, but returns the full line so we can recover the path.
+    local display_list
+    display_list="$(
+        echo "${source_list}" |
+            while read -r entry sha branch; do
+                name="${entry##*/}"
+                rel="$("${git_bin}" log -1 --format=%cr "${sha}" 2>/dev/null)"
+                if [[ "${branch}" == "[worktree-${name}]" ]]; then
+                    printf '%s\t\033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[2m(%s)\033[0m\n' \
+                        "${entry}" "${max_name}" "${name}" "${sha}" "${rel}"
+                else
+                    printf '%s\t\033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[2m(%s)\033[0m  \033[38;5;177m%s\033[0m\n' \
+                        "${entry}" "${max_name}" "${name}" "${sha}" "${rel}" "${branch}"
+                fi
+            done
+    )"
+
     local selected
     selected="$(
-        echo "${source_list}" |
+        echo "${display_list}" |
             fzf \
+                --ansi \
+                --delimiter=$'\t' \
+                --with-nth=2.. \
                 --exit-0 \
                 --info="hidden" \
                 --select-1
@@ -1784,8 +1821,7 @@ git_worktree_cd() {
         return
     fi
 
-    local worktree_path
-    worktree_path="$(echo "${selected}" | awk '{print $1}')"
+    local worktree_path="${selected%%$'\t'*}"
 
     # Path of cwd relative to the current worktree's top-level.
     local current_toplevel
