@@ -36,6 +36,8 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     git config --global --bool diff-so-fancy.markEmptyLines false
     git config --global --bool diff-so-fancy.stripLeadingSymbols false
 
+    brew install git-delta
+
     git config --global diff.tool opendiff
     git config --global difftool.prompt false
 
@@ -74,24 +76,25 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
 
     # Use diff highlight.
     ln -s "/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" "/usr/local/bin/"
-
-    # Use wildcard to run diff-highlight under the currently installed version of git.
-    git config --global core.pager "${DOT_STAR_ROOT}/version_control/git_pager.sh"
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     # Package is `bat' on Debian/Ubuntu but installs the binary as `batcat'
     # to avoid clashing with an unrelated `bat' package.
     sudo apt-get install bat
     sudo apt-get install colordiff
     sudo apt-get install fzf
+    sudo apt-get install git-delta
     sudo apt-get install jq
 
     cd "/usr/share/doc/git/contrib/diff-highlight" &&
         sudo make &&
         sudo ln -v -s "/usr/share/doc/git/contrib/diff-highlight/diff-highlight" /usr/local/bin/
-
-    # Use git's diff-highlight.
-    git config --global core.pager "diff-highlight | less"
 fi
+
+# Use delta as git's pager via the repo wrapper.
+git config --global core.pager "${DOT_STAR_ROOT}/version_control/git_pager.sh"
+git config --global interactive.diffFilter "delta --color-only"
+git config --global delta.navigate true
+git config --global delta.line-numbers true
 
 # Create backup and swap directories specified in vimrc.
 mkdir -p "$HOME/.vim/backup/"
