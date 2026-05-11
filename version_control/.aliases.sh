@@ -834,6 +834,74 @@ rc_push() {
     fi
 }
 
+_git_worktree_age() {
+    # Print "X units ago" for when the worktree's HEAD ref was last updated.
+    # Captures creation, commits, and HEAD-moving checkouts; not unstaged edits.
+    # The committer date of the HEAD sha is misleading for worktrees parked at
+    # another branch's tip (e.g. a fresh worktree at master's tip would show
+    # master's last-commit age instead of the worktree's own age).
+    # Usage:
+    #   $ _git_worktree_age <worktree_path> [git_bin]
+    local worktree_path="${1}"
+    local git_bin="${2:-git}"
+    local gitdir head_file mtime now diff value unit
+
+    gitdir="$("${git_bin}" -C "${worktree_path}" rev-parse --absolute-git-dir 2>/dev/null)"
+    if [[ -z "${gitdir}" ]]; then
+        return 1
+    fi
+
+    head_file="${gitdir}/HEAD"
+    if [[ ! -e "${head_file}" ]]; then
+        return 1
+    fi
+
+    # On macOS, call /usr/bin/stat directly: homebrew's GNU stat may shadow
+    # BSD stat on PATH and `stat -f` means "filesystem info" there, not mtime.
+    if [[ "${OSTYPE}" == "darwin"* ]]; then
+        mtime="$(/usr/bin/stat -f %m "${head_file}" 2>/dev/null)"
+    else
+        mtime="$(stat -c %Y "${head_file}" 2>/dev/null)"
+    fi
+
+    if [[ -z "${mtime}" ]]; then
+        return 1
+    fi
+
+    # Absolute path: zsh's PATH lookup gets confused inside the nested
+    # $(...) under a `while read` pipeline once dot-star aliases load.
+    now="$(/bin/date +%s)"
+    diff=$((now - mtime))
+    if ((diff < 60)); then
+        value="${diff}"
+        unit="second"
+    elif ((diff < 3600)); then
+        value=$((diff / 60))
+        unit="minute"
+    elif ((diff < 86400)); then
+        value=$((diff / 3600))
+        unit="hour"
+    elif ((diff < 604800)); then
+        value=$((diff / 86400))
+        unit="day"
+    elif ((diff < 2592000)); then
+        value=$((diff / 604800))
+        unit="week"
+    elif ((diff < 31536000)); then
+        value=$((diff / 2592000))
+        unit="month"
+    else
+        value=$((diff / 31536000))
+        unit="year"
+    fi
+
+    if ((value == 1)); then
+        echo "${value} ${unit} ago"
+    else
+        echo "${value} ${unit}s ago"
+    fi
+}
+
 rc_status() {
     clear
 
@@ -891,7 +959,7 @@ rc_status() {
                         awk 'NR>1' |
                         while read -r path sha branch; do
                             name="${path##*/}"
-                            rel="$("${git_bin}" log -1 --format=%cr "${sha}" 2>/dev/null)"
+                            rel="$(_git_worktree_age "${path}" "${git_bin}")"
                             if [[ "${branch}" == "[worktree-${name}]" ]]; then
                                 printf '\033[38;5;80m%s\033[0m\t\033[33m%s\033[0m \033[2m(%s)\033[0m\n' "${name}" "${sha}" "${rel}"
                             else

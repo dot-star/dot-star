@@ -1788,7 +1788,7 @@ git_worktree_cd() {
         echo "${source_list}" |
             while read -r entry sha branch; do
                 name="${entry##*/}"
-                rel="$("${git_bin}" log -1 --format=%cr "${sha}" 2>/dev/null)"
+                rel="$(_git_worktree_age "${entry}" "${git_bin}")"
                 if [[ "${branch}" == "[worktree-${name}]" ]]; then
                     printf '%s\t\033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[2m(%s)\033[0m\n' \
                         "${entry}" "${max_name}" "${name}" "${sha}" "${rel}"
