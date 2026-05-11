@@ -54,3 +54,4 @@ There is no project-scoped `.claude/settings.json` here on purpose (`.claude/` i
 - Shell style: prefer explicit `if` blocks over `&&`/`||` one-liners in functions; this is enforced in review (separate from `shfmt`, which only handles indentation).
 - `set -x`, `set -euo pipefail`, and noisy `echo`s are common and intentional in installer / pruning scripts; keep them when editing those files.
 - JSON files: alphabetize keys with `jq --sort-keys` when editing. Skip generated files (lockfiles, build artifacts, snapshots).
+- Don't use `path` (or `fpath`/`manpath`/`cdpath`) as shell variable names: zsh ties them to `$PATH`/etc., so assignments silently clobber the real env var.
