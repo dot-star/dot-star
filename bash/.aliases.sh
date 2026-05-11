@@ -1683,7 +1683,7 @@ alias k="kill"
 alias ka="killall"
 
 alias pc="pre-commit"
-alias pca="pre-commit run --all-files"
+alias pca="pre-commit run --all-files --show-diff-on-failure"
 
 _type() {
     # Display a list of the currently defined bash functions when the `type'
