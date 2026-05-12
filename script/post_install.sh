@@ -56,8 +56,8 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     brew install rsync
     brew install macvim --HEAD
 
-    brew install php@8.0
-    brew link php@8.0
+    brew install php@8.4
+    brew link php@8.4
 
     brew install tree
     brew install wget
