@@ -74,6 +74,23 @@ ensure_symlink() {
 DOT_STAR_ROOT="$(dirname $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P))"
 DOT_STAR="${HOME}/.dot-star"
 
+# Installing from a worktree silently repoints ~/.dot-star at the worktree
+# and stamps the wrong commit, leaving the main checkout looking outdated.
+if [ -f "${DOT_STAR_ROOT}/.git" ]; then
+    set +x
+    bold_red=$'\033[1;31m'
+    cyan=$'\033[36m'
+    reset=$'\033[0m'
+    printf '%sERROR:%s install.sh was invoked from a worktree: %s\n' "${bold_red}" "${reset}" "${DOT_STAR_ROOT}" >&2
+    if [[ "${DOT_STAR_ROOT}" == */.claude/worktrees/* ]]; then
+        main_checkout="${DOT_STAR_ROOT%/.claude/worktrees/*}"
+        printf '       %sRun: %s/install.sh%s\n' "${cyan}" "${main_checkout}" "${reset}" >&2
+    else
+        printf '       Run it from the main checkout instead.\n' >&2
+    fi
+    exit 1
+fi
+
 # Remove stray /.dot-star at filesystem root from a prior empty-HOME run.
 if [ -L "/.dot-star" ]; then
     unlink "/.dot-star"
