@@ -8,6 +8,8 @@
 
 set -euo pipefail
 
+echo "Pruning Claude sessions"
+
 target_titles=("ok-to-delete" "ok-to-del" "delete" "del" "tmp")
 projects_dir="${HOME}/.claude/projects"
 
@@ -46,7 +48,9 @@ if [[ "${#matches[@]}" -eq 0 ]]; then
     exit 0
 fi
 
-echo "Pruning ${#matches[@]} session(s) with customTitle in {${quoted_titles}}:"
-for file in "${matches[@]}"; do
-    rm -v "${file}"
-done
+if [[ "${#matches[@]}" -gt 0 ]]; then
+    echo "Pruning ${#matches[@]} session(s) with customTitle in {${quoted_titles}}:"
+    for file in "${matches[@]}"; do
+        rm -v "${file}"
+    done
+fi
