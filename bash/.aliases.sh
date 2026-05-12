@@ -1073,11 +1073,14 @@ _run_watchman() {
     loop="${1}"
     pattern_to_watch="${2}"
     cmd_to_run="${3}"
+    quiet="${4:-false}"
 
-    echo "_run_watchman"
-    echo "  loop: ${loop}"
-    echo "  pattern_to_watch: ${pattern_to_watch}"
-    echo "  cmd_to_run: ${cmd_to_run}"
+    if ! ${quiet}; then
+        echo "_run_watchman"
+        echo "  loop: ${loop}"
+        echo "  pattern_to_watch: ${pattern_to_watch}"
+        echo "  cmd_to_run: ${cmd_to_run}"
+    fi
 
     i=0
     watchman_exit_code="0"
@@ -1139,33 +1142,37 @@ _run_watchman() {
 
         # "0 is returned after successfully waiting for event(s)".
         if [[ "${watchman_exit_code}" -eq 0 ]]; then
-            cols="$(tput cols)"
-            echo "$(bash -c "printf -- '=%.0s' {1..${cols}}")"
+            if ! ${quiet}; then
+                cols="$(tput cols)"
+                echo "$(bash -c "printf -- '=%.0s' {1..${cols}}")"
+            fi
             clear
 
             bash -c "${cmd_to_run}"
             command_exit_code="${?}"
 
-            # Calculate width of line separator between each command execution
-            # and right before printing the separator to account for resizing.
-            cols="$(tput cols)"
+            if ! ${quiet}; then
+                # Calculate width of line separator between each command execution
+                # and right before printing the separator to account for resizing.
+                cols="$(tput cols)"
 
-            if [[ $((i % 4)) -eq 0 ]]; then
-                sep="$(bash -c "printf -- '-%.0s' {1..${cols}}")"
-            elif [[ $((i % 4)) -eq 1 ]]; then
-                sep="$(bash -c "printf -- '\%.0s' {1..${cols}}")"
-            elif [[ $((i % 4)) -eq 2 ]]; then
-                sep="$(bash -c "printf -- '|%.0s' {1..${cols}}")"
-            elif [[ $((i % 4)) -eq 3 ]]; then
-                sep="$(bash -c "printf -- '/%.0s' {1..${cols}}")"
-            fi
+                if [[ $((i % 4)) -eq 0 ]]; then
+                    sep="$(bash -c "printf -- '-%.0s' {1..${cols}}")"
+                elif [[ $((i % 4)) -eq 1 ]]; then
+                    sep="$(bash -c "printf -- '\%.0s' {1..${cols}}")"
+                elif [[ $((i % 4)) -eq 2 ]]; then
+                    sep="$(bash -c "printf -- '|%.0s' {1..${cols}}")"
+                elif [[ $((i % 4)) -eq 3 ]]; then
+                    sep="$(bash -c "printf -- '/%.0s' {1..${cols}}")"
+                fi
 
-            if [[ "${command_exit_code}" -ne 0 ]]; then
-                error "${sep}"
-                echo -e "\\033[4;31mError:\\033[0m exit code ${command_exit_code}"
-                echo -e "\\033[34mCommand:\\033[0m \`${cmd_to_run}'"
-            else
-                success "${sep}"
+                if [[ "${command_exit_code}" -ne 0 ]]; then
+                    error "${sep}"
+                    echo -e "\\033[4;31mError:\\033[0m exit code ${command_exit_code}"
+                    echo -e "\\033[34mCommand:\\033[0m \`${cmd_to_run}'"
+                else
+                    success "${sep}"
+                fi
             fi
         fi
 
@@ -1230,9 +1237,16 @@ watch_dir() {
     #   $ watch_dir script.js
     #   $ watch_dir script.php
     #   $ watch_dir script.py
+    #   $ watch_dir --quiet "bash file_changed.sh"
     #   $ while :; do watch_dir; my_alias; done
     #   $ while :; f5_pos="482,425"; do wd; cur_pos="$(cliclick p)"; cliclick "dc:${f5_pos}"; cliclick "c:${cur_pos}"; sleep 1; done
     _require_watchman
+
+    quiet=false
+    if [[ "${1}" == "--quiet" ]]; then
+        quiet=true
+        shift
+    fi
 
     # Watch the current directory and return on change when no parameters are
     # specified.
@@ -1261,7 +1275,7 @@ watch_dir() {
         return
     fi
 
-    _run_watchman "${loop}" "${pattern_to_watch}" "${cmd_to_run}"
+    _run_watchman "${loop}" "${pattern_to_watch}" "${cmd_to_run}" "${quiet}"
 }
 alias wd="watch_dir"
 
@@ -1275,7 +1289,14 @@ alias_watch_file() {
     #   $ watch_file script.js
     #   $ watch_file script.php
     #   $ watch_file script.py
+    #   $ watch_file --quiet file_to_watch.md "clear; glow file_to_watch.md"
     _require_watchman
+
+    quiet=false
+    if [[ "${1}" == "--quiet" ]]; then
+        quiet=true
+        shift
+    fi
 
     # Watch the specified file (parameter 1) only for changes and run its
     # related command when only one parameter is specified.
@@ -1324,7 +1345,7 @@ alias_watch_file() {
         echo "pattern is not root"
     fi
 
-    _run_watchman "${loop}" "${pattern_to_watch}" "${cmd_to_run}"
+    _run_watchman "${loop}" "${pattern_to_watch}" "${cmd_to_run}" "${quiet}"
 }
 alias watch_file="alias_watch_file"
 alias wf="alias_watch_file"
