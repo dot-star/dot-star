@@ -957,9 +957,9 @@ rc_status() {
                     git_bin="$(\command -v git)"
                     git worktree list |
                         awk 'NR>1' |
-                        while read -r path sha branch; do
-                            name="${path##*/}"
-                            rel="$(_git_worktree_age "${path}" "${git_bin}")"
+                        while read -r worktree_path sha branch; do
+                            name="${worktree_path##*/}"
+                            rel="$(_git_worktree_age "${worktree_path}" "${git_bin}")"
                             if [[ "${branch}" == "[worktree-${name}]" ]]; then
                                 printf '\033[38;5;80m%s\033[0m\t\033[33m%s\033[0m \033[2m(%s)\033[0m\n' "${name}" "${sha}" "${rel}"
                             else
