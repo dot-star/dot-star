@@ -1,16 +1,29 @@
 export DISABLE_TELEMETRY=1
 
 claude_run() {
-    claude "$@"
+    # Run claude, optionally resuming a session.
+    # Usage:
+    #   claude_run                 # start a new session
+    #   claude_run <uuid>          # resume session <uuid>
+    #   claude_run --resume <uuid> # resume session <uuid> (explicit flag)
+
+    local uuid_pattern='^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+    # Explicit `--resume <uuid>` form: pass straight through.
+    if [[ "$1" == "--resume" ]]; then
+        claude "$@"
+    # Bare uuid as first arg: treat it as the session id to resume.
+    elif [[ "$1" =~ ${uuid_pattern} ]]; then
+        claude --resume "$@"
+    # No args (or anything that isn't a uuid): start a fresh session.
+    else
+        claude "$@"
+    fi
+
     ~/.dot-star/ai/claude/prune.sh
 }
 alias cl="claude_run"
 
-claude_resume() {
-    claude --resume "$@"
-    ~/.dot-star/ai/claude/prune.sh
-}
-alias clr="claude_resume"
+alias clr="claude_run --resume"
 
 claude_git_commit() {
     local prompt options selected
