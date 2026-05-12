@@ -11,6 +11,7 @@ WARNINGS=()
 # Append a warning to WARNINGS and emit it to stderr without xtrace noise.
 # Optional second arg is a suggested command, shown on its own line in cyan.
 warn() {
+    local bold_yellow=$'\033[1;33m'
     local cyan=$'\033[36m'
     local reset=$'\033[0m'
 
@@ -26,7 +27,7 @@ warn() {
     WARNINGS+=("${entry}")
 
     set +x
-    echo "WARNING: ${message}" >&2
+    printf '%sWARNING:%s %s\n' "${bold_yellow}" "${reset}" "${message}" >&2
     # Print the suggested command on its own line if provided.
     if [ -n "${suggested_command}" ]; then
         printf '    %sRun: %s%s\n' "${cyan}" "${suggested_command}" "${reset}" >&2
@@ -172,11 +173,13 @@ install_ipython
 source "${DOT_STAR_ROOT}/script/post_install.sh"
 
 if [ ${#WARNINGS[@]} -gt 0 ]; then
+    bold_yellow=$'\033[1;33m'
+    reset=$'\033[0m'
     set +x
     echo
-    echo "warnings:"
+    printf '%sWarnings:%s\n' "${bold_yellow}" "${reset}"
     for warning in "${WARNINGS[@]}"; do
-        echo "  - ${warning}"
+        printf '  %s-%s %s\n' "${bold_yellow}" "${reset}" "${warning}"
     done
     echo
     set -x
