@@ -51,6 +51,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     brew install diffutils
     brew install git
     brew install git-gui
+    brew install glow
     brew install grep
     brew install rsync
     brew install macvim --HEAD
