@@ -13,7 +13,7 @@ Collapse "draft a subject, pick one, commit" into one action for the currently s
 2. Confirm something is staged: `git --no-pager diff --staged --stat`. If empty, surface "nothing staged" and stop.
 3. Read the full staged diff: `git --no-pager diff --staged`. This is the source of truth for what to summarize.
 4. Skim recent subjects for voice: `git --no-pager log --max-count=10 --format='%s'`.
-5. Re-read `~/.claude/commit-message-style.md` so the drafts match the user's actual style.
+5. Re-read `~/.claude/CLAUDE_commit-message-style.md` so the drafts match the user's actual style.
 
 ## Draft
 

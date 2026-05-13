@@ -14,7 +14,7 @@
 - For temporary files, write only to the session-scoped directory `/tmp/claude/<session_id>/` (surfaced via SessionStart). Do not write directly under `/tmp/` or `/tmp/claude/`.
 - Before making any code edits in a git repository, work from an isolated worktree to keep the main checkout free for parallel work. Subagents: pass `isolation: "worktree"`. Direct edits: call `EnterWorktree` first, `ExitWorktree` with `action: "remove"` when done.
 - When the working directory is already inside a git repository, prefer plain `git ...` invocations over `git -C <path> ...`. The cwd already has the right scope, and `-C` triggers extra permission prompts.
-- For commit messages, follow `~/.claude/commit-message-style.md`. Default to a single subject line; bodies are rare and reserved for non-obvious motivation.
+- For commit messages, follow `~/.claude/CLAUDE_commit-message-style.md`. Default to a single subject line; bodies are rare and reserved for non-obvious motivation.
 
 ## Shell commands
 
