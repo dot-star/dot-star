@@ -17,6 +17,15 @@
           }
         ],
         "matcher": "Write|Edit"
+      },
+      {
+        "hooks": [
+          {
+            "command": "${HOME}/.claude/hooks/worktree_marker.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "EnterWorktree|ExitWorktree"
       }
     ],
     "PreToolUse": [
@@ -98,6 +107,10 @@
       "Bash(gh pr review:*)",
       "Bash(gh pr update-branch:*)"
     ]
+  },
+  "statusLine": {
+    "command": "${HOME}/.claude/hooks/statusline.sh",
+    "type": "command"
   },
   "theme": "dark",
   "voice": {
