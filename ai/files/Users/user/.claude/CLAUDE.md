@@ -29,6 +29,10 @@
 - Two comment shapes: block comments (TODOs, design notes) get a blank line above and below; line-doc comments (describing the next line/pipeline) stay flush with the code, no blank line between.
 - Blank lines around `if` blocks track logical grouping. Keep an assignment flush with the `if` that consumes its result (`x="$(...)"` immediately above `if [[ -z "${x}" ]]; then`); same for consecutive assignments feeding the same conditional. Insert a blank line above standalone `if`s not fed by the previous line, after a closing `fi`, and after the function's `local` declaration block. A line-doc comment describing the `if` stays flush with it, so the blank line goes above the comment.
 
+## Input
+
+- Interpret bare one-word/one-token user replies as shorthand: `y` and `ya` mean "yes" (treat as a `y/n?` style answer); `n`, `no`, and `nope` mean "no"; `res` means "resume"; `🚢` means "ship it" (land the work). Fires only when the entire message is exactly that token; if the message starts with a question word (what/how/why/is/should/can/does/...) it's a question *about* the token, not an invocation.
+
 ## Output
 
 - Never use em dashes (—) in any output, code, comments, commit messages, or PR descriptions. Use a comma, parentheses, semicolon, or two sentences instead.
