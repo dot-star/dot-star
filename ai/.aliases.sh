@@ -23,6 +23,8 @@ claude_run() {
 }
 alias cl="claude_run"
 
+alias .cl="cd ~/.claude/ && l"
+
 alias clr="claude_run --resume"
 
 claude_git_commit() {
