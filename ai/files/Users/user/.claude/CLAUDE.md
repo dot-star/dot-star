@@ -5,6 +5,10 @@
 - Explicit is better than implicit.
 - Organize this file semantically by topic, not by order added.
 
+## Supplemental preferences
+
+- On session start, before acting on any user message, list `~/.claude/` and read every file matching `CLAUDE_*.md` in version-sort order (`sort --version-sort`: numeric components compared as numbers, un-numbered names alphabetical after numbered). Example order: `CLAUDE_01_private.md`, `CLAUDE_03_company.md`, `CLAUDE_10_workflow.md`, `CLAUDE_slack-style.md`, `CLAUDE_testing.md`. Treat each as preferences layered on top of this file; later files override earlier ones on conflict.
+
 ## Workflow
 
 - For temporary files, write only to the session-scoped directory `/tmp/claude/<session_id>/` (surfaced via SessionStart). Do not write directly under `/tmp/` or `/tmp/claude/`.
