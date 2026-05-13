@@ -23,6 +23,7 @@ claude_run() {
 }
 alias cl="claude_run"
 
+alias .c="cd ~/.claude/ && l"
 alias .cl="cd ~/.claude/ && l"
 
 alias clr="claude_run --resume"
