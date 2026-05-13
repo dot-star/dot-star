@@ -18,7 +18,9 @@ git config --global color.diff.meta blue
 
 if [[ "${OSTYPE}" == "darwin"* ]]; then
     # Install brew.
-    command -v brew >/dev/null || /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    if ! command -v brew >/dev/null; then
+        /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    fi
 
     # Update: Removed setting bash as the default shell in favor of zsh.
     # Upgrade bash.
@@ -29,42 +31,84 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     # echo "${BASH_VERSION}"
 
     # https://github.com/Homebrew/homebrew-core/blob/master/Formula/*.rb
-    brew install colordiff
-    brew install coreutils
+    formulae=(
+        bash-completion
+        bat
+        blueutil
+        cmake
+        colordiff
+        composer
+        coreutils
+        diff-so-fancy
+        diffutils
+        fzf
+        git
+        git-delta
+        git-gui
+        glow
+        grep
+        php@8.4
+        rsync
+        tree
+        wget
+    )
+    casks=(
+        google-cloud-sdk
+        hammerspoon
+    )
 
-    brew install diff-so-fancy
-    git config --global --bool diff-so-fancy.markEmptyLines false
-    git config --global --bool diff-so-fancy.stripLeadingSymbols false
+    # Skip what's already installed so brew (and its auto-update) only runs when
+    # there's real work to do.
+    missing_formulae=()
+    for formula in "${formulae[@]}"; do
+        if ! brew list --versions --formula "${formula}" >/dev/null 2>&1; then
+            missing_formulae+=("${formula}")
+        fi
+    done
 
-    brew install git-delta
+    missing_casks=()
+    for cask in "${casks[@]}"; do
+        if ! brew list --versions --cask "${cask}" >/dev/null 2>&1; then
+            missing_casks+=("${cask}")
+        fi
+    done
+
+    # Prefetch in the background while the rest of post_install runs.
+    fetch_pids=()
+    if [[ ${#missing_formulae[@]} -gt 0 ]]; then
+        brew fetch --formula "${missing_formulae[@]}" &
+        fetch_pids+=("$!")
+    fi
+    if [[ ${#missing_casks[@]} -gt 0 ]]; then
+        brew fetch --cask "${missing_casks[@]}" &
+        fetch_pids+=("$!")
+    fi
+
+    # `macvim --HEAD` can't share a batch (the flag would apply to every formula).
+    if ! brew list --versions --formula macvim >/dev/null 2>&1; then
+        brew install macvim --HEAD
+    fi
 
     git config --global diff.tool opendiff
     git config --global difftool.prompt false
+    git config --global --bool diff-so-fancy.markEmptyLines false
+    git config --global --bool diff-so-fancy.stripLeadingSymbols false
 
-    brew install --cask google-cloud-sdk
-    brew install --cask hammerspoon
-    brew install bash-completion
-    brew install bat
-    brew install blueutil
-    brew install cmake
-    brew install composer
-    brew install diffutils
-    brew install git
-    brew install git-gui
-    brew install glow
-    brew install grep
-    brew install rsync
-    brew install macvim --HEAD
+    # Wait for prefetch, then install in one shot per kind.
+    if [[ ${#fetch_pids[@]} -gt 0 ]]; then
+        wait "${fetch_pids[@]}"
+    fi
+    if [[ ${#missing_formulae[@]} -gt 0 ]]; then
+        brew install "${missing_formulae[@]}"
+    fi
+    if [[ ${#missing_casks[@]} -gt 0 ]]; then
+        brew install --cask "${missing_casks[@]}"
+    fi
 
-    brew install php@8.4
     brew link php@8.4
 
-    brew install tree
-    brew install wget
-
-    # Install command-line fuzzy finder with key bindings and fuzzy completion.
-    brew install fzf
-    $(brew --prefix)/opt/fzf/install --all
+    # Install fzf key bindings and fuzzy completion.
+    "$(brew --prefix)/opt/fzf/install" --all
 
     # Disable chime sound when power is connected.
     defaults write com.apple.PowerChime ChimeOnNoHardware -bool true
@@ -77,14 +121,27 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
 
     # Use diff highlight.
     ln -s "/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" "/usr/local/bin/"
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
     # Package is `bat' on Debian/Ubuntu but installs the binary as `batcat'
     # to avoid clashing with an unrelated `bat' package.
-    sudo apt-get install bat
-    sudo apt-get install colordiff
-    sudo apt-get install fzf
-    sudo apt-get install git-delta
-    sudo apt-get install jq
+    apt_packages=(
+        bat
+        colordiff
+        fzf
+        git-delta
+        jq
+    )
+
+    missing_apt=()
+    for pkg in "${apt_packages[@]}"; do
+        if ! dpkg --status "${pkg}" >/dev/null 2>&1; then
+            missing_apt+=("${pkg}")
+        fi
+    done
+
+    if [[ ${#missing_apt[@]} -gt 0 ]]; then
+        sudo apt-get install "${missing_apt[@]}"
+    fi
 
     cd "/usr/share/doc/git/contrib/diff-highlight" &&
         sudo make &&
