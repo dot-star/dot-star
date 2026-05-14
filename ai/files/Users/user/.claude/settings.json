@@ -92,6 +92,7 @@
       "Read(~/.claude/**)",
       "Read(~/.dot-star/ai/**)",
       "Read(~/Projects/dot-star/ai/**)",
+      "Skill(worktree-done)",
       "Write(//tmp/claude/**)"
     ],
     "ask": [
