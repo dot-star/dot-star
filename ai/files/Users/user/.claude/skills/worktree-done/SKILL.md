@@ -27,3 +27,5 @@ Two paths, depending on how the worktree was created:
 - **User-created worktree (outside this session):** run `wtd` (`git_worktree_done` in `bash/.aliases.sh`). It does the merge and cleanup atomically and enforces the same gates as the preflight. Do NOT also call `ExitWorktree` afterwards, the worktree is already gone.
 
 If any step errors, surface the message verbatim and stop. Do not bypass the gates without asking (e.g. do not stash uncommitted changes to satisfy the clean-tree gate).
+
+Once the worktree is gone, the session's objective is complete: apply the end-of-session prompt from `~/.claude/CLAUDE.md` (`/rename del` then `/exit`).

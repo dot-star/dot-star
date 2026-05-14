@@ -15,6 +15,7 @@
 - Before making any code edits in a git repository, work from an isolated worktree to keep the main checkout free for parallel work. Subagents: pass `isolation: "worktree"`. Direct edits: call `EnterWorktree` first, `ExitWorktree` with `action: "remove"` when done.
 - When the working directory is already inside a git repository, prefer plain `git ...` invocations over `git -C <path> ...`. The cwd already has the right scope, and `-C` triggers extra permission prompts.
 - For commit messages, follow `~/.claude/CLAUDE_commit-message-style.md`. Default to a single subject line; bodies are rare and reserved for non-obvious motivation.
+- When the session's objective is complete (worktree landed, task done, question answered), prompt the user to mark the session for prune with `/rename del` then `/exit`. `ai/claude/prune.sh` later sweeps any session whose custom title matches its `target_titles` list (includes `del`). Do not start fresh work in the same session unless the user signals otherwise.
 
 ## Shell commands
 
