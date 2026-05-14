@@ -19,6 +19,10 @@ git config --global color.diff.func magenta
 # https://git-scm.com/docs/git-config#Documentation/git-config.txt-color
 git config --global color.diff.meta blue
 
+# Colorize the branch name in long-form `git status` ("On branch X").
+# https://git-scm.com/docs/git-config#Documentation/git-config.txt-colorstatusltslotgt
+git config --global color.status.branch "yellow bold"
+
 if [[ "${OSTYPE}" == "darwin"* ]]; then
     # Install brew.
     if ! command -v brew >/dev/null; then
