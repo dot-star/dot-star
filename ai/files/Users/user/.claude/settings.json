@@ -82,6 +82,7 @@
       "Bash(git diff *)",
       "Bash(git fetch *)",
       "Bash(git log *)",
+      "Bash(git rebase *)",
       "Bash(git rev-list *)",
       "Bash(git show *)",
       "Bash(git status *)",
