@@ -1967,7 +1967,27 @@ git_worktree_done() {
         return 1
     fi
 
-    if ! git merge --ff-only "${branch}"; then
+    # Try the FF; if it's blocked by unrelated dirty files in the main checkout,
+    # stash them and retry. Pop the stash after `git worktree remove` so a pop
+    # conflict resolves in a tidy state, not with a leftover worktree.
+    local stashed=0
+    local ff_output ff_status
+    ff_output="$(git merge --ff-only "${branch}" 2>&1)"
+    ff_status="${?}"
+
+    if [[ "${ff_status}" -ne 0 && "${ff_output}" == *"would be overwritten by merge"* ]]; then
+        echo "${ff_output}"
+        echo "main checkout has unrelated dirty files; stashing before FF"
+        if ! git stash push --message "worktree-done auto-stash before FF"; then
+            echo "failed to stash unrelated changes in main checkout"
+            return 1
+        fi
+        stashed=1
+        ff_output="$(git merge --ff-only "${branch}" 2>&1)"
+        ff_status="${?}"
+    fi
+
+    if [[ "${ff_status}" -ne 0 ]]; then
         echo "branch \"${branch}\" has diverged from ${default_branch}; rebasing onto ${default_branch}"
         if ! git -C "${worktree_path}" rebase "${default_branch}"; then
             echo "rebase of \"${branch}\" onto branch ${default_branch} failed"
@@ -1984,6 +2004,13 @@ git_worktree_done() {
     elif ! git branch --delete "${branch}"; then
         echo "failed to delete branch \"${branch}\""
         return 1
+    fi
+
+    if [[ "${stashed}" -eq 1 ]]; then
+        if ! git stash pop; then
+            echo "failed to pop the auto-stash; resolve manually with \"git stash pop\""
+            return 1
+        fi
     fi
 
     # Mirror the worktree's relative subdirectory in the main checkout
