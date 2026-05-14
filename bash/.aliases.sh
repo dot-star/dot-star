@@ -1804,20 +1804,42 @@ git_worktree_cd() {
 
     # Build TSV with path hidden in column 1 and a colored display in column 2+.
     # fzf shows only the display, but returns the full line so we can recover the path.
+    # Pipeline mirrors rc_status: sort newest-first by HEAD mtime, then awk
+    # fades the parenthetical from 256-color 255 (white) at newest down to 239
+    # (gray) at oldest, linearly by rank.
     local display_list
     display_list="$(
         echo "${source_list}" |
             while read -r entry sha branch; do
                 name="${entry##*/}"
-                IFS=$'\t' read -r rel _ <<<"$(_git_worktree_age "${entry}" "${git_bin}")"
-                if [[ "${branch}" == "[worktree-${name}]" ]]; then
-                    printf '%s\t\033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[2m(%s)\033[0m\n' \
-                        "${entry}" "${max_name}" "${name}" "${sha}" "${rel}"
-                else
-                    printf '%s\t\033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[2m(%s)\033[0m  \033[38;5;177m%s\033[0m\n' \
-                        "${entry}" "${max_name}" "${name}" "${sha}" "${rel}" "${branch}"
+                IFS=$'\t' read -r rel mtime <<<"$(_git_worktree_age "${entry}" "${git_bin}")"
+                branch_kept=""
+                if [[ "${branch}" != "[worktree-${name}]" ]]; then
+                    branch_kept="${branch}"
                 fi
-            done
+                printf '%s\t%s\t%s\t%s\t%s\t%s\n' "${mtime}" "${entry}" "${sha}" "${branch_kept}" "${name}" "${rel}"
+            done |
+            sort -t $'\t' -k1,1 -rn |
+            awk -F'\t' -v max_name="${max_name}" '
+                { lines[NR] = $0 }
+                END {
+                    total = NR
+                    for (i = 1; i <= total; i++) {
+                        split(lines[i], f, "\t")
+                        entry = f[2]; sha = f[3]; branch_kept = f[4]; name = f[5]; rel = f[6]
+                        if (total <= 1) {
+                            code = 255
+                        } else {
+                            code = 255 - int((i - 1) * 16 / (total - 1))
+                        }
+                        if (branch_kept == "") {
+                            printf "%s\t\033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m\n", entry, max_name, name, sha, code, rel
+                        } else {
+                            printf "%s\t\033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m  \033[38;5;177m%s\033[0m\n", entry, max_name, name, sha, code, rel, branch_kept
+                        }
+                    }
+                }
+            '
     )"
 
     local selected
