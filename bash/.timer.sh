@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 # Benchmark / profile / timing helper: measure elapsed time of nested
 # sections and print them as an indented box-drawing tree. Use `bt_push
@@ -46,15 +46,16 @@ BT_CLOSE="└"
 BT_PIPE="│"
 
 # Internals (arrays hold a stack)
-declare -a _BT_LABELS=()
-declare -a _BT_STARTS=()
+_BT_LABELS=()
+_BT_STARTS=()
 
+# gdate (coreutils) is required for %N on macOS; BSD date returns "N" literally.
 _bt_now_ns() {
-    date +%s%N
+    gdate +%s%N
 }
 
 _bt_indent() {
-    local depth=${1:-${#_BT_LABELS}}
+    local depth=${1:-${#_BT_LABELS[@]}}
     local s=""
     local i
 
@@ -62,55 +63,55 @@ _bt_indent() {
         s+="${BT_PIPE}  "
     done
 
-    printf "%s" "$s"
+    printf "%s" "${s}"
 }
 
 bt_push() {
     local label="$*"
 
-    _BT_LABELS+="$label"
-    _BT_STARTS+="$(_bt_now_ns)"
+    _BT_LABELS+=("${label}")
+    _BT_STARTS+=("$(_bt_now_ns)")
 
     printf "%*s %s%s\n" \
-        "$BT_LEFTW" "" "$(_bt_indent)" "${BT_OPEN} ${label}"
+        "${BT_LEFTW}" "" "$(_bt_indent)" "${BT_OPEN} ${label}"
 }
 
 bt_comment() {
     local msg="$1"
-    local depth=${#_BT_LABELS}
+    local depth=${#_BT_LABELS[@]}
 
     if ((depth == 0)); then
         echo "bt_comment: no active block" >&2
         return 1
     fi
 
-    local indent="$(_bt_indent "$depth")${BT_PIPE}  "
+    local indent="$(_bt_indent "${depth}")${BT_PIPE}  "
     printf "%*s %s%s\n" \
-        "$BT_LEFTW" "" "$indent" "$msg"
+        "${BT_LEFTW}" "" "${indent}" "${msg}"
 }
 
 bt_pop() {
-    local end idx depth label ns_start elapsed_ns elapsed_ms left indent
+    local depth=${#_BT_LABELS[@]}
 
-    depth=${#_BT_LABELS}
     if ((depth < 1)); then
-        print -ru2 -- "bt_pop: stack underflow"
+        printf '%s\n' "bt_pop: stack underflow" >&2
         return 1
     fi
 
-    idx=$depth
-    indent="$(_bt_indent $depth)"
-    end="$(_bt_now_ns)"
-    label="${_BT_LABELS[$idx]}"
-    ns_start="${_BT_STARTS[$idx]}"
+    local last=$((depth - 1))
+    local indent="$(_bt_indent "${depth}")"
+    local end="$(_bt_now_ns)"
+    local label="${_BT_LABELS[${last}]}"
+    local ns_start="${_BT_STARTS[${last}]}"
 
-    _BT_LABELS=("${(@)_BT_LABELS[1,$((idx - 1))]}")
-    _BT_STARTS=("${(@)_BT_STARTS[1,$((idx - 1))]}")
+    _BT_LABELS=("${_BT_LABELS[@]:0:last}")
+    _BT_STARTS=("${_BT_STARTS[@]:0:last}")
 
-    elapsed_ns=$((end - ns_start))
-    elapsed_ms=$(((elapsed_ns + 500000) / 1000000))
+    local elapsed_ns=$((end - ns_start))
+    local elapsed_ms=$(((elapsed_ns + 500000) / 1000000))
+    local left
 
-    left="$(printf '%6d ms' $elapsed_ms)"
+    left="$(printf '%6d ms' ${elapsed_ms})"
     printf "%*s %s%s %s\n" \
-        $BT_LEFTW "$left" "$indent" "$BT_CLOSE" "$label"
+        "${BT_LEFTW}" "${left}" "${indent}" "${BT_CLOSE}" "${label}"
 }
