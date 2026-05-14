@@ -31,7 +31,13 @@
 
 ## Input
 
-- Interpret bare one-word/one-token user replies as shorthand: `y` and `ya` mean "yes" (treat as a `y/n?` style answer); `n`, `no`, and `nope` mean "no"; `res` means "resume"; `cont` means "continue"; `re` means "retry"; `🚢` means "ship it" (land the work). Fires only when the entire message is exactly that token; if the message starts with a question word (what/how/why/is/should/can/does/...) it's a question *about* the token, not an invocation.
+- Interpret bare one-word/one-token user replies as shorthand. Fires only when the entire message is exactly that token; if the message starts with a question word (what/how/why/is/should/can/does/...) it's a question *about* the token, not an invocation.
+  - `y`, `ya` mean "yes" (treat as a `y/n?` style answer)
+  - `n`, `no`, `nope` mean "no"
+  - `res` means "resume"
+  - `cont` means "continue"
+  - `re` means "retry"
+  - `🚢` means "ship it" (land the work)
 
 ## Output
 
