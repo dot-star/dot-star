@@ -1,4 +1,4 @@
-# Ignore any .claude/ artifacts at the project root (personal settings, caches, logs).
-/.claude/
+# Ignore Claude Code worktrees created at the project root.
+/.claude/worktrees/
 
 bash/extra.sh
