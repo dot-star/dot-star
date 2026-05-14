@@ -1769,36 +1769,15 @@ git_worktree_cd() {
         return 1
     fi
 
-    local worktree_list
-    # Keep only entries whose path is under a "worktrees/" directory.
-    worktree_list="$(git worktree list | awk '$1 ~ "/worktrees/"')"
-    if [[ -z "${worktree_list}" ]]; then
-        echo "no worktrees under a worktrees/ directory"
+    # Prepend a 1-based index to `_git_worktree_list_sorted`'s output so the
+    # row numbers match `s`'s listing. Columns:
+    #   idx \t mtime \t entry \t sha \t branch_kept \t name \t rel.
+    local indexed_list
+    indexed_list="$(_git_worktree_list_sorted | awk -F'\t' '{print NR"\t"$0}')"
+    if [[ -z "${indexed_list}" ]]; then
+        echo "no linked worktrees"
         return 1
     fi
-
-    # Cache git's absolute path: zsh fails to find it inside the nested
-    # $(...) under a `while read` pipeline once dot-star aliases load.
-    local git_bin
-    git_bin="$(\command -v git)"
-
-    # Sort by mtime desc so the row order matches `s`'s listing, then prepend a
-    # 1-based index. Columns: idx \t mtime \t entry \t sha \t branch_kept \t name \t rel.
-    local indexed_list
-    indexed_list="$(
-        echo "${worktree_list}" |
-            while read -r entry sha branch; do
-                name="${entry##*/}"
-                IFS=$'\t' read -r rel mtime <<<"$(_git_worktree_age "${entry}" "${git_bin}")"
-                branch_kept=""
-                if [[ "${branch}" != "[worktree-${name}]" ]]; then
-                    branch_kept="${branch}"
-                fi
-                printf '%s\t%s\t%s\t%s\t%s\t%s\n' "${mtime}" "${entry}" "${sha}" "${branch_kept}" "${name}" "${rel}"
-            done |
-            sort -t $'\t' -k1,1 -rn |
-            awk -F'\t' '{print NR"\t"$0}'
-    )"
 
     local worktree_path
 

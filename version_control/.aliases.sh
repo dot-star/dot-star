@@ -906,6 +906,34 @@ _git_worktree_age() {
     printf '%s\t%s\n' "${rel}" "${mtime}"
 }
 
+_git_worktree_list_sorted() {
+    # Emit linked worktrees as TSV, sorted by HEAD mtime descending. Columns:
+    #   mtime \t entry \t sha \t branch_kept \t name \t rel
+    # Excludes the main checkout. branch_kept is empty when the branch matches
+    # the auto-generated `worktree-<name>` convention.
+    # Used by rc_status's `s` summary and git_worktree_cd's `wt` picker so
+    # their row order and numbering line up.
+    # Usage:
+    #   $ _git_worktree_list_sorted
+
+    # Cache git's absolute path: zsh fails to find it inside the nested
+    # $(...) under a `while read` pipeline once dot-star aliases load.
+    local git_bin
+    git_bin="$(\command -v git)"
+    git worktree list |
+        awk 'NR>1' |
+        while read -r entry sha branch; do
+            name="${entry##*/}"
+            IFS=$'\t' read -r rel mtime <<<"$(_git_worktree_age "${entry}" "${git_bin}")"
+            branch_kept=""
+            if [[ "${branch}" != "[worktree-${name}]" ]]; then
+                branch_kept="${branch}"
+            fi
+            printf '%s\t%s\t%s\t%s\t%s\t%s\n' "${mtime}" "${entry}" "${sha}" "${branch_kept}" "${name}" "${rel}"
+        done |
+        sort -t $'\t' -k1,1 -rn
+}
+
 rc_status() {
     clear
 
@@ -955,41 +983,23 @@ rc_status() {
                     # Example output:
                     #     1  pretty-tail-glow  e762c60 (2 days ago)
                     #     2  custom-checkout   abc1234 (1 day ago)  [feature/foo]
-                    # Cache git's absolute path: zsh fails to find it inside the nested
-                    # $(...) under a `while read` pipeline once dot-star aliases load.
-                    local git_bin
-                    git_bin="$(\command -v git)"
-                    # Pipeline: per-row TSV with mtime up front, sort newest first,
                     # awk fades the parenthetical from 256-color 255 (white) at
                     # newest down to 239 (gray) at oldest, linearly by rank, and
                     # right-pads the 1-based index for two-digit alignment.
-                    git worktree list |
-                        awk 'NR>1' |
-                        while read -r worktree_path sha branch; do
-                            name="${worktree_path##*/}"
-                            IFS=$'\t' read -r rel mtime <<<"$(_git_worktree_age "${worktree_path}" "${git_bin}")"
-                            branch_kept=""
-                            if [[ "${branch}" != "[worktree-${name}]" ]]; then
-                                branch_kept="${branch}"
-                            fi
-                            printf '%s\t%s\t%s\t%s\t%s\n' "${mtime}" "${name}" "${sha}" "${branch_kept}" "${rel}"
-                        done |
-                        sort -t $'\t' -k1,1 -rn |
+                    _git_worktree_list_sorted |
                         awk -F'\t' '
-                            { lines[NR] = $0 }
+                            {
+                                lines[NR] = $0
+                                if (length($5) > max_name) {
+                                    max_name = length($5)
+                                }
+                            }
                             END {
                                 total = NR
                                 digits = length(total "")
-                                max_name = 0
                                 for (i = 1; i <= total; i++) {
                                     split(lines[i], f, "\t")
-                                    if (length(f[2]) > max_name) {
-                                        max_name = length(f[2])
-                                    }
-                                }
-                                for (i = 1; i <= total; i++) {
-                                    split(lines[i], f, "\t")
-                                    name = f[2]; sha = f[3]; branch_kept = f[4]; rel = f[5]
+                                    sha = f[3]; branch_kept = f[4]; name = f[5]; rel = f[6]
                                     if (total <= 1) {
                                         code = 255
                                     } else {
