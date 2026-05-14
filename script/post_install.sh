@@ -7,6 +7,9 @@ git config --global core.excludesfile "~/.gitignore"
 # Enable color in git.
 git config --global color.ui true
 
+# Suppress the "(use ...)" hint lines in `git status` output.
+git config --global advice.statusHints false
+
 # https://git-scm.com/docs/git-config#Documentation/git-config.txt-colordiffltslotgt
 # https://git-scm.com/docs/git-config#Documentation/git-config.txt-color
 git config --global color.diff.func magenta
