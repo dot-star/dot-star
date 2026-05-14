@@ -1852,7 +1852,7 @@ git_worktree_cd() {
             if ! cd {1}; then
                 exit
             fi
-            git -c color.status=always status --short
+            git -c color.status=always status --untracked-files=all
             echo
             if [[ -n "$(git diff --cached 2>/dev/null)" ]]; then
                 git diff --cached --color=always
