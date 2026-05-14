@@ -40,6 +40,12 @@
   - `re` means "retry"
   - `🚢` means "ship it" (land the work)
 
+## Shorthand
+
+- Interpret these tokens as shorthand for the named referent when they appear inside a user message (not as a whole reply).
+  - `r` means "root" (the main checkout, vs. a worktree)
+  - `wt` means "worktree"
+
 ## Output
 
 - Never use em dashes (—) in any output, code, comments, commit messages, or PR descriptions. Use a comma, parentheses, semicolon, or two sentences instead.
