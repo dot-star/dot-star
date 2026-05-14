@@ -994,13 +994,18 @@ rc_status() {
 
                     # Show basenames only and drop the branch column when it matches
                     # the auto-generated `worktree-<name>` convention. The leading
-                    # index column matches the row number `wt N` accepts.
+                    # index column matches the row number `wt N` accepts. Rows print
+                    # oldest-first so [1] (newest) lands closest to the prompt, the
+                    # same orientation `wt`'s fzf picker uses.
                     # Example output:
-                    #     1  pretty-tail-glow  e762c60 (2 days ago)
-                    #     2  custom-checkout   abc1234 (1 day ago)  [feature/foo]
+                    #     [2]  custom-checkout   abc1234 (2 days ago)  [feature/foo]
+                    #     [1]  pretty-tail-glow  e762c60 (1 day ago)
                     # awk fades the parenthetical from 256-color 255 (white) at
                     # newest down to 239 (gray) at oldest, linearly by rank, and
                     # right-pads the 1-based index for two-digit alignment.
+                    if [[ "${worktree_count}" -gt 10 ]]; then
+                        echo "    ... and $((worktree_count - 10)) more"
+                    fi
                     echo "${sorted_worktrees}" |
                         awk -F'\t' '
                             {
@@ -1012,7 +1017,10 @@ rc_status() {
                             END {
                                 total = NR
                                 digits = length(total "")
-                                for (i = 1; i <= total; i++) {
+                                visible = (total > 10) ? 10 : total
+                                # Iterate oldest-of-visible down to newest so [1]
+                                # ends up at the bottom, next to the prompt.
+                                for (i = visible; i >= 1; i--) {
                                     split(lines[i], f, "\t")
                                     sha = f[3]; branch_kept = f[4]; name = f[5]; rel = f[6]
                                     if (total <= 1) {
@@ -1032,11 +1040,7 @@ rc_status() {
                                 }
                             }
                         ' |
-                        sed 's/^/    /' |
-                        head -n 10
-                    if [[ "${worktree_count}" -gt 10 ]]; then
-                        echo "    ... and $((worktree_count - 10)) more"
-                    fi
+                        sed 's/^/    /'
                 fi
             fi
         fi
