@@ -835,16 +835,19 @@ rc_push() {
 }
 
 _git_worktree_age() {
-    # Print "X units ago" for when the worktree's HEAD ref was last updated.
-    # Captures creation, commits, and HEAD-moving checkouts; not unstaged edits.
-    # The committer date of the HEAD sha is misleading for worktrees parked at
-    # another branch's tip (e.g. a fresh worktree at master's tip would show
-    # master's last-commit age instead of the worktree's own age).
+    # Print "<rel>\t<mtime>" for when the worktree's HEAD ref was last
+    # updated, where <rel> is "X units ago" and <mtime> is Unix seconds.
+    # Callers downstream rank by <mtime> to color rows relative to siblings.
+    # HEAD's mtime captures creation, commits, and HEAD-moving checkouts; not
+    # unstaged edits. The committer date of the HEAD sha is misleading for
+    # worktrees parked at another branch's tip (e.g. a fresh worktree at
+    # master's tip would show master's last-commit age instead of the
+    # worktree's own age).
     # Usage:
     #   $ _git_worktree_age <worktree_path> [git_bin]
     local worktree_path="${1}"
     local git_bin="${2:-git}"
-    local gitdir head_file mtime now diff value unit
+    local gitdir head_file mtime now diff value unit rel
 
     gitdir="$("${git_bin}" -C "${worktree_path}" rev-parse --absolute-git-dir 2>/dev/null)"
     if [[ -z "${gitdir}" ]]; then
@@ -896,10 +899,11 @@ _git_worktree_age() {
     fi
 
     if ((value == 1)); then
-        echo "${value} ${unit} ago"
+        rel="${value} ${unit} ago"
     else
-        echo "${value} ${unit}s ago"
+        rel="${value} ${unit}s ago"
     fi
+    printf '%s\t%s\n' "${rel}" "${mtime}"
 }
 
 rc_status() {
@@ -955,17 +959,41 @@ rc_status() {
                     # $(...) under a `while read` pipeline once dot-star aliases load.
                     local git_bin
                     git_bin="$(\command -v git)"
+                    # Pipeline: per-row TSV with mtime up front, sort newest first,
+                    # awk fades the parenthetical from 256-color 255 (white) at
+                    # newest down to 239 (gray) at oldest, linearly by rank.
                     git worktree list |
                         awk 'NR>1' |
                         while read -r worktree_path sha branch; do
                             name="${worktree_path##*/}"
-                            rel="$(_git_worktree_age "${worktree_path}" "${git_bin}")"
-                            if [[ "${branch}" == "[worktree-${name}]" ]]; then
-                                printf '\033[38;5;80m%s\033[0m\t\033[33m%s\033[0m \033[2m(%s)\033[0m\n' "${name}" "${sha}" "${rel}"
-                            else
-                                printf '\033[38;5;80m%s\033[0m\t\033[33m%s\033[0m \033[2m(%s)\033[0m\t\033[38;5;177m%s\033[0m\n' "${name}" "${sha}" "${rel}" "${branch}"
+                            IFS=$'\t' read -r rel mtime <<<"$(_git_worktree_age "${worktree_path}" "${git_bin}")"
+                            branch_kept=""
+                            if [[ "${branch}" != "[worktree-${name}]" ]]; then
+                                branch_kept="${branch}"
                             fi
+                            printf '%s\t%s\t%s\t%s\t%s\n' "${mtime}" "${name}" "${sha}" "${branch_kept}" "${rel}"
                         done |
+                        sort -t $'\t' -k1,1 -rn |
+                        awk -F'\t' '
+                            { lines[NR] = $0 }
+                            END {
+                                total = NR
+                                for (i = 1; i <= total; i++) {
+                                    split(lines[i], f, "\t")
+                                    name = f[2]; sha = f[3]; branch_kept = f[4]; rel = f[5]
+                                    if (total <= 1) {
+                                        code = 255
+                                    } else {
+                                        code = 255 - int((i - 1) * 16 / (total - 1))
+                                    }
+                                    if (branch_kept == "") {
+                                        printf "\033[38;5;80m%s\033[0m\t\033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m\n", name, sha, code, rel
+                                    } else {
+                                        printf "\033[38;5;80m%s\033[0m\t\033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m\t\033[38;5;177m%s\033[0m\n", name, sha, code, rel, branch_kept
+                                    }
+                                }
+                            }
+                        ' |
                         column -t -s $'\t' |
                         sed 's/^/    /' |
                         head -n 10
