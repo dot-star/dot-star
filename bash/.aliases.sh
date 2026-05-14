@@ -1867,7 +1867,8 @@ git_worktree_cd() {
                 --exit-0 \
                 --info="hidden" \
                 --select-1 \
-                --preview="${preview_cmd}"
+                --preview="${preview_cmd}" \
+                --preview-window="down"
     )"
     local return_code="${?}"
 
