@@ -1,5 +1,10 @@
 #!/usr/bin/env zsh
 
+# Benchmark / profile / timing helper: measure elapsed time of nested
+# sections and print them as an indented box-drawing tree. Use `bt_push
+# "label"` and `bt_pop` to bracket a section, `bt_comment` for an inline
+# note. Same output style as the "Fix nvm sourcing being slow" commit.
+
 # Example usage:
 # bt_push "Doing something"
 #     bt_push "Task 1"
