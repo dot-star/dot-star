@@ -31,9 +31,11 @@ is_target_title() {
 
 matches=()
 while IFS= read -r -d '' file; do
+    # Pre-filter with grep so jq parses only the last match, not the whole transcript.
     title="$(
-        \jq -r 'select(.type == "custom-title") | .customTitle' "${file}" 2>/dev/null |
-            tail -n 1
+        { grep '"type":"custom-title"' "${file}" 2>/dev/null || true; } |
+            tail -n 1 |
+            \jq -r '.customTitle // empty'
     )"
     if is_target_title "${title}"; then
         matches+=("${file}")
