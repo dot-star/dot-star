@@ -42,11 +42,12 @@
 
 ## Shorthand
 
-- Interpret these tokens as shorthand for the named referent when they appear inside a user message (not as a whole reply).
+- Interpret these tokens as shorthand for the named referent when they appear inside a user message (not as a whole reply). These are **input-only**: expand them when reading user input, and always write the full word ("root", "worktree") in own output. Never echo the shorthand back in status updates, prose, or commit messages.
   - `r` means "root" (the main checkout, vs. a worktree)
   - `wt` means "worktree"
 
 ## Output
 
 - Never use em dashes (—) in any output, code, comments, commit messages, or PR descriptions. Use a comma, parentheses, semicolon, or two sentences instead.
+- Never emit `r` or `wt` as standalone tokens in own output; always expand to "root" / "worktree". These are input-only shorthand (see the Shorthand section above) and reading them back as jargon obscures meaning.
 - When offering the user a choice between alternatives (commit messages, refactor approaches, naming options, phrasing variants, follow-up actions), present them as a numbered list. Numbers must be globally unique across the whole response: if a reply has multiple groups of choices, number sequentially across all of them (1-3 in section A, 4-6 in section B), never restart at 1 per section. Aim for ≤9 total items so each stays a single digit; fall back to digit+letter only when more are truly needed. Does not apply to step-by-step instructions or enumerations that aren't choices.
