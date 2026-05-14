@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
-set -x
+
+# Skip xtrace under DOT_STAR_PROFILE so the bt timer tree stays readable.
+if [[ -z "${DOT_STAR_PROFILE:-}" ]]; then
+    set -x
+fi
+
+# Resume xtrace after a temporary `set +x`, unless profiling.
+_resume_xtrace() {
+    if [[ -z "${DOT_STAR_PROFILE:-}" ]]; then
+        set -x
+    fi
+}
 
 if [[ -z "${HOME:-}" ]]; then
     echo "HOME must be set" >&2
@@ -32,7 +43,7 @@ warn() {
     if [ -n "${suggested_command}" ]; then
         printf '    %sRun: %s%s\n' "${cyan}" "${suggested_command}" "${reset}" >&2
     fi
-    set -x
+    _resume_xtrace
 }
 
 # `ln -s src dest`, but warn instead of overwriting if dest already exists.
@@ -222,7 +233,7 @@ if [ ${#WARNINGS[@]} -gt 0 ]; then
         printf '  %s-%s %s\n' "${bold_yellow}" "${reset}" "${warning}"
     done
     echo
-    set -x
+    _resume_xtrace
 fi
 
 # Stamp the installed commit so bash/.install_check.sh can detect later
