@@ -1757,9 +1757,11 @@ alias rv="go_to_root && v."
 git_worktree_cd() {
     # cd into a git worktree, mirroring the cwd's path within the current
     # worktree into the target worktree when that subdirectory exists.
-    # Without args, fzf-pick from `git worktree list'.
+    # Without args, fzf-pick from `git worktree list'. With a positive integer,
+    # jump straight to that row of the recency-sorted listing shown by `s`.
     # Usage:
     #   $ wt
+    #   $ wt 3
     #   $ wt pattern
 
     if ! git rev-parse --is-inside-work-tree &>/dev/null; then
@@ -1775,41 +1777,16 @@ git_worktree_cd() {
         return 1
     fi
 
-    local source_list
-    if [[ "${#}" -eq 0 ]]; then
-        source_list="${worktree_list}"
-    else
-        source_list="$(echo "${worktree_list}" | \grep --ignore-case -- "${1}")"
-        if [[ -z "${source_list}" ]]; then
-            echo "no worktree matching \"${1}\""
-            return 1
-        fi
-    fi
-
     # Cache git's absolute path: zsh fails to find it inside the nested
     # $(...) under a `while read` pipeline once dot-star aliases load.
     local git_bin
     git_bin="$(\command -v git)"
 
-    # Compute the longest basename so we can right-pad without `column -t`,
-    # which would also pad the hidden path column. Avoid the name `path`: in zsh
-    # it's tied to `$PATH`, and assigning to it here would clobber the PATH.
-    local name max_name=0 entry
-    while read -r entry _; do
-        name="${entry##*/}"
-        if [[ "${#name}" -gt "${max_name}" ]]; then
-            max_name="${#name}"
-        fi
-    done <<<"${source_list}"
-
-    # Build TSV with path hidden in column 1 and a colored display in column 2+.
-    # fzf shows only the display, but returns the full line so we can recover the path.
-    # Pipeline mirrors rc_status: sort newest-first by HEAD mtime, then awk
-    # fades the parenthetical from 256-color 255 (white) at newest down to 239
-    # (gray) at oldest, linearly by rank.
-    local display_list
-    display_list="$(
-        echo "${source_list}" |
+    # Sort by mtime desc so the row order matches `s`'s listing, then prepend a
+    # 1-based index. Columns: idx \t mtime \t entry \t sha \t branch_kept \t name \t rel.
+    local indexed_list
+    indexed_list="$(
+        echo "${worktree_list}" |
             while read -r entry sha branch; do
                 name="${entry##*/}"
                 IFS=$'\t' read -r rel mtime <<<"$(_git_worktree_age "${entry}" "${git_bin}")"
@@ -1820,68 +1797,117 @@ git_worktree_cd() {
                 printf '%s\t%s\t%s\t%s\t%s\t%s\n' "${mtime}" "${entry}" "${sha}" "${branch_kept}" "${name}" "${rel}"
             done |
             sort -t $'\t' -k1,1 -rn |
-            awk -F'\t' -v max_name="${max_name}" '
-                { lines[NR] = $0 }
-                END {
-                    total = NR
-                    for (i = 1; i <= total; i++) {
-                        split(lines[i], f, "\t")
-                        entry = f[2]; sha = f[3]; branch_kept = f[4]; name = f[5]; rel = f[6]
-                        if (total <= 1) {
-                            code = 255
-                        } else {
-                            code = 255 - int((i - 1) * 16 / (total - 1))
-                        }
-                        if (branch_kept == "") {
-                            printf "%s\t\033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m\n", entry, max_name, name, sha, code, rel
-                        } else {
-                            printf "%s\t\033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m  \033[38;5;177m%s\033[0m\n", entry, max_name, name, sha, code, rel, branch_kept
+            awk -F'\t' '{print NR"\t"$0}'
+    )"
+
+    local worktree_path
+
+    # Numeric arg: jump directly to row N of the sorted list.
+    if [[ "${#}" -eq 1 && "${1}" =~ ^[0-9]+$ ]]; then
+        worktree_path="$(echo "${indexed_list}" | awk -F'\t' -v n="${1}" '$1 == n { print $3; exit }')"
+        if [[ -z "${worktree_path}" ]]; then
+            echo "no worktree at index ${1}"
+            return 1
+        fi
+    else
+        local source_list
+        if [[ "${#}" -eq 0 ]]; then
+            source_list="${indexed_list}"
+        else
+            source_list="$(echo "${indexed_list}" | \grep --ignore-case -- "${1}")"
+            if [[ -z "${source_list}" ]]; then
+                echo "no worktree matching \"${1}\""
+                return 1
+            fi
+        fi
+
+        # Index width comes from the unfiltered list so digits stay aligned even
+        # after a grep filter trims the visible rows.
+        local total_count num_width
+        total_count="$(echo "${indexed_list}" | wc -l | tr -d ' ')"
+        num_width="${#total_count}"
+
+        # Build TSV with path hidden in column 1 and a colored display in column 2+.
+        # fzf shows only the display, but returns the full line so we can recover the path.
+        # The leading index matches the row number `wt N` accepts and stays
+        # stable across grep filters since it's assigned before filtering. The
+        # parenthetical fades from 256-color 255 (white) at the newest visible
+        # row down to 239 (gray) at the oldest, linearly by rank.
+        # max_name is computed inside awk because bash's `read` with IFS=$'\t'
+        # collapses consecutive tabs (tab is whitespace IFS), which would eat
+        # the empty branch_kept column.
+        local display_list
+        display_list="$(
+            echo "${source_list}" |
+                awk -F'\t' -v num_width="${num_width}" '
+                    {
+                        lines[NR] = $0
+                        if (length($6) > max_name) {
+                            max_name = length($6)
                         }
                     }
-                }
-            '
-    )"
+                    END {
+                        total = NR
+                        for (i = 1; i <= total; i++) {
+                            split(lines[i], f, "\t")
+                            idx = f[1]; entry = f[3]; sha = f[4]; branch_kept = f[5]; name = f[6]; rel = f[7]
+                            if (total <= 1) {
+                                code = 255
+                            } else {
+                                code = 255 - int((i - 1) * 16 / (total - 1))
+                            }
+                            idx_str = sprintf("%*d", num_width, idx)
+                            if (branch_kept == "") {
+                                printf "%s\t\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m\n", entry, idx_str, max_name, name, sha, code, rel
+                            } else {
+                                printf "%s\t\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m  \033[38;5;177m%s\033[0m\n", entry, idx_str, max_name, name, sha, code, rel, branch_kept
+                            }
+                        }
+                    }
+                '
+        )"
 
-    # Preview the highlighted worktree's status and `d`-style diff: prefer
-    # staged when present, else show unstaged. {1} is the hidden path column.
-    local preview_cmd='
-        if ! cd {1}; then
-            exit
+        # Preview the highlighted worktree's status and `d`-style diff: prefer
+        # staged when present, else show unstaged. {1} is the hidden path column.
+        local preview_cmd='
+            if ! cd {1}; then
+                exit
+            fi
+            git -c color.status=always status --short
+            echo
+            if [[ -n "$(git diff --cached 2>/dev/null)" ]]; then
+                git diff --cached --color=always
+            else
+                git diff --color=always
+            fi
+        '
+
+        local selected
+        selected="$(
+            echo "${display_list}" |
+                fzf \
+                    --ansi \
+                    --delimiter=$'\t' \
+                    --with-nth=2.. \
+                    --exit-0 \
+                    --info="hidden" \
+                    --select-1 \
+                    --preview="${preview_cmd}" \
+                    --preview-window="down:75%"
+        )"
+        local return_code="${?}"
+
+        # "130 Interrupted with CTRL-C or ESC"
+        if [[ "${return_code}" -eq 130 ]]; then
+            return
         fi
-        git -c color.status=always status --short
-        echo
-        if [[ -n "$(git diff --cached 2>/dev/null)" ]]; then
-            git diff --cached --color=always
-        else
-            git diff --color=always
+
+        if [[ -z "${selected}" ]]; then
+            return
         fi
-    '
 
-    local selected
-    selected="$(
-        echo "${display_list}" |
-            fzf \
-                --ansi \
-                --delimiter=$'\t' \
-                --with-nth=2.. \
-                --exit-0 \
-                --info="hidden" \
-                --select-1 \
-                --preview="${preview_cmd}" \
-                --preview-window="down:75%"
-    )"
-    local return_code="${?}"
-
-    # "130 Interrupted with CTRL-C or ESC"
-    if [[ "${return_code}" -eq 130 ]]; then
-        return
+        worktree_path="${selected%%$'\t'*}"
     fi
-
-    if [[ -z "${selected}" ]]; then
-        return
-    fi
-
-    local worktree_path="${selected%%$'\t'*}"
 
     # Path of cwd relative to the current worktree's top-level.
     local current_toplevel

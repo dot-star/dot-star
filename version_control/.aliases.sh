@@ -950,18 +950,19 @@ rc_status() {
                     echo -e "\n\033[1;36m${worktree_count}\033[0m \033[2m${worktree_label}:\033[0m"
 
                     # Show basenames only and drop the branch column when it matches
-                    # the auto-generated `worktree-<name>` convention; realign with
-                    # column -t since git's padding assumed the full path.
+                    # the auto-generated `worktree-<name>` convention. The leading
+                    # index column matches the row number `wt N` accepts.
                     # Example output:
-                    #     pretty-tail-glow  e762c60 (2 days ago)
-                    #     custom-checkout   abc1234 (1 day ago)   [feature/foo]
+                    #     1  pretty-tail-glow  e762c60 (2 days ago)
+                    #     2  custom-checkout   abc1234 (1 day ago)  [feature/foo]
                     # Cache git's absolute path: zsh fails to find it inside the nested
                     # $(...) under a `while read` pipeline once dot-star aliases load.
                     local git_bin
                     git_bin="$(\command -v git)"
                     # Pipeline: per-row TSV with mtime up front, sort newest first,
                     # awk fades the parenthetical from 256-color 255 (white) at
-                    # newest down to 239 (gray) at oldest, linearly by rank.
+                    # newest down to 239 (gray) at oldest, linearly by rank, and
+                    # right-pads the 1-based index for two-digit alignment.
                     git worktree list |
                         awk 'NR>1' |
                         while read -r worktree_path sha branch; do
@@ -978,6 +979,14 @@ rc_status() {
                             { lines[NR] = $0 }
                             END {
                                 total = NR
+                                digits = length(total "")
+                                max_name = 0
+                                for (i = 1; i <= total; i++) {
+                                    split(lines[i], f, "\t")
+                                    if (length(f[2]) > max_name) {
+                                        max_name = length(f[2])
+                                    }
+                                }
                                 for (i = 1; i <= total; i++) {
                                     split(lines[i], f, "\t")
                                     name = f[2]; sha = f[3]; branch_kept = f[4]; rel = f[5]
@@ -986,15 +995,15 @@ rc_status() {
                                     } else {
                                         code = 255 - int((i - 1) * 16 / (total - 1))
                                     }
+                                    idx_str = sprintf("%*d", digits, i)
                                     if (branch_kept == "") {
-                                        printf "\033[38;5;80m%s\033[0m\t\033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m\n", name, sha, code, rel
+                                        printf "\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m\n", idx_str, max_name, name, sha, code, rel
                                     } else {
-                                        printf "\033[38;5;80m%s\033[0m\t\033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m\t\033[38;5;177m%s\033[0m\n", name, sha, code, rel, branch_kept
+                                        printf "\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m  \033[38;5;177m%s\033[0m\n", idx_str, max_name, name, sha, code, rel, branch_kept
                                     }
                                 }
                             }
                         ' |
-                        column -t -s $'\t' |
                         sed 's/^/    /' |
                         head -n 10
                     if [[ "${worktree_count}" -gt 10 ]]; then
