@@ -1842,6 +1842,21 @@ git_worktree_cd() {
             '
     )"
 
+    # Preview the highlighted worktree's status and `d`-style diff: prefer
+    # staged when present, else show unstaged. {1} is the hidden path column.
+    local preview_cmd='
+        if ! cd {1}; then
+            exit
+        fi
+        git -c color.status=always status --short
+        echo
+        if [[ -n "$(git diff --cached 2>/dev/null)" ]]; then
+            git diff --cached --color=always
+        else
+            git diff --color=always
+        fi
+    '
+
     local selected
     selected="$(
         echo "${display_list}" |
@@ -1851,7 +1866,8 @@ git_worktree_cd() {
                 --with-nth=2.. \
                 --exit-0 \
                 --info="hidden" \
-                --select-1
+                --select-1 \
+                --preview="${preview_cmd}"
     )"
     local return_code="${?}"
 
