@@ -977,6 +977,21 @@ rc_status() {
 
                     echo -e "\n\033[1;36m${worktree_count}\033[0m \033[2m${worktree_label}:\033[0m"
 
+                    local sorted_worktrees
+                    sorted_worktrees="$(_git_worktree_list_sorted)"
+
+                    # Bind digit aliases `1`..`N` (capped at the 10 visible rows)
+                    # to `cd <worktree-path>` so the user can jump to the Nth
+                    # worktree by typing its index after running `s`.
+                    local idx=1 entry
+                    while read -r entry; do
+                        if [[ "${idx}" -gt 10 ]]; then
+                            break
+                        fi
+                        alias -- "${idx}"="cd ${entry}"
+                        idx=$((idx + 1))
+                    done < <(echo "${sorted_worktrees}" | awk -F'\t' '{print $2}')
+
                     # Show basenames only and drop the branch column when it matches
                     # the auto-generated `worktree-<name>` convention. The leading
                     # index column matches the row number `wt N` accepts.
@@ -986,7 +1001,7 @@ rc_status() {
                     # awk fades the parenthetical from 256-color 255 (white) at
                     # newest down to 239 (gray) at oldest, linearly by rank, and
                     # right-pads the 1-based index for two-digit alignment.
-                    _git_worktree_list_sorted |
+                    echo "${sorted_worktrees}" |
                         awk -F'\t' '
                             {
                                 lines[NR] = $0
@@ -1005,7 +1020,10 @@ rc_status() {
                                     } else {
                                         code = 255 - int((i - 1) * 16 / (total - 1))
                                     }
-                                    idx_str = sprintf("%*d", digits, i)
+
+                                    # Brackets hint that the number is a live
+                                    # `cd` alias bound by `s` for this row.
+                                    idx_str = sprintf("[%*d]", digits, i)
                                     if (branch_kept == "") {
                                         printf "\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m\n", idx_str, max_name, name, sha, code, rel
                                     } else {

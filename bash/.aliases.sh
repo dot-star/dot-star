@@ -189,21 +189,24 @@ list_dirstack() {
 }
 alias dirs="list_dirstack"
 
-pushd() {
-    if [[ "${#}" -eq 0 ]]; then
-        DIR="${HOME}"
-    else
-        DIR="${1}"
-    fi
-
-    builtin pushd "${DIR}" >/dev/null
-
-    i=0
-    for dir in $(\dirs -p | awk '!x[$0]++' | head -n 10); do
-        alias -- "${i}"="cd ${dir}"
-        ((i++))
-    done
-}
+# pushd() wrapper retired: its digit aliases (`0`..`9` → cd into dirstack
+# entries) collide with `s`'s per-worktree digit aliases, and the dirstack
+# slot was unused in practice. Callers fall through to `builtin pushd`.
+#pushd() {
+#    if [[ "${#}" -eq 0 ]]; then
+#        DIR="${HOME}"
+#    else
+#        DIR="${1}"
+#    fi
+#
+#    builtin pushd "${DIR}" >/dev/null
+#
+#    i=0
+#    for dir in $(\dirs -p | awk '!x[$0]++' | head -n 10); do
+#        alias -- "${i}"="cd ${dir}"
+#        ((i++))
+#    done
+#}
 #alias "cd"="pushd"
 
 better_cd() {
