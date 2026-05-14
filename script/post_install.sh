@@ -1,3 +1,4 @@
+bt_push "pre-OS git config"
 # Configure global gitignore.
 if [ ! -e "${HOME}/.gitignore" ]; then
     ln -s -v "${DOT_STAR_ROOT}/version_control/.gitignore" "${HOME}"
@@ -22,8 +23,10 @@ git config --global color.diff.meta blue
 # Colorize the branch name in long-form `git status` ("On branch X").
 # https://git-scm.com/docs/git-config#Documentation/git-config.txt-colorstatusltslotgt
 git config --global color.status.branch "yellow bold"
+bt_pop
 
 if [[ "${OSTYPE}" == "darwin"* ]]; then
+    bt_push "darwin section"
     # Install brew.
     if ! command -v brew >/dev/null; then
         /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
@@ -64,6 +67,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
         hammerspoon
     )
 
+    bt_push "presence checks"
     # Skip what's already installed so brew (and its auto-update) only runs when
     # there's real work to do.
     missing_formulae=()
@@ -79,7 +83,9 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
             missing_casks+=("${cask}")
         fi
     done
+    bt_pop
 
+    bt_push "fetch dispatch (bg)"
     # Prefetch in the background while the rest of post_install runs.
     fetch_pids=()
     if [[ ${#missing_formulae[@]} -gt 0 ]]; then
@@ -90,17 +96,23 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
         brew fetch --cask "${missing_casks[@]}" &
         fetch_pids+=("$!")
     fi
+    bt_pop
 
+    bt_push "macvim --HEAD"
     # `macvim --HEAD` can't share a batch (the flag would apply to every formula).
     if ! brew list --versions --formula macvim >/dev/null 2>&1; then
         brew install macvim --HEAD
     fi
+    bt_pop
 
+    bt_push "diff tool git config"
     git config --global diff.tool opendiff
     git config --global difftool.prompt false
     git config --global --bool diff-so-fancy.markEmptyLines false
     git config --global --bool diff-so-fancy.stripLeadingSymbols false
+    bt_pop
 
+    bt_push "wait + install"
     # Wait for prefetch, then install in one shot per kind.
     if [[ ${#fetch_pids[@]} -gt 0 ]]; then
         wait "${fetch_pids[@]}"
@@ -111,12 +123,16 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     if [[ ${#missing_casks[@]} -gt 0 ]]; then
         brew install --cask "${missing_casks[@]}"
     fi
+    bt_pop
 
+    bt_push "post-install hooks"
     brew link php@8.4
 
     # Install fzf key bindings and fuzzy completion.
     "$(brew --prefix)/opt/fzf/install" --all
+    bt_pop
 
+    bt_push "macOS defaults"
     # Disable chime sound when power is connected.
     defaults write com.apple.PowerChime ChimeOnNoHardware -bool true
 
@@ -125,10 +141,15 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
 
     # Disable Control-Command-D binding.
     defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 70 '<dict><key>enabled</key><false/></dict>'
+    bt_pop
 
+    bt_push "diff-highlight ln"
     # Use diff highlight.
     ln -s "/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" "/usr/local/bin/"
+    bt_pop
+    bt_pop # darwin section
 elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
+    bt_push "linux section"
     # Package is `bat' on Debian/Ubuntu but installs the binary as `batcat'
     # to avoid clashing with an unrelated `bat' package.
     apt_packages=(
@@ -153,14 +174,18 @@ elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
     cd "/usr/share/doc/git/contrib/diff-highlight" &&
         sudo make &&
         sudo ln -v -s "/usr/share/doc/git/contrib/diff-highlight/diff-highlight" /usr/local/bin/
+    bt_pop # linux section
 fi
 
+bt_push "git-delta config"
 # Use delta as git's pager via the repo wrapper.
 git config --global core.pager "${DOT_STAR_ROOT}/version_control/git_pager.sh"
 git config --global interactive.diffFilter "delta --color-only"
 git config --global delta.navigate true
 git config --global delta.line-numbers true
+bt_pop
 
+bt_push "vim setup"
 # Create backup and swap directories specified in vimrc.
 mkdir -p "$HOME/.vim/backup/"
 mkdir -p "$HOME/.vim/colors/"
@@ -182,3 +207,4 @@ fi
 if [ ! -e "${HOME}/.jshintrc" ]; then
     ln -s -v "${DOT_STAR_ROOT}/bash/.jshintrc" "${HOME}"
 fi
+bt_pop # vim setup

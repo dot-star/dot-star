@@ -91,6 +91,18 @@ if [ -f "${DOT_STAR_ROOT}/.git" ]; then
     exit 1
 fi
 
+# Source the timer helper when profiling, else stub it out.
+if [[ -n "${DOT_STAR_PROFILE:-}" ]]; then
+    source "${DOT_STAR_ROOT}/bash/.timer.sh"
+else
+    bt_push() { :; }
+    bt_pop() { :; }
+    bt_comment() { :; }
+fi
+
+bt_push "install.sh"
+
+bt_push "dot-star symlink"
 # Remove stray /.dot-star at filesystem root from a prior empty-HOME run.
 if [ -L "/.dot-star" ]; then
     unlink "/.dot-star"
@@ -107,7 +119,9 @@ else
     # Create symlink.
     ln -vs "${DOT_STAR_ROOT}" "${DOT_STAR}"
 fi
+bt_pop
 
+bt_push "claude config + dirs"
 # Install Claude Code settings.
 mkdir -p "${HOME}/.claude"
 ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/settings.json" "${HOME}/.claude/settings.json"
@@ -134,7 +148,9 @@ done
 ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/skills" "${HOME}/.claude/skills"
 ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/commands" "${HOME}/.claude/commands"
 ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/hooks" "${HOME}/.claude/hooks"
+bt_pop
 
+bt_push "bootstrap snippets"
 dotstar_header="# Begin dot-star bootstrap."
 dotstar_footer="# End dot-star bootstrap."
 
@@ -160,7 +176,9 @@ fi" >> "$HOME/.bash_profile"'
 setup_bootstrap "${HOME}/.bashrc" 'echo "if shopt -q login_shell; then
     [[ -r ~/.dot-star/bash/.bash_profile ]] && source ~/.dot-star/bash/.bash_profile
 fi" >> "$HOME/.bashrc"'
+bt_pop
 
+bt_push "rc file symlinks"
 # Install inputrc.
 ensure_symlink "${DOT_STAR}/bash/.inputrc" "${HOME}/.inputrc"
 
@@ -168,7 +186,9 @@ ensure_symlink "${DOT_STAR}/bash/.inputrc" "${HOME}/.inputrc"
 ensure_symlink "${DOT_STAR}/colordiff/.colordiffrc" "${HOME}/.colordiffrc"
 
 ensure_symlink "${DOT_STAR}/screen/.screenrc" "${HOME}/.screenrc"
+bt_pop
 
+bt_push "ipython"
 install_ipython() {
     if [[ "${OSTYPE}" == "darwin"* ]]; then
         brew install ipython
@@ -184,10 +204,13 @@ install_ipython() {
     echo -e "c.TerminalInteractiveShell.editor = 'vi'\n" >>~/.ipython/profile_default/ipython_config.py
 }
 install_ipython
+bt_pop
 
+bt_push "post_install.sh"
 # TODO: Consolidate post install script into install script.
 # Run post installation script.
 source "${DOT_STAR_ROOT}/script/post_install.sh"
+bt_pop
 
 if [ ${#WARNINGS[@]} -gt 0 ]; then
     bold_yellow=$'\033[1;33m'
@@ -205,5 +228,7 @@ fi
 # Stamp the installed commit so bash/.install_check.sh can detect later
 # pulls that change install.sh or post_install.sh.
 git -C "${DOT_STAR_ROOT}" rev-parse HEAD >"${HOME}/.dot-star-installed-commit"
+
+bt_pop # install.sh
 
 echo "✅ install complete"
