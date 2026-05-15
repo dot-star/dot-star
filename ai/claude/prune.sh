@@ -18,6 +18,12 @@ if [[ ! -d "${projects_dir}" ]]; then
     exit 1
 fi
 
+count_sessions() {
+    find "${projects_dir}" -type f -name '*.jsonl' |
+        wc -l |
+        tr -d ' '
+}
+
 is_target_title() {
     local candidate="${1}"
     local target
@@ -28,6 +34,8 @@ is_target_title() {
     done
     return 1
 }
+
+before="$(count_sessions)"
 
 matches=()
 while IFS= read -r -d '' file; do
@@ -50,9 +58,10 @@ if [[ "${#matches[@]}" -eq 0 ]]; then
     exit 0
 fi
 
-if [[ "${#matches[@]}" -gt 0 ]]; then
-    echo "Pruning ${#matches[@]} session(s) with customTitle in {${quoted_titles}}:"
-    for file in "${matches[@]}"; do
-        rm -v "${file}"
-    done
-fi
+echo "Pruning ${#matches[@]} session(s) with customTitle in {${quoted_titles}}:"
+for file in "${matches[@]}"; do
+    rm -v "${file}"
+done
+
+after="$(count_sessions)"
+echo "Sessions: ${before} before, ${after} after ($((before - after)) pruned)."
