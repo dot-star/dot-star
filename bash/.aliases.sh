@@ -1851,16 +1851,22 @@ git_worktree_cd() {
 
         # Preview the highlighted worktree's status and `d`-style diff: prefer
         # staged when present, else show unstaged. {1} is the hidden path column.
+        # `truncate_long` clips overlong lines so `:wrap` doesn't blow up the
+        # preview on minified diffs or lockfile churn; the trailing reset closes
+        # any ANSI color sequence cut mid-line.
         local preview_cmd='
             if ! cd {1}; then
                 exit
             fi
-            git -c color.status=always status --untracked-files=all
+            truncate_long() {
+                awk '\''{ if (length > 500) print substr($0,1,500) "…\033[0m"; else print }'\''
+            }
+            git -c color.status=always status --untracked-files=all | truncate_long
             echo
             if [[ -n "$(git diff --cached 2>/dev/null)" ]]; then
-                git diff --cached --color=always
+                git diff --cached --color=always | truncate_long
             else
-                git diff --color=always
+                git diff --color=always | truncate_long
             fi
         '
 
@@ -1875,7 +1881,7 @@ git_worktree_cd() {
                     --info="hidden" \
                     --select-1 \
                     --preview="${preview_cmd}" \
-                    --preview-window="down:75%"
+                    --preview-window="down:75%:wrap"
         )"
         local return_code="${?}"
 
@@ -2243,9 +2249,14 @@ alias wget="wget"
 alias wg="wget"
 
 _conditional_w() {
-    if [[ "${#}" -eq 0 ]]; then
+    if git rev-parse --is-inside-work-tree &>/dev/null; then
+        # In a git repo: behave like `wt` (worktree picker / switcher).
+        git_worktree_cd "${@}"
+    elif [[ "${#}" -eq 0 ]]; then
+        # Outside a repo, no args: list who's logged in.
         w
     else
+        # Outside a repo, with args: download via wget.
         wget "${@}"
     fi
 }
