@@ -68,6 +68,12 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     )
 
     bt_push "presence checks"
+
+    # TODO: Replace the per-name `brew list --versions --formula <x>` forks
+    # with one `brew list --formula` + bash grep filter that caches all
+    # installed names once. Same for casks. Fold the macvim check below into
+    # the same cache (~7.9s baseline).
+
     # Skip what's already installed so brew (and its auto-update) only runs when
     # there's real work to do.
     missing_formulae=()
@@ -99,6 +105,10 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     bt_pop
 
     bt_push "macvim --HEAD"
+
+    # TODO: Fold this isolated brew fork into the bulk presence-check cache
+    # above (~365ms).
+
     # `macvim --HEAD` can't share a batch (the flag would apply to every formula).
     if ! brew list --versions --formula macvim >/dev/null 2>&1; then
         brew install macvim --HEAD
@@ -126,6 +136,12 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     bt_pop
 
     bt_push "post-install hooks"
+
+    # TODO: Use `brew link --overwrite php@8.4` so the link doesn't fail on
+    # `bin/pear` (php@8.0 conflict), or run `brew unlink php@8.0` once.
+    # TODO: Gate the fzf install hook on `[ -f ~/.fzf.bash ]` plus a grep that
+    # the `~/.bashrc` snippet is already present (~700ms wasted per re-run).
+
     brew link php@8.4
 
     # Install fzf key bindings and fuzzy completion.
@@ -144,6 +160,10 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     bt_pop
 
     bt_push "diff-highlight ln"
+
+    # TODO: Gate on absence to avoid the "File exists" error on every re-run:
+    # `[ -e /usr/local/bin/diff-highlight ] || ln -s ...`.
+
     # Use diff highlight.
     ln -s "/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" "/usr/local/bin/"
     bt_pop

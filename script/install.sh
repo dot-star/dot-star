@@ -201,6 +201,10 @@ bt_pop
 
 bt_push "ipython"
 install_ipython() {
+    # TODO: Presence-check before `brew install ipython` / `apt-get install
+    # ipython3` (~5.5s baseline; same anti-pattern post_install.sh fixed via
+    # the batch refactor).
+
     if [[ "${OSTYPE}" == "darwin"* ]]; then
         brew install ipython
         # Re-link in case a prior install left the keg unlinked.
