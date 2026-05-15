@@ -11,6 +11,9 @@
 
 set -euo pipefail
 
+cyan=$'\033[36m'
+reset=$'\033[0m'
+
 data=$(cat)
 
 sid=$(printf '%s' "${data}" | command jq --raw-output '.session_id // empty')
@@ -20,7 +23,7 @@ if [ -n "${sid}" ] && [ -f "${marker}" ]; then
     path=$(head -n 1 "${marker}")
     if [ -d "${path}" ]; then
         name="${path##*/}"
-        printf '[worktree: %s]\n' "${name}"
+        printf '[worktree: %s%s%s]\n' "${cyan}" "${name}" "${reset}"
         exit 0
     fi
 fi
@@ -37,6 +40,6 @@ case "${gitdir}" in
 */worktrees/*)
     name="${gitdir##*/worktrees/}"
     name="${name%%/*}"
-    printf '[worktree: %s]\n' "${name}"
+    printf '[worktree: %s%s%s]\n' "${cyan}" "${name}" "${reset}"
     ;;
 esac
