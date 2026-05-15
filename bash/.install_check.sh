@@ -38,7 +38,8 @@ dot_star_check_install_stale() {
     printf "%sdot-star: installer changed since last install. Run \`~/.dot-star/install.sh\` now? This will take a minute. [y/N] %s" "${yellow}" "${reset}" >&2
 
     local answer
-    read -r answer
+    read -r -n 1 answer
+    echo >&2
     if [[ "${answer}" != "y" ]] && [[ "${answer}" != "Y" ]]; then
         return 0
     fi
