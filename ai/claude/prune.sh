@@ -10,7 +10,7 @@ set -euo pipefail
 
 echo "Pruning Claude sessions"
 
-target_titles=("ok-to-delete" "ok-to-del" "delete" "del" "tmp")
+target_titles=("ok-to-delete" "ok-to-del" "delete" "del" "d" "tmp")
 projects_dir="${HOME}/.claude/projects"
 
 if [[ ! -d "${projects_dir}" ]]; then
