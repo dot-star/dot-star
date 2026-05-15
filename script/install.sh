@@ -210,22 +210,28 @@ bt_pop
 
 bt_push "ipython"
 install_ipython() {
-    # TODO: Presence-check before `brew install ipython` / `apt-get install
-    # ipython3` (~5.5s baseline; same anti-pattern post_install.sh fixed via
-    # the batch refactor).
-
     if [[ "${OSTYPE}" == "darwin"* ]]; then
-        brew install ipython
-        # Re-link in case a prior install left the keg unlinked.
-        brew link --overwrite ipython
+        if ! command -v ipython >/dev/null; then
+            brew install ipython
+            brew link --overwrite ipython
+        fi
     elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
-        sudo apt-get install -y ipython3
+        if ! command -v ipython3 >/dev/null; then
+            sudo apt-get install -y ipython3
+        fi
     fi
 
     ipython profile create
-    echo -e "c.TerminalInteractiveShell.confirm_exit = False\n" >>~/.ipython/profile_default/ipython_config.py
-    echo -e "c.TerminalInteractiveShell.editing_mode = 'vi'\n" >>~/.ipython/profile_default/ipython_config.py
-    echo -e "c.TerminalInteractiveShell.editor = 'vi'\n" >>~/.ipython/profile_default/ipython_config.py
+    local config_file=~/.ipython/profile_default/ipython_config.py
+    local line
+    for line in \
+        "c.TerminalInteractiveShell.confirm_exit = False" \
+        "c.TerminalInteractiveShell.editing_mode = 'vi'" \
+        "c.TerminalInteractiveShell.editor = 'vi'"; do
+        if ! grep --line-regexp --quiet --fixed-strings "${line}" "${config_file}"; then
+            echo "${line}" >>"${config_file}"
+        fi
+    done
 }
 install_ipython
 bt_pop
