@@ -14,7 +14,6 @@
 - For temporary files, write only to the session-scoped directory `/tmp/claude/<session_id>/` (surfaced via SessionStart). Do not write directly under `/tmp/` or `/tmp/claude/`.
 - Before making any code edits in a git repository, work from an isolated worktree to keep the main checkout free for parallel work. Subagents: pass `isolation: "worktree"`. Direct edits: call `EnterWorktree` first, `ExitWorktree` with `action: "remove"` when done.
 - When the working directory is already inside a git repository, prefer plain `git ...` invocations over `git -C <path> ...`. The cwd already has the right scope, and `-C` triggers extra permission prompts.
-- For commit messages, follow `~/.claude/CLAUDE_commit-message-style.md`. Default to a single subject line; bodies are rare and reserved for non-obvious motivation.
 - When the session's objective is complete (worktree landed, task done, question answered), prompt the user to mark the session for prune with `/rename del` then `/exit`. Prefix the prompt with ✅ followed by a one-line recap of the completed objective, so it's visually distinct from the surrounding work and confirms what was finished. `ai/claude/prune.sh` later sweeps any session whose custom title matches its `target_titles` list (includes `del`). Do not start fresh work in the same session unless the user signals otherwise.
 
 ## Shell commands
@@ -29,6 +28,13 @@
 - Self-documenting command variables: when a command's intent isn't obvious from its literal text, bind it to a descriptively-named local variable so the call site reads as prose. Example: `local is_valid_json="jq empty"` lets the conditional read `if $is_valid_json "${file}"; then`. Skip when the literal command is already clear on its own.
 - Two comment shapes: block comments (TODOs, design notes) get a blank line above and below; line-doc comments (describing the next line/pipeline) stay flush with the code, no blank line between.
 - Blank lines around `if` blocks track logical grouping. Keep an assignment flush with the `if` that consumes its result (`x="$(...)"` immediately above `if [[ -z "${x}" ]]; then`); same for consecutive assignments feeding the same conditional. Insert a blank line above standalone `if`s not fed by the previous line, after a closing `fi`, and after the function's `local` declaration block. A line-doc comment describing the `if` stays flush with it, so the blank line goes above the comment.
+
+## Styles
+
+On-demand style guides live under `~/.claude/styles/`. Read the relevant file when starting work in that area; do not auto-load.
+
+- For commit messages, follow `~/.claude/styles/commit-message-style.md`. Default to a single subject line; bodies are rare and reserved for non-obvious motivation.
+- For shell scripts (bash, zsh), follow `~/.claude/styles/shell-style.md`.
 
 ## Input
 

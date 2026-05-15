@@ -140,15 +140,20 @@ bt_push "claude config + dirs"
 mkdir -p "${HOME}/.claude"
 ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/settings.json" "${HOME}/.claude/settings.json"
 ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/CLAUDE.md" "${HOME}/.claude/CLAUDE.md"
-ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/CLAUDE_commit-message-style.md" "${HOME}/.claude/CLAUDE_commit-message-style.md"
 
-# Install Claude Code skills, commands, and hooks by symlinking the parent
-# dirs. New files in the repo show up automatically, and any unexpected entry
-# under ~/.claude/skills, ~/.claude/commands, or ~/.claude/hooks surfaces as
-# untracked in `git status`. The first loop migrates the prior
-# per-entry-symlink layout: drop legacy symlinks and the now-empty parent so
-# the directory symlink can land.
-for parent in "${HOME}/.claude/skills" "${HOME}/.claude/commands" "${HOME}/.claude/hooks"; do
+# Migrate the legacy per-file style symlink now that styles live under
+# ~/.claude/styles/.
+if [ -L "${HOME}/.claude/CLAUDE_commit-message-style.md" ]; then
+    unlink "${HOME}/.claude/CLAUDE_commit-message-style.md"
+fi
+
+# Install Claude Code skills, commands, hooks, and styles by symlinking the
+# parent dirs. New files in the repo show up automatically, and any unexpected
+# entry under ~/.claude/{skills,commands,hooks,styles} surfaces as untracked
+# in `git status`. The first loop migrates the prior per-entry-symlink layout:
+# drop legacy symlinks and the now-empty parent so the directory symlink can
+# land.
+for parent in "${HOME}/.claude/skills" "${HOME}/.claude/commands" "${HOME}/.claude/hooks" "${HOME}/.claude/styles"; do
     if [ -d "${parent}" ] && [ ! -L "${parent}" ]; then
         for legacy in "${parent}"/*; do
             if [ -L "${legacy}" ]; then
@@ -162,6 +167,7 @@ done
 ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/skills" "${HOME}/.claude/skills"
 ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/commands" "${HOME}/.claude/commands"
 ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/hooks" "${HOME}/.claude/hooks"
+ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/styles" "${HOME}/.claude/styles"
 bt_pop
 
 bt_push "bootstrap snippets"
