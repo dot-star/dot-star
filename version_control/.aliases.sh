@@ -950,10 +950,18 @@ rc_status() {
                 echo -e "\033[38;5;208mWarning:\033[0m no remote configured; commits cannot be pushed"
             else
                 # Warn about commits in HEAD that aren't on any remote-tracking ref.
-                unpushed=$(git rev-list --count HEAD --not --remotes 2>/dev/null)
+                # Also exclude local master unless HEAD is master, so unpushed master
+                # commits don't inflate the count in a worktree or feature branch.
+                local exclude_refs=(--remotes)
+                local head_branch
+                head_branch="$(git symbolic-ref --short HEAD 2>/dev/null)"
+                if [[ "${head_branch}" != "master" ]] && git show-ref --verify --quiet refs/heads/master; then
+                    exclude_refs+=(master)
+                fi
+                unpushed=$(git rev-list --count HEAD --not "${exclude_refs[@]}" 2>/dev/null)
                 if [[ "${unpushed}" -gt 0 ]]; then
                     echo -e "\n\033[38;5;208mWarning:\033[0m There are unpushed commits: \033[1;36m${unpushed}\033[0m"
-                    git log -n 10 --pretty=tformat:"    %C(auto)%h%C(reset) %s %C(dim)(%cr)%C(reset)" HEAD --not --remotes
+                    git log -n 10 --pretty=tformat:"    %C(auto)%h%C(reset) %s %C(dim)(%cr)%C(reset)" HEAD --not "${exclude_refs[@]}"
                     if [[ "${unpushed}" -gt 10 ]]; then
                         echo "    ... and $((unpushed - 10)) more"
                     fi
