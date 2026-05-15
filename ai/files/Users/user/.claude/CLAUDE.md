@@ -3,6 +3,9 @@
 ## Principles
 
 - Explicit is better than implicit.
+- Atomic commits: one logical change per commit.
+- Optimize for readability and reviewer happiness.
+- Pursue correctness across the task; accept more churn when minimalist diffs and correctness conflict.
 - Organize this file semantically by topic, not by order added.
 
 ## Supplemental preferences
