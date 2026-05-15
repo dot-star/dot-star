@@ -138,7 +138,11 @@
       "Read(~/Projects/dot-star/vim/**)",
       "Read(~/Projects/dot-star/virtualenv/**)",
       "Read(~/Projects/dot-star/zsh/**)",
+      "Skill(codify)",
+      "Skill(commit)",
       "Skill(triage-permissions)",
+      "Skill(try)",
+      "Skill(untry)",
       "Skill(worktree-done)",
       "Write(//tmp/claude/**)"
     ],
