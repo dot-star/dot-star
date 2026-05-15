@@ -133,12 +133,12 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
 
     bt_push "post-install hooks"
 
-    # TODO: Use `brew link --overwrite php@8.4` so the link doesn't fail on
-    # `bin/pear` (php@8.0 conflict), or run `brew unlink php@8.0` once.
     # TODO: Gate the fzf install hook on `[ -f ~/.fzf.bash ]` plus a grep that
     # the `~/.bashrc` snippet is already present (~700ms wasted per re-run).
 
-    brew link php@8.4
+    # `--overwrite` takes the `bin/pear` symlink from any older php@N keg
+    # that currently owns it (php@8.0, in practice).
+    brew link --overwrite php@8.4
 
     # Install fzf key bindings and fuzzy completion.
     "$(brew --prefix)/opt/fzf/install" --all
