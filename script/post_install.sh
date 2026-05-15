@@ -156,12 +156,10 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     bt_pop
 
     bt_push "diff-highlight ln"
-
-    # TODO: Gate on absence to avoid the "File exists" error on every re-run:
-    # `[ -e /usr/local/bin/diff-highlight ] || ln -s ...`.
-
     # Use diff highlight.
-    ln -s "/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" "/usr/local/bin/"
+    if [ ! -e "/usr/local/bin/diff-highlight" ]; then
+        ln -s "/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" "/usr/local/bin/"
+    fi
     bt_pop
     bt_pop # darwin section
 elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
