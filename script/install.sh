@@ -223,15 +223,43 @@ install_ipython() {
 
     ipython profile create
     local config_file=~/.ipython/profile_default/ipython_config.py
-    local line
-    for line in \
-        "c.TerminalInteractiveShell.confirm_exit = False" \
-        "c.TerminalInteractiveShell.editing_mode = 'vi'" \
-        "c.TerminalInteractiveShell.editor = 'vi'"; do
-        if ! grep --line-regexp --quiet --fixed-strings "${line}" "${config_file}"; then
-            echo "${line}" >>"${config_file}"
-        fi
-    done
+    local header="# Begin dot-star ipython config."
+    local footer="# End dot-star ipython config."
+    local managed_lines=(
+        "c.TerminalInteractiveShell.confirm_exit = False"
+        "c.TerminalInteractiveShell.editing_mode = 'vi'"
+        "c.TerminalInteractiveShell.editor = 'vi'"
+    )
+
+    # Drop any prior managed block AND any bare duplicates of managed lines
+    # left over from when the install just `>>`-appended them every run.
+    # `|`-delimited because BSD awk rejects newlines in `-v` values.
+    local managed_joined
+    managed_joined="$(
+        IFS='|'
+        echo "${managed_lines[*]}"
+    )"
+    local tmp_config="${config_file}.tmp"
+    awk \
+        -v header="${header}" \
+        -v footer="${footer}" \
+        -v managed="${managed_joined}" '
+        BEGIN {
+            n = split(managed, arr, "|")
+            for (i = 1; i <= n; i++) drop[arr[i]] = 1
+        }
+        $0 == header { in_block = 1; next }
+        $0 == footer { in_block = 0; next }
+        in_block { next }
+        $0 in drop { next }
+        { print }
+    ' "${config_file}" >"${tmp_config}" && mv "${tmp_config}" "${config_file}"
+
+    {
+        echo "${header}"
+        printf '%s\n' "${managed_lines[@]}"
+        echo "${footer}"
+    } >>"${config_file}"
 }
 install_ipython
 bt_pop
