@@ -89,6 +89,7 @@
       "Bash(pbcopy)",
       "Bash(pbpaste)",
       "Edit(//tmp/claude/**)",
+      "Read(//Users/user/.claude/**)",
       "Read(//tmp/claude/**)",
       "Read(~/.claude/**)",
       "Read(~/.dot-star/ai/**)",
