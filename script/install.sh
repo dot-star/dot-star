@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
-# Skip xtrace under DOT_STAR_PROFILE so the bt timer tree stays readable.
+# Profile a run with:
+# DOT_STAR_PROFILE=1 ./install.sh
+# to emit a nested timing tree of each section (helpers in `bash/.timer.sh`).
+# The flag disables `set -x` xtrace so the tree stays readable.
 if [[ -z "${DOT_STAR_PROFILE:-}" ]]; then
     set -x
 fi
