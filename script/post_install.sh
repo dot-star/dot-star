@@ -68,24 +68,24 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     )
 
     bt_push "presence checks"
-
-    # TODO: Replace the per-name `brew list --versions --formula <x>` forks
-    # with one `brew list --formula` + bash grep filter that caches all
-    # installed names once. Same for casks. Fold the macvim check below into
-    # the same cache (~7.9s baseline).
+    # Cache installed names with one fork each instead of forking
+    # `brew list --versions --formula <name>` per item (~370ms each).
+    installed_formulae="$(brew list --formula)"
+    installed_casks="$(brew list --cask)"
+    is_installed="grep --line-regexp --quiet --fixed-strings"
 
     # Skip what's already installed so brew (and its auto-update) only runs when
     # there's real work to do.
     missing_formulae=()
     for formula in "${formulae[@]}"; do
-        if ! brew list --versions --formula "${formula}" >/dev/null 2>&1; then
+        if ! $is_installed "${formula}" <<<"${installed_formulae}"; then
             missing_formulae+=("${formula}")
         fi
     done
 
     missing_casks=()
     for cask in "${casks[@]}"; do
-        if ! brew list --versions --cask "${cask}" >/dev/null 2>&1; then
+        if ! $is_installed "${cask}" <<<"${installed_casks}"; then
             missing_casks+=("${cask}")
         fi
     done
@@ -105,12 +105,8 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     bt_pop
 
     bt_push "macvim --HEAD"
-
-    # TODO: Fold this isolated brew fork into the bulk presence-check cache
-    # above (~365ms).
-
     # `macvim --HEAD` can't share a batch (the flag would apply to every formula).
-    if ! brew list --versions --formula macvim >/dev/null 2>&1; then
+    if ! $is_installed macvim <<<"${installed_formulae}"; then
         brew install macvim --HEAD
     fi
     bt_pop
