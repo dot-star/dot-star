@@ -10,7 +10,25 @@ Collapse "draft a subject, pick one, commit" into one action for the currently s
 ## Preflight
 
 1. Verify cwd is a git repo (`git rev-parse --is-inside-work-tree`).
-2. Confirm something is staged: `git --no-pager diff --staged --stat`. If empty, check whether cwd is inside a session worktree (`git rev-parse --git-common-dir` differs from `git rev-parse --git-dir`); if so, run `git add --update` to stage tracked-file modifications/deletions and re-check the staged stat, otherwise surface "nothing staged" and stop.
+2. Confirm something is staged. The preflight branches by cwd; cwd is a linked worktree when `git rev-parse --git-common-dir` differs from `git rev-parse --git-dir`, otherwise it's the root checkout.
+
+   ```
+   cwd
+   ├── worktree
+   │   └── git diff --staged --stat
+   │       ├── non-empty → proceed to step 3
+   │       └── empty
+   │           ├── git add --update
+   │           └── re-check staged → proceed, or stop ("nothing staged")
+   └── root
+       └── git diff --staged --stat
+           ├── non-empty → proceed to step 3
+           └── empty
+               ├── git add --update
+               └── re-check staged → proceed, or stop ("nothing staged")
+   ```
+
+   `git add --update` stages tracked-file modifications/deletions only; untracked files (`??`) are never auto-staged.
 3. Read the full staged diff: `git --no-pager diff --staged`. This is the source of truth for what to summarize.
 4. Skim recent subjects for voice: `git --no-pager log --max-count=10 --format='%s'`.
 5. Re-read `~/.claude/CLAUDE_commit-message-style.md` so the drafts match the user's actual style.
