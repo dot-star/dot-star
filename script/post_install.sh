@@ -157,8 +157,11 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
 
     bt_push "diff-highlight ln"
     # Use diff highlight.
-    if [ ! -e "/usr/local/bin/diff-highlight" ]; then
-        ln -s "/usr/local/Cellar/git/"*"/share/git-core/contrib/diff-highlight/diff-highlight" "/usr/local/bin/"
+    homebrew_prefix="${HOMEBREW_PREFIX:-/usr/local}"
+    diff_highlight_src="${homebrew_prefix}/share/git-core/contrib/diff-highlight/diff-highlight"
+    diff_highlight_dst="${homebrew_prefix}/bin/diff-highlight"
+    if [ -e "${diff_highlight_src}" ]; then
+        ln -sf "${diff_highlight_src}" "${diff_highlight_dst}"
     fi
     bt_pop
     bt_pop # darwin section
