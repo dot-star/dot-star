@@ -33,12 +33,8 @@ dot_star_check_install_stale() {
         return 0
     fi
 
-    local yellow=$'\033[33m'
-    local reset=$'\033[0m'
-    printf "%sdot-star: installer changed since last install. Run \`~/.dot-star/install.sh\` now? This will take a minute. [y/N] %s" "${yellow}" "${reset}" >&2
-
     local answer
-    read -r -n 1 answer
+    answer="$(display_confirm_prompt_caution "dot-star: installer changed since last install. Run \`~/.dot-star/install.sh\` now? This will take a minute. [y/N]")"
     echo >&2
     if [[ "${answer}" != "y" ]] && [[ "${answer}" != "Y" ]]; then
         return 0
