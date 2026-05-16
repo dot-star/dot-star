@@ -9,9 +9,22 @@ Goal: keep `.claude/settings.local.json` empty by promoting reusable rules to th
 
 ## Procedure
 
-Work in a worktree. Edit the worktree's copy of the global file, not the main checkout (absolute paths to the main checkout will silently miss it).
+Two files are in play; they live in different checkouts, so resolve both to absolute paths before touching anything.
 
-For each entry in `permissions.allow` and `permissions.deny` of `.claude/settings.local.json`:
+- **Local file** (triage target): the project's `.claude/settings.local.json`. Always lives in the **main checkout** of the project being triaged, never in a worktree. From inside a worktree the bare path `.claude/settings.local.json` resolves to the worktree's own empty `.claude/`, not the file you want. Resolve it with:
+
+  ```bash
+  main_repo_root="$(cd "$(git rev-parse --git-common-dir)/.." && pwd)"
+  local_file="${main_repo_root}/.claude/settings.local.json"
+  ```
+
+  Use `${local_file}` everywhere below.
+
+- **Global file** (promotion target): `~/.dot-star/ai/files/Users/user/.claude/settings.json`. Edit the worktree's copy so the change can be committed (absolute paths to the main dot-star checkout silently miss it).
+
+Work in a worktree of dot-star for the edits.
+
+For each entry in `permissions.allow` and `permissions.deny` of `${local_file}`:
 
 - **Drop** if already covered by the global file.
 - **Drop** if it's path-pinned to this checkout (references absolute repo paths) or uses `git -C <path>`.
@@ -22,7 +35,7 @@ After edits:
 
 1. Validate the global file with `command jq empty`.
 2. If `/config` reordered top-level keys, re-sort them with `command jq --sort-keys`.
-3. Delete `.claude/settings.local.json` if its `allow` list ends empty (`rm`, not `unlink`, since it's a regular file).
+3. Delete `${local_file}` if its `allow` list ends empty (`rm`, not `unlink`, since it's a regular file).
 4. List 2-4 numbered one-liner commit-message options, sorted best-first, and commit the user's pick.
 
 ## Reporting
