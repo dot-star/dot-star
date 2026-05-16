@@ -36,7 +36,7 @@ After edits:
 1. Validate the global file with `command jq empty`.
 2. If `/config` reordered top-level keys, re-sort them with `command jq --sort-keys`.
 3. Delete `${local_file}` if its `allow` list ends empty (`rm`, not `unlink`, since it's a regular file).
-4. List 2-4 numbered one-liner commit-message options, sorted best-first, and commit the user's pick.
+4. Commit the change via the `/commit` skill.
 
 ## Reporting
 
