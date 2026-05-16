@@ -40,7 +40,7 @@ dot_star_check_install_stale() {
         return 0
     fi
 
-    "${HOME}/.dot-star/install.sh"
+    DOT_STAR_PROFILE=1 "${HOME}/.dot-star/install.sh"
 }
 
 dot_star_check_install_stale
