@@ -49,6 +49,7 @@ On-demand style guides live under `~/.claude/styles/`. Read the relevant file wh
   - `cont` means "continue"
   - `re` means "retry"
   - `eg`, `examples` mean "show me examples"
+  - `u` means "you run it" (execute the command/script just suggested instead of expecting the user to)
   - `🚢` means "ship it" (land the work)
 
 ## Shorthand
