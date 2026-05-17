@@ -28,6 +28,31 @@ alias .cl="cd ~/.claude/ && l"
 
 alias clr="claude_run --resume"
 
+claude_ask() {
+    # Run a one-shot claude query and print the answer.
+    # Tool access is scoped to common search roots; permissions follow the
+    # normal allowlist (no bypass).
+    #
+    # --add-dir scope:
+    # - ~/.claude/projects: session transcripts. Sufficient on its own for
+    #   "find my session ..." queries, since paths/code mentioned in past
+    #   sessions are stored as plain text in the JSONL transcripts.
+    # - ~/Projects/dot-star: live repo state. Needed only when the query
+    #   has to read current files (e.g. "what does foo.sh look like right
+    #   now"), not for session-history lookups.
+    #
+    # Usage: ask "<prompt>"
+    if [[ $# -eq 0 ]]; then
+        echo "usage: ask <prompt>" >&2
+        return 1
+    fi
+    claude \
+        --add-dir ~/.claude/projects ~/Projects/dot-star \
+        --print \
+        "$@"
+}
+alias ask="claude_ask"
+
 claude_git_commit() {
     local prompt options selected
     prompt="$(
