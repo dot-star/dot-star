@@ -151,7 +151,8 @@
       "Write(//tmp/claude/**)"
     ],
     "ask": [
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [
       "Bash(gh pr checkout:*)",
