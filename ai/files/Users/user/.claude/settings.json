@@ -87,6 +87,7 @@
       "Bash(git show *)",
       "Bash(git status *)",
       "Bash(git symbolic-ref *)",
+      "Bash(git worktree *)",
       "Bash(pbcopy)",
       "Bash(pbpaste)",
       "Edit(//tmp/claude/**)",
