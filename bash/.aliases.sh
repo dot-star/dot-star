@@ -1451,6 +1451,10 @@ conditional_d() {
     if [[ "${#}" -eq 2 ]] && [[ -e "${1}" ]] && [[ -e "${2}" ]]; then
         difference "${1}" "${2}"
 
+    # Show a commit when the single argument looks like a git hash.
+    elif [[ "${#}" -eq 1 ]] && [[ ! -e "${1}" ]] && [[ "${1}" =~ ^[0-9a-f]{7,40}$ ]] && is_git; then
+        git show "${1}"
+
     # Run version control diff when no parameters are specified.
     elif is_git; then
         rc_diff $@
