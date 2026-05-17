@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Draft single-line commit-message options for the currently staged changes (best first), have the user pick one via AskUserQuestion, then run `git commit -m "<selection>"`. TRIGGER when the user asks for "options"/"choices" for a commit, for "numbered"/"one-liner" commit messages for staged changes, or otherwise asks Claude to draft and commit staged changes in one shot. SKIP when nothing is staged, when the user is asking only for drafts without committing, or when the user wants a multi-line body (this skill is subject-only).
+description: Draft single-line commit-message options for the currently staged changes (best first), have the user pick one via AskUserQuestion, then run `git commit -m "<selection>"`. TRIGGER when the user asks for "options"/"choices" for a commit, for "numbered"/"one-liner" commit messages for staged changes, or otherwise asks Claude to draft and commit staged changes in one shot. ALSO TRIGGER when the user accepts a `[c]ommit` follow-up that Claude offered (replies `c`, `cm`, `commit`, or 🚢 mapped to such an option); the accepted offer counts as a request for options, never auto-pick a subject and `git commit -m` directly. SKIP when nothing is staged, when the user is asking only for drafts without committing, or when the user wants a multi-line body (this skill is subject-only).
 ---
 
 # Commit
