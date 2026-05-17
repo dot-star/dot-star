@@ -9,13 +9,13 @@
 
 set -euo pipefail
 
-printf 'Pruning Claude sessions...'
+printf '🟡 Pruning Claude sessions...'
 
 target_titles=("ok-to-delete" "ok-to-del" "delete" "del" "d" "tmp")
 projects_dir="${HOME}/.claude/projects"
 
 if [[ ! -d "${projects_dir}" ]]; then
-    printf '\n'
+    printf '\r\033[K'
     echo "Error: ${projects_dir} does not exist"
     exit 1
 fi
@@ -65,4 +65,4 @@ while IFS= read -r -d '' file; do
     fi
 done < <(find "${projects_dir}" -type f -name '*.jsonl' -print0)
 
-printf ' done (%d pruned, %d remaining)\n' "${pruned}" "${remaining}"
+printf '\r\033[K\033[90m⚪️ Pruning Claude sessions... done (%d pruned, %d remaining)\033[0m\n' "${pruned}" "${remaining}"
