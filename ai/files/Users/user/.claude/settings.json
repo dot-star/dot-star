@@ -85,6 +85,8 @@
       "Bash(git rebase *)",
       "Bash(git rev-list *)",
       "Bash(git show *)",
+      "Bash(git stash list)",
+      "Bash(git stash pop)",
       "Bash(git status *)",
       "Bash(git symbolic-ref *)",
       "Bash(git worktree *)",
