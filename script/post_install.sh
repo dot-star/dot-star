@@ -198,8 +198,9 @@ bt_push "git-delta config"
 # Use delta as git's pager via the repo wrapper.
 git config --global core.pager "${DOT_STAR_ROOT}/version_control/git_pager.sh"
 git config --global interactive.diffFilter "delta --color-only"
-git config --global delta.navigate true
+git config --global delta.keep-plus-minus-markers true
 git config --global delta.line-numbers true
+git config --global delta.navigate true
 bt_pop
 
 bt_push "vim setup"
