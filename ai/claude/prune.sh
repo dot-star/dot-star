@@ -9,21 +9,16 @@
 
 set -euo pipefail
 
-echo "Pruning Claude sessions"
+printf 'Pruning Claude sessions...'
 
 target_titles=("ok-to-delete" "ok-to-del" "delete" "del" "d" "tmp")
 projects_dir="${HOME}/.claude/projects"
 
 if [[ ! -d "${projects_dir}" ]]; then
+    printf '\n'
     echo "Error: ${projects_dir} does not exist"
     exit 1
 fi
-
-count_sessions() {
-    find "${projects_dir}" -type f -name '*.jsonl' |
-        wc -l |
-        tr -d ' '
-}
 
 is_target_title() {
     local candidate="${1}"
@@ -50,11 +45,8 @@ is_print_mode_transcript() {
     return 1
 }
 
-before="$(count_sessions)"
-
-matches=()
-title_matches=0
-print_matches=0
+pruned=0
+remaining=0
 while IFS= read -r -d '' file; do
     # Pre-filter with grep so jq parses only the last match, not the whole transcript.
     title="$(
@@ -63,23 +55,14 @@ while IFS= read -r -d '' file; do
             \jq -r '.customTitle // empty'
     )"
     if is_target_title "${title}"; then
-        matches+=("${file}")
-        title_matches=$((title_matches + 1))
+        rm "${file}"
+        pruned=$((pruned + 1))
     elif is_print_mode_transcript "${file}"; then
-        matches+=("${file}")
-        print_matches=$((print_matches + 1))
+        rm "${file}"
+        pruned=$((pruned + 1))
+    else
+        remaining=$((remaining + 1))
     fi
 done < <(find "${projects_dir}" -type f -name '*.jsonl' -print0)
 
-if [[ "${#matches[@]}" -eq 0 ]]; then
-    echo "No prunable sessions found."
-    exit 0
-fi
-
-echo "Pruning ${#matches[@]} session(s) (${title_matches} tagged, ${print_matches} print-mode):"
-for file in "${matches[@]}"; do
-    rm -v "${file}"
-done
-
-after="$(count_sessions)"
-echo "Sessions: ${before} before, ${after} after ($((before - after)) pruned)."
+printf ' done (%d pruned, %d remaining)\n' "${pruned}" "${remaining}"
