@@ -2,9 +2,10 @@
 
 # Prune Claude sessions.
 #
-# Scans ~/.claude/projects/*/*.jsonl, reads the most recent
-# `{"type":"custom-title", ...}` entry from each file, and removes any session
-# whose title matches a target.
+# Scans ~/.claude/projects/*/*.jsonl and removes any session that is either:
+#   - tagged with a customTitle in the target list (set via /rename), or
+#   - a print-mode transcript (one-shot `claude --print` run, e.g. from `cmc`
+#     or `ask`), identified by a queue-operation first event.
 
 set -euo pipefail
 
@@ -35,9 +36,25 @@ is_target_title() {
     return 1
 }
 
+# True if the file is a `claude --print` transcript (not a resumable session).
+is_print_mode_transcript() {
+    local file="${1}"
+    local first_type
+    first_type="$(
+        head -n 1 "${file}" 2>/dev/null |
+            \jq -r '.type // empty' 2>/dev/null
+    )"
+    if [[ "${first_type}" == "queue-operation" ]]; then
+        return 0
+    fi
+    return 1
+}
+
 before="$(count_sessions)"
 
 matches=()
+title_matches=0
+print_matches=0
 while IFS= read -r -d '' file; do
     # Pre-filter with grep so jq parses only the last match, not the whole transcript.
     title="$(
@@ -47,18 +64,19 @@ while IFS= read -r -d '' file; do
     )"
     if is_target_title "${title}"; then
         matches+=("${file}")
+        title_matches=$((title_matches + 1))
+    elif is_print_mode_transcript "${file}"; then
+        matches+=("${file}")
+        print_matches=$((print_matches + 1))
     fi
 done < <(find "${projects_dir}" -type f -name '*.jsonl' -print0)
 
-quoted_titles="$(printf '"%s", ' "${target_titles[@]}")"
-quoted_titles="${quoted_titles%, }"
-
 if [[ "${#matches[@]}" -eq 0 ]]; then
-    echo "No sessions with customTitle in {${quoted_titles}} found."
+    echo "No prunable sessions found."
     exit 0
 fi
 
-echo "Pruning ${#matches[@]} session(s) with customTitle in {${quoted_titles}}:"
+echo "Pruning ${#matches[@]} session(s) (${title_matches} tagged, ${print_matches} print-mode):"
 for file in "${matches[@]}"; do
     rm -v "${file}"
 done
