@@ -47,6 +47,7 @@ On-demand style guides live under `~/.claude/styles/`. Read the relevant file wh
   - `res` means "resume"
   - `cont` means "continue"
   - `re` means "retry"
+  - `eg`, `examples` mean "show me examples"
   - `🚢` means "ship it" (land the work)
 
 ## Shorthand
