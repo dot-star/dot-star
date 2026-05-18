@@ -9,6 +9,7 @@ Most commits are subject-only. ~92-94% of hand-written commits across this user'
 - No conventional-commits prefix (`feat:`, `fix:`, `chore:`).
 - Aim for under ~70 chars. p95 is 67-79 across repos. Very short subjects are fine when context is obvious: `Sort`, `Use paging`, `Add alias`, `Clean up`.
 - Backticks around code/identifiers/paths/flags only when the literal token is the point: ``Allow `git --no-pager` log/diff/show without prompting``. Skip them otherwise.
+- Name shell wrappers by what they do, not their alias. The reader may not have `s` defined, but everyone knows `git status`. Prefer ``Prefix unpushed commits in `git status` with `[dN]` diff alias`` over ``Prefix unpushed commits in `s` with `[dN]` diff alias``. If the alias name itself is the subject of the change (renaming it, defining it, removing it), include both: ``Add `[dN]` prefix to `git status` wrapper (`s`)``.
 - No em dashes anywhere; use a comma, parentheses, or two clauses.
 
 ## Body
