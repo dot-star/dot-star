@@ -945,6 +945,13 @@ rc_status() {
 
         # Run extra checks only when called with no args, to avoid noise on `s -s` etc.
         if [[ "${#}" -eq 0 ]]; then
+            local i
+
+            # Reset `d1`..`d9` to their static cumulative defaults so a prior unpushed-commits override doesn't linger after pushing. The unpushed block below may then re-override the first N.
+            for i in 1 2 3 4 5 6 7 8 9; do
+                alias "d${i}=git diff HEAD~${i}"
+            done
+
             # Warn when no remote is configured.
             if [[ -z "$(git remote)" ]]; then
                 echo -e "\033[30;48;5;214m Warning \033[0m\033[38;5;214m:\033[0m no remote configured; commits cannot be pushed"
@@ -961,10 +968,23 @@ rc_status() {
                 unpushed=$(git rev-list --count HEAD --not "${exclude_refs[@]}" 2>/dev/null)
                 if [[ "${unpushed}" -gt 0 ]]; then
                     echo -e "\n\033[30;48;5;214m Warning \033[0m\033[38;5;214m:\033[0m There are unpushed commits: \033[1;36m${unpushed}\033[0m"
-                    git log -n 10 --pretty=tformat:"    %C(auto)%h%C(reset) %s %C(dim)(%cr)%C(reset)" HEAD --not "${exclude_refs[@]}"
-                    if [[ "${unpushed}" -gt 10 ]]; then
-                        echo "    ... and $((unpushed - 10)) more"
+                    # Cap matches the highest `dN` diff alias (`d9` = `git diff HEAD~9`).
+                    local listing_cap=9
+                    # Prefix each line with `[dN]` so the user knows which diff alias shows that commit (d1=HEAD~1, d2=HEAD~2, ...).
+                    # `--color=always` keeps `%C(auto)`/`%C(dim)` codes when piping into awk (git drops them when stdout isn't a TTY).
+                    git log --color=always -n "${listing_cap}" --pretty=tformat:"%C(auto)%h%C(reset) %s %C(dim)(%cr)%C(reset)" HEAD --not "${exclude_refs[@]}" |
+                        awk '{printf "    \033[2m[d%d]\033[0m %s\n", NR, $0}'
+                    if [[ "${unpushed}" -gt "${listing_cap}" ]]; then
+                        echo "    ... and $((unpushed - listing_cap)) more"
                     fi
+
+                    # Override `d1`..`d_min` so each maps to `git show <hash>` of its listed commit, matching the `[dN]` prefix. The static cumulative defaults (restored above) stay for `d(min+1)`..`d9`.
+                    local hash
+                    i=1
+                    while IFS= read -r hash; do
+                        alias "d${i}=git show ${hash}"
+                        i=$((i + 1))
+                    done < <(git log -n "${listing_cap}" --format="%h" HEAD --not "${exclude_refs[@]}")
                 fi
             fi
 
