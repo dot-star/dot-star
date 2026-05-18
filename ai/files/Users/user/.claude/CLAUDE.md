@@ -77,7 +77,8 @@ On-demand style guides live under `~/.claude/styles/`. Read the relevant file wh
 - When an own `[c]ommit` follow-up offer is accepted (reply `c`/`cm`/`commit`/🚢 mapped to the commit option), invoke the `commit` skill via the `Skill` tool rather than running `git commit -m "<self-chosen subject>"` directly. The skill drafts numbered subject options for the user to pick; auto-picking bypasses that choice. Same rule for any other phrasing where the offered action was "commit" (e.g. "want me to commit?"). To commit without the skill, the user has to opt in explicitly.
 - When offering a worktree follow-up, present **`[c]ommit`** (commit, stay in worktree) and **`[l]and`** (commit + `worktree-done`) as separate bracket-prefix options, not bundled as **`[c]ommit and land`**. Bundling forces both actions when the user often wants just to checkpoint.
 - Lead key sentences with a category emoji so the user can scan responses at a glance. Exactly one space after the emoji, then the sentence. The ⏺ message marker is rendered by Claude Code; the emoji goes immediately after it inside the message text. Categories:
-  - 🕵 finding / result / "turns out": `🕵 Found it. The cause is in script.py:42.`
+  - 🔍 active exploration / reading / searching (before the answer is in hand): `🔍 Grepping for callers of `do_thing` across the repo.`
+  - 🕵 finding / result / "turns out" (after the search lands): `🕵 Found it. The cause is in script.py:42.`
   - 🛠️ action / intent ("Let me...", "I'll..."): `🛠️ Let me work from a worktree.`
   - 🛬 land / ship / merge: `🛬 Landing branch foo into master.`
   - 🟡 question to user / need clarification: `🟡 Should this also rebase, or just fast-forward?`
