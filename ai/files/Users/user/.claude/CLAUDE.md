@@ -82,6 +82,7 @@ On-demand style guides live under `~/.claude/styles/`. Read the relevant file wh
   - 🛠️ action / intent ("Let me...", "I'll..."): `🛠️ Let me work from a worktree.`
   - 🛬 land / ship / merge: `🛬 Landing branch foo into master.`
   - 🟡 question to user / need clarification: `🟡 Should this also rebase, or just fast-forward?`
+  - 💡 acknowledging a user idea / "good point" / "you're right": `💡 Good idea, that's a cleaner phrasing.`
   - 🔴 warning / blocker / caveat (defensive, not yet broken): `🔴 Lockfile changed; skipping auto-stash.`
   - 💥 hard failure / error (something broke): `💥 Tests failed: 3 of 47 assertions did not pass.`
   - 🟢 step succeeded (intermediate success): `🟢 Tests pass, ready to land.`
