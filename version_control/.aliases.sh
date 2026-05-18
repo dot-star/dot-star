@@ -940,8 +940,8 @@ rc_status() {
     if is_git; then
         echo "git status"
         # Show untracked files individually instead of letting git collapse them under a parent dir.
-        # Pass before $@ so an explicit `--untracked-files=...` from the caller still wins.
-        git status --untracked-files=all $@
+        # Pass before "$@" so an explicit `--untracked-files=...` from the caller still wins.
+        git status --untracked-files=all "$@"
 
         # Run extra checks only when called with no args, to avoid noise on `s -s` etc.
         if [[ "${#}" -eq 0 ]]; then
