@@ -79,6 +79,7 @@ On-demand style guides live under `~/.claude/styles/`. Read the relevant file wh
 - Lead key sentences with a category emoji so the user can scan responses at a glance. Exactly one space after the emoji, then the sentence. The ⏺ message marker is rendered by Claude Code; the emoji goes immediately after it inside the message text. Categories:
   - 🕵 finding / result / "turns out": `🕵 Found it. The cause is in script.py:42.`
   - 🪏 action / intent ("Let me...", "I'll..."): `🪏 Let me work from a worktree.`
+  - 🛬 land / ship / merge: `🛬 Landing branch foo into master.`
   - 🟡 question to user / need clarification: `🟡 Should this also rebase, or just fast-forward?`
   - 🔴 warning / blocker / caveat: `🔴 Lockfile changed; skipping auto-stash.`
   - 🟢 step succeeded (intermediate success): `🟢 Tests pass, ready to land.`
