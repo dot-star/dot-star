@@ -81,7 +81,8 @@ On-demand style guides live under `~/.claude/styles/`. Read the relevant file wh
   - 🛠️ action / intent ("Let me...", "I'll..."): `🛠️ Let me work from a worktree.`
   - 🛬 land / ship / merge: `🛬 Landing branch foo into master.`
   - 🟡 question to user / need clarification: `🟡 Should this also rebase, or just fast-forward?`
-  - 🔴 warning / blocker / caveat: `🔴 Lockfile changed; skipping auto-stash.`
+  - 🔴 warning / blocker / caveat (defensive, not yet broken): `🔴 Lockfile changed; skipping auto-stash.`
+  - 💥 hard failure / error (something broke): `💥 Tests failed: 3 of 47 assertions did not pass.`
   - 🟢 step succeeded (intermediate success): `🟢 Tests pass, ready to land.`
   - ✅ objective complete (the session-done signal already used in Workflow): `✅ Worktree landed, branch deleted.`
   Use sparingly: only prefix sentences that genuinely belong to one of these categories. Plain prose, code explanations, and tool-call narration stay unprefixed.
