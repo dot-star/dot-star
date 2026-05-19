@@ -199,7 +199,7 @@ bt_push "git-delta config"
 git config --global core.pager "${DOT_STAR_ROOT}/version_control/git_pager.sh"
 git config --global interactive.diffFilter "delta --color-only"
 git config --global delta.keep-plus-minus-markers true
-git config --global delta.line-numbers true
+git config --global delta.line-numbers false
 git config --global delta.navigate true
 # Brighter added/removed-line backgrounds so `+`/`-` lines stand apart from context.
 git config --global delta.minus-style "syntax #800000"
