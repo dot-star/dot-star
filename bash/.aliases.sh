@@ -453,6 +453,7 @@ alias_grep() {
             --exclude-dir="chunks" \
             --exclude-dir="node_modules" \
             --exclude-dir="vendor" \
+            --exclude-dir="worktrees" \
             --exclude=".phpunit.result.cache" \
             --line-number \
             "$@"
@@ -469,6 +470,7 @@ alias_grep() {
             --exclude-dir="chunks" \
             --exclude-dir="node_modules" \
             --exclude-dir="vendor" \
+            --exclude-dir="worktrees" \
             --exclude=".phpunit.result.cache" \
             --line-number \
             "$@"
