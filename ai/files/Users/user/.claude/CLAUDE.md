@@ -6,6 +6,7 @@
 - Atomic commits: one logical change per commit.
 - Optimize for readability and reviewer happiness.
 - Pursue correctness across the task; accept more churn when minimalist diffs and correctness conflict.
+- Prefer robust over brittle solutions: favor approaches that tolerate change.
 - Touched code self-heals, ratcheting toward the preferred style. When a documented preference (in `CLAUDE.md` or memory) conflicts with the local style, the lines your edit modifies must end in the preferred form; untouched lines nearby stay as-is. Land the style swap as a separate atomic commit; order relative to the feature commit doesn't matter.
 - Organize this file semantically by topic, not by order added.
 - Within lists, sort items by natural alphabetical (case-insensitive) of the leading identifier (first backticked token, proper noun, or word). Skip when the order encodes meaning (steps, priorities, dependencies, manifesto hierarchies).
