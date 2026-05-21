@@ -21,7 +21,7 @@
 - When the working directory is already inside a git repository, prefer plain `git ...` invocations over `git -C <path> ...`. The cwd already has the right scope, and `-C` triggers extra permission prompts.
 - When editing files under `~/.claude/` (`CLAUDE.md`, `settings.json`, `skills/`, `hooks/`, `commands/`, `styles/`), target the real path under `~/.dot-star/ai/files/Users/user/.claude/` directly. `Edit`/`Write` refuse to write through symlinks, so going through `~/.claude/<x>` costs a failed call plus a `readlink` round-trip.
 - On the first user message of a session, write a caveman-style summary of their intent (drop articles, pronouns, aux verbs; aim for ≤6 words) to `/tmp/claude/<session_id>/objective` as a single line. The statusline hook reads this file as the displayed objective (truncated past 60 chars), and falls back to the raw first message if the file is missing. Rewrite the file if the intent shifts substantially during the session.
-- When the session's objective is complete (worktree landed, task done, question answered), prompt the user to mark the session for prune with `/rename del` then `/exit`. Prefix the prompt with ✅ followed by a one-line recap of the completed objective, so it's visually distinct from the surrounding work and confirms what was finished. `ai/claude/prune.sh` later sweeps any session whose custom title matches its `target_titles` list (includes `del`). Do not start fresh work in the same session unless the user signals otherwise.
+- When the session's objective is complete (worktree landed, task done, question answered), prompt the user to mark the session for prune with `/rename del` then `/exit`. Prefix the prompt with 🏁 followed by a one-line recap of the completed objective, so it's visually distinct from the surrounding work and confirms what was finished. `ai/claude/prune.sh` later sweeps any session whose custom title matches its `target_titles` list (includes `del`). Do not start fresh work in the same session unless the user signals otherwise.
 
 ## Shell commands
 
@@ -97,5 +97,6 @@ On-demand style guides live under `~/.claude/styles/`. Read the relevant file wh
   - 🔴 warning / blocker / caveat (defensive, not yet broken): `🔴 Lockfile changed; skipping auto-stash.`
   - 💥 hard failure / error (something broke): `💥 Tests failed: 3 of 47 assertions did not pass.`
   - 🟢 step succeeded (intermediate success): `🟢 Tests pass, ready to land.`
-  - ✅ objective complete (the session-done signal already used in Workflow): `✅ Worktree landed, branch deleted.`
+  - ✅ success: the overall task or work verified and succeeded, not the session-done signal: `✅ All tests green, change works end to end.`
+  - 🏁 objective complete (the session-done signal already used in Workflow): `🏁 Worktree landed, branch deleted.`
   Use sparingly: only prefix sentences that genuinely belong to one of these categories. Plain prose, code explanations, and tool-call narration stay unprefixed.
