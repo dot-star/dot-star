@@ -6,7 +6,7 @@ Most commits are subject-only. ~92-94% of hand-written commits across this user'
 
 - Imperative mood, capitalized first word: `Add`, `Fix`, `Use`, `Allow`, `Move`, `Remove`, `Note`, `Refine`.
 - No trailing period (dead since ~2021).
-- No conventional-commits prefix (`feat:`, `fix:`, `chore:`).
+- No type prefix of any kind, in any casing: not `feat:`/`fix:`/`chore:` nor `Feat:`/`Fix:`. The colon is the tell; `Fix the leak` is a valid imperative subject, `Fix: the leak` is a banned prefix. Just write the short summary.
 - Aim for under ~70 chars. p95 is 67-79 across repos. Very short subjects are fine when context is obvious: `Sort`, `Use paging`, `Add alias`, `Clean up`.
 - Backticks around code/identifiers/paths/flags only when the literal token is the point: ``Allow `git --no-pager` log/diff/show without prompting``. Skip them otherwise.
 - Name shell wrappers by what they do, not their alias. The reader may not have `s` defined, but everyone knows `git status`. Prefer ``Prefix unpushed commits in `git status` with `[dN]` diff alias`` over ``Prefix unpushed commits in `s` with `[dN]` diff alias``. If the alias name itself is the subject of the change (renaming it, defining it, removing it), include both: ``Add `[dN]` prefix to `git status` wrapper (`s`)``.
@@ -84,4 +84,4 @@ using Curl::setOpt().
 - No `Generated with Claude Code` or `Co-Authored-By: Claude` trailers.
 - No em dashes.
 - No trailing period in the subject.
-- No conventional-commits prefix.
+- No type prefix in any casing (`feat:`, `Fix:`).
