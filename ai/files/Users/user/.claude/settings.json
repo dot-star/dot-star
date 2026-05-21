@@ -178,6 +178,6 @@
   },
   "voiceEnabled": true,
   "worktree": {
-    "baseRef": "head"
+    "baseRef": "fresh"
   }
 }
