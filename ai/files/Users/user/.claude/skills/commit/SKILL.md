@@ -35,7 +35,15 @@ Collapse "draft a subject, pick one, commit" into one action for the currently s
 
 ## Draft
 
-Produce 4 distinct single-line subjects, ordered best-first (the one that most accurately describes the change comes first). Each must:
+Produce 4 distinct single-line subjects, then sort them best-first by the rubric below before presenting. Earlier criteria dominate later ones; only fall to the next criterion to break a tie:
+
+1. **Self-contained**: a reader who hasn't seen the diff understands what changed from the subject alone (e.g. "Reject uploads larger than 10 MB", not "Update handler").
+2. **Names the concrete thing**: the specific value or behavior, not a category (e.g. "Raise the upload limit to 50 MB", not "Adjust upload settings").
+3. **Intent over mechanism**: what changed and why, not where it landed; drop locational filler like "in Principles".
+4. **Imperative, verb-first**: `Add`, `Prefer`, `Fix`; not `Note`, `Adds`.
+5. **Tightest phrasing that still satisfies 1-4**: shorter wins only as a tiebreak, never at the cost of specificity.
+
+Each subject must:
 
 - Use imperative mood, capitalized first word (`Add`, `Fix`, `Update`, `Move`, `Allow`, `Enable`, `Replace`, `Rename`, `Clean up`, etc).
 - Have no trailing period.
