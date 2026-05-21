@@ -18,7 +18,8 @@ set -euo pipefail
 cyan=$'\033[36m'
 reset=$'\033[0m'
 
-OBJECTIVE_MAX=60
+OBJECTIVE_MAX_CHARS=60
+OBJECTIVE_MAX_WORDS=6
 
 flatten() {
     local s="$1"
@@ -30,10 +31,29 @@ flatten() {
 shrink() {
     local s
     s="$(flatten "$1")"
-    local max="$2"
-    if [ "${#s}" -gt "${max}" ]; then
-        s="${s:0:max-1}…"
+    local max_chars="$2"
+    local max_words="$3"
+
+    local words
+    read -r -a words <<<"${s}"
+    local original_count="${#words[@]}"
+
+    # Drop whole trailing words until within the word cap and within the char
+    # cap (reserving one char for the ellipsis appended below).
+    while [ "${#words[@]}" -gt "${max_words}" ] ||
+        { [ "${#words[@]}" -gt 1 ] && [ "${#s}" -gt "$((max_chars - 1))" ]; }; do
+        unset 'words[$((${#words[@]} - 1))]'
+        s="${words[*]}"
+    done
+
+    if [ "${#words[@]}" -lt "${original_count}" ]; then
+        # Words were dropped; signal the truncation.
+        s="${s}…"
+    elif [ "${#s}" -gt "${max_chars}" ]; then
+        # A single word still overflows the char cap; hard-cut it.
+        s="${s:0:max_chars-1}…"
     fi
+
     printf '%s' "${s}"
 }
 
@@ -96,7 +116,7 @@ if [ -n "${transcript}" ] && [ -f "${transcript}" ]; then
 fi
 
 title=$(flatten "${title}")
-objective=$(shrink "${objective}" "${OBJECTIVE_MAX}")
+objective=$(shrink "${objective}" "${OBJECTIVE_MAX_CHARS}" "${OBJECTIVE_MAX_WORDS}")
 if [ -n "${title}" ] && [ "${title}" = "${objective}" ]; then
     objective=""
 fi
