@@ -70,6 +70,7 @@
       "Bash(bash -n *)",
       "Bash(chmod +x *)",
       "Bash(command -v jq)",
+      "Bash(echo \"branch: $\\(git symbolic-ref --short HEAD\\)\")",
       "Bash(gh pr checks *)",
       "Bash(gh pr diff *)",
       "Bash(gh pr list *)",
