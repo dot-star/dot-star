@@ -2268,6 +2268,8 @@ _conditional_w() {
 }
 alias w="_conditional_w"
 
+alias wh="which"
+
 _outdated() {
     # TODO: Run both `npm outdated' and `brew outdated'.
     npm outdated
