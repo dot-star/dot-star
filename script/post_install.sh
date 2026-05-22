@@ -137,6 +137,9 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     # TODO: Gate the fzf install hook on `[ -f ~/.fzf.bash ]` plus a grep that
     # the `~/.bashrc` snippet is already present (~700ms wasted per re-run).
 
+    # curl is keg-only; force-link so the Homebrew build wins over /usr/bin/curl.
+    brew link --force --overwrite curl
+
     # `--overwrite` takes the `bin/pear` symlink from any older php@N keg
     # that currently owns it (php@8.0, in practice).
     brew link --overwrite php@8.4
