@@ -49,6 +49,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
         colordiff
         composer
         coreutils
+        curl
         diff-so-fancy
         diffutils
         fzf
