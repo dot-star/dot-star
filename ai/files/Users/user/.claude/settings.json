@@ -91,6 +91,7 @@
       "Bash(git stash pop)",
       "Bash(git status *)",
       "Bash(git symbolic-ref *)",
+      "Bash(git update-index *)",
       "Bash(git worktree *)",
       "Bash(pbcopy)",
       "Bash(pbpaste)",
