@@ -2039,6 +2039,105 @@ git_worktree_done() {
 alias wtd="git_worktree_done"
 alias wtdone="git_worktree_done"
 
+git_worktree_promote() {
+    # Fast-forward the default branch in the main checkout to the current
+    # worktree's branch tip, keeping the worktree and branch in place so
+    # you can keep committing. Like wtd minus the teardown. Local only; no push.
+    # Usage:
+    #   $ promote
+
+    if ! git rev-parse --is-inside-work-tree &>/dev/null; then
+        echo "not in a git repository"
+        return 1
+    fi
+
+    local worktree_path
+    worktree_path="$(git rev-parse --show-toplevel)"
+    # Refuse to run from the main checkout.
+    if [[ "${worktree_path}" != *"/worktrees/"* ]]; then
+        echo "not inside a worktree under a worktrees/ directory"
+        return 1
+    fi
+
+    local branch
+    branch="$(git symbolic-ref --quiet --short HEAD)"
+    if [[ -z "${branch}" ]]; then
+        echo "worktree HEAD is detached"
+        return 1
+    fi
+
+    # Refuse if the worktree has uncommitted or untracked changes.
+    if [[ -n "$(git status --porcelain)" ]]; then
+        echo "worktree has uncommitted changes"
+        return 1
+    fi
+
+    # Main checkout is always the first entry in `git worktree list'.
+    local main_checkout
+    main_checkout="$(git worktree list | awk 'NR==1 {print $1}')"
+    if [[ -z "${main_checkout}" || ! -d "${main_checkout}" ]]; then
+        echo "could not locate main checkout"
+        return 1
+    fi
+
+    local default_branch
+    if ! default_branch="$(_git_default_branch "${main_checkout}")"; then
+        echo "could not determine default branch in \"${main_checkout}\""
+        return 1
+    fi
+
+    # Return here when done; promote keeps the worktree, so we stay put.
+    local original_pwd="${PWD}"
+
+    cd "${main_checkout}" || return 1
+
+    if ! git checkout "${default_branch}"; then
+        echo "failed to checkout ${default_branch}"
+        return 1
+    fi
+
+    # Try the FF; if it's blocked by unrelated dirty files in the main checkout,
+    # stash them and retry, then pop once the FF lands.
+    local stashed=0
+    local ff_output ff_status
+    ff_output="$(git merge --ff-only "${branch}" 2>&1)"
+    ff_status="${?}"
+
+    if [[ "${ff_status}" -ne 0 && "${ff_output}" == *"would be overwritten by merge"* ]]; then
+        echo "${ff_output}"
+        echo "main checkout has unrelated dirty files; stashing before FF"
+        if ! git stash push --message "worktree-promote auto-stash before FF"; then
+            echo "failed to stash unrelated changes in main checkout"
+            return 1
+        fi
+        stashed=1
+        ff_output="$(git merge --ff-only "${branch}" 2>&1)"
+        ff_status="${?}"
+    fi
+
+    if [[ "${ff_status}" -ne 0 ]]; then
+        echo "branch \"${branch}\" has diverged from ${default_branch}; rebasing onto ${default_branch}"
+        if ! git -C "${worktree_path}" rebase "${default_branch}"; then
+            echo "rebase of \"${branch}\" onto branch ${default_branch} failed"
+            return 1
+        elif ! git merge --ff-only "${branch}"; then
+            echo "fast-forward merge of \"${branch}\" into branch ${default_branch} failed after rebase"
+            return 1
+        fi
+    fi
+
+    if [[ "${stashed}" -eq 1 ]]; then
+        if ! git stash pop; then
+            echo "failed to pop the auto-stash; resolve manually with \"git stash pop\""
+            return 1
+        fi
+    fi
+
+    # Promote keeps the worktree and branch; return to where we started.
+    cd "${original_pwd}"
+}
+alias promote="git_worktree_promote"
+
 git_worktree_prune() {
     # Prune git's stale worktree metadata, then remove any linked
     # worktree whose branch is fully merged into the default branch
