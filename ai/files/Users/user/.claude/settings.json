@@ -68,6 +68,7 @@
   "permissions": {
     "allow": [
       "Bash(bash -n *)",
+      "Bash(brew list *)",
       "Bash(chmod +x *)",
       "Bash(command -v jq)",
       "Bash(echo \"branch: $\\(git symbolic-ref --short HEAD\\)\")",
@@ -148,6 +149,7 @@
       "Skill(triage-permissions)",
       "Skill(try)",
       "Skill(untry)",
+      "Skill(update-config)",
       "Skill(worktree-done)",
       "Write(//tmp/claude/**)"
     ],
