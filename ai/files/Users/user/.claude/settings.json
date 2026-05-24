@@ -89,6 +89,7 @@
       "Bash(git -C * merge *)",
       "Bash(git -C * merge-base *)",
       "Bash(git -C * stash *)",
+      "Bash(git -c color.ui=always diff)",
       "Bash(git add *)",
       "Bash(git diff *)",
       "Bash(git fetch *)",
