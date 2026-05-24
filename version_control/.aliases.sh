@@ -210,8 +210,10 @@ git_browser() {
     # Strip geometry lines around each gitk run; the file is symlinked into the dot-star repo and gitk rewrites them on exit.
     local strip_geometry=(sed -i "" '/set geometry(/d' "${HOME}/.config/git/gitk")
 
+    # Drop any geometry left by direct `gitk` invocations that bypassed this wrapper.
     "${strip_geometry[@]}"
     gitk "${@}"
+    # Clear geometry lines gitk just wrote on exit so the symlinked dot-star file stays clean.
     "${strip_geometry[@]}"
 }
 
