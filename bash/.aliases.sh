@@ -222,13 +222,22 @@ better_cd() {
         builtin cd "${directory}" 2>/dev/null
         exit_code="${?}"
 
-        # Display list of directories to choose from when `cd' command fails.
-        # Reduces errors caused by autocomplete not completing when there are
-        # multiple matches like the following:
-        #   $ cd folder_2022-
-        #   -bash: cd: folder_2022-: No such file or directory
-
         if [[ "${exit_code}" -ne 0 ]]; then
+            # The fzf picker below needs a terminal. In a non-interactive shell
+            # (scripts, Claude's bash subshell) there's nothing to pick from, so
+            # re-run the cd to surface its error and return its exit code instead
+            # of silently leaving the caller in the wrong directory.
+            if [[ ! -t 0 ]]; then
+                builtin cd "${directory}"
+                return "${?}"
+            fi
+
+            # Display list of directories to choose from when `cd' command fails.
+            # Reduces errors caused by autocomplete not completing when there are
+            # multiple matches like the following:
+            #   $ cd folder_2022-
+            #   -bash: cd: folder_2022-: No such file or directory
+
             # Check for directory starting with the specified directory name.
             actual_directory="$(find . -iname "${directory}*" -type d -maxdepth 1 | fzf --exit-0)"
             starts_with_exit_code="${?}"
@@ -237,6 +246,12 @@ better_cd() {
             if [[ "${starts_with_exit_code}" -eq 1 ]]; then
                 actual_directory="$(find . -iname "*${directory}*" -type d -maxdepth 1 | fzf --exit-0)"
                 contains_exit_code="${?}"
+            fi
+
+            # Bail when the picker selected nothing; recursing with an empty arg
+            # would `cd ""` and silently no-op.
+            if [[ -z "${actual_directory}" ]]; then
+                return 1
             fi
 
             better_cd "${actual_directory}"
