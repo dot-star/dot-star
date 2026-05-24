@@ -58,6 +58,7 @@ clipboard() {
         perl -p -e 'chomp if eof' | pbcopy
     fi
 }
+alias cb="clipboard"
 alias clip="clipboard"
 alias copy="clipboard"
 
