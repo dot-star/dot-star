@@ -13,7 +13,7 @@
 
 ## Supplemental preferences
 
-- On session start, before acting on any user message, list `~/.claude/` and read every file matching `CLAUDE_*.md` in version-sort order (`sort --version-sort`: numeric components compared as numbers, un-numbered names alphabetical after numbered). Example order: `CLAUDE_01_private.md`, `CLAUDE_03_company.md`, `CLAUDE_10_workflow.md`, `CLAUDE_slack-style.md`, `CLAUDE_testing.md`. Treat each as preferences layered on top of this file; later files override earlier ones on conflict.
+- Sibling `~/.claude/CLAUDE_*.md` files are auto-injected into the session context by a `SessionStart` hook, in version-sort order (`sort --version-sort`: numeric components compared as numbers, un-numbered names alphabetical after numbered). Example order: `CLAUDE_01_<name>.md`, `CLAUDE_03_<name>.md`, `CLAUDE_10_workflow.md`, `CLAUDE_testing.md`. Treat each as preferences layered on top of this file; later files override earlier ones on conflict.
 
 ## Workflow
 
