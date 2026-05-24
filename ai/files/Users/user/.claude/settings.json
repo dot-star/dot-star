@@ -71,6 +71,7 @@
   },
   "permissions": {
     "allow": [
+      "Bash([ -s *)",
       "Bash(bash -n *)",
       "Bash(brew list *)",
       "Bash(chmod +x *)",
