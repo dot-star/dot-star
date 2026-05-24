@@ -58,6 +58,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
         git-gui
         glow
         grep
+        lazygit
         php@8.4
         rsync
         tig
