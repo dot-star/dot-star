@@ -157,6 +157,8 @@
       "Skill(untry)",
       "Skill(update-config)",
       "Skill(worktree-done)",
+      "WebFetch(domain:status.anthropic.com)",
+      "WebFetch(domain:status.claude.com)",
       "Write(//tmp/claude/**)"
     ],
     "ask": [
