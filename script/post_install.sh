@@ -60,6 +60,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
         grep
         php@8.4
         rsync
+        tig
         tree
         wget
     )
@@ -179,6 +180,7 @@ elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
         fzf
         git-delta
         jq
+        tig
     )
 
     missing_apt=()
