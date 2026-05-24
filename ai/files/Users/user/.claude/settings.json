@@ -49,6 +49,10 @@
           {
             "command": "${HOME}/.claude/hooks/triage_nudge.sh",
             "type": "command"
+          },
+          {
+            "command": "${HOME}/.claude/hooks/load_claude_md_supplementals.sh",
+            "type": "command"
           }
         ]
       }
