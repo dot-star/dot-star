@@ -1980,7 +1980,7 @@ git_worktree_done() {
     fi
 
     local default_branch
-    if ! default_branch="$(_git_default_branch "${main_checkout}")"; then
+    if ! default_branch="$(git_default_branch "${main_checkout}")"; then
         echo "could not determine default branch in \"${main_checkout}\""
         return 1
     fi
@@ -2096,7 +2096,7 @@ git_worktree_promote() {
     fi
 
     local default_branch
-    if ! default_branch="$(_git_default_branch "${main_checkout}")"; then
+    if ! default_branch="$(git_default_branch "${main_checkout}")"; then
         echo "could not determine default branch in \"${main_checkout}\""
         return 1
     fi
@@ -2176,7 +2176,7 @@ git_worktree_prune() {
     fi
 
     local default_branch
-    if ! default_branch="$(_git_default_branch "${main_checkout}")"; then
+    if ! default_branch="$(git_default_branch "${main_checkout}")"; then
         echo "could not determine default branch in \"${main_checkout}\""
         return 1
     fi
@@ -2187,7 +2187,7 @@ git_worktree_prune() {
     local line
     while IFS= read -r line || [[ -n "${line}" ]]; do
         if [[ -z "${line}" ]]; then
-            _git_worktree_prune_one "${main_checkout}" "${worktree_path}" "${branch}" "${detached}" "${default_branch}"
+            git_worktree_prune_one "${main_checkout}" "${worktree_path}" "${branch}" "${detached}" "${default_branch}"
             worktree_path=""
             branch=""
             detached=0
@@ -2199,10 +2199,10 @@ git_worktree_prune() {
             detached=1
         fi
     done < <(git worktree list --porcelain)
-    _git_worktree_prune_one "${main_checkout}" "${worktree_path}" "${branch}" "${detached}" "${default_branch}"
+    git_worktree_prune_one "${main_checkout}" "${worktree_path}" "${branch}" "${detached}" "${default_branch}"
 }
 
-_git_worktree_prune_one() {
+git_worktree_prune_one() {
     # Per-worktree helper for git_worktree_prune. Removes the linked
     # worktree at ${2} and deletes its branch ${3} (in main checkout
     # ${1}) iff the tree is clean, HEAD is on a branch, and the branch
@@ -2233,7 +2233,7 @@ _git_worktree_prune_one() {
     elif [[ -n "$(git -C "${worktree_path}" status --porcelain 2>/dev/null)" ]]; then
         echo "skip worktree \"${worktree_path}\": uncommitted changes"
         return
-    elif ! _branch_is_absorbed "${main_checkout}" "${branch}" "${default_branch}"; then
+    elif ! branch_is_absorbed "${main_checkout}" "${branch}" "${default_branch}"; then
         echo "skip worktree \"${worktree_path}\": branch \"${branch}\" not merged into ${default_branch}"
         return
     elif ! git -C "${main_checkout}" worktree remove "${worktree_path}"; then
@@ -2247,7 +2247,7 @@ _git_worktree_prune_one() {
     echo "removed \"${worktree_path}\" (branch \"${branch}\")"
 }
 
-_branch_is_absorbed() {
+branch_is_absorbed() {
     # Returns 0 iff <branch> contributes nothing new to <default_branch>:
     # either branch is an ancestor of default_branch (fast-forward /
     # merge commit), or merging branch into default_branch would yield
@@ -2282,7 +2282,7 @@ _branch_is_absorbed() {
     [[ -n "${merged_tree}" && "${merged_tree}" == "${default_tree}" ]]
 }
 
-_git_default_branch() {
+git_default_branch() {
     # Print the repository's default branch name. Tries origin/HEAD
     # first, then falls back to a local "main" or "master" branch.
     # Returns 1 with empty output if none can be determined.
@@ -2324,7 +2324,7 @@ git_branches_clean_up() {
     fi
 
     local default_branch
-    if ! default_branch="$(_git_default_branch "${main_checkout}")"; then
+    if ! default_branch="$(git_default_branch "${main_checkout}")"; then
         echo "could not determine default branch in \"${main_checkout}\""
         return 1
     fi
@@ -2336,7 +2336,7 @@ git_branches_clean_up() {
             continue
         # Skip branches checked out in a worktree; report only if absorbed.
         elif [[ -n "${worktreepath}" ]]; then
-            if _branch_is_absorbed "${main_checkout}" "${branch}" "${default_branch}"; then
+            if branch_is_absorbed "${main_checkout}" "${branch}" "${default_branch}"; then
                 echo "skip \"${branch}\": checked out at \"${worktreepath}\""
             fi
             continue
@@ -2345,7 +2345,7 @@ git_branches_clean_up() {
             echo "deleted \"${branch}\""
             continue
         # Silently keep branches that still carry unmerged work.
-        elif ! _branch_is_absorbed "${main_checkout}" "${branch}" "${default_branch}"; then
+        elif ! branch_is_absorbed "${main_checkout}" "${branch}" "${default_branch}"; then
             continue
         # Force-delete branches whose changes are absorbed via squash or rebase.
         elif ! git -C "${main_checkout}" branch --delete --force "${branch}"; then

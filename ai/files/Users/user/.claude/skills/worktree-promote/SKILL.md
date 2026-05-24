@@ -23,7 +23,7 @@ Promote and `worktree-done` share the rebase + fast-forward; they diverge only o
 ## Preflight
 
 1. Confirm cwd is under `*/worktrees/*`.
-2. Resolve placeholders: `<branch>` from `git symbolic-ref --short HEAD`; `<main>` from the first entry of `git worktree list`; `<default>` from the main checkout's HEAD branch (or the project's `_git_default_branch` helper).
+2. Resolve placeholders: `<branch>` from `git symbolic-ref --short HEAD`; `<main>` from the first entry of `git worktree list`; `<default>` from the main checkout's HEAD branch (or the project's `git_default_branch` helper).
 3. Confirm working tree is clean (`git status --porcelain` empty); if not, surface the dirty paths and stop. Carve-out: an untracked empty `.claude/settings.local.json` (auto-created by Claude Code, not user work) does not count as dirty. To check, expand `?? .claude/` with `git status --porcelain --untracked-files=all` and treat the gate as satisfied when the only untracked entry is `.claude/settings.local.json` and that file is zero bytes.
 4. Confirm the branch has commits ahead of `<default>` (`git log <default>..HEAD --oneline` non-empty); if not, there is nothing to promote.
 5. State in one line what is about to happen ("Promoting branch X onto Z, keeping worktree Y."), then proceed. The trigger phrase already served as confirmation, do not re-prompt.
