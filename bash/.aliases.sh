@@ -2359,7 +2359,7 @@ git_branches_clean_up() {
 alias branches_clean_up="git_branches_clean_up"
 alias bcu="git_branches_clean_up"
 
-wget() {
+function wget {
     set -x
     curl --remote-name --user-agent "" "${@}"
     set +x
