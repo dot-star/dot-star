@@ -1,0 +1,62 @@
+set autocopy 0
+set autoselect 1
+set autosellen 40
+set bgcolor white
+set circlecolors {white blue gray blue blue}
+set circleoutlinecolor black
+set cmitmode patch
+set colors {"#00ff00" red blue magenta darkgrey brown orange}
+set currentsearchhitbgcolor orange
+set datetimeformat {%Y-%m-%d %H:%M:%S}
+set diffbgcolors {"#fff3f3" "#f0fff0"}
+set diffcolors {"#c30000" "#009800" blue}
+set diffcontext 3
+set extdifftool opendiff
+set fgcolor black
+set filesepbgcolor #aaaaaa
+set filesepfgcolor black
+set findmergefiles 0
+set foundbgcolor yellow
+set headbgcolor #00ff00
+set headfgcolor black
+set headoutlinecolor black
+set hideremotes 0
+set indexcirclecolor #00ff00
+set kscroll 3
+set limitdiffs 1
+set linehoverbgcolor #ffff80
+set linehoverfgcolor black
+set linehoveroutlinecolor black
+set linkfgcolor blue
+set mainfont {{Lucida Grande} 13}
+set mainheadcirclecolor yellow
+set markbgcolor #e0e0ff
+set maxgraphpct 50
+set maxrefs 20
+set maxwidth 16
+set mergecolors {red blue "#00ff00" purple brown "#009090" magenta "#808000" "#009000" "#ff0080" cyan "#b07070" "#70b0f0" "#70f0b0" "#f0b070" "#ff70b0"}
+set perfile_attrs 0
+set reflinecolor black
+set refstohide {}
+set remotebgcolor #ffddaa
+set selectbgcolor gray85
+set showlocalchanges 1
+set showneartags 1
+set sortrefsbytype 1
+set tabstop 8
+set tagbgcolor yellow
+set tagfgcolor black
+set tagoutlinecolor black
+set textfont {Monaco 10}
+set theme aqua
+set themeloader {}
+set uicolor grey85
+set uifgcolor black
+set uifgdisabledcolor #999
+set uifont {{Lucida Grande} 9 bold}
+set visiblerefs {"master"}
+set web_browser open
+set workingfilescirclecolor red
+set wrapcomment word
+set wrapdefault word
+set permviews {}

@@ -207,11 +207,12 @@ conditional_g() {
 alias g="conditional_g"
 
 git_browser() {
-    # Remove line causing gitk to crash:
-    #   "set geometry(state) zoomed"
-    sed -i "" '/set geometry(state) /d' ~/.config/git/gitk
+    # Strip geometry lines around each gitk run; the file is symlinked into the dot-star repo and gitk rewrites them on exit.
+    local strip_geometry=(sed -i "" '/set geometry(/d' "${HOME}/.config/git/gitk")
 
+    "${strip_geometry[@]}"
     gitk "${@}"
+    "${strip_geometry[@]}"
 }
 
 alias g.="git_browser ."

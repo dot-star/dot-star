@@ -206,6 +206,10 @@ ensure_symlink "${DOT_STAR}/bash/.inputrc" "${HOME}/.inputrc"
 ensure_symlink "${DOT_STAR}/colordiff/.colordiffrc" "${HOME}/.colordiffrc"
 
 ensure_symlink "${DOT_STAR}/screen/.screenrc" "${HOME}/.screenrc"
+
+# Install gitk config; git_browser() (version_control/.aliases.sh) strips geometry lines around each run so the symlink target stays clean.
+mkdir -p "${HOME}/.config/git"
+ensure_symlink "${DOT_STAR}/version_control/gitk" "${HOME}/.config/git/gitk"
 bt_pop
 
 bt_push "ipython"
