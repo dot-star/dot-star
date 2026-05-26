@@ -59,6 +59,7 @@ On-demand style guides live under `~/.claude/styles/`. Read the relevant file wh
   - `re` means "retry"
   - `eg`, `examples` mean "show me examples"
   - `defend` means "defend the prior reply" (justify each claim or item in it)
+  - `harden`, `bake`, `firm` mean "strengthen the rule i just hit" (find the rule in `CLAUDE.md` or memory that the prior reply violated, and tighten its wording so the failure mode is harder to repeat)
   - `u` means "you run it" / "you do it" (carry out the just-suggested command, script, or action yourself instead of expecting the user to)
   - `🚢` means "ship it" (land the work)
 
