@@ -1965,8 +1965,13 @@ git_worktree_done() {
         return 1
     fi
 
-    # Refuse if the worktree has uncommitted or untracked changes.
-    if [[ -n "$(git status --porcelain)" ]]; then
+    # Refuse if the worktree has uncommitted or untracked changes. Carve-out:
+    # an untracked .claude/settings.local.json is Claude Code's runtime
+    # permissions file, never user work; ignore it. Other untracked files
+    # still gate, since wtd removes the worktree and would silently delete them.
+    local dirty
+    dirty="$(git status --porcelain | grep --invert-match '^?? \.claude/settings\.local\.json$' || true)"
+    if [[ -n "${dirty}" ]]; then
         echo "worktree has uncommitted changes"
         return 1
     fi
@@ -2081,8 +2086,12 @@ git_worktree_promote() {
         return 1
     fi
 
-    # Refuse if the worktree has uncommitted or untracked changes.
-    if [[ -n "$(git status --porcelain)" ]]; then
+    # Refuse if the worktree has uncommitted or staged changes to tracked
+    # files. Untracked files don't gate: rebase has its own untracked-overwrite
+    # check, and promote keeps the worktree, so untracked files survive.
+    local dirty
+    dirty="$(git status --porcelain | grep --invert-match '^?? ' || true)"
+    if [[ -n "${dirty}" ]]; then
         echo "worktree has uncommitted changes"
         return 1
     fi
