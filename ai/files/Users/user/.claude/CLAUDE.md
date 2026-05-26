@@ -26,6 +26,7 @@
 
 ## Shell commands
 
+- Dot-star manages the user's dotfiles at `~/.dot-star/`; aliases and short commands referenced in chat are defined in `*/.aliases.sh` files fanned out across per-tool dirs. Grep `~/.dot-star/` before asking.
 - Prefer long `--flag` forms over short `-f` forms when invoking shell commands. Long flags are self-describing (e.g. `grep --recursive --files-with-matches`, not `grep -rl`).
 - To remove a symlink, suggest `unlink <path>`, not `rm <path>`. Keep `rm` / `rm -r` for regular files and directories.
 
