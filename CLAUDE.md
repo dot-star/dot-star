@@ -2,6 +2,17 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Claude Code config lives in the user-global slot only
+
+There are two `CLAUDE.md` files in this repo with different scopes:
+
+- `./CLAUDE.md` (this file) is the project guide for working *on* dot-star itself.
+- `ai/files/Users/user/.claude/CLAUDE.md` is the user-global memory that ships with this repo and applies when *using* dot-star (and anywhere else Claude runs on this machine).
+
+There is no project-scoped `.claude/settings.json` here on purpose (`.claude/` is gitignored). The user's global config at `~/.claude/settings.json` is itself a symlink into this repo at `ai/files/Users/user/.claude/settings.json` (set up by `script/install.sh`), so editing that file is how you change Claude Code behavior, both inside this checkout and everywhere else on the machine.
+
+`script/install.sh` also symlinks the parent dirs `ai/files/Users/user/.claude/skills`, `commands`, and `hooks` into `~/.claude/`, so new files under any of them are picked up automatically after install. To alias a slash command, symlink the new name to the existing one (e.g. `cm.md -> commit.md`); the same trick works for skills and hooks.
+
 ## Objective
 
 Make everyday CLI work faster and safer. Aliases collapse common git operations (`cm`, `add`, `co`, `push`, `s` = `git status`, `d` = `git diff`) and wrap dangerous defaults like `rm *`. Many are context-sensitive: `s` and `d` dispatch on argument count and whether the cwd is a git repo (see `bash/.aliases.sh` `conditional_s` / `conditional_d`).
@@ -41,17 +52,6 @@ Consequences for changes:
 ### Bootstrap markers in user rc files
 
 `setup_bootstrap` in `script/install.sh` writes a block bracketed by `# Begin dot-star bootstrap.` / `# End dot-star bootstrap.` into `~/.bash_profile` and `~/.bashrc`, removing any prior block first. If you change the bootstrap snippet, an existing user only picks it up by re-running `./install.sh`. Do not hand-edit those files in CI or scripts; round-trip through `setup_bootstrap`.
-
-### Claude Code config lives in the user-global slot only
-
-There are two `CLAUDE.md` files in this repo with different scopes:
-
-- `./CLAUDE.md` (this file) is the project guide for working *on* dot-star itself.
-- `ai/files/Users/user/.claude/CLAUDE.md` is the user-global memory that ships with this repo and applies when *using* dot-star (and anywhere else Claude runs on this machine).
-
-There is no project-scoped `.claude/settings.json` here on purpose (`.claude/` is gitignored). The user's global config at `~/.claude/settings.json` is itself a symlink into this repo at `ai/files/Users/user/.claude/settings.json` (set up by `script/install.sh`), so editing that file is how you change Claude Code behavior, both inside this checkout and everywhere else on the machine.
-
-`script/install.sh` also symlinks the parent dirs `ai/files/Users/user/.claude/skills`, `commands`, and `hooks` into `~/.claude/`, so new files under any of them are picked up automatically after install. To alias a slash command, symlink the new name to the existing one (e.g. `cm.md -> commit.md`); the same trick works for skills and hooks.
 
 ## Project conventions
 
