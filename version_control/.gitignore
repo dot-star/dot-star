@@ -21,3 +21,6 @@ Thumbs.db
 
 .php_cs.cache
 .phpunit.result.cache
+
+# Ignore Claude Code worktrees.
+.claude/worktrees/
