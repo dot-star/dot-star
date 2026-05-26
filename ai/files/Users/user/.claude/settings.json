@@ -66,6 +66,15 @@
           }
         ],
         "matcher": ""
+      },
+      {
+        "hooks": [
+          {
+            "command": "${HOME}/.claude/hooks/check_bracket_prefix.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
       }
     ]
   },
