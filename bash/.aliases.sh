@@ -2160,6 +2160,7 @@ git_worktree_promote() {
     # Promote keeps the worktree and branch; return to where we started.
     cd "${original_pwd}"
 }
+alias pro="git_worktree_promote"
 alias promote="git_worktree_promote"
 
 git_worktree_prune() {
