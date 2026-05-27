@@ -1,0 +1,86 @@
+[
+  {
+    "name": "bare alternative without brackets",
+    "msg": "Want me to commit or stop?",
+    "stop": false,
+    "expected": "block"
+  },
+  {
+    "name": "embedded alternative",
+    "msg": "Should I refactor X or extract Y?",
+    "stop": false,
+    "expected": "block"
+  },
+  {
+    "name": "multi-question, only the offender flagged",
+    "msg": "Did the test pass? Also, should I commit or amend?",
+    "stop": false,
+    "expected": "block"
+  },
+  {
+    "name": "illustrative example with quoted question",
+    "msg": "Known false positive: a quoted example like \"Is the ID X or Y?\" will trigger.",
+    "stop": false,
+    "expected": "block"
+  },
+  {
+    "name": "markdown link is not an accept token",
+    "msg": "Should I use [the docs](url) or roll my own?",
+    "stop": false,
+    "expected": "block"
+  },
+  {
+    "name": "alternative question after a fenced code block",
+    "msg": "Here is some code:\n```bash\nfoo()\n```\nWant me to keep A or switch to B?",
+    "stop": false,
+    "expected": "block"
+  },
+  {
+    "name": "compliant single-letter brackets",
+    "msg": "Want me to **`[c]ommit`** or **`[s]top`**?",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "compliant multi-letter brackets",
+    "msg": "Want me to **`[am]end`** or **`[ad]d`** a new commit?",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "compliant mixed-case bracket letters",
+    "msg": "Should I **`[c]ommit`** or **`[L]and`** now?",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "yes/no question without 'or'",
+    "msg": "Did that work?",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "statement containing 'or' but no question mark",
+    "msg": "I'll commit it or amend if you prefer.",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "empty message",
+    "msg": "",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "recursion guard: stop_hook_active=true",
+    "msg": "Want me to X or Y?",
+    "stop": true,
+    "expected": "pass"
+  },
+  {
+    "name": "fenced code block containing 'or' is stripped",
+    "msg": "Here is some code:\n```bash\nif foo or bar; then echo done; fi\n```\nDid you mean that one?",
+    "stop": false,
+    "expected": "pass"
+  }
+]
