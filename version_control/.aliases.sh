@@ -979,7 +979,7 @@ rc_status() {
                     git log --color=always -n "${listing_cap}" --pretty=tformat:"%C(auto)%h%C(reset) %s %C(dim)(%cr)%C(reset)" HEAD --not "${exclude_refs[@]}" |
                         awk '{printf "    \033[2m[d%d]\033[0m %s\n", NR, $0}'
                     if [[ "${unpushed}" -gt "${listing_cap}" ]]; then
-                        echo "    ... and $((unpushed - listing_cap)) more"
+                        echo -e "    \033[2m... and \033[0m\033[1;36m$((unpushed - listing_cap))\033[0m\033[2m more\033[0m"
                     fi
 
                     # Override `d1`..`d_min` so each maps to `git show <hash>` of its listed commit, matching the `[dN]` prefix. The static cumulative defaults (restored above) stay for `d(min+1)`..`d9`.
@@ -1036,7 +1036,7 @@ rc_status() {
                     # newest down to 239 (gray) at oldest, linearly by rank, and
                     # right-pads the 1-based index for two-digit alignment.
                     if [[ "${worktree_count}" -gt 10 ]]; then
-                        echo "    ... and $((worktree_count - 10)) more"
+                        echo -e "    \033[2m... and \033[0m\033[1;36m$((worktree_count - 10))\033[0m\033[2m more\033[0m"
                     fi
                     echo "${sorted_worktrees}" |
                         awk -F'\t' '
