@@ -794,6 +794,13 @@ if [[ "${SHELL}" == *"/bash" ]]; then
     alias +x="chmod +x"
 fi
 
+du() {
+    # Dereference command-line symlinks so `du <symlink>` reports the
+    # target's size, not the link's. Internal symlinks inside the tree
+    # stay as links to avoid double-counting.
+    command du --dereference-args "${@}"
+}
+
 large_files() {
     du --human-readable --summarize --total .[!.]* * | sort --human-numeric-sort
 }
