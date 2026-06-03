@@ -91,6 +91,8 @@
       "Bash(gh pr list *)",
       "Bash(gh pr status *)",
       "Bash(gh pr view *)",
+      "Bash(gh repo clone:*)",
+      "Bash(gh run view *)",
       "Bash(git --no-pager diff *)",
       "Bash(git --no-pager log *)",
       "Bash(git --no-pager show *)",
@@ -178,14 +180,14 @@
     ],
     "ask": [
       "Bash(gh api:*)",
+      "Bash(gh pr checkout:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr edit:*)",
       "Bash(git commit:*)"
     ],
     "deny": [
-      "Bash(gh pr checkout:*)",
       "Bash(gh pr close:*)",
       "Bash(gh pr comment:*)",
-      "Bash(gh pr create:*)",
-      "Bash(gh pr edit:*)",
       "Bash(gh pr merge:*)",
       "Bash(gh pr ready:*)",
       "Bash(gh pr reopen:*)",
