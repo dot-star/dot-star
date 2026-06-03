@@ -51,6 +51,7 @@ On-demand style guides live under `~/.claude/styles/`. Read the relevant file wh
 
 - For commit messages, follow `~/.claude/styles/commit-message-style.md`. Default to a single subject line; bodies are rare and reserved for non-obvious motivation.
 - For new file names, follow `~/.claude/styles/file-naming-style.md`. Apply when creating any file: hierarchical prefix groups related files, self-describing remainder says what the file does.
+- For Python docstrings (tests, functions, classes, modules), follow `~/.claude/styles/python-docstring-style.md`. One-line default; multi-line only when contract, contrast, non-obvious WHY, or setup demands it.
 - For shell scripts (bash, zsh), follow `~/.claude/styles/shell-style.md`.
 
 ## Input
