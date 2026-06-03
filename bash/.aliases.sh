@@ -1737,37 +1737,42 @@ alias ka="killall"
 alias pc="pre-commit"
 alias pca="pre-commit run --all-files --show-diff-on-failure"
 
-_type() {
-    # Display a list of the currently defined bash functions when the `type'
-    # command is run without any parameters.
-    if [[ "${#}" -eq 0 ]]; then
-        result=$(
-            set |
-                \grep -E "^_?[a-z][a-z_]+ \()" |
-                awk '{ print $1 }' |
-                fzf \
-                    --exit-0 \
-                    --info="hidden" \
-                    --preview-window="right:70%" \
-                    --preview='source ~/.dot-star/bash/.bash_profile; type {}' \
-                    --select-1
-        )
-        return_code="${?}"
+# Override `type` to fuzzy-pick a defined function when run bare. Interactive-only:
+# the bare-arg path shells out to fzf, and non-interactive shells (Claude Code's
+# Bash tool, scripts, CI) inherit the alias but not this function, so type would break.
+if [[ $- == *i* ]]; then
+    _type() {
+        # Display a list of the currently defined bash functions when the `type'
+        # command is run without any parameters.
+        if [[ "${#}" -eq 0 ]]; then
+            result=$(
+                set |
+                    \grep -E "^_?[a-z][a-z_]+ \()" |
+                    awk '{ print $1 }' |
+                    fzf \
+                        --exit-0 \
+                        --info="hidden" \
+                        --preview-window="right:70%" \
+                        --preview='source ~/.dot-star/bash/.bash_profile; type {}' \
+                        --select-1
+            )
+            return_code="${?}"
 
-        # Stop edit when canceled.
-        # "130 Interrupted with CTRL-C or ESC"
-        if [[ "${return_code}" -eq 130 ]]; then
-            return
+            # Stop edit when canceled.
+            # "130 Interrupted with CTRL-C or ESC"
+            if [[ "${return_code}" -eq 130 ]]; then
+                return
+            fi
+
+            builtin type "${result}"
+
+        # Run regular `type' command.
+        else
+            builtin type $@
         fi
-
-        builtin type "${result}"
-
-    # Run regular `type' command.
-    else
-        builtin type $@
-    fi
-}
-alias type="_type"
+    }
+    alias type="_type"
+fi
 
 go_to_root() {
     # Go to project root.
