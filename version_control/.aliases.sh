@@ -1033,8 +1033,9 @@ rc_status() {
                     #     [2]  custom-checkout   abc1234 (2 days ago)  [feature/foo]
                     #     [1]  pretty-tail-glow  e762c60 (1 day ago)
                     # awk fades the parenthetical from 256-color 255 (white) at
-                    # newest down to 239 (gray) at oldest, linearly by rank, and
-                    # right-pads the 1-based index for two-digit alignment.
+                    # newest down to 239 (gray) at oldest, linearly by rank,
+                    # right-pads the 1-based index for two-digit alignment, and
+                    # right-pads the parenthetical so the branch column lines up.
                     if [[ "${worktree_count}" -gt 10 ]]; then
                         echo -e "    \033[2m... and \033[0m\033[1;36m$((worktree_count - 10))\033[0m\033[2m more\033[0m"
                     fi
@@ -1044,6 +1045,9 @@ rc_status() {
                                 lines[NR] = $0
                                 if (length($5) > max_name) {
                                     max_name = length($5)
+                                }
+                                if (length($6) > max_rel) {
+                                    max_rel = length($6)
                                 }
                             }
                             END {
@@ -1067,7 +1071,10 @@ rc_status() {
                                     if (branch_kept == "") {
                                         printf "\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m\n", idx_str, max_name, name, sha, code, rel
                                     } else {
-                                        printf "\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m  \033[38;5;177m%s\033[0m\n", idx_str, max_name, name, sha, code, rel, branch_kept
+                                        # Right-pad the parenthetical to its widest so
+                                        # the branch column lines up across rows.
+                                        rel_pad = sprintf("%*s", max_rel - length(rel), "")
+                                        printf "\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m%s  \033[38;5;177m%s\033[0m\n", idx_str, max_name, name, sha, code, rel, rel_pad, branch_kept
                                     }
                                 }
                             }
