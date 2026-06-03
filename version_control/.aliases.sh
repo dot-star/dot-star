@@ -832,7 +832,24 @@ rc_pull_with_rebase() {
 }
 
 rc_push() {
-    git push $@
+    local current_branch upstream remote_branch
+    current_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
+    upstream="$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null)"
+
+    # Set the upstream when pushing a worktree branch. This way a bare `git
+    # push` targets `<username>/<slug>` instead of the literal local
+    # `worktree-<username>+<slug>` name.
+    if [[ "${current_branch}" == worktree-* && -z "${upstream}" ]]; then
+        remote_branch="${current_branch#worktree-}"
+        remote_branch="${remote_branch/+//}"
+        git push -u origin "HEAD:${remote_branch}" "$@"
+        if [[ $? -ne 0 ]]; then
+            echo -e "\ngit push options: $(git remote show)"
+        fi
+        return
+    fi
+
+    git push "$@"
     if [[ $? -ne 0 ]]; then
         echo -e "\ngit push options: $(git remote show)"
     fi
