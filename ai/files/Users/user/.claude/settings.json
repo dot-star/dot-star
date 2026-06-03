@@ -115,6 +115,7 @@
       "Bash(git symbolic-ref *)",
       "Bash(git update-index *)",
       "Bash(git worktree *)",
+      "Bash(open https://github.com/*)",
       "Bash(pbcopy)",
       "Bash(pbpaste)",
       "Edit(//tmp/claude/**)",
