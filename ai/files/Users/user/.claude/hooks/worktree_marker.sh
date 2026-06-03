@@ -75,9 +75,17 @@ ancestor_tty() {
 # (e.g. piped session, restricted permissions).
 emit_osc7() {
     local path="$1"
-    local host="${HOST:-${HOSTNAME:-localhost}}"
     local tty_path
     local encoded
+
+    # Match the host zsh's precmd emits. Apple's update_terminal_cwd writes
+    # file://$HOST/path, and Terminal.app only honors an OSC 7 whose host equals
+    # the local machine; otherwise it ignores it and a new tab falls back to the
+    # last accepted cwd (the launch dir, i.e. the root checkout). HOST/HOSTNAME
+    # aren't exported into the hook's environment, so read it from `hostname`.
+    local host
+    host="$(hostname 2>/dev/null)"
+    host="${host:-${HOST:-${HOSTNAME:-localhost}}}"
 
     # Resolve the TTY we'll write the escape to, and bail if it's not usable.
     tty_path="$(ancestor_tty)" || return
