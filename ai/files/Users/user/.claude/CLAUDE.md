@@ -6,6 +6,8 @@
 - Atomic commits: one logical change per commit.
 - Optimize for readability and reviewer happiness.
 - Pursue correctness across the task; accept more churn when minimalist diffs and correctness conflict.
+- A refactor preserves behavior exactly. Any observable change (return value, status code, error path, output) means it is not a refactor: flag it and get sign-off, never fold it in silently.
+- Stay within the task's scope. Don't opportunistically rewrite, reword, or delete untouched code or comments; a cleanup is its own change.
 - Prefer robust over brittle solutions: favor approaches that tolerate change.
 - Touched code self-heals, ratcheting toward the preferred style. When a documented preference (in `CLAUDE.md` or memory) conflicts with the local style, the lines your edit modifies must end in the preferred form; untouched lines nearby stay as-is. Land the style swap as a separate atomic commit; order relative to the feature commit doesn't matter.
 - Upgrade early, upgrade often. Small frequent upgrades are cheap; deferred ones compound in difficulty, risk, and security exposure.
