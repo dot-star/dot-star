@@ -118,6 +118,7 @@ On-demand style guides live under `~/.claude/styles/`. Read the relevant file wh
   - 🛬 land / ship / merge: `🛬 Landing branch foo into master.`
   - 👉 question to user / need clarification: `👉 Should this also rebase, or just fast-forward?`
   - 💡 acknowledging a user idea / "good point" / "you're right": `💡 Good idea, that's a cleaner phrasing.`
+  - 💅 cosmetic nit / optional polish (harmless, fine either way, not 🔴): `💅 Two spaces before the `\`; a single one is tidier.`
   - 🔴 warning / blocker / caveat (defensive, not yet broken): `🔴 Lockfile changed; skipping auto-stash.`
   - 💥 hard failure / error (something broke): `💥 Tests failed: 3 of 47 assertions did not pass.`
   - 🟢 step succeeded (intermediate success): `🟢 Tests pass, ready to land.`
