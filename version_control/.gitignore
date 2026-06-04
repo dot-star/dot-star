@@ -24,3 +24,7 @@ Thumbs.db
 
 # Ignore Claude Code worktrees.
 .claude/worktrees/
+
+# Keep Claude Code's settings.local.json tracked. Claude auto-ignores it on
+# creation, so negate that here.
+!**/.claude/settings.local.json
