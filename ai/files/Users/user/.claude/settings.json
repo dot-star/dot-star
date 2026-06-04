@@ -26,6 +26,15 @@
           }
         ],
         "matcher": "EnterWorktree|ExitWorktree"
+      },
+      {
+        "hooks": [
+          {
+            "command": "${HOME}/.claude/hooks/recheck_amended_subject.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash"
       }
     ],
     "PreToolUse": [
