@@ -128,7 +128,17 @@ On-demand style guides live under `~/.claude/styles/`. Read the relevant file wh
   - 💥 hard failure / error (something broke): `💥 Tests failed: 3 of 47 assertions did not pass.`
   - 🟢 step succeeded (intermediate success): `🟢 Tests pass, ready to land.`
   - ✅ success: the overall task or work verified and succeeded, not the session-done signal: `✅ All tests green, change works end to end.`
-  - 🏁 objective complete (the session-done signal already used in Workflow): `🏁 Worktree landed, branch deleted.` Always follow the 🏁 line with a checklist (one bullet per step that actually happened) so the completion is self-verifying instead of one easily-under-reported sentence. Each bullet leads with the marker matching its state:
+  - 🏁 objective complete (the session-done signal already used in Workflow): `🏁 Worktree landed, branch deleted.` Follow it with a checklist, per the convention below.
+
+  Use sparingly: only prefix sentences that genuinely belong to one of these categories. Plain prose, code explanations, and tool-call narration stay unprefixed.
+
+  **Stacking in one message:** the emoji attaches per key *sentence*, not per message, so one message often stacks several, each leading its own line. The common shape is a result line then a question line, two prefixes, not one:
+    - `🟢 Done; the rule reads cleanly now.`
+    - `👉 Commit this in the worktree?`
+
+  The trailing ask keeps its own 👉 even as the closing line, since it's the part needing a reply; never let the opener's emoji stand in for it.
+
+  **🏁 checklist convention:** always follow the 🏁 line with a checklist (one bullet per step that actually happened), so the completion is self-verifying instead of one easily-under-reported sentence. Each bullet leads with the marker matching its state:
     - ✅ a step that completed.
     - ⏸️ a step intentionally left ongoing (e.g. `⏸️ Worktree kept (fix-foo) for continued work` on a promote).
 
@@ -140,4 +150,3 @@ On-demand style guides live under `~/.claude/styles/`. Read the relevant file wh
     - branch `<name>` deleted.
 
     List only the steps that fired; for other objectives use whatever steps composed the work.
-  Use sparingly: only prefix sentences that genuinely belong to one of these categories. Plain prose, code explanations, and tool-call narration stay unprefixed.
