@@ -110,7 +110,7 @@ EOF
         return 1
     fi
 
-    git commit -m "${selected}"
+    git commit --message "${selected}"
 }
 
 # Adding various. Let's see which one sticks.
