@@ -59,7 +59,7 @@ shrink() {
 
 data=$(cat)
 
-wt_name=""
+worktree_name=""
 
 sid=$(printf '%s' "${data}" | command jq --raw-output '.session_id // empty')
 sid="${sid//[^a-zA-Z0-9-]/}"
@@ -67,18 +67,18 @@ marker="/tmp/claude/${sid}/worktree"
 if [ -n "${sid}" ] && [ -f "${marker}" ]; then
     path=$(head -n 1 "${marker}")
     if [ -d "${path}" ]; then
-        wt_name="${path##*/}"
+        worktree_name="${path##*/}"
     fi
 fi
 
-if [ -z "${wt_name}" ]; then
+if [ -z "${worktree_name}" ]; then
     cwd=$(printf '%s' "${data}" | command jq --raw-output '.cwd // .workspace.current_dir // empty')
     if [ -n "${cwd}" ]; then
         gitdir=$(cd "${cwd}" 2>/dev/null && git rev-parse --absolute-git-dir 2>/dev/null || true)
         case "${gitdir}" in
         */worktrees/*)
-            wt_name="${gitdir##*/worktrees/}"
-            wt_name="${wt_name%%/*}"
+            worktree_name="${gitdir##*/worktrees/}"
+            worktree_name="${worktree_name%%/*}"
             ;;
         esac
     fi
@@ -122,8 +122,8 @@ if [ -n "${title}" ] && [ "${title}" = "${objective}" ]; then
 fi
 
 out=""
-if [ -n "${wt_name}" ]; then
-    out+="[${cyan}${wt_name}${reset}]"
+if [ -n "${worktree_name}" ]; then
+    out+="[${cyan}${worktree_name}${reset}]"
 fi
 
 if [ -n "${title}" ] && [ -n "${objective}" ]; then
