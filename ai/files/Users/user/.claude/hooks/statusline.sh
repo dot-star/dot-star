@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # statusLine hook: prints adjacent bracketed segments of the form
-#   [worktree: <name>][<title> - <objective>]
+#   [<worktree-name>][<title> - <objective>]
 # Each bracket is optional. The second bracket renders whichever of title /
 # objective is present; both together are joined with " - ".
 #
@@ -123,7 +123,7 @@ fi
 
 out=""
 if [ -n "${wt_name}" ]; then
-    out+="[worktree: ${cyan}${wt_name}${reset}]"
+    out+="[${cyan}${wt_name}${reset}]"
 fi
 
 if [ -n "${title}" ] && [ -n "${objective}" ]; then

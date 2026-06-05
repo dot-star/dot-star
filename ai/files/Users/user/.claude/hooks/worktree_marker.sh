@@ -2,7 +2,7 @@
 #
 # PostToolUse hook for EnterWorktree / ExitWorktree: maintain a session-scoped
 # marker file recording the worktree the session is currently working in.
-# statusline.sh reads this file to render "[worktree: <name>]".
+# statusline.sh reads this file to render "[<worktree-name>]".
 #
 # Also emits an OSC 7 escape to the parent claude's TTY so Terminal.app's
 # "new tab inherits cwd" tracking follows the worktree switch. While Claude
