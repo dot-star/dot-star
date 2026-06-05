@@ -1,6 +1,6 @@
 ---
 name: triage-permissions
-description: Triage `.claude/settings.local.json` in the current project: drop entries already covered by `~/.dot-star`, drop path-pinned or one-off probes, and promote the rest to the dot-star-managed `~/.claude/settings.json` as `Bash(<cmd> *)` wildcards. Then delete the local file if its allow list ends empty. TRIGGER when the user mentions `settings.local.json`, asks why Claude keeps prompting for the same thing, talks about the allowlist or denylist, or when a `SessionStart` hook surfaces a reminder that the file has accumulated entries. SKIP when the project has no `.claude/settings.local.json`, or the user is asking about general settings.json structure rather than cleanup.
+description: Triage `.claude/settings.local.json` in the current project: pre-filter out entries already covered by `~/.dot-star`, path-pinned, one-off probes, or too specific to recur, then ask per surviving entry whether to promote it to the dot-star-managed `~/.claude/settings.json` as a `Bash(<cmd> *)` wildcard. Then delete the local file if its allow list ends empty. TRIGGER when the user mentions `settings.local.json`, asks why Claude keeps prompting for the same thing, talks about the allowlist or denylist, or when a `SessionStart` hook surfaces a reminder that the file has accumulated entries. SKIP when the project has no `.claude/settings.local.json`, or the user is asking about general settings.json structure rather than cleanup.
 ---
 
 # Triage permissions
@@ -24,12 +24,24 @@ Two files are in play; they live in different checkouts, so resolve both to abso
 
 Work in a worktree of dot-star for the edits.
 
-For each entry in `permissions.allow` and `permissions.deny` of `${local_file}`:
+Triage runs in two passes over the entries in `permissions.allow` and `permissions.deny` of `${local_file}`: a silent pre-filter that auto-drops the obvious, then a per-entry yes/no ask on whatever survives.
 
-- **Drop** if already covered by the global file.
-- **Drop** if it's path-pinned to this checkout (references absolute repo paths) or uses `git -C <path>`.
-- **Drop** if it's a one-off feature probe (`--version`, `--help`, single-shot diagnostics).
-- **Promote** otherwise: generalize the literal command to its `Bash(<cmd> *)` wildcard, and add it to the matching list in the global file alphabetically, matching the existing space-asterisk style.
+### Pass 1: pre-filter (no prompts)
+
+Auto-drop any entry matching one of these. None is worth a question.
+
+- **Covered**: already in the global file.
+- **One-off probe**: `--version`, `--help`, single-shot diagnostics.
+- **Path-pinned**: references absolute repo paths, or uses `git -C <path>`.
+- **Too specific to recur**: a literal command unlikely to come up again in this or any other project (a long pipeline, a one-time data munge, an argument set tied to today's task).
+
+Whatever's left after the pre-filter is the ask list.
+
+### Pass 2: ask per entry
+
+Go through the ask list one entry at a time and let the user decide each independently, rather than lumping them into a single batch confirmation. For each, propose the `Bash(<cmd> *)` generalization and ask a yes/no: promote it to the global file, or drop it. Batch up to a few at a time with `AskUserQuestion` (one question per entry, each with **Promote** / **Drop** options) so a long list doesn't become one round-trip per entry, but keep the decisions per-entry.
+
+On **promote**: add the wildcard to the matching list in the global file alphabetically, matching the existing space-asterisk style. On **drop**: leave it out.
 
 After edits:
 
@@ -40,4 +52,4 @@ After edits:
 
 ## Reporting
 
-Before editing, show the user a short table mapping each local entry to its disposition (drop / promote-as-X) and wait for confirmation if any judgment calls are non-obvious.
+Lead with a compact list of what the pre-filter auto-dropped (one line each, with the reason), so the user can see what was skipped without being asked about it. Then run the per-entry asks. If the pre-filter and ask list are both empty, say so and stop.
