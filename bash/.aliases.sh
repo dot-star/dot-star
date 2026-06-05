@@ -1981,8 +1981,10 @@ git_worktree_done() {
     # an untracked .claude/settings.local.json is Claude Code's runtime
     # permissions file, never user work; ignore it. Other untracked files
     # still gate, since wtd removes the worktree and would silently delete them.
+    # List untracked files individually (--untracked-files=all); otherwise git
+    # collapses a fully-untracked .claude/ to "?? .claude/" and the carve-out misses.
     local dirty
-    dirty="$(git status --porcelain | grep --invert-match '^?? \.claude/settings\.local\.json$' || true)"
+    dirty="$(git status --porcelain --untracked-files=all | grep --invert-match '^?? \.claude/settings\.local\.json$' || true)"
     if [[ -n "${dirty}" ]]; then
         echo "worktree has uncommitted changes"
         return 1
