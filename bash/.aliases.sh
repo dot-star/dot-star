@@ -2134,6 +2134,10 @@ git_worktree_promote() {
         return 1
     fi
 
+    # Remember the pre-promote tip so we can report the fast-forward range.
+    local old_tip
+    old_tip="$(git rev-parse --short HEAD)"
+
     # Try the FF; if it's blocked by unrelated dirty files in the main checkout,
     # stash them and retry, then pop once the FF lands.
     local stashed=0
@@ -2170,6 +2174,10 @@ git_worktree_promote() {
             return 1
         fi
     fi
+
+    local new_tip
+    new_tip="$(git rev-parse --short HEAD)"
+    echo "✅ Promoted \"${branch}\" onto ${default_branch} (fast-forwarded ${old_tip}..${new_tip})"
 
     # Promote keeps the worktree and branch; return to where we started.
     cd "${original_pwd}"
