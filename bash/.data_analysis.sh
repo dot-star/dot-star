@@ -278,3 +278,50 @@ else:
 }
 alias jq="alias_jq"
 alias pretty="alias_jq"
+
+_is_valid_json() {
+    # Succeed when the file parses as JSON. Bypass the "jq" alias (alias_jq).
+    command jq empty "${1}" &>/dev/null
+}
+
+sort_json() {
+    # Alphabetize the keys of one or more JSON files in place.
+    # Usage:
+    #   $ jsonsort file.json
+
+    _require_jq
+
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: jsonsort <file.json> [file.json ...]"
+        return 1
+    fi
+
+    local file
+    for file in "${@}"; do
+        if [[ ! -f "${file}" ]]; then
+            echo "Error: not a file: ${file}"
+            return 1
+        elif ! _is_valid_json "${file}"; then
+            echo "Error: invalid JSON: ${file}"
+            return 1
+        fi
+
+        # jq cannot edit in place, so sort into a temp file then move it back.
+        # Declare separately: "local x=$(...)" would mask mktemp's exit code.
+        local tmp_file
+        tmp_file="$(mktemp)" || {
+            echo "Error: failed to create temp file"
+            return 1
+        }
+
+        if command jq --sort-keys . "${file}" >"${tmp_file}"; then
+            mv "${tmp_file}" "${file}"
+            echo "Sorted ${file}"
+        else
+            rm --force "${tmp_file}"
+            echo "Error: failed to sort ${file}"
+            return 1
+        fi
+    done
+}
+alias jsonsort="sort_json"
