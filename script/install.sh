@@ -69,8 +69,12 @@ ensure_symlink() {
             rm "${dest}"
             ln -v -s "${src}" "${dest}"
         else
-            # Symlink points outside the dot-star tree, so it's a real customization; don't clobber.
-            warn "${dest} is a symlink to"$'\n'"    ${actual_src}, expected"$'\n'"    ${src}." "diff ${actual_src} ${src}"
+            local red=$'\033[31m'
+            local green=$'\033[32m'
+            local reset=$'\033[0m'
+
+            # Symlink points outside the dot-star tree, so it's a real customization; don't clobber. Show actual vs expected target as a red/green diff.
+            warn "${dest} is a symlink to the wrong target:"$'\n'"    ${red}- ${actual_src}${reset}"$'\n'"    ${green}+ ${src}${reset}" "diff ${actual_src} ${src}"
         fi
     # Check for any existing path (regular file, directory, socket, FIFO, etc.) as destination.
     elif [ -e "${dest}" ]; then
