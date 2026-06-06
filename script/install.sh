@@ -219,13 +219,13 @@ setup_bootstrap() {
     } >>"${filename}"
 }
 
-setup_bootstrap "${HOME}/.bash_profile" 'echo "if shopt -q login_shell; then
+setup_bootstrap "${HOME}/.bash_profile" 'if shopt -q login_shell; then
     [[ -r ~/.bashrc ]] && source ~/.bashrc
-fi" >> "$HOME/.bash_profile"'
+fi'
 
-setup_bootstrap "${HOME}/.bashrc" 'echo "if shopt -q login_shell; then
+setup_bootstrap "${HOME}/.bashrc" 'if shopt -q login_shell; then
     [[ -r ~/.dot-star/bootstrap/.bash_profile ]] && source ~/.dot-star/bootstrap/.bash_profile
-fi" >> "$HOME/.bashrc"'
+fi'
 
 # zsh reads ~/.zshrc directly for interactive shells, so source the spine inline (no login-shell dance like bash).
 setup_bootstrap "${HOME}/.zshrc" '[[ -r ~/.dot-star/bootstrap/.bash_profile ]] && source ~/.dot-star/bootstrap/.bash_profile'
