@@ -195,15 +195,24 @@ setup_bootstrap() {
     filename="${1}"
     script="${2}"
 
-    # Remove any existing bootstrap.
-    while grep -q "${dotstar_header}" "${filename}" 2>/dev/null; do
-        sed -i "" "/${dotstar_header}/,/${dotstar_footer}/d" "${filename}"
-    done
-    grep -v "${dotstar_footer}" "${filename}" >"${filename}.tmp" && mv "${filename}.tmp" "${filename}"
+    # Strip any existing bootstrap block, then drop stray footers. Write back
+    # through a redirect, not `sed -i`/`mv`: both break a symlinked rc file (e.g.
+    # a ~/.zshrc linked into another repo), and `sed -i` errors on symlinks
+    # outright. A single range delete also replaces the old re-scan loop, which
+    # spun forever once `sed -i` started failing.
+    if [ -e "${filename}" ]; then
+        tmp="${filename}.dotstar.tmp"
+        sed "/${dotstar_header}/,/${dotstar_footer}/d" "${filename}" |
+            grep -v "${dotstar_footer}" >"${tmp}"
+        cat "${tmp}" >"${filename}"
+        rm -f "${tmp}"
+    fi
 
-    echo -e "${dotstar_header}" >>"${filename}"
-    echo -e "${script}" >>"${filename}"
-    echo -e "${dotstar_footer}" >>"${filename}"
+    {
+        echo -e "${dotstar_header}"
+        echo -e "${script}"
+        echo -e "${dotstar_footer}"
+    } >>"${filename}"
 }
 
 setup_bootstrap "${HOME}/.bash_profile" 'echo "if shopt -q login_shell; then
