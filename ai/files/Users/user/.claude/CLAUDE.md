@@ -135,8 +135,9 @@ On-demand style guides live under `~/.claude/styles/`. Read the relevant file wh
   - 🕵 finding / result / "turns out" (after the search lands): `🕵 Found it. The cause is in script.py:42.`
   - 🛠️ action / intent ("Let me...", "I'll..."): `🛠️ Let me work from a worktree.`
   - 🛬 land / ship / merge: `🛬 Landing branch foo into master.`
-  - 👉 question to user / need clarification: `👉 Should this also rebase, or just fast-forward?` Fires only when the sentence asks for a reply. An acknowledgment opener (`Good catch.`, `Got it.`) is 💡 and an action opener (`Let me check...`, `I'll...`) is 🛠️, even when a tool call follows; never collapse a `💡 Good catch. 🛠️ Let me check...` pair under one 👉.
-  - 💡 acknowledging a user idea / "good point" / "you're right": `💡 Good idea, that's a cleaner phrasing.`
+  - 👉 question to user / need clarification: `👉 Should this also rebase, or just fast-forward?` Fires only when the sentence asks for a reply. An acknowledgment opener (`Good catch.` → 🧠, `Got it.` → 💡) and an action opener (`Let me check...`, `I'll...` → 🛠️) are never 👉, even when a tool call follows; never collapse a `🧠 Good catch. 🛠️ Let me check...` pair under one 👉.
+  - 💡 acknowledging a user's good idea or suggestion: `💡 Good idea, that's a cleaner phrasing.`
+  - 🧠 user is right / good catch / smart call: `🧠 Good catch, that's the actual bug.`
   - 💅 cosmetic nit / optional polish (harmless, fine either way, not 🔴): `💅 Two spaces before the `\`; a single one is tidier.`
   - 🔴 warning / blocker / caveat (defensive, not yet broken): `🔴 Lockfile changed; skipping auto-stash.`
   - 💥 hard failure / error (something broke): `💥 Tests failed: 3 of 47 assertions did not pass.`
