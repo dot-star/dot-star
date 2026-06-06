@@ -1,8 +1,6 @@
 bt_push "pre-OS git config"
 # Configure global gitignore.
-if [ ! -e "${HOME}/.gitignore" ]; then
-    ln -s -v "${DOT_STAR_ROOT}/tools/version_control/.gitignore" "${HOME}"
-fi
+ensure_symlink "${DOT_STAR_ROOT}/tools/version_control/.gitignore" "${HOME}/.gitignore"
 git config --global core.excludesfile "~/.gitignore"
 
 # Enable color in git.
@@ -220,19 +218,11 @@ mkdir -p "$HOME/.vim/colors/"
 mkdir -p "$HOME/.vim/swap/"
 
 # Install vim themes.
-if [ ! -L "${HOME}/.vim/colors/railscat.vim" ]; then
-    ln -v -s "${DOT_STAR_ROOT}/tools/vim/colors/railscat.vim" "${HOME}/.vim/colors/"
-fi
-if [ ! -L "${HOME}/.vim/colors/molokai.vim" ]; then
-    ln -v -s "${DOT_STAR_ROOT}/tools/vim/colors/molokai.vim" "${HOME}/.vim/colors/"
-fi
+ensure_symlink "${DOT_STAR_ROOT}/tools/vim/colors/railscat.vim" "${HOME}/.vim/colors/railscat.vim"
+ensure_symlink "${DOT_STAR_ROOT}/tools/vim/colors/molokai.vim" "${HOME}/.vim/colors/molokai.vim"
 
 # Configure vimrc.
-if [ ! -e "${HOME}/.vimrc" ]; then
-    ln -s -v "${DOT_STAR_ROOT}/tools/vim/.vimrc" "${HOME}"
-fi
+ensure_symlink "${DOT_STAR_ROOT}/tools/vim/.vimrc" "${HOME}/.vimrc"
 
-if [ ! -e "${HOME}/.jshintrc" ]; then
-    ln -s -v "${DOT_STAR_ROOT}/tools/bash/.jshintrc" "${HOME}"
-fi
+ensure_symlink "${DOT_STAR_ROOT}/tools/bash/.jshintrc" "${HOME}/.jshintrc"
 bt_pop # vim setup
