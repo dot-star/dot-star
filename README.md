@@ -189,7 +189,7 @@
 ### Go up to the root git repository directory
 
     $ pwd
-    /Users/user/.dot-star/vim/color
+    /Users/user/.dot-star/tools/vim/color
     $ r
     $ pwd
     /Users/user/.dot-star

@@ -10,7 +10,7 @@ When creating a file, the name should be both **hierarchical** (shared prefix so
 - Style files: `styles/<topic>-style.md` for on-demand style guides. E.g. `commit-message-style.md`, `shell-style.md`, `file-naming-style.md` (this file).
 - Memory files: `<type>_<topic>.md` (e.g. `feedback_pipe_newlines.md`); the type prefix groups by kind, the topic suffix names the rule.
 - Top-level project docs: `<TOPIC>.md` uppercase (`README.md`, `CHANGELOG.md`, `SECURITY.md`, `TESTING.md`, `TROUBLESHOOTING.md`).
-- Tool directories: name the tool (`bash/`, `brew/`, `docker/`, `node/`, `python/`, `vim/`, `zsh/`); when several tools share a category, name the category instead (`version_control/` for git/hg).
+- Tool directories: live under `tools/`, named for the tool (`tools/bash/`, `tools/brew/`, `tools/docker/`, `tools/node/`, `tools/python/`, `tools/vim/`, `tools/zsh/`); when several tools share a category, name the category instead (`tools/version_control/` for git/hg).
 
 ## Grouping rule
 

@@ -30,4 +30,4 @@ Goal: move this worktree's uncommitted changes into the root checkout so they ca
     - `cd <root> && git stash apply "${wt_source_ref}"`
 4. If the apply reports a conflict, surface the conflicted paths and stop. Do NOT auto-resolve. The worktree's source stash is still in the log, and `try:root-saved:<wt>` (if any) is preserved. Tell the user: resolve the conflict in root (or `cd <root> && git checkout .` to abort the apply), then `/untry` to put things back.
 
-State at end: root has the worktree's working changes applied. Worktree is clean. Stash log holds `try:wt-source:<wt>` and possibly `try:root-saved:<wt>`. Tell the user the changes are live in root, e.g. `source ~/.dot-star/bash/.bash_profile` to reload a shell session.
+State at end: root has the worktree's working changes applied. Worktree is clean. Stash log holds `try:wt-source:<wt>` and possibly `try:root-saved:<wt>`. Tell the user the changes are live in root, e.g. `source ~/.dot-star/bootstrap/.bash_profile` to reload a shell session.

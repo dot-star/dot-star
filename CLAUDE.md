@@ -15,11 +15,11 @@ There is no project-scoped `.claude/settings.json` here on purpose (`.claude/` i
 
 ## Objective
 
-Make everyday CLI work faster and safer. Aliases collapse common git operations (`cm`, `add`, `co`, `push`, `s` = `git status`, `d` = `git diff`) and wrap dangerous defaults like `rm *`. Many are context-sensitive: `s` and `d` dispatch on argument count and whether the cwd is a git repo (see `bash/.aliases.sh` `conditional_s` / `conditional_d`).
+Make everyday CLI work faster and safer. Aliases collapse common git operations (`cm`, `add`, `co`, `push`, `s` = `git status`, `d` = `git diff`) and wrap dangerous defaults like `rm *`. Many are context-sensitive: `s` and `d` dispatch on argument count and whether the cwd is a git repo (see `tools/bash/.aliases.sh` `conditional_s` / `conditional_d`).
 
 ## What this repo is
 
-`dot-star` is a dotfiles / shell-environment project. It installs itself by symlinking the working tree to `~/.dot-star` and wiring `~/.bashrc` (and the zsh equivalent) to source a single bootstrap, which in turn sources every `*/.aliases.sh` (and a few other named scripts) from this repo.
+`dot-star` is a dotfiles / shell-environment project. It installs itself by symlinking the working tree to `~/.dot-star` and wiring `~/.bashrc` (and the zsh equivalent) to source a single bootstrap, which in turn sources every `tools/*/.aliases.sh` (and a few other named scripts) from this repo.
 
 Compatibility targets: macOS and Ubuntu (`script/post_install.sh` branches on `$OSTYPE`).
 
@@ -27,27 +27,27 @@ Compatibility targets: macOS and Ubuntu (`script/post_install.sh` branches on `$
 
 - Install / update: `./install.sh`. `./update.sh` is a symlink to the same script and detects the invocation name to decide whether to also `git pull` and `brew upgrade` (see `script/update.sh`). Inside an installed shell, the alias `dotstar` runs the update.
 - Lint (matches CI in `.github/workflows/lint.yml`): `pre-commit run --all-files`. The only configured hook is `shfmt --indent=4 --diff --write` over shell files (see `.pre-commit-config.yaml`).
-- Run the safer-rm test suite: `bash bash/.safer_rm_test.sh` (the only self-contained automated test in the repo).
-- Reload the shell environment after editing without re-installing: `source ~/.dot-star/bash/.bash_profile`.
+- Run the safer-rm test suite: `bash tools/bash/.safer_rm_test.sh` (the only self-contained automated test in the repo).
+- Reload the shell environment after editing without re-installing: `source ~/.dot-star/bootstrap/.bash_profile`.
 
 ## Architecture
 
 ### Single bootstrap, fan-out to per-tool dirs
 
-`bash/.bash_profile` is the spine. It `cd`s to the repo root and explicitly `source`s a curated list of files, in order. The pattern is one top-level directory per tool (`brew/`, `django/`, `docker/`, `git`-via-`version_control/`, `node/`, `php/`, `python/`, `vim/`, `zsh/`, etc.), each containing an `.aliases.sh` that defines functions and aliases for that tool. Cross-cutting bash files live directly under `bash/`.
+`bootstrap/.bash_profile` is the spine. It `cd`s to the repo root and explicitly `source`s a curated list of files, in order. The pattern is one directory per tool under `tools/` (`tools/brew/`, `tools/django/`, `tools/docker/`, `git`-via-`tools/version_control/`, `tools/node/`, `tools/php/`, `tools/python/`, `tools/vim/`, `tools/zsh/`, etc.), each containing an `.aliases.sh` that defines functions and aliases for that tool. Cross-cutting bash files live under `tools/bash/`.
 
 Consequences for changes:
 
-- Adding a new tool directory does nothing until you also add a `source "newtool/.aliases.sh"` line to `bash/.bash_profile`. The bootstrap does not glob.
-- Some files are bash-only and are guarded with `if [[ -n "${BASH_VERSION}" ]]`; zsh users get a smaller set (notably `bash/.behavior.sh` and `bash/.prompt.sh` are skipped). Mirror that guarding when adding shell-specific features.
+- Adding a new tool directory does nothing until you also add a `source "tools/newtool/.aliases.sh"` line to `bootstrap/.bash_profile`. The bootstrap does not glob.
+- Some files are bash-only and are guarded with `if [[ -n "${BASH_VERSION}" ]]`; zsh users get a smaller set (notably `tools/bash/.behavior.sh` and `tools/bash/.prompt.sh` are skipped). Mirror that guarding when adding shell-specific features.
 - Aliases and functions are intentionally short and overlap by design (e.g. `cmc`/`cgc`/`clc`/`clcm`/`cma`/`aic` all alias `claude_git_commit` in `ai/.aliases.sh`). Do not "deduplicate" these without asking; the redundancy is the point.
-- `bash/extra.sh` is gitignored and may be a symlink into another repo; treat it as user-local override territory and do not commit content there.
+- `tools/bash/extra.sh` is gitignored and may be a symlink into another repo; treat it as user-local override territory and do not commit content there.
 
 ### Install-time side effects live in `script/post_install.sh`
 
 `script/install.sh` only handles symlinks and bootstrap markers; the heavyweight machine setup (brew formulae/casks, `apt-get` packages, global git config, vim color/swap dirs, fzf, ipython profile, macOS `defaults write` tweaks, etc.) is in `script/post_install.sh`. When adding a new dependency, decide whether it belongs as a symlink in `install.sh` or a package install in `post_install.sh`.
 
-`bash/.install_check.sh` nags at shell startup when one of those two files has changed since the last `./install.sh` run, comparing the commit stamp at `~/.dot-star-installed-commit` against `git -C ~/.dot-star rev-parse HEAD`. Edits elsewhere take effect on re-source and don't trigger the nag, so anything that genuinely requires a re-install must land in `install.sh` or `post_install.sh` for the signal to fire.
+`tools/bash/.install_check.sh` nags at shell startup when one of those two files has changed since the last `./install.sh` run, comparing the commit stamp at `~/.dot-star-installed-commit` against `git -C ~/.dot-star rev-parse HEAD`. Edits elsewhere take effect on re-source and don't trigger the nag, so anything that genuinely requires a re-install must land in `install.sh` or `post_install.sh` for the signal to fire.
 
 ### Bootstrap markers in user rc files
 
