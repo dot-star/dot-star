@@ -66,7 +66,7 @@ ensure_symlink() {
             ln -v -s "${src}" "${dest}"
         else
             # Symlink points at a different file; don't clobber.
-            warn "${dest} is a symlink to ${actual_src}, expected ${src}." "diff ${actual_src} ${src}"
+            warn "${dest} is a symlink to"$'\n'"    ${actual_src}, expected"$'\n'"    ${src}." "diff ${actual_src} ${src}"
         fi
     # Check for any existing path (regular file, directory, socket, FIFO, etc.) as destination.
     elif [ -e "${dest}" ]; then
