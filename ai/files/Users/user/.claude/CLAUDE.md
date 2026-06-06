@@ -124,7 +124,12 @@ On-demand style guides live under `~/.claude/styles/`. Read the relevant file wh
     6. If any alternative lacks `[` … `]`, fix before sending.
     7. Does any option carry a second label (`A.`/`B.`, `1.`/`2.`) beside its bracket prefix? Strip it, the bracket letter is the only label.
 - When an own `[c]ommit` follow-up offer is accepted (reply `c`/`cm`/`commit`/🚢 mapped to the commit option), invoke the `commit` skill via the `Skill` tool rather than running `git commit -m "<self-chosen subject>"` directly. The skill drafts numbered subject options for the user to pick; auto-picking bypasses that choice. Same rule for any other phrasing where the offered action was "commit" (e.g. "want me to commit?"). To commit without the skill, the user has to opt in explicitly.
-- When offering a worktree follow-up, present **`[c]ommit`** (commit, stay in worktree), **`[p]romote`** (commit + fast-forward the default branch to here, keep the worktree, via `worktree-promote`), and **`[L]and`** (commit + `worktree-done`, which also tears the worktree down) as separate bracket-prefix options, not bundled as **`[c]ommit and land`**. Bundling forces both actions when the user often wants just to checkpoint; promote and land share the fast-forward but only land removes the worktree.
+- When offering a worktree follow-up, present three separate bracket-prefix options (never bundled as **`[c]ommit and land`**):
+  - **`[c]ommit`**: commit, stay in the worktree.
+  - **`[p]romote`**: commit + fast-forward the default branch to here, keep the worktree (via `worktree-promote`).
+  - **`[L]and`**: commit + `worktree-done`, which also tears the worktree down.
+
+  Bundling forces both actions when the user often wants just to checkpoint; promote and land share the fast-forward but only land removes the worktree. When **`[L]and`** is among the options, append a trailing ` 🏁` after the closing `?` to flag that picking Land completes the objective; since Land is the last option, the 🏁 sits right after it (`[L]and (...)? 🏁`).
 - Lead key sentences with a category emoji so the user can scan responses at a glance. Exactly one space after the emoji, then the sentence. The ⏺ message marker is rendered by Claude Code; the emoji goes immediately after it inside the message text. Categories:
   - 🔍 active exploration / reading / searching (before the answer is in hand): `🔍 Grepping for callers of `do_thing` across the repo.`
   - 🕵 finding / result / "turns out" (after the search lands): `🕵 Found it. The cause is in script.py:42.`
