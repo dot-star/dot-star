@@ -8,6 +8,16 @@
     "pyright-lsp@claude-plugins-official": true
   },
   "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "command": "${HOME}/.claude/hooks/announce_window_state.py Notification",
+            "type": "command"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "hooks": [
@@ -35,6 +45,14 @@
           }
         ],
         "matcher": "Bash"
+      },
+      {
+        "hooks": [
+          {
+            "command": "${HOME}/.claude/hooks/announce_window_state.py PostToolUse",
+            "type": "command"
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -61,6 +79,10 @@
           },
           {
             "command": "${HOME}/.claude/hooks/load_claude_md_supplementals.sh",
+            "type": "command"
+          },
+          {
+            "command": "${HOME}/.claude/hooks/announce_window_state.py SessionStart",
             "type": "command"
           }
         ]

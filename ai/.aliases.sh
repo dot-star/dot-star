@@ -1,11 +1,20 @@
 export DISABLE_TELEMETRY=1
 
 claude_run() {
-    # Run claude, optionally resuming a session.
+    # Run claude, optionally resuming a session and/or labeling the window.
     # Usage:
-    #   claude_run                 # start a new session
-    #   claude_run <uuid>          # resume session <uuid>
-    #   claude_run --resume <uuid> # resume session <uuid> (explicit flag)
+    #   claude_run                          # start a new session
+    #   claude_run <uuid>                   # resume session <uuid>
+    #   claude_run --resume <uuid>          # resume session <uuid> (explicit flag)
+    #   claude_run --obj "<objective>" ...  # label the window for the state hooks
+
+    # Capture a window-scoped objective the state hooks read (Terminal title and
+    # wait-state notification from ~/.claude/hooks/announce_window_state.py), then
+    # fall through to the launch/resume logic so it composes with either form.
+    if [[ "$1" == "--obj" ]]; then
+        export CLAUDE_OBJECTIVE="$2"
+        shift 2
+    fi
 
     local uuid_pattern='^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
     # Explicit `--resume <uuid>` form: pass straight through.
@@ -27,6 +36,8 @@ alias .c="cd ~/.claude/ && l"
 alias .cl="cd ~/.claude/ && l"
 
 alias clr="claude_run --resume"
+
+alias clo="claude_run --obj"
 
 claude_ask() {
     # Run a one-shot claude query and print the answer.
