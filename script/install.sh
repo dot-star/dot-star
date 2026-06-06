@@ -141,6 +141,19 @@ mkdir -p "${HOME}/.claude"
 ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/settings.json" "${HOME}/.claude/settings.json"
 ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/CLAUDE.md" "${HOME}/.claude/CLAUDE.md"
 
+# Symlink each CLAUDE_*.md supplemental into ~/.claude/ so the
+# load_claude_md_supplementals.sh SessionStart hook picks it up. Unlike
+# skills/commands/hooks/styles (whole-dir symlinks), ~/.claude/ is a real
+# dir, so each sibling file needs its own link like CLAUDE.md above.
+for supplemental in "${DOT_STAR}/ai/files/Users/user/.claude/"CLAUDE_*.md; do
+    # Skip the literal glob when no supplementals exist.
+    if [ ! -e "${supplemental}" ]; then
+        continue
+    fi
+
+    ensure_symlink "${supplemental}" "${HOME}/.claude/${supplemental##*/}"
+done
+
 # Migrate the legacy per-file style symlink now that styles live under
 # ~/.claude/styles/.
 if [ -L "${HOME}/.claude/CLAUDE_commit-message-style.md" ]; then
