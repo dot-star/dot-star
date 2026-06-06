@@ -1,1 +1,1 @@
-export LYNX_CFG="~/.dot-star/lynx/lynx.cfg"
+export LYNX_CFG="~/.dot-star/tools/lynx/lynx.cfg"

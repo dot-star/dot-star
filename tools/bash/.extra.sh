@@ -1,2 +1,2 @@
 # Include extras when available.
-[ -r ~/.dot-star/bash/extra.sh ] && . ~/.dot-star/bash/extra.sh
+[ -r ~/.dot-star/tools/bash/extra.sh ] && . ~/.dot-star/tools/bash/extra.sh

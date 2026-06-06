@@ -1192,7 +1192,7 @@ diff_strings_like_files() {
 }
 alias diff_like_files="diff_strings_like_files"
 
-export P4DIFF="~/.dot-star/version_control/p4diff.sh"
+export P4DIFF="~/.dot-star/tools/version_control/p4diff.sh"
 
 main_and_pull() {
     rc_checkout_default_branch &&
