@@ -49,7 +49,7 @@ warn() {
     _resume_xtrace
 }
 
-# `ln -s src dest`, but warn instead of overwriting if dest already exists.
+# `ln -s src dest`, but never clobber a foreign dest: self-heal a stale link that already points into our own tree, warn on anything else.
 ensure_symlink() {
     local src="${1}"
     local dest="${2}"
@@ -64,8 +64,12 @@ ensure_symlink() {
             # Check that both paths exist (-e) and resolve to the same inode (-ef); refresh to canonical src path.
             rm "${dest}"
             ln -v -s "${src}" "${dest}"
+        elif [[ "${actual_src}" == "${DOT_STAR}/"* || "${actual_src}" == "${DOT_STAR_ROOT}/"* ]]; then
+            # Self-heal a link that already points into our own tree but at a stale path a move relocated; repoint to canonical src instead of warning.
+            rm "${dest}"
+            ln -v -s "${src}" "${dest}"
         else
-            # Symlink points at a different file; don't clobber.
+            # Symlink points outside the dot-star tree, so it's a real customization; don't clobber.
             warn "${dest} is a symlink to"$'\n'"    ${actual_src}, expected"$'\n'"    ${src}." "diff ${actual_src} ${src}"
         fi
     # Check for any existing path (regular file, directory, socket, FIFO, etc.) as destination.
