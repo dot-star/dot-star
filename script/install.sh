@@ -2,7 +2,7 @@
 
 # Profile a run with:
 # DOT_STAR_PROFILE=1 ./install.sh
-# to emit a nested timing tree of each section (helpers in `bash/.timer.sh`).
+# to emit a nested timing tree of each section (helpers in `tools/bash/.timer.sh`).
 # The flag disables `set -x` xtrace so the tree stays readable.
 if [[ -z "${DOT_STAR_PROFILE:-}" ]]; then
     set -x
@@ -107,7 +107,7 @@ fi
 
 # Source the timer helper when profiling, else stub it out.
 if [[ -n "${DOT_STAR_PROFILE:-}" ]]; then
-    source "${DOT_STAR_ROOT}/bash/.timer.sh"
+    source "${DOT_STAR_ROOT}/tools/bash/.timer.sh"
 else
     bt_push() { :; }
     bt_pop() { :; }
@@ -213,16 +213,16 @@ bt_pop
 
 bt_push "rc file symlinks"
 # Install inputrc.
-ensure_symlink "${DOT_STAR}/bash/.inputrc" "${HOME}/.inputrc"
+ensure_symlink "${DOT_STAR}/tools/bash/.inputrc" "${HOME}/.inputrc"
 
 # Install colordiff configuration.
-ensure_symlink "${DOT_STAR}/colordiff/.colordiffrc" "${HOME}/.colordiffrc"
+ensure_symlink "${DOT_STAR}/tools/colordiff/.colordiffrc" "${HOME}/.colordiffrc"
 
-ensure_symlink "${DOT_STAR}/screen/.screenrc" "${HOME}/.screenrc"
+ensure_symlink "${DOT_STAR}/tools/screen/.screenrc" "${HOME}/.screenrc"
 
-# Install gitk config; git_browser() (version_control/.aliases.sh) strips geometry lines around each run so the symlink target stays clean.
+# Install gitk config; git_browser() (tools/version_control/.aliases.sh) strips geometry lines around each run so the symlink target stays clean.
 mkdir -p "${HOME}/.config/git"
-ensure_symlink "${DOT_STAR}/version_control/gitk" "${HOME}/.config/git/gitk"
+ensure_symlink "${DOT_STAR}/tools/version_control/gitk" "${HOME}/.config/git/gitk"
 bt_pop
 
 bt_push "ipython"
@@ -300,7 +300,7 @@ if [ ${#WARNINGS[@]} -gt 0 ]; then
     _resume_xtrace
 fi
 
-# Stamp the installed commit so bash/.install_check.sh can detect later
+# Stamp the installed commit so tools/bash/.install_check.sh can detect later
 # pulls that change install.sh or post_install.sh.
 git -C "${DOT_STAR_ROOT}" rev-parse HEAD >"${HOME}/.dot-star-installed-commit"
 

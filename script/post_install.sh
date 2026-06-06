@@ -1,7 +1,7 @@
 bt_push "pre-OS git config"
 # Configure global gitignore.
 if [ ! -e "${HOME}/.gitignore" ]; then
-    ln -s -v "${DOT_STAR_ROOT}/version_control/.gitignore" "${HOME}"
+    ln -s -v "${DOT_STAR_ROOT}/tools/version_control/.gitignore" "${HOME}"
 fi
 git config --global core.excludesfile "~/.gitignore"
 
@@ -203,7 +203,7 @@ fi
 
 bt_push "git-delta config"
 # Use delta as git's pager via the repo wrapper.
-git config --global core.pager "${DOT_STAR_ROOT}/version_control/git_pager.sh"
+git config --global core.pager "${DOT_STAR_ROOT}/tools/version_control/git_pager.sh"
 git config --global interactive.diffFilter "delta --color-only"
 git config --global delta.keep-plus-minus-markers true
 git config --global delta.line-numbers false
@@ -221,18 +221,18 @@ mkdir -p "$HOME/.vim/swap/"
 
 # Install vim themes.
 if [ ! -L "${HOME}/.vim/colors/railscat.vim" ]; then
-    ln -v -s "${DOT_STAR_ROOT}/vim/colors/railscat.vim" "${HOME}/.vim/colors/"
+    ln -v -s "${DOT_STAR_ROOT}/tools/vim/colors/railscat.vim" "${HOME}/.vim/colors/"
 fi
 if [ ! -L "${HOME}/.vim/colors/molokai.vim" ]; then
-    ln -v -s "${DOT_STAR_ROOT}/vim/colors/molokai.vim" "${HOME}/.vim/colors/"
+    ln -v -s "${DOT_STAR_ROOT}/tools/vim/colors/molokai.vim" "${HOME}/.vim/colors/"
 fi
 
 # Configure vimrc.
 if [ ! -e "${HOME}/.vimrc" ]; then
-    ln -s -v "${DOT_STAR_ROOT}/vim/.vimrc" "${HOME}"
+    ln -s -v "${DOT_STAR_ROOT}/tools/vim/.vimrc" "${HOME}"
 fi
 
 if [ ! -e "${HOME}/.jshintrc" ]; then
-    ln -s -v "${DOT_STAR_ROOT}/bash/.jshintrc" "${HOME}"
+    ln -s -v "${DOT_STAR_ROOT}/tools/bash/.jshintrc" "${HOME}"
 fi
 bt_pop # vim setup
