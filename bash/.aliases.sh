@@ -1753,7 +1753,7 @@ if [[ $- == *i* ]]; then
                         --exit-0 \
                         --info="hidden" \
                         --preview-window="right:70%" \
-                        --preview='source ~/.dot-star/bash/.bash_profile; type {}' \
+                        --preview='source ~/.dot-star/bootstrap/.bash_profile; type {}' \
                         --select-1
             )
             return_code="${?}"

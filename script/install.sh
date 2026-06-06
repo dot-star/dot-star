@@ -207,7 +207,7 @@ setup_bootstrap "${HOME}/.bash_profile" 'echo "if shopt -q login_shell; then
 fi" >> "$HOME/.bash_profile"'
 
 setup_bootstrap "${HOME}/.bashrc" 'echo "if shopt -q login_shell; then
-    [[ -r ~/.dot-star/bash/.bash_profile ]] && source ~/.dot-star/bash/.bash_profile
+    [[ -r ~/.dot-star/bootstrap/.bash_profile ]] && source ~/.dot-star/bootstrap/.bash_profile
 fi" >> "$HOME/.bashrc"'
 bt_pop
 
