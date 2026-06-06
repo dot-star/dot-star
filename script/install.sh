@@ -213,6 +213,9 @@ fi" >> "$HOME/.bash_profile"'
 setup_bootstrap "${HOME}/.bashrc" 'echo "if shopt -q login_shell; then
     [[ -r ~/.dot-star/bootstrap/.bash_profile ]] && source ~/.dot-star/bootstrap/.bash_profile
 fi" >> "$HOME/.bashrc"'
+
+# zsh reads ~/.zshrc directly for interactive shells, so source the spine inline (no login-shell dance like bash).
+setup_bootstrap "${HOME}/.zshrc" '[[ -r ~/.dot-star/bootstrap/.bash_profile ]] && source ~/.dot-star/bootstrap/.bash_profile'
 bt_pop
 
 bt_push "rc file symlinks"
