@@ -1,0 +1,75 @@
+[
+  {
+    "name": "single niche acronym in prose",
+    "msg": "Let me check the FAB boundaries.",
+    "stop": false,
+    "expected": "block"
+  },
+  {
+    "name": "niche acronym beside whitelisted ones",
+    "msg": "The API exposes the FAB state over the URL.",
+    "stop": false,
+    "expected": "block"
+  },
+  {
+    "name": "two distinct acronyms both flagged",
+    "msg": "Wire the FAB into the LRU cache.",
+    "stop": false,
+    "expected": "block"
+  },
+  {
+    "name": "whitelisted acronyms only",
+    "msg": "Fetch the URL over HTTPS via the API.",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "acronym inside inline code is exempt",
+    "msg": "Toggle `FAB` visibility.",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "acronym inside fenced code block is exempt",
+    "msg": "Here is the code:\n```js\nshowFAB()\n```\nDone.",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "acronym inside blockquote is exempt",
+    "msg": "> the FAB stays hidden\nNoted that one.",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "spelled-out form has no bare acronym",
+    "msg": "Let me check the floating action button boundaries.",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "roman numeral is whitelisted",
+    "msg": "See section III for details.",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "empty message",
+    "msg": "",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "recursion guard: stop_hook_active=true",
+    "msg": "The FAB is broken.",
+    "stop": true,
+    "expected": "pass"
+  },
+  {
+    "name": "all-caps emphasis word is a dictionary word",
+    "msg": "This is IMPORTANT, so NEVER skip it.",
+    "stop": false,
+    "expected": "pass",
+    "needs_dict": true
+  }
+]

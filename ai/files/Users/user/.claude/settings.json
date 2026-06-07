@@ -106,6 +106,15 @@
           }
         ],
         "matcher": ""
+      },
+      {
+        "hooks": [
+          {
+            "command": "${HOME}/.claude/hooks/check_acronyms.py",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
       }
     ]
   },
