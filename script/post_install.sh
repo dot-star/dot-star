@@ -206,7 +206,20 @@ git config --global interactive.diffFilter "delta --color-only"
 git config --global delta.keep-plus-minus-markers true
 git config --global delta.line-numbers false
 git config --global delta.navigate true
-# Brighter added/removed-line backgrounds so `+`/`-` lines stand apart from context.
+
+# Install a Monokai variant that lightens only the comment color. delta reads syntax themes from bat's cache; stock Monokai comments are a dim olive that the bright `+`/`-` backgrounds below swallow whole. Ubuntu ships the binary as `batcat`.
+bat_bin="bat"
+if ! command -v bat >/dev/null 2>&1; then
+    bat_bin="batcat"
+fi
+
+bat_themes_dir="$("${bat_bin}" --config-dir)/themes"
+mkdir -p "${bat_themes_dir}"
+ensure_symlink "${DOT_STAR_ROOT}/tools/version_control/monokai-extended-readable-comments.tmTheme" "${bat_themes_dir}/monokai-extended-readable-comments.tmTheme"
+"${bat_bin}" cache --build
+
+# Bright added/removed-line backgrounds so `+`/`-` lines stand apart from context; the readable-comments theme keeps the syntax-highlighted comment text legible on them.
+git config --global delta.syntax-theme "monokai-extended-readable-comments"
 git config --global delta.minus-style "syntax #800000"
 git config --global delta.plus-style "syntax #008000"
 bt_pop
