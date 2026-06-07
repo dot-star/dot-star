@@ -73,6 +73,7 @@ Style guides live under `~/.claude/styles/`. Don't bulk-load them all; instead, 
   - `trim` means "condense whatever we're working on (a comment, a sentence, a rule, a block of code) without losing meaning": rewrite it shorter while preserving every constraint or detail, and flag anything that can't be cut rather than dropping it silently.
   - `u` means "you run it" / "you do it" (carry out the just-suggested command, script, or action yourself instead of expecting the user to)
   - `🚢` means "ship it" (land the work)
+- `<N> iter` means "option N is the front-runner, but iterate on it": treat N as the starting point and propose refinements rather than committing it as-is. E.g. `2 iter` → improve on option 2.
 
 ## Shorthand
 
