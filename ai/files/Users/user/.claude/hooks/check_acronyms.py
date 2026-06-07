@@ -14,6 +14,10 @@ check absorbs all-caps emphasis words (NEVER, IMPORTANT) without whitelisting
 each, and biases toward false-negatives over false-positives to keep friction
 low.
 
+Mixed-case insider acronyms (IaC, IoT) escape the all-caps scan, so a small
+explicit flag-list catches those by exact match; a generic mixed-case pattern
+would snag CamelCase identifiers and product names (GitHub, JavaScript).
+
 Usage:
     Wired as a Stop hook in settings.json; reads the hook payload as JSON on
     stdin and prints a block decision on stdout when it finds an offender.
@@ -71,6 +75,18 @@ WHITELIST = {
     "XII",
 }
 
+# Flag mixed-case insider acronyms the all-caps scan misses (an embedded
+# lowercase connector breaks the run); a generic mixed-case pattern would snag
+# CamelCase identifiers and product names. Match exactly; extend as needed.
+MIXED_CASE_FLAG = {
+    "IaC",
+    "IaaS",
+    "IoT",
+    "PaaS",
+    "QoS",
+    "SaaS",
+}
+
 DICT_PATH = "/usr/share/dict/words"
 
 
@@ -112,6 +128,15 @@ def find_offenders(prose, dictionary):
             continue
         seen.add(token)
         offenders.append(token)
+
+    # Catch mixed-case insider acronyms the all-caps scan can't see. Sort for a
+    # deterministic order when several appear in one message.
+    for token in sorted(MIXED_CASE_FLAG):
+        if token in seen:
+            continue
+        if re.search(r"\b" + re.escape(token) + r"\b", prose):
+            seen.add(token)
+            offenders.append(token)
 
     return offenders
 

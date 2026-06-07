@@ -18,6 +18,18 @@
     "expected": "block"
   },
   {
+    "name": "mixed-case insider acronym is flagged",
+    "msg": "Provision it through the IaC pipeline.",
+    "stop": false,
+    "expected": "block"
+  },
+  {
+    "name": "mixed-case acronym with a doubled-lowercase run",
+    "msg": "Bill it as PaaS going forward.",
+    "stop": false,
+    "expected": "block"
+  },
+  {
     "name": "whitelisted acronyms only",
     "msg": "Fetch the URL over HTTPS via the API.",
     "stop": false,
@@ -44,6 +56,18 @@
   {
     "name": "spelled-out form has no bare acronym",
     "msg": "Let me check the floating action button boundaries.",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "CamelCase product names are not flagged",
+    "msg": "Push to GitHub and write it in JavaScript.",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "mixed-case acronym inside inline code is exempt",
+    "msg": "Run the `IaC` plan first.",
     "stop": false,
     "expected": "pass"
   },
