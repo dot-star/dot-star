@@ -2129,7 +2129,11 @@ git_worktree_promote() {
 
     cd "${main_checkout}" || return 1
 
-    if ! git checkout "${default_branch}"; then
+    # Swallow "Already on 'master'" / "Switched to branch" chatter on success;
+    # surface the captured output only when the checkout actually fails.
+    local checkout_output
+    if ! checkout_output="$(git checkout "${default_branch}" 2>&1)"; then
+        echo "${checkout_output}"
         echo "failed to checkout ${default_branch}"
         return 1
     fi
