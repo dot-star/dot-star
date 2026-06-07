@@ -64,6 +64,15 @@
           }
         ],
         "matcher": "Bash"
+      },
+      {
+        "hooks": [
+          {
+            "command": "${HOME}/.claude/hooks/remind_style_guide.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Write|Edit"
       }
     ],
     "SessionStart": [

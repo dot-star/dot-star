@@ -52,7 +52,7 @@
 
 ## Styles
 
-On-demand style guides live under `~/.claude/styles/`. Read the relevant file when starting work in that area; do not auto-load.
+Style guides live under `~/.claude/styles/`. Don't bulk-load them all; instead, before writing or editing a file, read and apply the one matching its type, so code lands in the preferred style by default and never only when asked. A `PreToolUse` hook (`remind_style_guide.sh`) injects the matching guide's path on each `Write`/`Edit` as a reminder, but the obligation to read and apply it stands with or without the nudge.
 
 - For commit messages, follow `~/.claude/styles/commit-message-style.md`. Default to a single subject line; bodies are rare and reserved for non-obvious motivation.
 - For new file names, follow `~/.claude/styles/file-naming-style.md`. Apply when creating any file: hierarchical prefix groups related files, self-describing remainder says what the file does.
