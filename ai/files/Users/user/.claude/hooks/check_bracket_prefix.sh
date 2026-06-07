@@ -57,7 +57,7 @@ reason=$'Your last message has question(s) offering alternatives without bracket
 for v in "${violations[@]}"; do
     reason+="- ${v}"$'\n'
 done
-reason+=$'\n🤖 `[for Claude]` Rewrite each alternative as **`[x]remainder`** (case-insensitive accept letter, wrapped in bold inline code), then re-send. See the pre-send checklist in CLAUDE.md.'
+reason+=$'\n🤖 [for Claude] Rewrite each alternative as [x]remainder (case-insensitive accept letter, wrapped in bold inline code), then re-send. See the pre-send checklist in CLAUDE.md.'
 
 command jq --null-input --compact-output \
     --arg reason "${reason}" \
