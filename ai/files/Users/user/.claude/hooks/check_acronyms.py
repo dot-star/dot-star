@@ -40,6 +40,7 @@ WHITELIST = {
     "PR",
     "URL",
     # Keep broadly skimmable tech and web terms.
+    "CI",
     "CLI",
     "CPU",
     "CSS",
