@@ -58,6 +58,8 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
         grep
         lazygit
         php@8.4
+        pyenv
+        pyenv-virtualenv
         rsync
         tig
         tree
