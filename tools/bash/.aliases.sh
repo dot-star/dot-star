@@ -946,7 +946,10 @@ find_files_by_keyword() {
             \) \
             -prune \
             -o \
+            \( \
             -type "f" \
+            -o -type "l" \
+            \) \
             -ipath "*${keyword}*" \
             -print |
             \grep --color --ignore-case "${keyword}"
