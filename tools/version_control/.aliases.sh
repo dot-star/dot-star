@@ -678,21 +678,35 @@ rc_checkout() {
         # Attempt to checkout the specified branch name.
         branch_name="$(echo "${1}" | lower)"
 
-        git checkout "${branch_name}" 2>/dev/null
-        exit_code="${?}"
-        if [[ "${exit_code}" -ne 0 ]]; then
-            # Attempt to checkout the branch filtering by keyword.
-            branch_name="$(
-                branches |
-                    \grep "${branch_name}" |
-                    trim |
-                    fzf --ansi --ignore-case --select-1
-            )"
-            branch_name="${branch_name#"${branch_name%%[![:space:]]*}"}"
-            branch_name="$(echo "${branch_name}" | perl -pe 's/(.*) \(.*\)/\1/')"
-
-            git checkout "${branch_name}"
+        if git checkout "${branch_name}" 2>/dev/null; then
+            return
         fi
+
+        # Switch to the worktree holding the branch when git refuses to check
+        # it out here because the branch is already checked out in a worktree.
+        worktree_path="$(
+            git worktree list --porcelain |
+                awk -v ref="branch refs/heads/${branch_name}" '
+                    /^worktree / { sub(/^worktree /, ""); path = $0 }
+                    $0 == ref { print path; exit }
+                '
+        )"
+        if [[ ! -z "${worktree_path}" ]]; then
+            cd "${worktree_path}"
+            return
+        fi
+
+        # Attempt to checkout the branch filtering by keyword.
+        branch_name="$(
+            branches |
+                \grep "${branch_name}" |
+                trim |
+                fzf --ansi --ignore-case --select-1
+        )"
+        branch_name="${branch_name#"${branch_name%%[![:space:]]*}"}"
+        branch_name="$(echo "${branch_name}" | perl -pe 's/(.*) \(.*\)/\1/')"
+
+        git checkout "${branch_name}"
     else
         git checkout $@
     fi
