@@ -578,13 +578,19 @@ git_stash_pop() {
         response="$(display_confirm_prompt_info "Pop stash ${git_stash}?")"
         if [[ "${response}" =~ ^[Yy]$ ]]; then
             echo
-            git stash pop "${git_stash}"
+            local pop_output
+            pop_output="$(git stash pop "${git_stash}" 2>&1)"
             local pop_exit_code="${?}"
             if [[ "${pop_exit_code}" -ne 0 ]]; then
+                echo "${pop_output}" >&2
                 echo
                 echo -e "\033[38;5;160mWARNING: stash did not pop cleanly — ${git_stash} was kept.\033[39m" >&2
                 return "${pop_exit_code}"
             fi
+
+            # Prefix the "Dropped stash@..." line with a check mark so a clean pop is verifiable at a glance.
+            echo "${pop_output}" |
+                sed "s/^Dropped /✅ Dropped /"
         fi
     fi
 }
