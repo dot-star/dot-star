@@ -19,7 +19,9 @@ claude_run() {
     # Launch from ~/.dot-star when invoked at the filesystem root, which carries no
     # useful project context.
     local run_dir="$(pwd)"
-    if [[ "$(pwd)" == "/" ]]; then
+    if [[ "${run_dir}" == "/" ]]; then
+        run_dir="${HOME}/.dot-star"
+    elif [[ "${run_dir}" == "${HOME}" ]]; then
         run_dir="${HOME}/.dot-star"
     fi
 
