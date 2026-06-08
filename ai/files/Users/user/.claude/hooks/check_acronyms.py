@@ -161,9 +161,13 @@ def main():
         "Your last message uses unexplained acronym(s) in prose "
         "(per ~/.claude/CLAUDE.md Output > spell out niche acronyms): "
         + ", ".join(offenders)
-        + "\n\n🤖 `[for Claude]` Spell each out on first use (e.g. \"floating "
-        "action button (FAB)\"), or add it to WHITELIST in check_acronyms.py "
-        "if it is truly skim-without-expansion, then re-send."
+        + "\n"
+        "\n┌─ 🤖 for Claude ──────────────────────────────────────"
+        '\n│ Spell each out on first use (e.g. "floating action'
+        '\n│ button (FAB)"), or add it to WHITELIST in'
+        "\n│ check_acronyms.py if truly skim-without-expansion,"
+        "\n│ then re-send."
+        "\n└──────────────────────────────────────────────────────"
     )
     print(json.dumps({"decision": "block", "reason": reason}))
     return 0
