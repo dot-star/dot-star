@@ -16,6 +16,15 @@ claude_run() {
         shift 2
     fi
 
+    # Launch from ~/.dot-star when invoked at the filesystem root, which carries no
+    # useful project context.
+    local run_dir="${PWD}"
+    if [[ "${PWD}" == "/" ]]; then
+        run_dir="${HOME}/.dot-star"
+    fi
+
+    cd "${run_dir}" || return
+
     local uuid_pattern='^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
     # Explicit `--resume <uuid>` form: pass straight through.
     if [[ "$1" == "--resume" ]]; then
