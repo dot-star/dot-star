@@ -23,19 +23,24 @@ claude_run() {
         run_dir="${HOME}/.dot-star"
     fi
 
-    cd "${run_dir}" || return
-
     local uuid_pattern='^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
-    # Explicit `--resume <uuid>` form: pass straight through.
-    if [[ "$1" == "--resume" ]]; then
-        claude "$@"
-    # Bare uuid as first arg: treat it as the session id to resume.
-    elif [[ "$1" =~ ${uuid_pattern} ]]; then
-        claude --resume "$@"
-    # No args (or anything that isn't a uuid): start a fresh session.
-    else
-        claude "$@"
-    fi
+    # Confine the cd to a subshell so the caller's directory survives once
+    # claude exits.
+    (
+        cd "${run_dir}" ||
+            exit
+
+        # Explicit `--resume <uuid>` form: pass straight through.
+        if [[ "$1" == "--resume" ]]; then
+            claude "$@"
+        # Bare uuid as first arg: treat it as the session id to resume.
+        elif [[ "$1" =~ ${uuid_pattern} ]]; then
+            claude --resume "$@"
+        # No args (or anything that isn't a uuid): start a fresh session.
+        else
+            claude "$@"
+        fi
+    )
 
     ~/.dot-star/ai/claude/prune.sh
 }
