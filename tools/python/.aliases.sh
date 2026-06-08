@@ -38,6 +38,13 @@ alias_pyenv() {
     # ...because this is slow:
     load_pyenv
 
+    # Self-heal a missing virtualenv: create it from the current pyenv version
+    # before activating, so `pyenv activate <env>` works after the env is gone.
+    if [[ "${1}" == "activate" ]] && [[ -n "${2}" ]] && ! command pyenv virtualenv-prefix "${2}" >/dev/null 2>&1; then
+        echo "pyenv: virtualenv \"${2}\" not found; creating it from $(command pyenv version-name)"
+        command pyenv virtualenv "${2}"
+    fi
+
     pyenv "${@}"
 }
 
