@@ -117,10 +117,13 @@ EOF
     # The model returns a JSON array, often wrapped in prose or ```json fences
     # (especially when it flags injected text), so pull the bracketed array out
     # of claude's result envelope before parsing. Stray commentary is dropped.
+    response="$(
+        claude --print --tools "" --output-format=json "${prompt}"
+    )"
     options="$(
-        claude --print --tools "" --output-format=json "${prompt}" |
+        echo "${response}" |
             \jq --raw-output '.result' |
-            grep --only-matching '\[.*\]' |
+            \grep --only-matching '\[.*\]' |
             \jq --raw-output '.[]'
     )"
     if [[ -z "${options}" ]]; then
