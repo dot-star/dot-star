@@ -160,9 +160,7 @@ def main():
 
     reason = (
         "Your last message uses unexplained acronym(s) in prose "
-        "(per ~/.claude/CLAUDE.md Output > spell out niche acronyms): "
-        + ", ".join(offenders)
-        + "\n"
+        "(per ~/.claude/CLAUDE.md Output > spell out niche acronyms): " + ", ".join(offenders) + "\n"
         "\n┌─ 🤖 for Claude ──────────────────────────────────────"
         '\n│ Spell each out on first use (e.g. "floating action'
         '\n│ button (FAB)"), or add it to WHITELIST in'
