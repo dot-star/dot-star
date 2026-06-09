@@ -8,3 +8,14 @@ repos:
         entry: shfmt --indent=4 --diff --write
         types: [shell]
         exclude: version_control/git-completion\.bash
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.16
+    hooks:
+      - id: ruff-check
+        args: ["--fix"]
+
+  - repo: https://github.com/psf/black
+    rev: 26.5.1
+    hooks:
+      - id: black
