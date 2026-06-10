@@ -1,5 +1,33 @@
 export DISABLE_TELEMETRY=1
 
+claude_session_for_dir() {
+    # Print the uuid of the most-recently-active session whose recorded cwd is
+    # <dir>. Transcripts key under the launch cwd's project dir, so pass the main
+    # checkout (<project_root>) where a worktree's sessions actually live.
+    local dir="$1"
+    local project_root="$2"
+
+    # Mangle the project root into Claude's project-dir name (every `/` and `.`
+    # becomes `-`): /Users/me/p/.x -> -Users-me-p--x.
+    local key="${project_root//\//-}"
+    key="${key//./-}"
+    local transcript_dir="${HOME}/.claude/projects/${key}"
+
+    # Walk transcripts newest-first and return the first one whose cwd matches;
+    # --fixed-strings keeps the dot in a path like `.claude` literal. Read via
+    # process substitution so a session uuid never word-splits and the loop runs
+    # in this shell (a `… | while` pipe would subshell the `return`).
+    local transcript
+    while IFS= read -r transcript; do
+        if \grep --quiet --fixed-strings "\"cwd\":\"${dir}\"" "${transcript}"; then
+            basename "${transcript}" .jsonl
+            return 0
+        fi
+    done < <(\ls -t "${transcript_dir}"/*.jsonl 2>/dev/null)
+
+    return 1
+}
+
 claude_run() {
     # Run claude, optionally resuming a session and/or labeling the window.
     # Usage:
@@ -25,6 +53,22 @@ claude_run() {
         run_dir="${HOME}/.dot-star"
     fi
 
+    # Redirect into the main checkout when invoked from a linked git worktree, so
+    # cl/clr share the repo's one session pool. Claude keys sessions by cwd, and a
+    # worktree's project dir holds none of the sessions started from the main
+    # checkout, so resuming from a worktree would never surface them. Remember the
+    # worktree we came from so a bare `--resume` can reopen its own session.
+    local worktree_dir=""
+    local git_common_dir="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"
+    local toplevel="$(git rev-parse --show-toplevel 2>/dev/null)"
+    if [[ -n "${git_common_dir}" ]]; then
+        local main_checkout="$(dirname "${git_common_dir}")"
+        if [[ "${main_checkout}" != "${toplevel}" ]]; then
+            worktree_dir="${toplevel}"
+            run_dir="${main_checkout}"
+        fi
+    fi
+
     local uuid_pattern='^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
     # Confine the cd to a subshell so the caller's directory survives once
     # claude exits.
@@ -33,7 +77,19 @@ claude_run() {
             exit
 
         # Explicit `--resume <uuid>` form: pass straight through.
-        if [[ "$1" == "--resume" ]]; then
+        if [[ "$1" == "--resume" && -n "$2" ]]; then
+            claude "$@"
+        # Reopen the worktree's own session on a bare `--resume`, rather than the
+        # main checkout's picker that would list every session in the repo.
+        elif [[ "$1" == "--resume" && -n "${worktree_dir}" ]]; then
+            local worktree_session="$(claude_session_for_dir "${worktree_dir}" "${run_dir}")"
+            if [[ -n "${worktree_session}" ]]; then
+                claude --resume "${worktree_session}"
+            else
+                claude --resume
+            fi
+        # Open the normal picker for a bare `--resume` outside a worktree.
+        elif [[ "$1" == "--resume" ]]; then
             claude "$@"
         # Bare uuid as first arg: treat it as the session id to resume.
         elif [[ "$1" =~ ${uuid_pattern} ]]; then
