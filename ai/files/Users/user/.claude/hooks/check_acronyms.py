@@ -40,8 +40,10 @@ WHITELIST = {
     "PR",
     "URL",
     # Keep broadly skimmable tech and web terms.
+    "CDK",
     "CI",
     "CLI",
+    "CORS",
     "CPU",
     "CSS",
     "GPU",
@@ -49,6 +51,7 @@ WHITELIST = {
     "HTTP",
     "HTTPS",
     "ID",
+    "IP",
     "JSON",
     "OS",
     "RAM",
@@ -61,6 +64,7 @@ WHITELIST = {
     "UX",
     # Keep common abbreviations.
     "AM",
+    "LLC",
     "OK",
     "PM",
     "TODO",
