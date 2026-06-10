@@ -493,6 +493,30 @@ git_rebase_interactive() {
     set +x
 }
 
+git_rebase_edit() {
+    # Rebase so it pauses right after <commit> for a `git commit --amend`, then
+    # finish with `cont`. Mark the commit's todo line `edit` automatically, so
+    # no editor opens.
+    #
+    # $ rbe abc1234
+    # ... edit files, git add, git commit --amend ...
+    # $ cont
+
+    if [[ -z "${1}" ]]; then
+        echo "usage: rbe <commit>"
+        return 1
+    fi
+
+    # Normalize to git's short hash so the pattern matches the todo's hashes.
+    commit="$(git rev-parse --short "${1}")" || return 1
+
+    set -x
+    GIT_SEQUENCE_EDITOR="perl -i -pe 's/^pick (${commit}\\w*)/edit \$1/'" \
+        git rebase --interactive "${commit}^"
+    set +x
+}
+alias rbe="git_rebase_edit"
+
 git_reset_author() {
     git commit --amend --reset-author
 }
