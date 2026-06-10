@@ -80,8 +80,11 @@ claude_ask() {
 }
 alias ask="claude_ask"
 
-claude_git_commit() {
-    local instructions staged_diff prompt options selected
+claude_draft_commit_message_options() {
+    # Draft single-line commit-message options for the staged diff and print
+    # them one per line. Shared drafting half of claude_git_commit so the prompt
+    # hardening lives in one place.
+    local instructions staged_diff prompt response
     staged_diff="$(git diff --cached)"
 
     instructions="$(
@@ -114,7 +117,7 @@ EOF
     )"
 
     # Draft with no tools: writing a commit message needs none, so an injection
-    # in the diff or context can't drive tool execution. fzf keeps you in the loop.
+    # in the diff or context can't drive tool execution.
     #
     # The model returns a JSON array, often wrapped in prose or ```json fences
     # (especially when it flags injected text), so pull the bracketed array out
@@ -122,16 +125,20 @@ EOF
     response="$(
         claude --print --tools "" --output-format=json "${prompt}"
     )"
-    options="$(
-        echo "${response}" |
-            \jq --raw-output '.result' |
-            \grep --only-matching '\[.*\]' |
-            \jq --raw-output '.[]'
-    )"
+    echo "${response}" |
+        \jq --raw-output '.result' |
+        \grep --only-matching '\[.*\]' |
+        \jq --raw-output '.[]'
+}
+
+claude_git_commit() {
+    local options selected
+    options="$(claude_draft_commit_message_options "$1")"
     if [[ -z "${options}" ]]; then
         return 1
     fi
 
+    # fzf keeps you in the loop on which drafted message lands.
     selected="$(
         echo "${options}" |
             fzf --no-sort --reverse --prompt='Select commit message: ' --height=40%
