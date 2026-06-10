@@ -905,20 +905,44 @@ rc_pull_with_rebase() {
 }
 
 rc_push() {
-    local current_branch upstream remote_branch
+    local current_branch upstream
     current_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
     upstream="$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null)"
 
-    # Set the upstream when pushing a worktree branch. This way a bare `git
-    # push` targets `<username>/<slug>` instead of the literal local
-    # `worktree-<username>+<slug>` name.
+    # Route a worktree branch that has no upstream by the per-machine.
+    # DOTSTAR_WORKTREE_PUSH setting.
+    # DOTSTAR_WORKTREE_PUSH="default-branch":
+    #    push the commits straight onto the repo's default branch, for personal
+    #    repos where work lands on master and there are no pull requests.
+    #    worktree-fix-login-redirect  ->  git push origin HEAD:master
+    # DOTSTAR_WORKTREE_PUSH="pr-branch"
+    #    push to a <slug> branch and track it, so a later bare push targets
+    #    <slug> instead of the literal worktree-<...> name, for the work WIP
+    #    pull request.
+    #    worktree-asmith+add-login  ->  git push -u origin HEAD:asmith/add-login
+    # pr-branch is the default so machines without an override keep the old
+    # behavior.
     if [[ "${current_branch}" == worktree-* && -z "${upstream}" ]]; then
-        remote_branch="${current_branch#worktree-}"
-        remote_branch="${remote_branch/+//}"
-        git push -u origin "HEAD:${remote_branch}" "$@"
+        local worktree_push="${DOTSTAR_WORKTREE_PUSH:-pr-branch}"
+        if [[ "${worktree_push}" == "default-branch" ]]; then
+            local main_checkout default_branch
+            main_checkout="$(git worktree list | awk 'NR==1 {print $1}')"
+            default_branch="$(git_default_branch "${main_checkout}")"
+            if [[ -z "${default_branch}" ]]; then
+                echo "could not determine the default branch to push to"
+                return 1
+            fi
+            git push origin "HEAD:${default_branch}" "$@"
+        else
+            local remote_branch="${current_branch#worktree-}"
+            remote_branch="${remote_branch/+//}"
+            git push -u origin "HEAD:${remote_branch}" "$@"
+        fi
+
         if [[ $? -ne 0 ]]; then
             echo -e "\ngit push options: $(git remote show)"
         fi
+
         return
     fi
 
