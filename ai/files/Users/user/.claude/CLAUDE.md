@@ -64,7 +64,7 @@ Style guides live under `~/.claude/styles/`. Don't bulk-load them all; instead, 
   - `eg`, `examples` mean "show me examples"
   - `defend`, `prove` mean "defend/prove the prior reply" (justify each claim or item in it)
   - `harden`, `bake`, `firm` mean "strengthen the rule i just hit" by tightening it in `CLAUDE.md` or the matching `CLAUDE_*.md` sibling, or promoting it there from memory if that's where it lives. Memory isn't durable enough to harden into.
-  - `trim` means "condense whatever we're working on (a comment, a sentence, a rule, a block of code) without losing meaning": rewrite it shorter while preserving every constraint or detail, and flag anything that can't be cut rather than dropping it silently.
+  - `t`, `trim` mean "condense whatever we're working on (a comment, a sentence, a rule, a block of code) without losing meaning": rewrite it shorter while preserving every constraint or detail, and flag anything that can't be cut rather than dropping it silently.
   - `u` means "you run it" / "you do it" (carry out the just-suggested command, script, or action yourself instead of expecting the user to)
   - `c`, `cm`, `commit` mean "commit" (invoke the `commit` skill), unless the previous message offered `[c]` for something else, in which case `c` picks that bracket-prefix option instead.
   - `🚢` means "ship it" (land the work)
