@@ -469,6 +469,16 @@ git_rebase() {
     #
     # $ rebase 4
     # git rebase -i HEAD~4
+    #
+    # $ rebase abc1234
+    # edit-pause on abc1234 (delegates to git_rebase_edit)
+
+    # Treat a bare 1-2 digit arg as a commit count; anything else is a
+    # commit hash to edit-pause on (a real short hash is >= 4 hex chars).
+    if [[ -n "${1}" ]] && [[ ! "${1}" =~ ^[0-9]{1,2}$ ]]; then
+        git_rebase_edit "${1}"
+        return
+    fi
 
     if [[ "${#}" -eq 0 ]]; then
         target="HEAD~2"
