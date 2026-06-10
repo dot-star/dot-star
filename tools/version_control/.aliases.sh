@@ -717,9 +717,14 @@ rc_checkout() {
             set +x
         fi
     elif [[ "${#}" -eq 1 ]]; then
-        # Attempt to checkout the specified branch name.
-        branch_name="$(echo "${1}" | lower)"
+        # Attempt to checkout the branch by its exact name first, so a
+        # branch with intentional uppercase resolves to its true name.
+        if git checkout "${1}" 2>/dev/null; then
+            return
+        fi
 
+        # Retry lowercased so keyword lookups stay case-forgiving.
+        branch_name="$(echo "${1}" | lower)"
         if git checkout "${branch_name}" 2>/dev/null; then
             return
         fi
