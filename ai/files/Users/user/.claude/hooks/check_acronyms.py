@@ -34,12 +34,10 @@ import sys
 # dictionary check below already covers all-caps English words, so list only
 # true acronyms.
 WHITELIST = {
-    # Keep CLAUDE.md's named set.
     "API",
     "AWS",
     "PR",
     "URL",
-    # Keep broadly skimmable tech and web terms.
     "CDK",
     "CI",
     "CLI",
@@ -62,13 +60,12 @@ WHITELIST = {
     "URI",
     "USB",
     "UX",
-    # Keep common abbreviations.
+    "KYC",
     "AM",
     "LLC",
     "OK",
     "PM",
     "TODO",
-    # Keep roman numerals.
     "II",
     "III",
     "IV",
