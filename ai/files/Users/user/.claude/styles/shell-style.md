@@ -27,6 +27,21 @@ reason=$'Heading:\n\n\n┌─ first body line\n│ second body line\n└─ foot
 
 A `\n` mid-string is still fine (a header's trailing `\n\n` stays inline); the rule is about not flattening a multi-line block onto one source line.
 
+## One declaration per `local`
+
+Declare one variable per `local`; give each its own line rather than packing several into `local x=.. y=..`.
+
+```
+local dir="$1"
+local project_root="$2"
+```
+
+Not:
+
+```
+local dir="$1" project_root="$2"
+```
+
 ## Pipelines
 
 Break multi-stage pipelines across lines. Leave `|` at the end of the upstream line and put each downstream stage on its own line, indented one level under the start of the pipeline.
