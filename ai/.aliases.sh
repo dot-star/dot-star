@@ -81,11 +81,13 @@ claude_ask() {
 alias ask="claude_ask"
 
 claude_draft_commit_message_options() {
-    # Draft single-line commit-message options for the staged diff and print
-    # them one per line. Shared drafting half of claude_git_commit so the prompt
-    # hardening lives in one place.
-    local instructions staged_diff prompt response
-    staged_diff="$(git diff --cached)"
+    # Draft single-line commit-message options for the staged diff (or the diff
+    # in $2) and print them one per line:
+    #     Add the foo helper
+    #     Fix the off-by-one in bar
+    #     Rename the baz flag
+    local instructions commit_diff prompt response
+    commit_diff="${2:-$(git diff --cached)}"
 
     instructions="$(
         cat <<'EOF'
@@ -111,7 +113,7 @@ EOF
     prompt="$(
         \jq --null-input \
             --arg instructions "${instructions}" \
-            --arg untrusted_diff "${staged_diff}" \
+            --arg untrusted_diff "${commit_diff}" \
             --arg untrusted_context "$1" \
             '{instructions: $instructions, untrusted_diff: $untrusted_diff, untrusted_context: $untrusted_context}'
     )"
@@ -157,6 +159,24 @@ alias clc="claude_git_commit"
 alias clcm="claude_git_commit"
 alias cma="claude_git_commit"
 alias cmc="claude_git_commit"
+
+claude_display_commit_message_options() {
+    # Draft commit-message options for the staged diff (or the diff in $2) and
+    # print them, one per line:
+    #     Commit message options:
+    #     Add the foo helper
+    #     Fix the off-by-one in bar
+    #     Rename the baz flag
+    local options
+    options="$(claude_draft_commit_message_options "$1" "$2")"
+    if [[ -z "${options}" ]]; then
+        echo "No commit message options drafted"
+        return 1
+    fi
+
+    echo "Commit message options:"
+    echo "${options}"
+}
 
 alias clp="~/.dot-star/ai/claude/prune.sh"
 alias prune="~/.dot-star/ai/claude/prune.sh"

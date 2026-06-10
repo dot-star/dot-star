@@ -265,8 +265,9 @@ alias rb8="git_rebase 8"
 alias rb9="git_rebase 9"
 
 git_rebase_last_two() {
-    # Squash the last two commits into one, then have Claude draft a fresh
-    # subject for the combined diff (given the two originals) and fzf-pick it.
+    # Squash the last two commits into one and commit right away with the two
+    # original subjects stacked, then draft fresh commit-message alternatives
+    # for the combined diff in the background; amend to one if you like.
     if ! git rev-parse --verify --quiet HEAD~2 >/dev/null; then
         echo "Error: need at least two commits above the root to squash"
         return 1
@@ -280,7 +281,13 @@ git_rebase_last_two() {
         return 1
     fi
 
-    claude_git_commit "Update the commit message based on the combined diff now that two commits were squashed into one. Original commit message #1: ${message_one}. Original commit message #2: ${message_two}."
+    # Land the squash with the two subjects stacked (message_one, blank line,
+    # message_two), so a commit exists even if you never pick an alternative.
+    # Capture the diff first; the commit empties the index the draft reads from.
+    combined_diff="$(git diff --cached)"
+    git commit --message "${message_one}" --message "${message_two}"
+
+    claude_display_commit_message_options "Update the commit message based on the combined diff now that two commits were squashed into one. Original commit message #1: ${message_one}. Original commit message #2: ${message_two}." "${combined_diff}" &
 }
 alias rbl2="git_rebase_last_two"
 alias rbl="git_rebase_last_two"
