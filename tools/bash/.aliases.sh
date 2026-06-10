@@ -406,24 +406,30 @@ edit() {
         files_to_edit_lines="$(echo "${files_to_edit[*]}")"
         files_to_edit_lines="$(echo "${files_to_edit_lines}" | sort | uniq)"
 
-        result="$(
-            echo "${files_to_edit_lines}" |
-                fzf \
-                    --exit-0 \
-                    --info="hidden" \
-                    --multi \
-                    --preview-window="up:100" \
-                    --preview="${fzf_preview}" \
-                    --select-1
-        )"
+        # Edit every candidate file directly when "ea" was used; otherwise show
+        # fzf to pick which files to edit.
+        if [[ "${EDIT_SELECT_ALL}" == true ]]; then
+            result="${files_to_edit_lines}"
+        else
+            result="$(
+                echo "${files_to_edit_lines}" |
+                    fzf \
+                        --exit-0 \
+                        --info="hidden" \
+                        --multi \
+                        --preview-window="up:100" \
+                        --preview="${fzf_preview}" \
+                        --select-1
+            )"
 
-        return_code="${?}"
+            return_code="${?}"
 
-        # Stop edit when canceled.
-        # "130 Interrupted with CTRL-C or ESC"
-        if [[ "${return_code}" -eq 130 ]]; then
-            echo "(canceled)"
-            return
+            # Stop edit when canceled.
+            # "130 Interrupted with CTRL-C or ESC"
+            if [[ "${return_code}" -eq 130 ]]; then
+                echo "(canceled)"
+                return
+            fi
         fi
 
         # Show notice when no file was selected.
@@ -453,6 +459,12 @@ edit() {
     fi
 }
 alias e="edit"
+
+edit_all() {
+    # Edit every candidate file without prompting for fzf selection.
+    EDIT_SELECT_ALL=true edit "${@}"
+}
+alias ea="edit_all"
 
 alias_grep() {
     if [[ -t 0 ]]; then
