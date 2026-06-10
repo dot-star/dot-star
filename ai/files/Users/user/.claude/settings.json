@@ -18,6 +18,16 @@
         ]
       }
     ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "command": "${HOME}/.claude/hooks/log_permission_requests.py",
+            "type": "command"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "hooks": [
