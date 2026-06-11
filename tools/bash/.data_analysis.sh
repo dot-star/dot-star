@@ -324,4 +324,5 @@ sort_json() {
         fi
     done
 }
+alias json_sort="sort_json"
 alias jsonsort="sort_json"
