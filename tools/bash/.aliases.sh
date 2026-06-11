@@ -955,6 +955,7 @@ find_files_by_keyword() {
             -path "*/__pycache__" \
             -o -path "/__pycache__/" \
             -o -iname "*.pyc" \
+            -o -path "*/worktrees" \
             \) \
             -prune \
             -o \
@@ -994,6 +995,7 @@ find_and_edit() {
                 -path "*/__pycache__" \
                 -o -path "/__pycache__/" \
                 -o -iname "*.pyc" \
+                -o -path "*/worktrees" \
                 \) \
                 -prune \
                 -o \
