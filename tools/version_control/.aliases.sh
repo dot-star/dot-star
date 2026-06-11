@@ -164,6 +164,7 @@ alias delete_tag="git tag -d"
 alias df="rc_diff"
 alias dfl.="git_diff_last ."
 alias dfl="git_diff_last"
+alias dflf="git_diff_last_files"
 alias dfm="git_diff_master"
 alias difflast="git_diff_last"
 alias difftool="git difftool"
@@ -452,6 +453,21 @@ git_diff_last() {
         # Display last diff of path when path is specified.
         file_path="${1}"
         git log --max-count=1 --patch "${file_path}"
+    fi
+}
+
+git_diff_last_files() {
+    # List file paths changed in last commit, optionally scoped to a path.
+    clear
+
+    # List files changed in last commit of project when path is not specified.
+    if [[ -z "${1}" ]]; then
+        git log --max-count=1 --name-only --format=
+
+    # List files changed in last commit under path when path is specified.
+    else
+        file_path="${1}"
+        git log --max-count=1 --name-only --format= "${file_path}"
     fi
 }
 
