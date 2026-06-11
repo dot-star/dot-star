@@ -326,3 +326,30 @@ sort_json() {
 }
 alias json_sort="sort_json"
 alias jsonsort="sort_json"
+
+conditional_sort() {
+    # Route ".json" filenames to "sort_json" (jsonsort); send everything else to
+    # the real "sort".
+    # Usage:
+    #   $ sort settings.json
+
+    # Pass a bare "sort" with no arguments to the real "sort" so it reads stdin.
+    if [[ $# -eq 0 ]]; then
+        command sort "${@}"
+        return
+    fi
+
+    # Hand off to the real "sort" for any flag or non-".json" argument, so
+    # "sort -n nums.json" and "sort plain.txt" still line-sort.
+    local arg
+    for arg in "${@}"; do
+        if [[ "${arg}" == -* || "${arg}" != *.json ]]; then
+            command sort "${@}"
+            return
+        fi
+    done
+
+    # Alphabetize the keys of the ".json" files in place via jsonsort.
+    sort_json "${@}"
+}
+alias sort="conditional_sort"
