@@ -7,10 +7,8 @@ claude_session_for_dir() {
     local dir="$1"
     local project_root="$2"
 
-    # Mangle the project root into Claude's project-dir name (every `/` and `.`
-    # becomes `-`): /Users/me/p/.x -> -Users-me-p--x.
-    local key="${project_root//\//-}"
-    key="${key//./-}"
+    # Mangle the project root into Claude's project-dir name.
+    local key="${project_root//[^a-zA-Z0-9]/-}"
     local transcript_dir="${HOME}/.claude/projects/${key}"
 
     # Walk transcripts newest-first and return the first one whose cwd matches;
