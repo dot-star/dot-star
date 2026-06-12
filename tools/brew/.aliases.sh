@@ -24,11 +24,11 @@ if [[ $? -eq 0 ]]; then
     # After:
     #   $ brew update --debug --verbose
     _original_brew="$(which brew)"
-    _brew() {
+    alias_brew() {
         set -x
         "${_original_brew}" $@ --debug --verbose
         set +x
     }
 
-    alias brew="_brew"
+    alias brew="alias_brew"
 fi

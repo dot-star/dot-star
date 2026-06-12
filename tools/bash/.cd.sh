@@ -14,7 +14,7 @@ alias downloads="cd ~/Downloads && l"
 alias dl="downloads"
 alias dlo="downloads && oo && x"
 
-_extensions() {
+extensions() {
     array=(
         "$HOME/Library/Application Support/Google/Chrome/Default/Extensions"
         "$HOME/Library/Application Support/Chromium/Default/Extensions"
@@ -29,8 +29,8 @@ _extensions() {
         fi
     done
 }
-alias extensions="_extensions"
-alias exts="_extensions"
+alias extensions="extensions"
+alias exts="extensions"
 
 alias library="cd ~/Library"
 alias lib="library"

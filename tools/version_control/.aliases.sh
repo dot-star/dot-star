@@ -155,10 +155,10 @@ alias dcommit="git svn dcommit"
 alias default="rc_checkout_default_branch"
 alias delete_branch="git_delete_branch"
 
-_delete_commit() {
+delete_commit() {
     git reset --hard HEAD~1
 }
-alias delete_commit="_delete_commit"
+alias delete_commit="delete_commit"
 
 alias delete_tag="git tag -d"
 alias df="rc_diff"
@@ -239,12 +239,12 @@ alias master="rc_checkout_default_branch"
 alias merge="rc_merge"
 alias n="rc_commit_no_verify"
 alias nv="rc_commit_no_verify"
-_patch_changes() {
+patch_changes() {
     file_name="patch_$(uuidgen).patch"
     git diff >"${file_name}"
     echo "Created patch file: ${file_name}"
 }
-alias patch_changes="_patch_changes"
+alias patch_changes="patch_changes"
 alias patch_last="git format-patch -n HEAD^"
 alias pop="git_stash_pop"
 alias pt="rc_fetch_tags"
@@ -372,13 +372,13 @@ alias tag="git tag"
 alias tags="git tag --list | sort --reverse --version-sort | less -X -F"
 alias unshallow="git fetch --unshallow"
 
-_view_diff() {
+view_diff() {
     commit="${1}"
 
     # View commit diff with headers.
     git log --max-count=1 --patch "${commit}~1" "${commit}"
 }
-alias view_diff="_view_diff"
+alias view_diff="view_diff"
 
 git_config() {
     filename=$(
@@ -973,7 +973,7 @@ rc_push() {
     fi
 }
 
-_git_worktree_age() {
+git_worktree_age() {
     # Print "<rel>\t<mtime>" for when the worktree's HEAD ref was last
     # updated, where <rel> is "X units ago" and <mtime> is Unix seconds.
     # Callers downstream rank by <mtime> to color rows relative to siblings.
@@ -983,7 +983,7 @@ _git_worktree_age() {
     # master's tip would show master's last-commit age instead of the
     # worktree's own age).
     # Usage:
-    #   $ _git_worktree_age <worktree_path> [git_bin]
+    #   $ git_worktree_age <worktree_path> [git_bin]
     local worktree_path="${1}"
     local git_bin="${2:-git}"
     local gitdir head_file mtime now diff value unit rel
@@ -1045,7 +1045,7 @@ _git_worktree_age() {
     printf '%s\t%s\n' "${rel}" "${mtime}"
 }
 
-_git_worktree_list_sorted() {
+git_worktree_list_sorted() {
     # Emit linked worktrees as TSV, sorted by HEAD mtime descending. Columns:
     #   mtime \t entry \t sha \t branch_kept \t name \t rel
     # Excludes the main checkout. branch_kept is empty when the branch matches
@@ -1053,7 +1053,7 @@ _git_worktree_list_sorted() {
     # Used by rc_status's `s` summary and git_worktree_cd's `wt` picker so
     # their row order and numbering line up.
     # Usage:
-    #   $ _git_worktree_list_sorted
+    #   $ git_worktree_list_sorted
 
     # Cache git's absolute path: zsh fails to find it inside the nested
     # $(...) under a `while read` pipeline once dot-star aliases load.
@@ -1063,7 +1063,7 @@ _git_worktree_list_sorted() {
         awk 'NR>1' |
         while read -r entry sha branch; do
             name="${entry##*/}"
-            IFS=$'\t' read -r rel mtime <<<"$(_git_worktree_age "${entry}" "${git_bin}")"
+            IFS=$'\t' read -r rel mtime <<<"$(git_worktree_age "${entry}" "${git_bin}")"
             branch_kept=""
             if [[ "${branch}" != "[worktree-${name}]" ]]; then
                 branch_kept="${branch}"
@@ -1145,7 +1145,7 @@ rc_status() {
                     echo -e "\n\033[1;36m${worktree_count}\033[0m \033[2m${worktree_label}:\033[0m"
 
                     local sorted_worktrees
-                    sorted_worktrees="$(_git_worktree_list_sorted)"
+                    sorted_worktrees="$(git_worktree_list_sorted)"
 
                     # Bind digit aliases `1`..`N` (capped at the 10 visible rows)
                     # to `cd <worktree-path>` so the user can jump to the Nth

@@ -1,7 +1,7 @@
-alias qu="_quilt"
-alias quilt="_quilt"
+alias qu="alias_quilt"
+alias quilt="alias_quilt"
 
-_quilt_new() {
+quilt_new() {
     # Usage:
     #   $ new changes.diff
     #   quilt new changes.diff
@@ -24,7 +24,7 @@ _quilt_new() {
     set +x
 }
 
-_quilt_set_alias() {
+quilt_set_alias() {
     existing_alias_to_override="${1}"
     new_alias_value="${2}"
 
@@ -35,7 +35,7 @@ _quilt_set_alias() {
     alias "${existing_alias_to_override}"="${new_alias_value}"
 }
 
-_quilt_series() {
+quilt_series() {
     # Improve `quilt series' output.
     #
     # Before:
@@ -72,76 +72,76 @@ _quilt_series() {
         perl -pe "s/^(.*)= /\1→ /"
 }
 
-_quilt_pop() {
+quilt_pop() {
     result="$(quilt pop "${@}")"
     exit_code="${?}"
     if [ "${exit_code}" -ne 0 ]; then
         echo "${result}"
         (exit "${exit_code}")
     else
-        _quilt_series
+        quilt_series
     fi
 }
 
-_quilt_push() {
+quilt_push() {
     result="$(quilt push --color="always" "${@}")"
     exit_code="${?}"
     if [ "${exit_code}" -ne 0 ]; then
         echo "${result}"
         (exit "${exit_code}")
     else
-        _quilt_series
+        quilt_series
     fi
 }
 
-_quilt_override_aliases() {
-    _quilt_set_alias "e" "quilt edit"
-    _quilt_set_alias "edit" "quilt edit"
+quilt_override_aliases() {
+    quilt_set_alias "e" "quilt edit"
+    quilt_set_alias "edit" "quilt edit"
 
-    _quilt_set_alias "files" "quilt files"
+    quilt_set_alias "files" "quilt files"
 
-    _quilt_set_alias "n" "_quilt_new"
-    _quilt_set_alias "new" "_quilt_new"
+    quilt_set_alias "n" "quilt_new"
+    quilt_set_alias "new" "quilt_new"
 
-    _quilt_set_alias "o" "_quilt_pop"
-    _quilt_set_alias "po" "_quilt_pop"
-    _quilt_set_alias "pop" "_quilt_pop"
+    quilt_set_alias "o" "quilt_pop"
+    quilt_set_alias "po" "quilt_pop"
+    quilt_set_alias "pop" "quilt_pop"
 
-    _quilt_set_alias "oa" "quilt pop -a"
-    _quilt_set_alias "poa" "quilt pop -a"
-    _quilt_set_alias "popa" "quilt pop -a"
-    _quilt_set_alias "popall" "quilt pop -a"
+    quilt_set_alias "oa" "quilt pop -a"
+    quilt_set_alias "poa" "quilt pop -a"
+    quilt_set_alias "popa" "quilt pop -a"
+    quilt_set_alias "popall" "quilt pop -a"
 
-    _quilt_set_alias "pa" "quilt patches"
-    _quilt_set_alias "patches" "quilt patches"
+    quilt_set_alias "pa" "quilt patches"
+    quilt_set_alias "patches" "quilt patches"
 
-    _quilt_set_alias "pu" "_quilt_push"
-    _quilt_set_alias "pus" "_quilt_push"
-    _quilt_set_alias "push" "_quilt_push"
-    _quilt_set_alias "u" "_quilt_push"
+    quilt_set_alias "pu" "quilt_push"
+    quilt_set_alias "pus" "quilt_push"
+    quilt_set_alias "push" "quilt_push"
+    quilt_set_alias "u" "quilt_push"
 
-    _quilt_set_alias "pua" "quilt push -a"
-    _quilt_set_alias "pusha" "quilt push -a"
-    _quilt_set_alias "pushall" "quilt push -a"
-    _quilt_set_alias "ua" "quilt push -a"
+    quilt_set_alias "pua" "quilt push -a"
+    quilt_set_alias "pusha" "quilt push -a"
+    quilt_set_alias "pushall" "quilt push -a"
+    quilt_set_alias "ua" "quilt push -a"
 
-    _quilt_set_alias "q" "quilt"
+    quilt_set_alias "q" "quilt"
 
-    _quilt_set_alias "r" "quilt refresh"
-    _quilt_set_alias "re" "quilt refresh"
-    _quilt_set_alias "ref" "quilt refresh"
-    _quilt_set_alias "refresh" "quilt refresh"
+    quilt_set_alias "r" "quilt refresh"
+    quilt_set_alias "re" "quilt refresh"
+    quilt_set_alias "ref" "quilt refresh"
+    quilt_set_alias "refresh" "quilt refresh"
 
-    _quilt_set_alias "se" "_quilt_series"
-    _quilt_set_alias "ser" "_quilt_series"
-    _quilt_set_alias "series" "_quilt_series"
+    quilt_set_alias "se" "quilt_series"
+    quilt_set_alias "ser" "quilt_series"
+    quilt_set_alias "series" "quilt_series"
 
-    _quilt_set_alias "t" "quilt top"
-    _quilt_set_alias "to" "quilt top"
-    _quilt_set_alias "top" "quilt top"
+    quilt_set_alias "t" "quilt top"
+    quilt_set_alias "to" "quilt top"
+    quilt_set_alias "top" "quilt top"
 }
 
-_quilt_activate_quilt_mode() {
+quilt_activate_quilt_mode() {
     export _QUILT_MODE_ON="yes"
     export _OLD_QUILT_PS1="${PS1}"
 
@@ -153,10 +153,10 @@ _quilt_activate_quilt_mode() {
     export QUILT_COLORS="diff_hdr=34:diff_add=32:diff_rem=31:diff_hunk=36"
 
     bash
-    _quilt_deactivate_quilt_mode
+    quilt_deactivate_quilt_mode
 }
 
-_quilt_deactivate_quilt_mode() {
+quilt_deactivate_quilt_mode() {
     if [ -n "${_OLD_QUILT_PS1}" ]; then
         export PS1="${_OLD_QUILT_PS1}"
         unset _OLD_QUILT_PS1
@@ -165,11 +165,11 @@ _quilt_deactivate_quilt_mode() {
     fi
 }
 
-_quilt() {
+alias_quilt() {
     if [ "${#}" -ne 0 ]; then
         \quilt "${@}"
     elif [ -z "${_QUILT_MODE_ON}" ]; then
-        _quilt_activate_quilt_mode
+        quilt_activate_quilt_mode
     else
         \quilt "${@}"
     fi
@@ -177,5 +177,5 @@ _quilt() {
 
 if [ -n "${_QUILT_MODE_ON}" ]; then
     export PS1="(quilt) ${PS1}"
-    _quilt_override_aliases
+    quilt_override_aliases
 fi

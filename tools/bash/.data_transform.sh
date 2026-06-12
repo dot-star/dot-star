@@ -3,7 +3,7 @@ alias hd="hexdump"
 alias numeric="sort --numeric-sort"
 alias numeric_sort="sort --numeric-sort"
 
-_strip() {
+alias_strip() {
     script="
 import sys
 for line in sys.stdin.read().splitlines():
@@ -12,13 +12,13 @@ for line in sys.stdin.read().splitlines():
     cat - | python3 -c "${script}"
 }
 
-alias strip="_strip"
-alias trim="_strip"
+alias strip="alias_strip"
+alias trim="alias_strip"
 
 alias lower="tr '[:upper:]' '[:lower:]'"
 alias upper="tr '[:lower:]' '[:upper:]'"
 
-_first() {
+first() {
     # Display first line of output.
     #
     # Usage:
@@ -31,7 +31,7 @@ _first() {
     #  1
     head --lines=1
 }
-alias first="_first"
+alias first="first"
 
 format_xml() {
     # Handle interactive without arguments (e.g. `format_xml').

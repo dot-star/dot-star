@@ -12,7 +12,7 @@ createsuperuser() {
     python manage.py createsuperuser $@
 }
 
-_runserver() {
+runserver() {
     production="${1}"
 
     if "${production}" 2>/dev/null; then
@@ -25,8 +25,8 @@ _runserver() {
 }
 
 alias dbshell="python manage.py dbshell"
-alias devrunserver="_runserver false"
-alias runserver="_runserver true"
+alias devrunserver="runserver false"
+alias runserver="runserver true"
 alias rs="runserver"
 
 shell() {

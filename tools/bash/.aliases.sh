@@ -40,7 +40,7 @@ alias 755="\chmod 755"
 alias 777="\chmod 777"
 alias xsh="chmod +x *.sh"
 
-_require_watchman() {
+require_watchman() {
     which watchman-make &>/dev/null
     if [[ $? -ne 0 ]]; then
         echo -e '\x1b[0;93mWARNING\x1b[0m: watchman-make required'
@@ -57,7 +57,7 @@ _require_watchman() {
     fi
 }
 
-_ls() {
+alias_ls() {
     extra_args="${@}"
     clear
 
@@ -103,7 +103,7 @@ _ls() {
 conditional_l() {
     if [[ -t 0 ]]; then
         # Run `ls' when shell is interactive (e.g. "$ l").
-        _ls "${@}"
+        alias_ls "${@}"
     else
         # Run `less' when shell is non-interactive (e.g. "$ my_command | l").
         less
@@ -577,7 +577,7 @@ case_sensitive_search_edit() {
             results=$(grep --dereference-recursive --files-with-matches --include="*.${extension}" "${keyword}" . "${@:3}")
         fi
 
-        _open_files "${results}"
+        open_files "${results}"
     fi
 }
 alias sse="case_sensitive_search_edit"
@@ -641,7 +641,7 @@ case_insensitive_search_edit() {
             results=$(grep --dereference-recursive --files-with-matches --ignore-case --include="*.${extension}" "${keyword}" . "${@:3}")
         fi
 
-        _open_files "${results}"
+        open_files "${results}"
     fi
 }
 
@@ -687,7 +687,7 @@ alias_tree() {
 alias tree="alias_tree"
 alias t="alias_tree"
 
-_top() {
+alias_top() {
     if ! which htop &>/dev/null; then
         if [[ "$OSTYPE" == "linux-gnu"* ]]; then
             set -x
@@ -705,7 +705,7 @@ _top() {
         fi
     fi
 }
-alias top="_top"
+alias top="alias_top"
 
 alias addrepo="sudo add-apt-repository"
 alias autoclean="sudo apt-get autoclean"
@@ -753,14 +753,14 @@ conditional_x() {
 }
 alias x="conditional_x"
 
-_conditional_q() {
+conditional_q() {
     if [[ "${#}" -eq 0 ]]; then
         quit
     else
         quilt "${@}"
     fi
 }
-alias q="_conditional_q"
+alias q="conditional_q"
 
 alias_open() {
     # Open current directory when no path is specified.
@@ -777,14 +777,14 @@ alias_open() {
     fi
 }
 
-_ip() {
+alias_ip() {
     if [[ -x /sbin/ifconfig ]]; then
         /sbin/ifconfig
     else
         ifconfig -a | grep -o 'inet6\? \(\([0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\)\|[a-fA-F0-9:]\+\)' | sed -e 's/inet6* //' | sort | sed 's/\('$(ipconfig getifaddr en1)'\)/\1 [LOCAL]/'
     fi
 }
-alias ip="_ip"
+alias ip="alias_ip"
 
 alias dotfiles="dotstar"
 alias dotstar="cd ${HOME}/.dot-star && l"
@@ -1005,7 +1005,7 @@ find_and_edit() {
                 \grep --color --ignore-case "${keyword}"
         )
         set +x
-        _open_files "${results}"
+        open_files "${results}"
     fi
 }
 alias fe="find_and_edit"
@@ -1113,14 +1113,14 @@ serve_dir() {
     fi
 }
 
-_run_watchman() {
+run_watchman() {
     loop="${1}"
     pattern_to_watch="${2}"
     cmd_to_run="${3}"
     quiet="${4:-false}"
 
     if ! ${quiet}; then
-        echo "_run_watchman"
+        echo "run_watchman"
         echo "  loop: ${loop}"
         echo "  pattern_to_watch: ${pattern_to_watch}"
         echo "  cmd_to_run: ${cmd_to_run}"
@@ -1236,7 +1236,7 @@ _run_watchman() {
     return "${watchman_exit_code}"
 }
 
-_get_command_for_file_type() {
+get_command_for_file_type() {
     # Add prefix to command based on file name extension.
     python_script=$(
         cat <<'EOF'
@@ -1284,7 +1284,7 @@ watch_dir() {
     #   $ watch_dir --quiet "bash file_changed.sh"
     #   $ while :; do watch_dir; my_alias; done
     #   $ while :; f5_pos="482,425"; do wd; cur_pos="$(cliclick p)"; cliclick "dc:${f5_pos}"; cliclick "c:${cur_pos}"; sleep 1; done
-    _require_watchman
+    require_watchman
 
     quiet=false
     if [[ "${1}" == "--quiet" ]]; then
@@ -1313,13 +1313,13 @@ watch_dir() {
         # doesn't correct detect changes to files within directories.
         pattern_to_watch='**'
         command_or_file_name="${1}"
-        cmd_to_run="$(_get_command_for_file_type "${command_or_file_name}")"
+        cmd_to_run="$(get_command_for_file_type "${command_or_file_name}")"
     else
         echo "Error: 1 parameter required"
         return
     fi
 
-    _run_watchman "${loop}" "${pattern_to_watch}" "${cmd_to_run}" "${quiet}"
+    run_watchman "${loop}" "${pattern_to_watch}" "${cmd_to_run}" "${quiet}"
 }
 alias wd="watch_dir"
 
@@ -1334,7 +1334,7 @@ alias_watch_file() {
     #   $ watch_file script.php
     #   $ watch_file script.py
     #   $ watch_file --quiet file_to_watch.md "clear; glow file_to_watch.md"
-    _require_watchman
+    require_watchman
 
     quiet=false
     if [[ "${1}" == "--quiet" ]]; then
@@ -1348,7 +1348,7 @@ alias_watch_file() {
         loop=true
         pattern_to_watch="${1}"
         command_or_file_name="${1}"
-        cmd_to_run="$(_get_command_for_file_type "${command_or_file_name}")"
+        cmd_to_run="$(get_command_for_file_type "${command_or_file_name}")"
 
     # Watch the specified pattern (parameter 1) for changes and run the
     # specified command (parameter 2) when two parameters are specified.
@@ -1389,7 +1389,7 @@ alias_watch_file() {
         echo "pattern is not root"
     fi
 
-    _run_watchman "${loop}" "${pattern_to_watch}" "${cmd_to_run}" "${quiet}"
+    run_watchman "${loop}" "${pattern_to_watch}" "${cmd_to_run}" "${quiet}"
 }
 alias watch_file="alias_watch_file"
 alias wf="alias_watch_file"
@@ -1481,7 +1481,7 @@ edit_extension_files() {
         if $scss_found; then
             echo "running sasswatch"
             dir="$(dirname "${style_results}")/"
-            _sasswatch "${dir}style.scss"
+            sasswatch "${dir}style.scss"
         fi
     fi
 }
@@ -1679,7 +1679,7 @@ realpath_copy_to_clipboard() {
 }
 alias rpc="realpath_copy_to_clipboard"
 
-_man() {
+alias_man() {
     # Open man pages as html when on a Mac.
     if [[ "${OSTYPE}" == "darwin"* ]]; then
         # Open man pages as html.
@@ -1737,13 +1737,13 @@ _man() {
         # Hint: f=$(mktemp); man -t "$@" > "$f" && ( {some-pdf-viewer} "$f" ; rm "$f" )
     fi
 }
-alias man="_man"
+alias man="alias_man"
 
-_byobu_detach() {
+byobu_detach() {
     /usr/lib/byobu/include/tmux-detach-all-but-current-client
 }
 if [[ ! -z "${BYOBU_WINDOW_NAME}" ]]; then
-    alias detach="_byobu_detach"
+    alias detach="byobu_detach"
 fi
 
 alias by="byobu"
@@ -1822,11 +1822,11 @@ git_worktree_cd() {
         return 1
     fi
 
-    # Prepend a 1-based index to `_git_worktree_list_sorted`'s output so the
+    # Prepend a 1-based index to `git_worktree_list_sorted`'s output so the
     # row numbers match `s`'s listing. Columns:
     #   idx \t mtime \t entry \t sha \t branch_kept \t name \t rel.
     local indexed_list
-    indexed_list="$(_git_worktree_list_sorted | awk -F'\t' '{print NR"\t"$0}')"
+    indexed_list="$(git_worktree_list_sorted | awk -F'\t' '{print NR"\t"$0}')"
     if [[ -z "${indexed_list}" ]]; then
         echo "no linked worktrees"
         return 1
@@ -2425,7 +2425,7 @@ function wget {
 alias wget="wget"
 alias wg="wget"
 
-_conditional_w() {
+conditional_w() {
     if git rev-parse --is-inside-work-tree &>/dev/null; then
         # In a git repo: behave like `wt` (worktree picker / switcher).
         git_worktree_cd "${@}"
@@ -2437,17 +2437,17 @@ _conditional_w() {
         wget "${@}"
     fi
 }
-alias w="_conditional_w"
+alias w="conditional_w"
 
 alias wh="which"
 
-_outdated() {
+outdated() {
     # TODO: Run both `npm outdated' and `brew outdated'.
     npm outdated
 }
-alias outdated="_outdated"
+alias outdated="outdated"
 
-_repeat() {
+alias_repeat() {
     command_with_args_to_repeatedly_do="${@}"
 
     sequence=0
@@ -2464,9 +2464,9 @@ _repeat() {
         sleep 1
     done
 }
-alias repeat="_repeat"
+alias repeat="alias_repeat"
 
-_repeat_wd() {
+repeat_wd() {
     # Watch directory, run command (or alias!), repeat.
     #
     # $ wdrepeat yarn lint
@@ -2487,7 +2487,7 @@ _repeat_wd() {
     sleep 1
 
     # Create a new tab and send a command to it.
-    # TODO: Display command being run and horizontal rule between each execution as in _repeat().
+    # TODO: Display command being run and horizontal rule between each execution as in alias_repeat().
     screen -S "${screen_name}" -X "screen" -t "my_screen_1"
     screen -S "${screen_name}" -p "my_screen_1" -X stuff "while :; do watch_dir; ${command_with_args_to_repeatedly_do}; done"$'\n'
 
@@ -2497,14 +2497,14 @@ _repeat_wd() {
     # Attach.
     screen -r "${screen_name}"
 }
-alias repeatwd="_repeat_wd"
-alias wdrepeat="_repeat_wd"
+alias repeatwd="repeat_wd"
+alias wdrepeat="repeat_wd"
 
 alias md="mkdir"
 
 alias dsstore="find . -name \".DS_Store\" -type f -print -delete"
 
-_zip_clean() {
+zip_clean() {
     archive_path="${1}"
 
     before="$(unzip -l "${archive_path}")"
@@ -2515,13 +2515,13 @@ _zip_clean() {
 
     diff_strings_like_files "${before}" "${after}"
 }
-alias zip_clean="_zip_clean"
+alias zip_clean="zip_clean"
 
-_python_check_syntax() {
+python_check_syntax() {
     filename="${1}"
     python3 -m py_compile "${filename}"
 }
-alias python_check_syntax="_python_check_syntax"
+alias python_check_syntax="python_check_syntax"
 
 brew_update() {
     brew update
@@ -2565,15 +2565,15 @@ alias a="conditional_a"
 # Attempt to install pipdeptree as pip-sync or similar may have uninstalled it.
 alias pipdeptree="pip install pipdeptree; pipdeptree"
 
-_conditional_hs() {
+conditional_hs() {
     if [[ ${#} -eq 0 ]]; then
         cd ~/.hammerspoon/ && l
     else
         "$(which hs)" $@
     fi
 }
-alias .hs="_conditional_hs"
-alias hs="_conditional_hs"
+alias .hs="conditional_hs"
+alias hs="conditional_hs"
 
 remove_pycache_directories() {
     # Remove pycache directories.
@@ -2602,7 +2602,7 @@ remove_empty_directories() {
 alias rm_empty_dir="remove_empty_directories"
 alias rmdir_empty="remove_empty_directories"
 
-_calendar() {
+alias_calendar() {
     # Allow passing arbitrary dates to calendar.
     #
     # before:
@@ -2660,9 +2660,9 @@ EOF
 
     /usr/bin/cal -m "${month}" "${year}"
 }
-alias cal="_calendar"
+alias cal="alias_calendar"
 
-_open_files() {
+open_files() {
     results="${1}"
     result_count=$(echo "${results}" | count_lines)
 

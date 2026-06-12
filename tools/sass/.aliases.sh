@@ -10,7 +10,7 @@ require_sass() {
     fi
 }
 
-_sasswatch() {
+sasswatch() {
     # Usage:
     #   $ sasswatch
     #   sass [...] --watch "style.scss:style.css"
@@ -71,5 +71,5 @@ _sasswatch() {
         set +x
     fi
 }
-alias sasswatch="_sasswatch"
-alias sw="_sasswatch"
+alias sasswatch="sasswatch"
+alias sw="sasswatch"

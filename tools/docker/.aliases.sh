@@ -1,4 +1,4 @@
-_require_docker() {
+require_docker() {
     if [[ "${OSTYPE}" == "darwin"* ]]; then
         if [[ ! -d "/Applications/Docker.app" ]]; then
             echo -e '\x1b[0;93mWARNING\x1b[0m: docker required'
@@ -85,7 +85,7 @@ docker_image_prune() {
 }
 
 alias_docker() {
-    _require_docker
+    require_docker
 
     # Run docker only if is not already running.
     if (! docker stats --no-stream &>/dev/null); then

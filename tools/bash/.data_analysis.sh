@@ -1,4 +1,4 @@
-_pretty_diff_filter() {
+pretty_diff_filter() {
     # Pipe diff conditionally through the highlight chain based on installed tools.
     if $DIFF_HIGHLIGHT_INSTALLED && $COLORDIFF_INSTALLED; then
         diff_highlight | colordiff
@@ -23,7 +23,7 @@ alias_before_after() {
 
     # Run once initially to show the current diff.
     diff --unified "${before_file_name}" "${after_file_name}" |
-        _pretty_diff_filter
+        pretty_diff_filter
 
     # Run repeatedly to update the diff displayed as the files are modified.
     while :; do
@@ -31,7 +31,7 @@ alias_before_after() {
         exit_code="${?}"
         if [[ "${exit_code}" -eq 0 ]]; then
             diff --unified "${before_file_name}" "${after_file_name}" |
-                _pretty_diff_filter
+                pretty_diff_filter
         else
             return "${exit_code}"
         fi
@@ -100,7 +100,7 @@ difference() {
     fi
     if [[ "${exit_code}" -eq 1 ]]; then
         if [[ -t 1 ]]; then
-            echo "${diff_result}" | _pretty_diff_filter | less -R
+            echo "${diff_result}" | pretty_diff_filter | less -R
         else
             echo "${diff_result}"
         fi
@@ -114,7 +114,7 @@ difference() {
     return "${exit_code}"
 }
 
-_diff_line_numbers() {
+diff_line_numbers() {
     # Usage:
     #   diff_line_numbers $filename1 $start1 $stop1 $filename2 $start2 $stop2
     #   diff_line_numbers file1.py 80 142 file2.py 144 229
@@ -153,7 +153,7 @@ _diff_line_numbers() {
         fi |
         less -R
 }
-alias diff_line_numbers="_diff_line_numbers"
+alias diff_line_numbers="diff_line_numbers"
 
 # Wrap jq command to allow debugging a jq filter interactively.
 # To use, run `jq $filename'. Press return when the desired filter has been

@@ -3,7 +3,7 @@ pomodoro() {
     #   Volume with headphones: 0.25
     #   Volume with laptop speakers: 0.5
 
-    _play_media() {
+    play_media() {
         local prompt="${1}"
 
         read < <(
@@ -26,7 +26,7 @@ pomodoro() {
         fi
     }
 
-    _countdown_from() {
+    countdown_from() {
         starting_sec="${1}"
         hint="${2}"
 
@@ -42,16 +42,16 @@ pomodoro() {
     while :; do
         ceol="$(tput el)"
 
-        _countdown_from "${TASK_SEC}" "task"
+        countdown_from "${TASK_SEC}" "task"
         echo -e -n "\r${ceol}"
-        _play_media "Press any key to start your break or press [q] to quit: "
+        play_media "Press any key to start your break or press [q] to quit: "
         if [ $? -ne 0 ]; then
             break
         fi
 
-        _countdown_from "${BREAK_SEC}" "break"
+        countdown_from "${BREAK_SEC}" "break"
         echo -e -n "\r${ceol}"
-        _play_media "Resume your task by pressing any key or press [q] to quit: "
+        play_media "Resume your task by pressing any key or press [q] to quit: "
         if [ $? -ne 0 ]; then
             break
         fi
