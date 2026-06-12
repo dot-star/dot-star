@@ -21,7 +21,7 @@ claude_session_for_dir() {
             basename "${transcript}" .jsonl
             return 0
         fi
-    done < <(\ls -t "${transcript_dir}"/*.jsonl 2>/dev/null)
+    done < <(\find "${transcript_dir}" -maxdepth 1 -name '*.jsonl' -exec \ls -t {} + 2>/dev/null)
 
     return 1
 }
