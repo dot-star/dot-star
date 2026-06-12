@@ -160,7 +160,7 @@ alias diff_line_numbers="_diff_line_numbers"
 # entered. The entered filter will be displayed and put in the clipboard for
 # immediate use.
 alias_jq() {
-    _require_jq
+    require_jq
 
     export JQ_COLORS="1;37:0;33:0;33:0;31:0;32:1;39:1;39"
 
@@ -279,7 +279,7 @@ else:
 alias jq="alias_jq"
 alias pretty="alias_jq"
 
-_is_valid_json() {
+is_valid_json() {
     # Succeed when the file parses as JSON. Bypass the "jq" alias (alias_jq).
     command jq empty "${1}" &>/dev/null
 }
@@ -289,7 +289,7 @@ sort_json() {
     # Usage:
     #   $ jsonsort file.json
 
-    _require_jq
+    require_jq
 
     if [[ $# -eq 0 ]]; then
         echo "Usage: jsonsort <file.json> [file.json ...]"
@@ -301,7 +301,7 @@ sort_json() {
         if [[ ! -f "${file}" ]]; then
             echo "Error: not a file: ${file}"
             return 1
-        elif ! _is_valid_json "${file}"; then
+        elif ! is_valid_json "${file}"; then
             echo "Error: invalid JSON: ${file}"
             return 1
         fi

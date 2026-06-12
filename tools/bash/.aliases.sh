@@ -2621,7 +2621,7 @@ _calendar() {
     #   20 21 22 23 24 25 26
     #   27 28 29 30 31
 
-    _require_jq
+    require_jq
 
     user_date="${@}"
     # echo "user date: ${user_date}"

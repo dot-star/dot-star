@@ -1,4 +1,4 @@
-_require_jq() {
+require_jq() {
     command jq --help &>/dev/null
     exit_code="${?}"
 
