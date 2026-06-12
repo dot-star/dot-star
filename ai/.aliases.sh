@@ -183,7 +183,7 @@ EOF
     response="$(
         claude --print --tools "" --output-format=json "${prompt}"
     )"
-    echo "${response}" |
+    printf '%s\n' "${response}" |
         \jq --raw-output '.result' |
         \grep --only-matching '\[.*\]' |
         \jq --raw-output '.[]'
