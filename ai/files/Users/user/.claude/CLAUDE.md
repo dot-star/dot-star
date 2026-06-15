@@ -108,6 +108,8 @@ Style guides live under `~/.claude/styles/`. Don't bulk-load them all; instead, 
     > Want me to commit this as a
     >   **`[f]ollow-up`**, or
     >   **`[a]mend`** the previous commit?
+
+    Keep the stem free of a bare ` or ` enumeration of the choices: either end it before the options (as above, where ` or ` sits on a bracketed line) or make it a neutral question (`How should I handle this?`). Re-stating the choices in the stem (`Want me to commit, or land it?`) is redundant with the brackets below and trips the `check_bracket_prefix.sh` stop hook, which reads the stem line in isolation.
   - **Bracket every option, no exceptions:** wrap the whole option (bracket prefix + remainder) in a single bold inline-code span so the brackets, inner letter(s), and remainder share one color and weight. Source form is `**` + `` ` `` + `[` + letter(s) + `]` + remainder + `` ` `` + `**`.
   - **Reply:** accept the bracketed prefix (case-insensitive) as a complete reply and map it back to the full option.
   - **On letter collisions:** prefer the single-letter prefix; extend to multi-character (rendered **`[am]end`** vs **`[ad]d`**) only when two options would otherwise share the same letter. Case never disambiguates, since matching is case-insensitive: **`[d]iff`** vs **`[D]iff+args`** both map to `d` and the second is unpickable, so go multi-character instead (e.g. **`[de]xact`** vs **`[da]rgs`**).
