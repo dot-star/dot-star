@@ -35,8 +35,3 @@ display_confirm_prompt_info() {
     #   response="$(display_confirm_prompt_info "Create file?")"
     display_confirm_prompt "0;96" "${1}"
 }
-
-display_confirm_prompt() {
-    # Back-compat alias for display_confirm_prompt_caution.
-    display_confirm_prompt_caution "${1}"
-}
