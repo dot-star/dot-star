@@ -121,6 +121,9 @@ def strip_exempt(text):
     # Strip inline code spans; the acronym would be a code identifier there.
     text = re.sub(r"`[^`]*`", " ", text)
 
+    # Strip Jira issue keys; the project prefix is an identifier, not prose.
+    text = re.sub(r"\b[A-Z]{2,}-\d+\b", " ", text)
+
     return text
 
 
