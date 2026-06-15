@@ -58,6 +58,7 @@ WHITELIST = {
     "LLC",
     "OK",
     "OS",
+    "PHP",
     "PM",
     "PR",
     "RAM",
