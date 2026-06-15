@@ -36,6 +36,18 @@
     "expected": "block"
   },
   {
+    "name": "block-layout stem with bracketed options beneath",
+    "msg": "Want me to commit this in the worktree, or also land it?\n  **`[c]ommit`** (stay in the worktree),\n  **`[p]romote`** (keep the worktree), or\n  **`[L]and`** (tear the worktree down)?",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "quoted example question in backticks",
+    "msg": "The stem line `Want me to commit, or also land it?` has ` or ` but no `[x]` token, so the function bails.",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
     "name": "compliant single-letter brackets",
     "msg": "Want me to **`[c]ommit`** or **`[s]top`**?",
     "stop": false,

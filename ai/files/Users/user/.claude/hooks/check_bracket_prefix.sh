@@ -10,7 +10,7 @@ set -euo pipefail
 
 input=$(cat)
 
-# Avoid re-blocking once Claude is already re-running after a Stop block.
+# Skip re-blocking once Claude is already re-running after a Stop block.
 stop_hook_active=$(printf '%s' "${input}" |
     command jq --raw-output '.stop_hook_active // false')
 if [ "${stop_hook_active}" = "true" ]; then
@@ -24,30 +24,64 @@ if [ -z "${msg}" ]; then
 fi
 
 # Strip fenced code blocks so `or` inside code samples doesn't trigger.
-# Keep inline code spans intact because the `[x]remainder` token lives in `...`.
 prose=$(printf '%s\n' "${msg}" |
     sed -E '/^```/,/^```/d')
 
-# Walk each ?-terminated candidate sentence.
+bracket_re='\[[a-zA-Z]{1,3}\][a-zA-Z]'
+
 violations=()
-while IFS= read -r sentence; do
-    if [ -z "${sentence}" ]; then
+
+# Flag uncovered alternative questions in one blank-line-delimited paragraph.
+# A compliant block layout puts the stem on its own line and the bracketed
+# options beneath it (per CLAUDE.md), so a `[x]remainder` token anywhere in the
+# paragraph clears every line in it; judge brackets per paragraph, not per line.
+check_paragraph() {
+    local para="$1"
+    if printf '%s' "${para}" | grep --quiet --extended-regexp "${bracket_re}"; then
+        return
+    fi
+
+    local line
+    local stripped
+    local trimmed
+
+    while IFS= read -r line; do
+        # Strip inline-code spans so a quoted example like `... or ...?` reads as
+        # plain prose with no live question.
+        stripped=$(printf '%s' "${line}" | sed -E 's/`[^`]*`//g')
+        if ! printf '%s' "${stripped}" | grep --quiet --fixed-strings ' or '; then
+            continue
+        fi
+        if ! printf '%s' "${stripped}" | grep --quiet --fixed-strings '?'; then
+            continue
+        fi
+        trimmed=$(printf '%s' "${line}" |
+            sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
+        if [ -n "${trimmed}" ]; then
+            violations+=("${trimmed}")
+        fi
+    done <<<"${para}"
+}
+
+# Accumulate lines into paragraphs, flushing each at a blank line.
+para=""
+while IFS= read -r line || [ -n "${line}" ]; do
+    if [ -z "${line}" ]; then
+        if [ -n "${para}" ]; then
+            check_paragraph "${para}"
+            para=""
+        fi
         continue
     fi
-    if ! printf '%s' "${sentence}" | grep --quiet --extended-regexp ' or '; then
-        continue
+    if [ -z "${para}" ]; then
+        para="${line}"
+    else
+        para+=$'\n'"${line}"
     fi
-    if printf '%s' "${sentence}" | grep --quiet --extended-regexp '\[[a-zA-Z]{1,3}\][a-zA-Z]'; then
-        continue
-    fi
-    trimmed=$(printf '%s' "${sentence}" |
-        tr -d '\n' |
-        sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
-    if [ -n "${trimmed}" ]; then
-        violations+=("${trimmed}")
-    fi
-done < <(printf '%s' "${prose}" |
-    grep --only-matching --extended-regexp '[^.!?]*\?' || true)
+done <<<"${prose}"
+if [ -n "${para}" ]; then
+    check_paragraph "${para}"
+fi
 
 if [ "${#violations[@]}" -eq 0 ]; then
     exit 0
