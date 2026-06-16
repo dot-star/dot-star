@@ -82,6 +82,7 @@ Style guides live under `~/.claude/styles/`. Don't bulk-load them all; instead, 
 ## Output
 
 - Never use em dashes (—) in any output, code, comments, commit messages, or PR descriptions. Use a comma, parentheses, semicolon, or two sentences instead.
+- Write a negative imperative as the contraction `don't`/`DON'T`, not the spelled-out `do not`/`Do NOT`; preserve any emphasis casing (so `Do NOT repoint at prod` → `DON'T repoint at prod`).
 - Write for the human who'll read it, not for yourself or an AI: PR titles/descriptions/comments, commit messages, and person-to-person comms all reach someone who may not share your context. Prefer the term that lands fastest for that reader (the common everyday word) over the technically-precise, formal, or insider one.
 - Never emit `cb`, `r`, `trix`, or `wt` as standalone tokens in own output; always expand to "clipboard" / "root" / "spreadsheet" / "worktree". These are input-only shorthand (see the Shorthand section above) and reading them back as jargon obscures meaning.
 - Spell out niche or insider technical acronyms in prose rather than abbreviating: write "infrastructure as code", not "IaC". Keep only acronyms a reader skims without expansion (API, AWS, URL, PR). Pre-send check: scan output for all-caps tokens of 2+ letters; each must be whitelisted or spelled out.
