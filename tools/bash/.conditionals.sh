@@ -1,6 +1,6 @@
 conditional_b() {
     if [[ $# -eq 0 ]]; then
-        branches
+        bell
     else
         bak "${@}"
     fi
