@@ -532,6 +532,19 @@ fin() {
     fi
 }
 
+bell() {
+    # Ring the terminal bell, passing piped input through unchanged.
+    # Usage:
+    #   $ long_command; bell
+    #   $ long_command | bell
+    if [[ ! -t 0 ]]; then
+        # Pass piped input through to stdout before ringing (e.g. "$ make | bell").
+        cat
+    fi
+
+    printf '\a'
+}
+
 case_sensitive_search() {
     param_count="${#}"
 
