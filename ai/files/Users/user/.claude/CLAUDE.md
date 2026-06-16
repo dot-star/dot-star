@@ -62,7 +62,7 @@ Style guides live under `~/.claude/styles/`. Don't bulk-load them all; instead, 
   - `cont` means "continue"
   - `re` means "retry"
   - `eg`, `examples` mean "show me examples"
-  - `flow`, `ascii`, `ascii flow` mean "render the thing under discussion (a pipeline, control flow, data flow, architecture) as an ASCII diagram with boxes and arrows"
+  - `flow`, `ascii`, `ascii flow` mean "render the thing under discussion (a pipeline, control flow, data flow, architecture) as a text diagram with boxes and arrows, using box-drawing and tree-branch glyphs (`└─` `├─` `│` `→`) where they read cleaner than plain ASCII (`+` `-` `|`)"
   - `defend`, `prove` mean "defend/prove the prior reply" (justify each claim or item in it)
   - `harden`, `bake`, `firm` mean "strengthen the rule i just hit" by tightening it in `CLAUDE.md` or the matching `CLAUDE_*.md` sibling, or promoting it there from memory if that's where it lives. Memory isn't durable enough to harden into.
   - `t`, `trim` mean "condense whatever we're working on (a comment, a sentence, a rule, a block of code) without losing meaning": rewrite it shorter while preserving every constraint or detail, and flag anything that can't be cut rather than dropping it silently.
