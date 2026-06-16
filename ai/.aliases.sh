@@ -214,6 +214,49 @@ alias clcm="claude_git_commit"
 alias cma="claude_git_commit"
 alias cmc="claude_git_commit"
 
+claude_git_stash() {
+    # Stash the working tree now and return immediately; an AI-written summary
+    # replaces the default stash message in the background.
+
+    # Stash first (including untracked) so the working tree clears right away;
+    # drafting the summary calls claude and would otherwise block the prompt.
+    if ! git stash push --include-untracked; then
+        return 1
+    fi
+
+    # Pin the entry by commit so the background relabel targets this exact stash
+    # even if another push lands on top before the summary returns.
+    local stash_sha
+    stash_sha="$(git rev-parse 'stash@{0}')"
+
+    # Summarize off the main shell: draft a message from the stash's own diff,
+    # then rewrite the entry by dropping it and re-storing the same commit under
+    # the new message, since git has no in-place stash-message edit.
+    (
+        local diff summary
+        diff="$(git stash show --patch --include-untracked "${stash_sha}")"
+        summary="$(
+            claude_draft_commit_message_options "" "${diff}" |
+                head --lines=1
+        )"
+        if [[ -z "${summary}" ]]; then
+            exit 0
+        fi
+
+        # Relabel only while the entry is still on top, so a stash pushed during
+        # the draft isn't silently reordered by the re-store.
+        if [[ "$(git rev-parse 'stash@{0}')" == "${stash_sha}" ]]; then
+            git stash drop --quiet 'stash@{0}'
+            git stash store --message "${summary}" "${stash_sha}"
+            echo "✅ stash@{0}: ${summary}" >&2
+        fi
+    ) &
+}
+
+# Adding various. Let's see which one sticks.
+alias cstash="claude_git_stash"
+alias stashc="claude_git_stash"
+
 claude_display_commit_message_options() {
     # Draft commit-message options for the staged diff (or the diff in $2) and
     # print them, one per line:
