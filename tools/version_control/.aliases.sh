@@ -1436,6 +1436,33 @@ open_pull_request() {
 
 alias pr="open_pull_request"
 
+git_pr_authors() {
+    # List the top authors of files in the current PR, excluding yourself, to
+    # surface who knows the code (likely reviewers).
+    if ! is_git; then
+        echo "Not a git repository."
+        return 1
+    fi
+
+    local me="$(git config user.name)"
+    local files
+    files="$(gh pr view --json files --jq '.files[].path')"
+    if [[ -z "${files}" ]]; then
+        echo "No pull request found for the current branch."
+        return 1
+    fi
+
+    git log --format='%an' -- ${files} |
+        \grep --invert-match --fixed-strings "${me}" |
+        sort |
+        uniq -c |
+        sort --reverse --numeric-sort |
+        head --lines=10
+}
+alias prr="git_pr_authors"
+alias reviewers="git_pr_authors"
+alias whoknows="git_pr_authors"
+
 conditional_gh() {
     # Open the current repository or list repositories; passthrough to gh
     # otherwise.
