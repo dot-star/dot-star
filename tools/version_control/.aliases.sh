@@ -1096,8 +1096,13 @@ git_worktree_list_sorted() {
 
     # Cache git's absolute path: zsh fails to find it inside the nested
     # $(...) under a `while read` pipeline once dot-star aliases load.
+    # Drop the `git` alias inside the subshell first; otherwise `command -v`
+    # reports the alias definition instead of the binary path.
     local git_bin
-    git_bin="$(\command -v git)"
+    git_bin="$(
+        unalias git 2>/dev/null
+        \command -v git
+    )"
     git worktree list |
         awk 'NR>1' |
         while read -r entry sha branch; do
