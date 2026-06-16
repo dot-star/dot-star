@@ -471,6 +471,33 @@ git_diff_last_files() {
     fi
 }
 
+git_edit_last_files() {
+    # Open files changed in the last commit in the editor, optionally scoped to
+    # a path.
+    local root_dir
+    root_dir="$(git rev-parse --show-toplevel)"
+
+    # Collect the changed paths, skipping the blank lines the empty --format
+    # emits between commits.
+    local paths=()
+    while IFS= read -r file; do
+        if [[ -n "${file}" ]]; then
+            # Anchor each path to the repo root so the files open regardless of
+            # the current directory.
+            paths+=("${root_dir}/${file}")
+        fi
+    done < <(git log --max-count=1 --name-only --format= "${@}")
+
+    if [[ ${#paths[@]} -eq 0 ]]; then
+        echo "No files changed in last commit."
+        return
+    fi
+
+    edit "${paths[@]}"
+}
+alias vdfl="git_edit_last_files"
+alias vdflf="git_edit_last_files"
+
 git_ignore() {
     touch .gitignore
     vim .gitignore
