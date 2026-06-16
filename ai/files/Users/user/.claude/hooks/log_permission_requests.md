@@ -3,7 +3,7 @@
 A `PermissionRequest` hook (no matcher, so every tool) that appends the
 permissions a request needed to a growing array at
 `~/.claude/permission-requests.json`. Review that file later to decide which
-rules to promote into a real allowlist (`triage-permissions`).
+rules to promote into a real allowlist by hand.
 
 It only ever *appends* and prints nothing, so it never allows or denies; the
 permission prompt is untouched.

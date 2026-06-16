@@ -93,10 +93,6 @@
             "type": "command"
           },
           {
-            "command": "${HOME}/.claude/hooks/triage_nudge.sh",
-            "type": "command"
-          },
-          {
             "command": "${HOME}/.claude/hooks/load_claude_md_supplementals.sh",
             "type": "command"
           },
@@ -230,7 +226,6 @@
       "Read(~/Projects/dot-star/tools/zsh/**)",
       "Skill(codify)",
       "Skill(commit)",
-      "Skill(triage-permissions)",
       "Skill(try)",
       "Skill(untry)",
       "Skill(update-config)",
