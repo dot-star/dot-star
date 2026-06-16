@@ -3,8 +3,9 @@
 # Stop hook: enforce the bracket-prefix rule for inline-prose alternative
 # questions (per ~/.claude/CLAUDE.md, Output > inline binary/ternary asks).
 # Block when the last assistant message contains a ?-terminated sentence
-# that offers alternatives (` or `) but lacks any `[x]remainder` accept-prefix
-# token, and feed the violations back so Claude rewrites the question.
+# that offers alternatives (` or `) or pitches a commit/land/promote/push
+# follow-up but lacks any `[x]remainder` accept-prefix token, and feed the
+# violations back so Claude rewrites the question.
 
 set -euo pipefail
 
@@ -29,6 +30,11 @@ prose=$(printf '%s\n' "${msg}" |
 
 bracket_re='\[[a-zA-Z]{1,3}\][a-zA-Z]'
 
+# Match a follow-up offer to commit/land/promote/push; these need bracket
+# options even when phrased as a bare yes/no question with no ` or `.
+offer_re='want me to|should i|shall i'
+action_re='commit|land|promote|push'
+
 violations=()
 
 # Flag uncovered alternative questions in one blank-line-delimited paragraph.
@@ -44,17 +50,36 @@ check_paragraph() {
     local line
     local stripped
     local trimmed
+    local is_alternative
+    local is_offer
 
     while IFS= read -r line; do
         # Strip inline-code spans so a quoted example like `... or ...?` reads as
         # plain prose with no live question.
         stripped=$(printf '%s' "${line}" | sed -E 's/`[^`]*`//g')
-        if ! printf '%s' "${stripped}" | grep --quiet --fixed-strings ' or '; then
-            continue
-        fi
+
+        # Require a live question; every judgment below targets a `?`-bearing line.
         if ! printf '%s' "${stripped}" | grep --quiet --fixed-strings '?'; then
             continue
         fi
+
+        is_alternative=false
+        if printf '%s' "${stripped}" | grep --quiet --fixed-strings ' or '; then
+            is_alternative=true
+        fi
+
+        # Pair an offer lead (want me to / should i) with a staging verb so a
+        # status question like "Did the commit land?" stays clear of the net.
+        is_offer=false
+        if printf '%s' "${stripped}" | grep --quiet --ignore-case --extended-regexp "${offer_re}" &&
+            printf '%s' "${stripped}" | grep --quiet --ignore-case --extended-regexp "${action_re}"; then
+            is_offer=true
+        fi
+
+        if [ "${is_alternative}" = false ] && [ "${is_offer}" = false ]; then
+            continue
+        fi
+
         trimmed=$(printf '%s' "${line}" |
             sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
         if [ -n "${trimmed}" ]; then

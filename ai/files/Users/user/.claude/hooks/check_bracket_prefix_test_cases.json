@@ -36,6 +36,18 @@
     "expected": "block"
   },
   {
+    "name": "bare commit offer without 'or'",
+    "msg": "Want me to commit this in a worktree?",
+    "stop": false,
+    "expected": "block"
+  },
+  {
+    "name": "bare land offer without 'or'",
+    "msg": "Should I land it?",
+    "stop": false,
+    "expected": "block"
+  },
+  {
     "name": "block-layout stem with bracketed options beneath",
     "msg": "Want me to commit this in the worktree, or also land it?\n  **`[c]ommit`** (stay in the worktree),\n  **`[p]romote`** (keep the worktree), or\n  **`[L]and`** (tear the worktree down)?",
     "stop": false,
@@ -74,6 +86,12 @@
   {
     "name": "statement containing 'or' but no question mark",
     "msg": "I'll commit it or amend if you prefer.",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "status question names a staging verb but makes no offer",
+    "msg": "Did the commit land cleanly?",
     "stop": false,
     "expected": "pass"
   },
