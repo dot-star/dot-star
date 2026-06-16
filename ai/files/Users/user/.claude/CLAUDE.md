@@ -154,15 +154,15 @@ Style guides live under `~/.claude/styles/`. Don't bulk-load them all; instead, 
 
   The trailing ask keeps its own 👉 even as the closing line, since it's the part needing a reply; never let the opener's emoji stand in for it.
 
-  **🏁 checklist convention:** always follow the 🏁 line with a checklist (one bullet per step that actually happened), so the completion is self-verifying instead of one easily-under-reported sentence. Each bullet leads with the marker matching its state:
+  **🏁 checklist convention:** always follow the 🏁 line with a checklist (one bullet per step that actually happened), so the completion is self-verifying instead of one easily-under-reported sentence. Keep each bullet an ultra-brief fragment, not a sentence: lead with the state marker, then the bare fact (a count, a flag in parentheses), nothing more. Skip commit hashes and ref ranges; they're noise nobody checks in a recap. Markers:
     - ✅ a step that completed.
     - ⏸️ a step intentionally left ongoing (e.g. `⏸️ Worktree kept (fix-foo) for continued work` on a promote).
+    - 🪓 the worktree teardown, always the fixed `🪓 Worktree removed` (no worktree name; it's always this session's own, and the branch deletion is bundled into the removal, so don't list it separately).
 
     For a worktree land/promote, the steps in lifecycle order:
-    - committed (N commits);
-    - promoted to master (fast-forwarded `old..new`);
-    - pushed to `<remote>`;
-    - worktree torn down (✅) or kept (⏸️, for promote);
-    - branch `<name>` deleted.
+    - ✅ Committed N commits;
+    - ✅ Fast-forwarded master;
+    - ✅ Pushed to `<remote>` (omit this line entirely when the branch has no upstream; push never fired, so there's nothing to report, not even a ⏸️);
+    - 🪓 Worktree removed (land) or ⏸️ Worktree kept (promote).
 
     List only the steps that fired; for other objectives use whatever steps composed the work.
