@@ -704,6 +704,18 @@ git_shows() {
     fi
 }
 
+git_with_warnings() {
+    # Pass git's stderr through grep so WARNING-style lines stand out
+    # (forced updates, GitHub security notices, bare WARNING markers).
+    # Leave stdout and pagers untouched.
+    command git "${@}" 2> >(
+        GREP_COLORS="mt=01;38;5;208" \
+            \grep --line-buffered --color=always --extended-regexp \
+            'WARNING|warning|forced update|vulnerabilit(y|ies)|^remote: GitHub|$' >&2
+    )
+}
+alias git="git_with_warnings"
+
 is_g() {
     search=$(find . -mindepth 1 -maxdepth 1 -type f -print -quit | xargs g4 log -m 1 2>/dev/null)
     if [ ! -z "${search}" ]; then
