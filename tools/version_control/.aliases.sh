@@ -1119,26 +1119,26 @@ git_worktree_list_sorted() {
 
 stack_renamed_paths() {
     # Stack each `git status` rename onto three lines: a bare "renamed:" label,
-    # then the old and new paths beneath it as a red "-"/green "+" diff. The one
-    # diverging path component is reverse-video'd (a red/green background block,
-    # the same emphasis `diff-highlight` gives a changed span) so the move pops
-    # out of the shared prefix and suffix. Every other line passes through
+    # then the old and new paths beneath it as a bold red "-"/green "+" diff. The
+    # whole diverging path component(s) (between the shared leading and trailing
+    # components) get a muted dark red/green background block, so the move pops
+    # out of the unchanged surroundings. Every other line passes through
     # untouched.
     awk '
         # Render one path as a diff line: "<marker> <path>" in <base> color, with
-        # the components from index from+1..to in reverse video as the changed span.
-        function paint(arr, n, from, to, base, marker,   i, out) {
+        # the components from index from+1..to on the <seg> background.
+        function paint(arr, n, from, to, base, seg, marker,   i, out) {
             out = base marker
             for (i = 1; i <= n; i++) {
                 if (i > 1) {
                     out = out "/"
                 }
                 if (i == from + 1 && to >= from + 1) {
-                    out = out "\033[7m"
+                    out = out "\033[m" seg
                 }
                 out = out arr[i]
                 if (i == to && to >= from + 1) {
-                    out = out "\033[27m"
+                    out = out "\033[m" base
                 }
             }
             return out "\033[m"
@@ -1179,7 +1179,7 @@ stack_renamed_paths() {
             new = substr(body, sep + 4)
 
             # Find the shared leading (p) and trailing (sfx) path components so
-            # only the differing middle gets the reverse-video span.
+            # the whole differing middle component(s) get the background block.
             no = split(old, oa, "/")
             nn = split(new, na, "/")
             p = 0
@@ -1193,8 +1193,8 @@ stack_renamed_paths() {
 
             print indent color "renamed:" reset
             if (reset != "") {
-                print indent "    " paint(oa, no, p, no - sfx, "\033[31m", "- ")
-                print indent "    " paint(na, nn, p, nn - sfx, "\033[32m", "+ ")
+                print indent "    " paint(oa, no, p, no - sfx, "\033[1;31m", "\033[1;31;48;5;52m", "- ")
+                print indent "    " paint(na, nn, p, nn - sfx, "\033[1;32m", "\033[1;32;48;5;22m", "+ ")
             } else {
                 print indent "    - " old
                 print indent "    + " new
