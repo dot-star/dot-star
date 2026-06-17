@@ -1119,7 +1119,7 @@ git_worktree_list_sorted() {
 
 stack_renamed_paths() {
     # Stack each `git status` rename onto three lines: a bare "renamed:" label,
-    # then the old and new paths beneath it as a bold red "-"/green "+" diff. The
+    # then the old and new paths beneath it as a red "-"/green "+" diff. The
     # whole diverging path component(s) (between the shared leading and trailing
     # components) get a muted dark red/green background block, so the move pops
     # out of the unchanged surroundings. Every other line passes through
@@ -1193,8 +1193,8 @@ stack_renamed_paths() {
 
             print indent color "renamed:" reset
             if (reset != "") {
-                print indent "    " paint(oa, no, p, no - sfx, "\033[1;31m", "\033[1;31;48;5;52m", "- ")
-                print indent "    " paint(na, nn, p, nn - sfx, "\033[1;32m", "\033[1;32;48;5;22m", "+ ")
+                print indent "    " paint(oa, no, p, no - sfx, "\033[31m", "\033[31;48;5;52m", "- ")
+                print indent "    " paint(na, nn, p, nn - sfx, "\033[32m", "\033[32;48;5;22m", "+ ")
             } else {
                 print indent "    - " old
                 print indent "    + " new
