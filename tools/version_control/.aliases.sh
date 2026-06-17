@@ -1119,10 +1119,9 @@ git_worktree_list_sorted() {
 
 stack_renamed_paths() {
     # Stack each `git status` rename onto three lines: a bare "renamed:" label,
-    # then the old path (suffixed " ->") and the new path indented beneath it, so
-    # the two near-identical paths sit one above the other and the diverging
-    # segment is easy to spot top-to-bottom. Every other line passes through
-    # untouched; the original color codes wrap each emitted line.
+    # then the old and new paths beneath it as a red "-"/green "+" diff, so the
+    # two near-identical paths sit one above the other and the move reads with
+    # familiar diff coloring. Every other line passes through untouched.
     awk '
         {
             raw = $0
@@ -1159,8 +1158,14 @@ stack_renamed_paths() {
             new = substr(body, sep + 4)
 
             print indent color "renamed:" reset
-            print indent "    " color old " →" reset
-            print indent "    " color new reset
+            if (reset != "") {
+                # Recolor as a diff: old path red under "-", new path green under "+".
+                print indent "    \033[31m- " old reset
+                print indent "    \033[32m+ " new reset
+            } else {
+                print indent "    - " old
+                print indent "    + " new
+            }
         }
     '
 }
