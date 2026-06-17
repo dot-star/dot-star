@@ -100,6 +100,13 @@ Style guides live under `~/.claude/styles/`. Don't bulk-load them all; instead, 
     2. Light gray #999
     3. Silver #ccc
   ```
+- When a numbered suggestion list has a recommended pick, prefix that row with a heavy arrow `❯` and indent the rest with two spaces so the numbers line up; render in a fenced code block to hold the alignment. `❯` marks "my pick" (the option to favor); it's distinct from the lighter `→`, which marks the live/currently-applied state. State the recommendation in the lead-in too (e.g. "my pick first") so the marker reinforces it rather than carrying it alone. Rendered example:
+
+  ```
+  ❯ 1. Recommended approach
+    2. Alternative approach
+    3. Fallback approach
+  ```
 - Chat color palette by surface: inline prose has three accents (plain inline-code, bold-inline-code per the bracket-prefix trick, link blue); fenced code blocks get the full syntax-highlight palette of the chosen lexer; status line bypasses markdown and supports full ANSI (8/256/truecolor). When asked about chat colors, distinguish the surface before claiming a limit, and reach for a fenced block when multi-color is needed and prose-inline isn't. Rendered example, file:line in a `python` fence so `42` shows in number-color:
 
   ```python
