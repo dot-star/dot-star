@@ -160,9 +160,9 @@ Style guides live under `~/.claude/styles/`. Don't bulk-load them all; instead, 
     - 🪓 the worktree teardown, always the fixed `🪓 Worktree removed` (no worktree name; it's always this session's own, and the branch deletion is bundled into the removal, so don't list it separately).
 
     For a worktree land/promote, the steps in lifecycle order:
-    - ✅ Committed N commits, then list each subject beneath as a tree sub-list (newest-first), glyph indented 5 spaces; a lone commit is a single `└─`:
-           ├─ <newer commit subject>
-           └─ <older commit subject>
+    - ✅ Committed N commits, then list each subject beneath as a tree sub-list (newest-first); a lone commit is a single `└─`. Wrap each subject in inline-code backticks so it renders in the inline-code accent, and indent each glyph with 2 non-breaking spaces (U+00A0) + 1 regular space (plain leading spaces collapse in rendered markdown, so nbsp is what actually holds the indent):
+　　 ├─ `<newer commit subject>`
+　　 └─ `<older commit subject>`
     - ✅ Fast-forwarded master
     - ✅ Pushed to `<remote>` (omit this line entirely when the branch has no upstream; push never fired, so there's nothing to report, not even a ⏸️)
     - 🪓 Worktree removed (land) or ⏸️ Worktree kept (promote)
