@@ -78,6 +78,15 @@
       {
         "hooks": [
           {
+            "command": "${HOME}/.claude/hooks/log_permission_grants.py",
+            "type": "command"
+          }
+        ],
+        "matcher": "ExitWorktree"
+      },
+      {
+        "hooks": [
+          {
             "command": "${HOME}/.claude/hooks/remind_style_guide.sh",
             "type": "command"
           }
