@@ -1117,6 +1117,54 @@ git_worktree_list_sorted() {
         sort -t $'\t' -k1,1 -rn
 }
 
+stack_renamed_paths() {
+    # Stack each `git status` rename onto three lines: a bare "renamed:" label,
+    # then the old path (suffixed " ->") and the new path indented beneath it, so
+    # the two near-identical paths sit one above the other and the diverging
+    # segment is easy to spot top-to-bottom. Every other line passes through
+    # untouched; the original color codes wrap each emitted line.
+    awk '
+        {
+            raw = $0
+
+            # Match against a color-stripped copy so embedded color codes do not
+            # break the pattern.
+            bare = raw
+            gsub(/\033\[[0-9;]*m/, "", bare)
+            if (bare !~ /^[[:space:]]*renamed:[[:space:]]+.+ -> .+$/) {
+                print raw
+                next
+            }
+
+            # Split the line into its leading whitespace (kept as the base
+            # indent), the opening color code, and the bare "old -> new" with its
+            # trailing reset peeled off.
+            match(raw, /^[[:space:]]*/)
+            indent = substr(raw, 1, RLENGTH)
+            rest = substr(raw, RLENGTH + 1)
+
+            pos = index(rest, "renamed:")
+            color = substr(rest, 1, pos - 1)
+            body = substr(rest, pos + length("renamed:"))
+            sub(/^ +/, "", body)
+
+            reset = ""
+            if (match(body, /\033\[[0-9;]*m[[:space:]]*$/)) {
+                reset = substr(body, RSTART)
+                body = substr(body, 1, RSTART - 1)
+            }
+
+            sep = index(body, " -> ")
+            old = substr(body, 1, sep - 1)
+            new = substr(body, sep + 4)
+
+            print indent color "renamed:" reset
+            print indent "    " color old " →" reset
+            print indent "    " color new reset
+        }
+    '
+}
+
 rc_status() {
     clear
 
@@ -1124,7 +1172,9 @@ rc_status() {
         echo "git status"
         # Show untracked files individually instead of letting git collapse them under a parent dir.
         # Pass before "$@" so an explicit `--untracked-files=...` from the caller still wins.
-        git status --untracked-files=all "$@"
+        # Force color so the rename stacker's pipe keeps git's status coloring.
+        git -c color.status=always status --untracked-files=all "$@" |
+            stack_renamed_paths
 
         # Run extra checks only when called with no args, to avoid noise on `s -s` etc.
         if [[ "${#}" -eq 0 ]]; then
