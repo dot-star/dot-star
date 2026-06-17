@@ -1157,14 +1157,13 @@ stack_renamed_paths() {
             }
 
             # Split the line into its leading whitespace (kept as the base
-            # indent), the opening color code, and the bare "old -> new" with its
-            # trailing reset peeled off.
+            # indent) and the bare "old -> new" with its trailing reset peeled
+            # off.
             match(raw, /^[[:space:]]*/)
             indent = substr(raw, 1, RLENGTH)
             rest = substr(raw, RLENGTH + 1)
 
             pos = index(rest, "renamed:")
-            color = substr(rest, 1, pos - 1)
             body = substr(rest, pos + length("renamed:"))
             sub(/^ +/, "", body)
 
@@ -1191,7 +1190,10 @@ stack_renamed_paths() {
                 sfx++
             }
 
-            print indent color "renamed:" reset
+            # Color the label magenta so it reads as a header, distinct from the
+            # red/green diff below; stay plain when the input was uncolored.
+            label_color = (reset != "") ? "\033[35m" : ""
+            print indent label_color "renamed:" reset
             if (reset != "") {
                 print indent "    " paint(oa, no, p, no - sfx, "\033[31m", "\033[31;48;5;52m", "- ")
                 print indent "    " paint(na, nn, p, nn - sfx, "\033[32m", "\033[32;48;5;22m", "+ ")
