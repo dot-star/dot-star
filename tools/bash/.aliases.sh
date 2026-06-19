@@ -1764,6 +1764,10 @@ alias by="byobu"
 alias k="kill"
 alias ka="killall"
 
+# Force colored pre-commit output.
+# Without this, pre-commit defaults to plain text on `git commit`.
+export PRE_COMMIT_COLOR=always
+
 alias pc="pre-commit"
 alias pca="pre-commit run --all-files --show-diff-on-failure"
 
