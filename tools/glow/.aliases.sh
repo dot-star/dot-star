@@ -29,10 +29,17 @@ pretty_tail() {
     name="$(basename "${abs}")"
 
     clear
-    glow "${abs}"
+
+    # Pin `--width' to the terminal; glow otherwise renders at ~80 and the padded
+    # lines wrap on a narrower window, showing as blank gaps between rendered lines.
+    glow --width="$(tput cols)" "${abs}"
+
     # Subshell `cd' so the caller's cwd isn't disturbed.
     # Aliases don't expand inside functions, so call the underlying function directly.
-    (cd "${dir}" && alias_watch_file --quiet "${name}" "clear; glow ${abs}")
+    # Escape `$(tput cols)' so it re-reads the width on each render, adapting to
+    # resizes. Without this, the width expands once when pretty_tail starts and
+    # goes stale after a resize.
+    (cd "${dir}" && alias_watch_file --quiet "${name}" "clear; glow --width=\$(tput cols) ${abs}")
 }
 alias tail="pretty_tail"
 # Implicit `-f' so `tail_f file.md' triggers the live render without typing the flag.
