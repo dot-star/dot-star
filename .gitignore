@@ -1,3 +1,6 @@
+# Ignore private context docs symlinked in from a separate repo.
+/ai/contexts/private-*
+
 # Ignore Claude Code worktrees created at the project root.
 /.claude/worktrees/
 
