@@ -162,6 +162,15 @@ for supplemental in "${DOT_STAR}/ai/files/Users/user/.claude/"CLAUDE_*.md; do
     ensure_symlink "${supplemental}" "${HOME}/.claude/${supplemental##*/}"
 done
 
+# Prune any dangling CLAUDE_*.md symlink left when a supplemental moved out of
+# ~/.claude (e.g. to ai/contexts/); a stale link still matches the loader glob
+# and would break it.
+for stale in "${HOME}/.claude/"CLAUDE_*.md; do
+    if [ -L "${stale}" ] && [ ! -e "${stale}" ]; then
+        unlink "${stale}"
+    fi
+done
+
 # Migrate the legacy per-file style symlink now that styles live under
 # ~/.claude/styles/.
 if [ -L "${HOME}/.claude/CLAUDE_commit-message-style.md" ]; then
