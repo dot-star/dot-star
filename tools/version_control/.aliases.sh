@@ -442,9 +442,42 @@ git_diff_master() {
     fi
 }
 
+git_diff_conflicts() {
+    # List unmerged files and the line numbers of their conflict markers.
+    # Surface conflicts directly because the combined `git diff` is empty for
+    # delete/modify, add/add, and rename conflicts, and `git log` shows an
+    # unrelated commit while a merge or rebase is in progress.
+    local conflicted_files
+    conflicted_files="$(git diff --name-only --diff-filter=U)"
+    if [[ -z "${conflicted_files}" ]]; then
+        return 1
+    fi
+
+    echo "Unmerged paths:"
+    echo "${conflicted_files}" |
+        sed 's/^/  /'
+    echo
+
+    # Print conflict markers with line numbers per file. Delete/modify and
+    # rename conflicts leave no markers in the working tree; flag those instead.
+    while IFS= read -r conflicted_file; do
+        echo "${conflicted_file}:"
+        if ! grep --line-number --extended-regexp --color=auto '^(<{7}|={7}|>{7}|[|]{7})' -- "${conflicted_file}"; then
+            echo "  (no conflict markers; delete/modify or rename conflict)"
+        fi
+        echo
+    done <<<"${conflicted_files}"
+}
+
 git_diff_last() {
     # Display diff of last commit, optionally with a path.
     clear
+
+    # Show conflict markers when a merge or rebase is in progress; the last
+    # commit is unrelated to the conflict that needs attention.
+    if git_diff_conflicts; then
+        return
+    fi
 
     if [[ -z "${1}" ]]; then
         # Display last diff of project when path is not specified.
@@ -847,6 +880,11 @@ rc_diff() {
     if is_git; then
         # No arguments passed to `git diff'.
         if [[ $# == 0 ]]; then
+
+            # Surface conflict markers up front when a merge or rebase is in
+            # progress. The combined `git diff` below is empty for delete/modify
+            # and rename conflicts, so show the unmerged paths first regardless.
+            git_diff_conflicts
 
             # Prioritize displaying the diff of files listed under the "Unmerged
             # paths" section over the "Changes to be committed" section when
