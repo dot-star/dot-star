@@ -287,7 +287,8 @@ git_rebase_last_two() {
     # message_two), so a commit exists even if you never pick an alternative.
     # Capture the diff first; the commit empties the index the draft reads from.
     combined_diff="$(git diff --cached)"
-    git commit --message "${message_one}" --message "${message_two}"
+    git commit --message "${message_one}" --message "${message_two}" &&
+        echo "You're now on $(git log -1 --pretty=format:"%h %s")"
 
     claude_display_commit_message_options "Update the commit message based on the combined diff now that two commits were squashed into one. Original commit message #1: ${message_one}. Original commit message #2: ${message_two}." "${combined_diff}" &
 }
