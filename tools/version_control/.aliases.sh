@@ -430,6 +430,7 @@ git_branches_clean_up() {
         return 1
     fi
 
+    # Resolve the main checkout (first `git worktree list` entry); deletes run there.
     local main_checkout
     main_checkout="$(git worktree list | awk 'NR==1 {print $1}')"
     if [[ -z "${main_checkout}" || ! -d "${main_checkout}" ]]; then
@@ -443,6 +444,8 @@ git_branches_clean_up() {
         return 1
     fi
 
+    # Read each local branch paired with its worktree path (tab-separated; the
+    # path is empty unless the branch is checked out somewhere).
     local branch worktreepath
     while IFS=$'\t' read -r branch worktreepath; do
         # Never delete the default branch.
