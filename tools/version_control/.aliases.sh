@@ -418,6 +418,61 @@ git_delete_branch() {
     fi
 }
 
+git_branches_clean_up() {
+    # Delete local branches whose changes are already in the default
+    # branch (via merge, squash, rebase, or cherry-pick). Skip the
+    # default branch itself and any branch checked out in a worktree.
+    # Usage:
+    #   $ branches_clean_up
+
+    if ! git rev-parse --is-inside-work-tree &>/dev/null; then
+        echo "not in a git repository"
+        return 1
+    fi
+
+    local main_checkout
+    main_checkout="$(git worktree list | awk 'NR==1 {print $1}')"
+    if [[ -z "${main_checkout}" || ! -d "${main_checkout}" ]]; then
+        echo "could not locate main checkout"
+        return 1
+    fi
+
+    local default_branch
+    if ! default_branch="$(git_default_branch "${main_checkout}")"; then
+        echo "could not determine default branch in \"${main_checkout}\""
+        return 1
+    fi
+
+    local branch worktreepath
+    while IFS=$'\t' read -r branch worktreepath; do
+        # Never delete the default branch.
+        if [[ "${branch}" == "${default_branch}" ]]; then
+            continue
+        # Skip branches checked out in a worktree; report only if absorbed.
+        elif [[ -n "${worktreepath}" ]]; then
+            if branch_is_absorbed "${main_checkout}" "${branch}" "${default_branch}"; then
+                echo "skip \"${branch}\": checked out at \"${worktreepath}\""
+            fi
+            continue
+        # Try the safe delete first; git's own ancestor check handles the easy case.
+        elif git -C "${main_checkout}" branch --delete "${branch}" 2>/dev/null; then
+            echo "deleted \"${branch}\""
+            continue
+        # Silently keep branches that still carry unmerged work.
+        elif ! branch_is_absorbed "${main_checkout}" "${branch}" "${default_branch}"; then
+            continue
+        # Force-delete branches whose changes are absorbed via squash or rebase.
+        elif ! git -C "${main_checkout}" branch --delete --force "${branch}"; then
+            echo "failed to delete \"${branch}\""
+            continue
+        fi
+
+        echo "deleted \"${branch}\""
+    done < <(git -C "${main_checkout}" for-each-ref --format='%(refname:short)%09%(worktreepath)' refs/heads/)
+}
+alias branches_clean_up="git_branches_clean_up"
+alias bcu="git_branches_clean_up"
+
 git_diff_master() {
     local_branches="refs/heads/"
     branches="$(
