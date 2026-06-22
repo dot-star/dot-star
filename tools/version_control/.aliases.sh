@@ -422,12 +422,27 @@ git_branches_clean_up() {
     # Delete local branches whose changes are already in the default
     # branch (via merge, squash, rebase, or cherry-pick). Skip the
     # default branch itself and any branch checked out in a worktree.
+    # Refresh remote-tracking refs first so branches whose upstream was
+    # deleted (e.g. squash-merged PRs) are recognized as absorbed.
     # Usage:
     #   $ branches_clean_up
 
     if ! git rev-parse --is-inside-work-tree &>/dev/null; then
         echo "not in a git repository"
         return 1
+    fi
+
+    # Pick the tracking remote: prefer origin, else the first configured remote.
+    local remote=""
+    if git remote | grep -qx "origin"; then
+        remote="origin"
+    elif [[ -n "$(git remote)" ]]; then
+        remote="$(git remote | head -n 1)"
+    fi
+
+    # Drop stale remote-tracking refs so the deletes below see the remote's current state.
+    if [[ -n "${remote}" ]]; then
+        git fetch --prune "${remote}"
     fi
 
     # Resolve the main checkout (first `git worktree list` entry); deletes run there.
@@ -473,8 +488,10 @@ git_branches_clean_up() {
         echo "deleted \"${branch}\""
     done < <(git -C "${main_checkout}" for-each-ref --format='%(refname:short)%09%(worktreepath)' refs/heads/)
 }
-alias branches_clean_up="git_branches_clean_up"
 alias bcu="git_branches_clean_up"
+alias branches_clean_up="git_branches_clean_up"
+alias git_prune_branches="git_branches_clean_up"
+alias prune_branches="git_branches_clean_up"
 
 git_diff_master() {
     local_branches="refs/heads/"
