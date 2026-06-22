@@ -109,6 +109,7 @@ Style guides live under `~/.claude/styles/`. Don't bulk-load them all; instead, 
 ## Output
 
 - Never use em dashes (—) in any output, code, comments, commit messages, or PR descriptions. Use a comma, parentheses, semicolon, or two sentences instead.
+- Never use the ellipsis character (…) in any output, code, comments, commit messages, or PR descriptions. Type three plain periods (`...`) instead.
 - Drop the comma before `and` when it joins just two things, including two full clauses; keep it only for a list of three or more. `Do X, and do Y` → `Do X and do Y`; `A does X, and B does Y` → `A does X and B does Y`; `X, Y, and Z` keeps its commas.
 - Write a negative imperative as the contraction `don't`/`DON'T`, not the spelled-out `do not`/`Do NOT`; preserve any emphasis casing (so `Do NOT repoint at prod` → `DON'T repoint at prod`).
 - Write for the human who'll read it, not for yourself or an AI: PR titles/descriptions/comments, commit messages, and person-to-person comms all reach someone who may not share your context. Prefer the term that lands fastest for that reader (the common everyday word) over the technically-precise, formal, or insider one.
