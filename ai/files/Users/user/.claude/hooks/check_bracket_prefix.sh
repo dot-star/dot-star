@@ -117,9 +117,8 @@ for v in "${violations[@]}"; do
     reason+="- ${v}"$'\n'
 done
 reason+=$'\n┌─ 🤖 for Claude ──────────────────────────────────────'
-reason+=$'\n│ Rewrite each alternative as [x]remainder (case-insensitive'
-reason+=$'\n│ accept letter, wrapped in bold inline code), then re-send.'
-reason+=$'\n│ See the pre-send checklist in CLAUDE.md.'
+reason+=$'\n│ Rewrite each alternative as [x]remainder (bracketed'
+reason+=$'\n│ accept letter). See CLAUDE.md checklist. Re-send.'
 reason+=$'\n└──────────────────────────────────────────────────────'
 
 command jq --null-input --compact-output \
