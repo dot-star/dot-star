@@ -39,12 +39,28 @@ while IFS= read -r file; do
     if [ -z "${keyword}" ]; then
         continue
     fi
-    keyword_lower=$(printf '%s' "${keyword}" | tr '[:upper:]' '[:lower:]')
-    if [[ "${prompt_lower}" != *"${keyword_lower}"* ]]; then
+
+    # Match any one of the marker's comma-separated keywords (case-insensitive substring).
+    matched=""
+    IFS=',' read -ra keyword_terms <<<"${keyword}"
+    for term in "${keyword_terms[@]}"; do
+        # Trim surrounding whitespace, then lowercase.
+        term="${term#"${term%%[![:space:]]*}"}"
+        term="${term%"${term##*[![:space:]]}"}"
+        term_lower=$(printf '%s' "${term}" |
+            tr '[:upper:]' '[:lower:]')
+        if [ -n "${term_lower}" ] && [[ "${prompt_lower}" == *"${term_lower}"* ]]; then
+            matched="${term}"
+            break
+        fi
+    done
+
+    if [ -z "${matched}" ]; then
         continue
     fi
+
     title=$(sed -n 's/^# *//p' "${file}" | head -n 1)
-    context+="Relevant context (\"${keyword}\" mentioned): read ${file} (${title}) if useful."$'\n'
+    context+="Relevant context (\"${matched}\" mentioned): read ${file} (${title}) if useful."$'\n'
     referenced_files+="${file##*/} "
     touch "${sentinel}"
 done < <(ls "${contexts_dir}"/*.md 2>/dev/null | sort --version-sort)

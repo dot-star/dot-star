@@ -11,7 +11,9 @@
 CLAUDE_SUPPLEMENTAL_WARN_BYTES=9000
 
 # Echo a context file's `claude-mention` keyword (the text between
-# "claude-mention:" and "-->"), or nothing when the file carries no marker.
+# "claude-mention:" and "-->"), or nothing when the file carries no marker. The
+# value may be a comma-separated keyword list; splitting and matching is the
+# caller's job.
 claude_supplemental_mention_keyword() {
     local file="$1"
 
