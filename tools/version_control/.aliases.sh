@@ -1090,12 +1090,14 @@ rc_pull_with_rebase() {
 }
 
 rc_push() {
-    local current_branch upstream
+    local current_branch
     current_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
-    upstream="$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null)"
 
-    # Route a worktree branch that has no upstream by the per-machine.
-    # DOTSTAR_WORKTREE_PUSH setting.
+    # Route every worktree branch by the per-machine DOTSTAR_WORKTREE_PUSH
+    # setting, regardless of upstream: the -u push below sets an upstream whose
+    # name differs from the worktree-* local branch, so a later bare `git push`
+    # would fail under push.default=simple. Always deriving the remote name
+    # keeps `pus` idempotent across repeated pushes.
     # DOTSTAR_WORKTREE_PUSH="default-branch":
     #    push the commits straight onto the repo's default branch, for personal
     #    repos where work lands on master and there are no pull requests.
@@ -1107,7 +1109,7 @@ rc_push() {
     #    worktree-asmith+add-login  ->  git push -u origin HEAD:asmith/add-login
     # pr-branch is the default so machines without an override keep the old
     # behavior.
-    if [[ "${current_branch}" == worktree-* && -z "${upstream}" ]]; then
+    if [[ "${current_branch}" == worktree-* ]]; then
         local worktree_push="${DOTSTAR_WORKTREE_PUSH:-pr-branch}"
         if [[ "${worktree_push}" == "default-branch" ]]; then
             local main_checkout default_branch
