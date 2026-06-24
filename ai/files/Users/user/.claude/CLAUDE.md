@@ -194,6 +194,7 @@ Style guides live under `~/.claude/styles/`. Don't bulk-load them all; instead, 
   - 🕵 finding / result / "turns out" (after the search lands): `🕵 Found it. The cause is in script.py:42.`
   - 🛠️ action / intent ("Let me...", "I'll..."): `🛠️ Let me work from a worktree.`
   - 🛬 land / ship / merge: `🛬 Landing branch foo into master.`
+  - 📦 fold / squash into an existing commit: `📦 Folding this into the reverse-lookup commit.`
   - 👉 question to user / need clarification: `👉 Should this also rebase, or just fast-forward?` Fires only when the sentence asks for a reply. An acknowledgment opener (`Good catch.` → 🧠, `Got it.` → 💡) and an action opener (`Let me check...`, `I'll...` → 🛠️) are never 👉, even when a tool call follows; never collapse a `🧠 Good catch. 🛠️ Let me check...` pair under one 👉.
   - 💡 acknowledging a user's good idea or suggestion: `💡 Good idea, that's a cleaner phrasing.`
   - 🧠 user is right / good catch / smart call: `🧠 Good catch, that's the actual bug.`
