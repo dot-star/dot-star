@@ -15,6 +15,8 @@
 
 set -euo pipefail
 
+source "$(dirname -- "${BASH_SOURCE[0]}")/claude_session_dir.inc.sh"
+
 cyan=$'\033[36m'
 reset=$'\033[0m'
 
@@ -61,10 +63,9 @@ data=$(cat)
 
 worktree_name=""
 
-sid=$(printf '%s' "${data}" | command jq --raw-output '.session_id // empty')
-sid="${sid//[^a-zA-Z0-9-]/}"
-marker="/tmp/claude/${sid}/worktree"
-if [ -n "${sid}" ] && [ -f "${marker}" ]; then
+sid_dir=$(claude_session_dir "$(printf '%s' "${data}" | command jq --raw-output '.session_id // empty')")
+marker="${sid_dir}/worktree"
+if [ -n "${sid_dir}" ] && [ -f "${marker}" ]; then
     path=$(head -n 1 "${marker}")
     if [ -d "${path}" ]; then
         worktree_name="${path##*/}"
@@ -87,8 +88,8 @@ fi
 title=""
 objective=""
 
-obj_marker="/tmp/claude/${sid}/objective"
-if [ -n "${sid}" ] && [ -f "${obj_marker}" ]; then
+obj_marker="${sid_dir}/objective"
+if [ -n "${sid_dir}" ] && [ -f "${obj_marker}" ]; then
     objective=$(head -n 1 "${obj_marker}")
 fi
 

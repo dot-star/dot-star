@@ -9,18 +9,21 @@
 set -euo pipefail
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/load_claude_md_supplementals.inc.sh"
+source "$(dirname -- "${BASH_SOURCE[0]}")/claude_session_dir.inc.sh"
 
 input=$(cat)
 prompt=$(command jq --raw-output '.prompt // empty' <<<"${input}")
-session_id=$(command jq --raw-output '.session_id // empty' <<<"${input}")
-session_id=${session_id//[^a-zA-Z0-9-]/}
 
 if [ -z "${prompt}" ]; then
     exit 0
 fi
 
+sentinel_dir=$(claude_session_dir "$(command jq --raw-output '.session_id // empty' <<<"${input}")")
+if [ -z "${sentinel_dir}" ]; then
+    exit 0
+fi
+
 contexts_dir="${CLAUDE_CONTEXTS_DIR:-${HOME}/.dot-star/ai/contexts}"
-sentinel_dir="/tmp/claude/${session_id}"
 mkdir -p "${sentinel_dir}"
 
 # Lowercase the prompt once for case-insensitive keyword matching.

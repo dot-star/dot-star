@@ -15,6 +15,8 @@
 
 set -euo pipefail
 
+source "$(dirname -- "${BASH_SOURCE[0]}")/claude_session_dir.inc.sh"
+
 # Percent-encode a path byte-by-byte, preserving only the unreserved set
 # (plus '/'). Matches Apple's update_terminal_cwd in /etc/zshrc_Apple_Terminal.
 encode_path() {
@@ -103,14 +105,12 @@ emit_osc7() {
 
 data=$(cat)
 
-sid=$(printf '%s' "${data}" |
-    command jq --raw-output '.session_id // empty')
-sid="${sid//[^a-zA-Z0-9-]/}"
-if [ -z "${sid}" ]; then
+dir=$(claude_session_dir "$(printf '%s' "${data}" |
+    command jq --raw-output '.session_id // empty')")
+if [ -z "${dir}" ]; then
     exit 0
 fi
 
-dir="/tmp/claude/${sid}"
 marker="${dir}/worktree"
 
 event=$(printf '%s' "${data}" |
