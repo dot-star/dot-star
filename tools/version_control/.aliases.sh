@@ -999,8 +999,19 @@ rc_diff() {
                 # Display staged diff (cached) when available.
                 result="$(git diff --cached)"
                 if [[ ! -z "${result}" ]] && [[ "${result}" != "* Unmerged path"* ]]; then
-                    echo "git diff --cached"
-                    git diff --cached
+
+                    # Display diff including the unstaged changes when the
+                    # staged changes are purely deletions. `git diff --cached`
+                    # would otherwise show only the deletions and hide the
+                    # unstaged edits. `--diff-filter=d` lists staged changes
+                    # excluding deletions; empty means deletions only.
+                    if [[ -z "$(git diff --cached --diff-filter=d)" ]]; then
+                        echo "git diff HEAD"
+                        git diff HEAD
+                    else
+                        echo "git diff --cached"
+                        git diff --cached
+                    fi
 
                 # Display current directory diff.
                 elif [[ ! -z "$(git diff .)" ]]; then
