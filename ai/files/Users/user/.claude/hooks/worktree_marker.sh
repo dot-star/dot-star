@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 #
-# PostToolUse hook for EnterWorktree / ExitWorktree: maintain a session-scoped
-# marker file recording the worktree the session is currently working in.
-# statusline.sh reads this file to render "[<worktree-name>]".
+# Hook for EnterWorktree / ExitWorktree (PostToolUse) and SessionStart:
+# maintain a session-scoped marker file recording the worktree the session is
+# currently working in. statusline.sh reads this file to render
+# "[<worktree-name>]".
 #
 # Also emits an OSC 7 escape to the parent claude's TTY so Terminal.app's
-# "new tab inherits cwd" tracking follows the worktree switch. While Claude
-# Code owns the TTY the shell's precmd never fires, so Terminal.app's
+# "new tab inherits cwd" tracking follows where the session is working. While
+# Claude Code owns the TTY the shell's precmd never fires, so Terminal.app's
 # tracked cwd would otherwise stay frozen at whatever PWD was when claude
-# launched.
+# launched. Point it at the worktree while one is active, else at the session
+# tmp dir (/tmp/claude/<session_id>) so a worktree-less session opens new tabs
+# there rather than the launch dir.
 
 set -euo pipefail
 
@@ -110,9 +113,11 @@ fi
 dir="/tmp/claude/${sid}"
 marker="${dir}/worktree"
 
+event=$(printf '%s' "${data}" |
+    command jq --raw-output '.hook_event_name // empty')
 tool=$(printf '%s' "${data}" |
     command jq --raw-output '.tool_name // empty')
-case "${tool}" in
+case "${tool:-${event}}" in
 EnterWorktree)
     # Extract the new worktree path from the tool response text
     # ("Created worktree at <path> on branch ..." or "Switched ...").
@@ -133,11 +138,18 @@ ExitWorktree)
         rm "${marker}"
     fi
 
-    # Payload .cwd reflects the post-exit cwd (typically the main checkout).
-    cwd=$(printf '%s' "${data}" |
-        command jq --raw-output '.cwd // .workspace.current_dir // empty')
-    if [ -n "${cwd}" ]; then
-        emit_osc7 "${cwd}"
+    # Point new tabs at the session tmp dir now that no worktree is active.
+    emit_osc7 "${dir}"
+    ;;
+SessionStart)
+    # Follow a worktree marker that survived a resume; otherwise point new tabs
+    # at the session tmp dir so a worktree-less session lands there, not the
+    # launch dir.
+    if [ -f "${marker}" ]; then
+        emit_osc7 "$(cat "${marker}")"
+    else
+        mkdir -p "${dir}"
+        emit_osc7 "${dir}"
     fi
     ;;
 esac

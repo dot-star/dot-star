@@ -106,6 +106,10 @@
             "type": "command"
           },
           {
+            "command": "${HOME}/.claude/hooks/worktree_marker.sh",
+            "type": "command"
+          },
+          {
             "command": "${HOME}/.claude/hooks/announce_window_state.py SessionStart",
             "type": "command"
           }
