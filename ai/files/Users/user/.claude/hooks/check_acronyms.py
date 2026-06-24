@@ -63,6 +63,7 @@ WHITELIST = {
     "NASDAQ",
     "OK",
     "OS",
+    "PDF",
     "PHP",
     "PM",
     "PR",
