@@ -15,8 +15,6 @@
 
 set -euo pipefail
 
-source "$(dirname -- "${BASH_SOURCE[0]}")/claude_session_dir.inc.sh"
-
 # Percent-encode a path byte-by-byte, preserving only the unreserved set
 # (plus '/'). Matches Apple's update_terminal_cwd in /etc/zshrc_Apple_Terminal.
 encode_path() {
@@ -105,12 +103,14 @@ emit_osc7() {
 
 data=$(cat)
 
-dir=$(claude_session_dir "$(printf '%s' "${data}" |
-    command jq --raw-output '.session_id // empty')")
-if [ -z "${dir}" ]; then
+sid=$(printf '%s' "${data}" |
+    command jq --raw-output '.session_id // empty')
+sid="${sid//[^a-zA-Z0-9-]/}"
+if [ -z "${sid}" ]; then
     exit 0
 fi
 
+dir="/tmp/claude/${sid}"
 marker="${dir}/worktree"
 
 event=$(printf '%s' "${data}" |
@@ -142,11 +142,32 @@ ExitWorktree)
     emit_osc7 "${dir}"
     ;;
 SessionStart)
-    # Follow a worktree marker that survived a resume; otherwise point new tabs
-    # at the session tmp dir so a worktree-less session lands there, not the
-    # launch dir.
+    # Follow a worktree marker that survived a resume; nothing else to resolve.
     if [ -f "${marker}" ]; then
         emit_osc7 "$(cat "${marker}")"
+        exit 0
+    fi
+
+    cwd=$(printf '%s' "${data}" |
+        command jq --raw-output '.cwd // .workspace.current_dir // empty')
+
+    # Detect a worktree the session launched inside (created outside the
+    # EnterWorktree tool, so no marker) the way statusline.sh does: a worktree's
+    # git dir lives under <repo>/.git/worktrees/<name>.
+    worktree_root=""
+    if [ -n "${cwd}" ]; then
+        gitdir=$(cd "${cwd}" 2>/dev/null && git rev-parse --absolute-git-dir 2>/dev/null || true)
+        case "${gitdir}" in
+        */worktrees/*)
+            worktree_root=$(cd "${cwd}" 2>/dev/null && git rev-parse --show-toplevel 2>/dev/null || true)
+            ;;
+        esac
+    fi
+
+    # Point new tabs at that worktree if one is active, else at the session tmp
+    # dir so a worktree-less session lands there rather than the launch dir.
+    if [ -n "${worktree_root}" ]; then
+        emit_osc7 "${worktree_root}"
     else
         mkdir -p "${dir}"
         emit_osc7 "${dir}"
