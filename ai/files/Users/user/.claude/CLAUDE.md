@@ -146,6 +146,7 @@ Style guides live under `~/.claude/styles/`. Don't bulk-load them all; instead, 
 - When citing a line, keep the clickable `file_path:line_number` reference inline *and* quote the line's content (or the relevant clause) as a blockquote beneath it, so the citation is self-contained and the reader needn't open the file. A bare line number forces the reader to go look it up; they can't see the file you're reading from. Rendered example:
   > Got the exact clause (`file.py:42`). The existing rule only offers uppercasing the ambiguous letter.
   > > Uppercase the bracket letter only when it's visually ambiguous in lowercase: `l`, `I`, `o`.
+- When citing a file path, emit the full literal absolute path; never elide middle segments with `...` (e.g. `/tmp/.../foo.md`), which leaves the reader a path they can't `cd` to or copy-paste. Applies especially to subagent outputs reporting where a file was written.
 - For bracket-prefix choice asks (a question offering options for a one-token reply, not a full numbered list):
   - **Layout:** stack the question stem on its own line and each option indented on its own line beneath it, even a binary. Rendered example:
     > Want me to commit this as a
