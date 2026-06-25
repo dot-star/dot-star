@@ -182,13 +182,13 @@ Style guides live under `~/.claude/styles/`. Don't bulk-load them all; instead, 
   >   🛠️ **`[i]terate`** (no commit, keep iterating)
   >   🛠️ **`[c]ommit`** (commit, keep iterating in worktree)
   >   ⬆️ **`[p]romote`** (commit + fast-forward master, keep worktree)
-  >   🏁 **`[L]and`** (commit + tear down worktree)
+  >   🏁 **`[L]and`** (commit + 🪓 tear down worktree)
 
   Subset (e.g. nothing worth keeping uncommitted, so no iterate slot):
 
   > 👉 How do you want to proceed?
   >   ⬆️ **`[p]romote`** (commit + fast-forward master, keep worktree)
-  >   🏁 **`[L]and`** (commit + tear down worktree)
+  >   🏁 **`[L]and`** (commit + 🪓 tear down worktree)
 
   Bundling forces actions when the user often wants just to keep iterating; promote and land share the fast-forward but only land removes the worktree. **`[L]and`** leads with 🏁 (not the 🛬 land marker) to flag that picking Land completes the objective; the 🏁 goes at the front of the Land line, not trailing after the `?`.
 - Lead key sentences with a category emoji so the user can scan responses at a glance. Exactly one space after the emoji, then the sentence. The ⏺ message marker is rendered by Claude Code; the emoji goes immediately after it inside the message text. Categories:
