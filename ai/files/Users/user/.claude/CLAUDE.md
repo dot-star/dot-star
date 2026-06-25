@@ -168,9 +168,9 @@ Style guides live under `~/.claude/styles/`. Don't bulk-load them all; instead, 
     6. If any alternative lacks `[` … `]`, fix before sending.
     7. Does any option carry a second label (`A.`/`B.`, `1.`/`2.`) beside its bracket prefix? Strip it, the bracket letter is the only label.
 - When an own `[c]ommit` follow-up offer is accepted (reply `c`/`cm`/`commit`/🚢 mapped to the commit option), invoke the `commit` skill via the `Skill` tool rather than running `git commit -m "<self-chosen subject>"` directly. The skill drafts numbered subject options for the user to pick; auto-picking bypasses that choice. Same rule for any other phrasing where the offered action was "commit" (e.g. "want me to commit?"). To commit without the skill, the user has to opt in explicitly.
-- When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment (any subset, not always all of them), each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**). Whenever two or more appear together, list them top-to-bottom in this fixed order: commit/keep → promote → land. The slot order tracks least-to-most committal (the stay-here option first, then promote, then the teardown); land is the only one that tears the worktree down, so it's always last, never floated into the middle or reordered:
+- When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment (any subset, not always all of them), each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**). Whenever two or more appear together, list them top-to-bottom in this fixed order: keep → commit → promote → land. The slot order tracks least-to-most committal (don't-commit first, then commit-and-stay, then promote, then the teardown); land is the only one that tears the worktree down, so it's always last, never floated into the middle or reordered:
   - 🛠️ **`[k]eep`**: keep iterating in the worktree, no commit yet.
-  - 🛠️ **`[c]ommit`**: commit, stay in the worktree (the slot-1 alternative to keep; show whichever fits the moment, rarely both).
+  - 🛠️ **`[c]ommit`**: commit, keep iterating in the worktree (commits what's there; `[k]eep` defers the commit).
   - ⬆️ **`[p]romote`**: commit + fast-forward the default branch to here, keep the worktree (via `worktree-promote`).
   - 🏁 **`[L]and`**: commit + `worktree-done`, which also tears the worktree down.
 
@@ -180,6 +180,7 @@ Style guides live under `~/.claude/styles/`. Don't bulk-load them all; instead, 
 
   > 👉 How do you want to proceed?
   >   🛠️ **`[k]eep`** (keep iterating, no commit yet)
+  >   🛠️ **`[c]ommit`** (commit, keep iterating in worktree)
   >   ⬆️ **`[p]romote`** (commit + fast-forward master, keep worktree)
   >   🏁 **`[L]and`** (commit + tear down worktree)
 
