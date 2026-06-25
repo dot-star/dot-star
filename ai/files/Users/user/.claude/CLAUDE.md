@@ -157,6 +157,7 @@ Style guides live under `~/.claude/styles/`. Don't bulk-load them all; instead, 
   - **Bracket every option, no exceptions:** wrap the whole option (bracket prefix + remainder) in a single bold inline-code span so the brackets, inner letter(s), and remainder share one color and weight. Source form is `**` + `` ` `` + `[` + letter(s) + `]` + remainder + `` ` `` + `**`.
   - **Reply:** accept the bracketed prefix (case-insensitive) as a complete reply and map it back to the full option.
   - **On letter collisions:** prefer the single-letter prefix; extend to multi-character (rendered **`[am]end`** vs **`[ad]d`**) only when two options would otherwise share the same letter. Case never disambiguates, since matching is case-insensitive: **`[d]iff`** vs **`[D]iff+args`** both map to `d` and the second is unpickable, so go multi-character instead (e.g. **`[de]xact`** vs **`[da]rgs`**).
+  - **Reserved letters track their shorthand:** never assign `[c]` to a non-commit action, and reserve `[f]` for fold. `[c]` always means commit (matching the global `c` shorthand); handing it to a fold (e.g. **`[c]ommit-only fold`**) collides with that meaning, so a reflexive `c` lands on the wrong option. When two variants of the same action both need a slot, branch off the action's own letter with a distinguishing second char (e.g. **`[fr]eply fold`** vs **`[fs]ilent fold`**), leaving `[c]` free.
   - **On casing:** purely a readability choice on the letter itself. Uppercase only when the letter is visually ambiguous in lowercase (`l` looks like `1`, `I` looks like `l`, `o` looks like `0`); unambiguous letters stay lowercase. So **`[c]ommit`** and **`[L]and`** in the same prompt is correct (mixed casing on purpose), not **`[C]ommit`** + **`[L]and`**.
   - **No competing label scheme:** the bracket letter is the option's *only* label. Don't also enumerate options with `A.`/`B.` or `1.`/`2.` (e.g. `A. … [s]pine-only` + `B. … [a]bsorb`): the `A.` label reads as the accept token for the `[a]`-prefixed option even when that's the *second* entry. For block-layout options (directory trees, diagrams, code), lead each block with its bracketed name on its own line, no enumeration.
   - **Pre-send checklist**, run on every question before sending:
@@ -168,7 +169,7 @@ Style guides live under `~/.claude/styles/`. Don't bulk-load them all; instead, 
     6. If any alternative lacks `[` … `]`, fix before sending.
     7. Does any option carry a second label (`A.`/`B.`, `1.`/`2.`) beside its bracket prefix? Strip it, the bracket letter is the only label.
 - When an own `[c]ommit` follow-up offer is accepted (reply `c`/`cm`/`commit`/🚢 mapped to the commit option), invoke the `commit` skill via the `Skill` tool rather than running `git commit -m "<self-chosen subject>"` directly. The skill drafts numbered subject options for the user to pick; auto-picking bypasses that choice. Same rule for any other phrasing where the offered action was "commit" (e.g. "want me to commit?"). To commit without the skill, the user has to opt in explicitly.
-- When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment (any subset, not always all of them), each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**). Whenever two or more appear together, list them top-to-bottom in this fixed order: iterate → commit → promote → land. The slot order tracks least-to-most committal (don't-commit first, then commit-and-stay, then promote, then the teardown); land is the only one that tears the worktree down, so it's always last, never floated into the middle or reordered:
+- When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment (any subset, not always all of them), each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**). Whenever two or more appear together, list them top-to-bottom in this fixed order: iterate → commit → promote → land. The slot order tracks least-to-most committal (don't-commit first, then commit-and-stay, then promote, then the teardown); land is the only one that tears the worktree down, so it's always last, never floated into the middle or reordered. **Pre-send check: whenever 🏁 `[L]and` appears it is the bottom row; if any option (even a lone keep/iterate slot) renders beneath it, reorder before sending.** The four options:
   - 🛠️ **`[i]terate`**: no commit yet, keep iterating in the worktree (the do-nothing default, named for the action rather than a passive "keep").
   - 💾 **`[c]ommit`**: commit, keep iterating in the worktree (commits what's there; `[i]terate` defers the commit).
   - ⬆️ **`[p]romote`**: commit + fast-forward the default branch to here, keep the worktree (via `worktree-promote`).
@@ -188,6 +189,12 @@ Style guides live under `~/.claude/styles/`. Don't bulk-load them all; instead, 
 
   > 👉 How do you want to proceed?
   >   ⬆️ **`[p]romote`** (commit + promote to master)
+  >   🏁 **`[L]and`**    (commit + 🪓 tear down worktree)
+
+  Subset (iterate + land, e.g. work is done but might still want a tweak; land stays at the bottom):
+
+  > 👉 How do you want to wrap up?
+  >   🛠️ **`[i]terate`** (no commit + keep iterating)
   >   🏁 **`[L]and`**    (commit + 🪓 tear down worktree)
 
   Bundling forces actions when the user often wants just to keep iterating; promote and land share the fast-forward but only land removes the worktree. **`[L]and`** leads with 🏁 (not the 🛬 land marker) to flag that picking Land completes the objective; the 🏁 goes at the front of the Land line, not trailing after the `?`.
