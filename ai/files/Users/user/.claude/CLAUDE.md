@@ -188,13 +188,13 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   > 👉 How do you want to proceed?
   >   🛠️ **`[i]terate`** (no commit + keep iterating)
   >   💾 **`[c]ommit`**  (commit + keep iterating)
-  >   ⬆️ **`[p]romote`** (commit + promote to master)
+  >   ⬆️ **`[p]romote`** (commit + ✅ promote to master)
   >   🏁 **`[L]and`**    (commit + 🪓 tear down worktree)
 
   Subset (e.g. nothing worth keeping uncommitted, so no iterate slot):
 
   > 👉 How do you want to proceed?
-  >   ⬆️ **`[p]romote`** (commit + promote to master)
+  >   ⬆️ **`[p]romote`** (commit + ✅ promote to master)
   >   🏁 **`[L]and`**    (commit + 🪓 tear down worktree)
 
   Subset (iterate + land, e.g. work is done but might still want a tweak; land stays at the bottom):
