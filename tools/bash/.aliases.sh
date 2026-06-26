@@ -1818,9 +1818,9 @@ if [[ $- == *i* ]]; then
 fi
 
 go_to_root() {
-    # Go to project root.
+    # Walk up to the nearest `.git`, or `/` if none. A worktree root has a `.git` file, the main checkout a dir.
     while :; do
-        if [[ -d ".git" ]]; then
+        if [[ -e ".git" ]]; then
             l
             break
         elif [[ "${PWD}" == "/" ]]; then
