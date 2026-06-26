@@ -79,6 +79,8 @@
 
 Style guides live under `~/.claude/styles/`. Don't bulk-load them all; instead, before writing or editing a file, read and apply the one matching its type, so code lands in the preferred style by default and never only when asked. A `PreToolUse` hook (`remind_style_guide.sh`) injects the matching guide's path on each `Write`/`Edit` as a reminder, but the obligation to read and apply it stands with or without the nudge.
 
+Codify a style rule language-agnostically (in `Code style` above) when it reads the same in any language; reserve `~/.claude/styles/` guides for genuinely language-specific mechanics (Python docstring shape, shell `if` syntax). If a per-language guide would just restate a global rule in one language's words, the rule belonged global. Place a new rule at the broadest scope that fits and only narrow when the language forces it.
+
 - For commit messages, follow `~/.claude/styles/commit-message-style.md`. Default to a single subject line; bodies are rare and reserved for non-obvious motivation.
 - For new file names, follow `~/.claude/styles/file-naming-style.md`. Apply when creating any file: hierarchical prefix groups related files, self-describing remainder says what the file does.
 - For Python docstrings (tests, functions, classes, modules), follow `~/.claude/styles/python-docstring-style.md`. One-line default; multi-line only when contract, contrast, non-obvious WHY, or setup demands it.
