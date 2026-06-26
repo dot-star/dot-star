@@ -33,9 +33,9 @@ Examples:
 """Ensure render_path returns the trailing-slashed form when strip_trailing is False."""
 ```
 
-Some codebases use an older `Tests X.` / `Tests that X.` pattern. For new code, prefer `Ensure` — it names the unit, asserts the behavior, and qualifies the condition, all in one sentence.
+Some codebases use an older `Tests X.` / `Tests that X.` pattern. For new code, prefer `Ensure`: it names the unit, asserts the behavior, and qualifies the condition, all in one sentence.
 
-Test docstrings must mirror the length and shape of existing test docstrings in the same file. Never embed the WHY for the change being tested — that's the production function's docstring's job.
+Test docstrings must mirror the length and shape of existing test docstrings in the same file. Never embed the WHY for the change being tested; that's the production function's docstring's job.
 
 ## Test classes
 

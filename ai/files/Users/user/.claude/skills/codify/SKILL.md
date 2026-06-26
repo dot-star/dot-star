@@ -24,11 +24,11 @@ Codify operates on one memory file under `~/.claude/projects/<project-slug>/memo
 
 Pick 2-3 candidates that fit the memory's content. Skip shapes that don't fit, do not pad to three.
 
-- **Hook** in `~/.claude/settings.json` — for "every time / before X / after X" rules with a clear harness event (PreToolUse, PostToolUse, Stop, SessionStart, etc).
-- **`CLAUDE_*.md` line** in `~/.claude/` — for preference-style rules that need to be loaded every session but have no event boundary (style, tone, shell conventions, output formatting).
-- **`settings.json` entry** (non-hook) — for permission allow/deny rules, env vars, or other harness options.
-- **Shell alias or function** in `~/.dot-star/<tool>/.aliases.sh` — for workflow rules that map to a repeatable shell command. Topical aliases live with their tool.
-- **Skill** at `~/.dot-star/ai/files/Users/user/.claude/skills/<name>/SKILL.md` — for multi-step workflows worth a named, explicit invocation.
+- **Hook** in `~/.claude/settings.json`: for "every time / before X / after X" rules with a clear harness event (PreToolUse, PostToolUse, Stop, SessionStart, etc).
+- **`CLAUDE_*.md` line** in `~/.claude/`: for preference-style rules that need to be loaded every session but have no event boundary (style, tone, shell conventions, output formatting).
+- **`settings.json` entry** (non-hook): for permission allow/deny rules, env vars, or other harness options.
+- **Shell alias or function** in `~/.dot-star/<tool>/.aliases.sh`: for workflow rules that map to a repeatable shell command. Topical aliases live with their tool.
+- **Skill** at `~/.dot-star/ai/files/Users/user/.claude/skills/<name>/SKILL.md`: for multi-step workflows worth a named, explicit invocation.
 
 For each candidate, state the concrete landing spot (file path + section) and a one-line sketch of the change. The user is picking between concrete edits, not abstract categories.
 
