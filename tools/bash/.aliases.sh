@@ -1691,6 +1691,7 @@ realpath_copy_to_clipboard() {
     real_path "${@}" | c
 }
 alias rpc="realpath_copy_to_clipboard"
+alias rc="realpath_copy_to_clipboard"
 
 alias_man() {
     # Open man pages as html when on a Mac.
