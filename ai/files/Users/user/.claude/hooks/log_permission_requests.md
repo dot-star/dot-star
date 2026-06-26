@@ -52,7 +52,7 @@ diffs as pure added lines and no prior line is rewritten. Read it line by line
 `~/.claude/permission-requests.jsonl` is a real file in the real `~/.claude`
 directory, outside the symlinked dot-star tree, so the accumulated runtime data
 never lands in git. Appends take an exclusive `flock`, so concurrent sessions
-do not corrupt the file.
+don't corrupt the file.
 
 ## Testing
 

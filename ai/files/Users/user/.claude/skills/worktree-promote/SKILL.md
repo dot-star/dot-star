@@ -26,7 +26,7 @@ Promote and `worktree-done` share the rebase + fast-forward; they diverge only o
 2. Resolve placeholders: `<branch>` from `git symbolic-ref --short HEAD`; `<main>` from the first entry of `git worktree list`; `<default>` from the main checkout's HEAD branch (or the project's `git_default_branch` helper).
 3. Confirm working tree is clean (`git status --porcelain` empty); if not, surface the dirty paths and stop. Carve-out: an untracked empty `.claude/settings.local.json` (auto-created by Claude Code, not user work) does not count as dirty. To check, expand `?? .claude/` with `git status --porcelain --untracked-files=all` and treat the gate as satisfied when the only untracked entry is `.claude/settings.local.json` and that file is zero bytes.
 4. Confirm the branch has commits ahead of `<default>` (`git log <default>..HEAD --oneline` non-empty); if not, there is nothing to promote.
-5. State in one line what is about to happen ("Promoting branch X onto Z, keeping worktree Y."), then proceed. The trigger phrase already served as confirmation, do not re-prompt.
+5. State in one line what is about to happen ("Promoting branch X onto Z, keeping worktree Y."), then proceed. The trigger phrase already served as confirmation, don't re-prompt.
 
 ## Promote
 
@@ -34,8 +34,8 @@ Promote and `worktree-done` share the rebase + fast-forward; they diverge only o
 2. Fast-forward in the main checkout, gated on a clean ancestry precheck so the FF never errors out with red exit 128: `git -C <main> checkout <default> && git -C <main> merge-base --is-ancestor <default> <branch> && git -C <main> merge --ff-only <branch>`. Use `git -C <main>` rather than `cd <main> && git ...`; the `cd <abs-path> && ...` shape trips the harness's untrusted-hooks gate every run. The `--is-ancestor` check exits 1 (silent, no red error) when `<default>` has advanced past the rebase point; in that case loop back to step 1 to re-rebase, then retry. If the FF reports "Your local changes ... would be overwritten by merge" because `<main>` has unrelated uncommitted edits, stash them with `git -C <main> stash push --message "worktree-promote auto-stash before FF" -- <files>`, retry the FF, and `git -C <main> stash pop` afterward.
 3. Verify the commit is now reachable from the target branch: `git -C <main> merge-base --is-ancestor <branch> <default>`. If this exits non-zero, the FF did not land; surface "ancestry check failed: <branch> is not reachable from <default> in <main>" and stop.
 
-Do NOT remove the worktree, delete the branch, or call `ExitWorktree`. The session cwd is unchanged (the FF used `git -C <main>`, which never touches cwd); confirm the commits are now on `<default>` and the worktree is intact for continued work.
+DON'T remove the worktree, delete the branch, or call `ExitWorktree`. The session cwd is unchanged (the FF used `git -C <main>`, which never touches cwd); confirm the commits are now on `<default>` and the worktree is intact for continued work.
 
-If any step errors, surface the message verbatim and stop. Do not bypass the gates without asking (e.g. do not stash uncommitted worktree changes to satisfy the clean-tree gate).
+If any step errors, surface the message verbatim and stop. Don't bypass the gates without asking (e.g. don't stash uncommitted worktree changes to satisfy the clean-tree gate).
 
 The session is not done after a promote: there is more work expected in the worktree. Skip the end-of-session prompt. If the user later wants to wrap up and tear the worktree down, that is `worktree-done`.

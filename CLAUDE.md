@@ -40,8 +40,8 @@ Consequences for changes:
 
 - Adding a new tool directory does nothing until you also add a `source "tools/newtool/.aliases.sh"` line to `bootstrap/.bash_profile`. The bootstrap does not glob.
 - Some files are bash-only and are guarded with `if [[ -n "${BASH_VERSION}" ]]`; zsh users get a smaller set (notably `tools/bash/.behavior.sh` and `tools/bash/.prompt.sh` are skipped). Mirror that guarding when adding shell-specific features.
-- Aliases and functions are intentionally short and overlap by design (e.g. `cmc`/`cgc`/`clc`/`clcm`/`cma`/`aic` all alias `claude_git_commit` in `ai/.aliases.sh`). Do not "deduplicate" these without asking; the redundancy is the point.
-- `tools/bash/extra.sh` is gitignored and may be a symlink into another repo; treat it as user-local override territory and do not commit content there.
+- Aliases and functions are intentionally short and overlap by design (e.g. `cmc`/`cgc`/`clc`/`clcm`/`cma`/`aic` all alias `claude_git_commit` in `ai/.aliases.sh`). Don't "deduplicate" these without asking; the redundancy is the point.
+- `tools/bash/extra.sh` is gitignored and may be a symlink into another repo; treat it as user-local override territory and don't commit content there.
 
 ### Install-time side effects live in `script/post_install.sh`
 
@@ -51,7 +51,7 @@ Consequences for changes:
 
 ### Bootstrap markers in user rc files
 
-`setup_bootstrap` in `script/install.sh` writes a block bracketed by `# Begin dot-star bootstrap.` / `# End dot-star bootstrap.` into `~/.bash_profile` and `~/.bashrc`, removing any prior block first. If you change the bootstrap snippet, an existing user only picks it up by re-running `./install.sh`. Do not hand-edit those files in CI or scripts; round-trip through `setup_bootstrap`.
+`setup_bootstrap` in `script/install.sh` writes a block bracketed by `# Begin dot-star bootstrap.` / `# End dot-star bootstrap.` into `~/.bash_profile` and `~/.bashrc`, removing any prior block first. If you change the bootstrap snippet, an existing user only picks it up by re-running `./install.sh`. Don't hand-edit those files in CI or scripts; round-trip through `setup_bootstrap`.
 
 ## Project conventions
 

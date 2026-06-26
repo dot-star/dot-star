@@ -22,7 +22,7 @@ Codify operates on one memory file under `~/.claude/projects/<project-slug>/memo
 
 ## Target shapes
 
-Pick 2-3 candidates that fit the memory's content. Skip shapes that don't fit, do not pad to three.
+Pick 2-3 candidates that fit the memory's content. Skip shapes that don't fit, don't pad to three.
 
 - **Hook** in `~/.claude/settings.json`: for "every time / before X / after X" rules with a clear harness event (PreToolUse, PostToolUse, Stop, SessionStart, etc).
 - **`CLAUDE_*.md` line** in `~/.claude/`: for preference-style rules that need to be loaded every session but have no event boundary (style, tone, shell conventions, output formatting).

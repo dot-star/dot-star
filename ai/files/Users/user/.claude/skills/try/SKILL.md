@@ -17,7 +17,7 @@ Goal: move this worktree's uncommitted changes into the root checkout so they ca
 4. Idempotency check: confirm no prior `/try` is active for this worktree:
     - `git stash list --grep="try:wt-source:<wt>" --format="%gd"`
    If non-empty, surface "/try already active for <wt>; run /untry first" and stop.
-5. State the plan in one line ("Ferrying <wt>'s working changes to <root>; root edits will be saved aside.") and proceed. The trigger phrase already served as confirmation, do not re-prompt.
+5. State the plan in one line ("Ferrying <wt>'s working changes to <root>; root edits will be saved aside.") and proceed. The trigger phrase already served as confirmation, don't re-prompt.
 
 ## Ferry
 
@@ -25,9 +25,9 @@ Goal: move this worktree's uncommitted changes into the root checkout so they ca
     - `git stash push --include-untracked --message "try:wt-source:<wt>"`
 2. In the root checkout, save any pre-existing edits aside (only when `cd <root> && git status --porcelain` is non-empty):
     - `cd <root> && git stash push --include-untracked --message "try:root-saved:<wt>"`
-3. Apply the worktree's stash in root (apply, do not pop, so the marker stays in the log):
+3. Apply the worktree's stash in root (apply, don't pop, so the marker stays in the log):
     - Resolve the ref: `wt_source_ref="$(git stash list --grep="try:wt-source:<wt>" --format="%gd" | head -1)"`
     - `cd <root> && git stash apply "${wt_source_ref}"`
-4. If the apply reports a conflict, surface the conflicted paths and stop. Do NOT auto-resolve. The worktree's source stash is still in the log, and `try:root-saved:<wt>` (if any) is preserved. Tell the user: resolve the conflict in root (or `cd <root> && git checkout .` to abort the apply), then `/untry` to put things back.
+4. If the apply reports a conflict, surface the conflicted paths and stop. DON'T auto-resolve. The worktree's source stash is still in the log, and `try:root-saved:<wt>` (if any) is preserved. Tell the user: resolve the conflict in root (or `cd <root> && git checkout .` to abort the apply), then `/untry` to put things back.
 
 State at end: root has the worktree's working changes applied. Worktree is clean. Stash log holds `try:wt-source:<wt>` and possibly `try:root-saved:<wt>`. Tell the user the changes are live in root, e.g. `source ~/.dot-star/bootstrap/.bash_profile` to reload a shell session.
