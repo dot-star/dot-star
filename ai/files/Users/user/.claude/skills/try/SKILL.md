@@ -28,6 +28,6 @@ Goal: move this worktree's uncommitted changes into the root checkout so they ca
 3. Apply the worktree's stash in root (apply, don't pop, so the marker stays in the log):
     - Resolve the ref: `wt_source_ref="$(git stash list --grep="try:wt-source:<wt>" --format="%gd" | head -1)"`
     - `cd <root> && git stash apply "${wt_source_ref}"`
-4. If the apply reports a conflict, surface the conflicted paths and stop. DON'T auto-resolve. The worktree's source stash is still in the log, and `try:root-saved:<wt>` (if any) is preserved. Tell the user: resolve the conflict in root (or `cd <root> && git checkout .` to abort the apply), then `/untry` to put things back.
+4. If the apply reports a conflict, surface the conflicted paths and stop. DON'T auto-resolve. The worktree's source stash is still in the log and `try:root-saved:<wt>` (if any) is preserved. Tell the user: resolve the conflict in root (or `cd <root> && git checkout .` to abort the apply), then `/untry` to put things back.
 
 State at end: root has the worktree's working changes applied. Worktree is clean. Stash log holds `try:wt-source:<wt>` and possibly `try:root-saved:<wt>`. Tell the user the changes are live in root, e.g. `source ~/.dot-star/bootstrap/.bash_profile` to reload a shell session.

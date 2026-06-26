@@ -10,7 +10,7 @@ Blank lines around `if` blocks track logical grouping. Keep an assignment flush 
 
 Build a multi-line string so its source mirrors the rendered output: one append per output line, each carrying a literal `\n`, rather than packing every `\n` into a single `$'...'`.
 
-Why: the source reads line-for-line like what the user sees, and a change to one output line touches one source line (clean diffs).
+Why: the source reads line-for-line like what the user sees and a change to one output line touches one source line (clean diffs).
 
 ```
 reason=$'Heading:\n\n'

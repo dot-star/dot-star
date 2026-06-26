@@ -8,7 +8,7 @@
   - The behavior contrasts with a clear alternative.
   - The WHY is non-obvious (legacy compat, race, perf, hidden invariant).
   - Setup or environmental context needs explaining.
-- Multi-line frame: `"""` opens on its own line, `"""` closes on its own line. Preserve an existing docstring's shape when editing: keep a multi-line frame multi-line (never collapse to a `"""text."""` one-liner, even if the new content fits on one line), and keep a one-liner one-line unless a multi-line trigger above now applies.
+- Multi-line frame: `"""` opens on its own line, `"""` closes on its own line. Preserve an existing docstring's shape when editing: keep a multi-line frame multi-line (never collapse to a `"""text."""` one-liner, even if the new content fits on one line) and keep a one-liner one-line unless a multi-line trigger above now applies.
 - Sentences end with periods.
 - Use backticks inline for code references (`HelperClass`, `MODULE_CONSTANT`).
 - Use `(e.g. ...)` for concrete examples in param descriptions and inline asides.

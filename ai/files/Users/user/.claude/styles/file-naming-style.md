@@ -1,6 +1,6 @@
 # File naming
 
-When creating a file, the name should be both **hierarchical** (shared prefix so related files cluster together in a directory listing) and **semantic** (the remainder hints at what the file does, supplements, or contains). Together they turn `ls` into a table of contents: related files cluster without needing a subdirectory, and a reader needn't open a file to know what it does.
+When creating a file, the name should be both **hierarchical** (shared prefix so related files cluster together in a directory listing) and **semantic** (the remainder hints at what the file does, supplements, or contains). Together they turn `ls` into a table of contents: related files cluster without needing a subdirectory and a reader needn't open a file to know what it does.
 
 ## Shapes by extension
 
