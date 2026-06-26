@@ -316,7 +316,7 @@ sort_json() {
 
         if command jq --sort-keys . "${file}" >"${tmp_file}"; then
             mv "${tmp_file}" "${file}"
-            echo "Sorted ${file}"
+            echo "✅ Sorted ${file}"
         else
             rm --force "${tmp_file}"
             echo "Error: failed to sort ${file}"
@@ -326,6 +326,7 @@ sort_json() {
 }
 alias json_sort="sort_json"
 alias jsonsort="sort_json"
+alias jsort="sort_json"
 
 conditional_sort() {
     # Route ".json" filenames to "sort_json" (jsonsort); send everything else to
