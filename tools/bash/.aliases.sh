@@ -1688,7 +1688,15 @@ real_path() {
 alias rp="real_path"
 
 realpath_copy_to_clipboard() {
-    real_path "${@}" | c
+    # Copy the real path to the clipboard and echo what was copied.
+    local resolved_path
+    resolved_path="$(real_path "${@}")"
+
+    printf "%s" "${resolved_path}" | c
+
+    # Report to stderr so stdout stays clean when piped or redirected.
+    echo "copied to clipboard:" >&2
+    echo "${resolved_path}" >&2
 }
 alias rpc="realpath_copy_to_clipboard"
 alias rc="realpath_copy_to_clipboard"
