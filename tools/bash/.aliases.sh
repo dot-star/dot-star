@@ -1833,6 +1833,21 @@ go_to_root() {
 alias r="go_to_root"
 alias rv="go_to_root && v."
 
+go_to_main_checkout() {
+    # Walk up to the main checkout (a `.git` directory), skipping worktree roots (a `.git` file). `r` stops at the worktree; `rr` goes past it.
+    while :; do
+        if [[ -d ".git" ]]; then
+            l
+            break
+        elif [[ "${PWD}" == "/" ]]; then
+            break
+        else
+            cd ..
+        fi
+    done
+}
+alias rr="go_to_main_checkout"
+
 git_worktree_cd() {
     # cd into a git worktree, mirroring the cwd's path within the current
     # worktree into the target worktree when that subdirectory exists.
