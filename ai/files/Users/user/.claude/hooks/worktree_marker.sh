@@ -9,9 +9,18 @@
 # "new tab inherits cwd" tracking follows where the session is working. While
 # Claude Code owns the TTY the shell's precmd never fires, so Terminal.app's
 # tracked cwd would otherwise stay frozen at whatever PWD was when claude
-# launched. Point it at the worktree while one is active, else at the session
-# tmp dir (/tmp/claude/<session_id>) so a worktree-less session opens new tabs
-# there rather than the launch dir.
+# launched. Point it at the worktree while one is active, else at the launch
+# directory so a worktree-less session opens new tabs where claude started.
+#
+# Map where a new tab opens:
+#
+#   Am I in a temporary workspace (a worktree)?
+#    ├─ Yes ─► open in that workspace
+#    │         e.g. <repo>/.claude/worktrees/fix-foo → same
+#    └─ No  ─► open right where claude started (the launch dir)
+#              e.g. <repo>             → <repo>
+#                   <repo>/tools/bash  → <repo>/tools/bash
+#                   ~/Downloads        → ~/Downloads
 
 set -euo pipefail
 
@@ -117,6 +126,8 @@ event=$(printf '%s' "${data}" |
     command jq --raw-output '.hook_event_name // empty')
 tool=$(printf '%s' "${data}" |
     command jq --raw-output '.tool_name // empty')
+cwd=$(printf '%s' "${data}" |
+    command jq --raw-output '.cwd // .workspace.current_dir // empty')
 case "${tool:-${event}}" in
 EnterWorktree)
     # Extract the new worktree path from the tool response text
@@ -138,8 +149,10 @@ ExitWorktree)
         rm "${marker}"
     fi
 
-    # Point new tabs at the session tmp dir now that no worktree is active.
-    emit_osc7 "${dir}"
+    # Point new tabs at the launch directory now that no worktree is active.
+    if [ -n "${cwd}" ]; then
+        emit_osc7 "${cwd}"
+    fi
     ;;
 SessionStart)
     # Follow a worktree marker that survived a resume; nothing else to resolve.
@@ -147,9 +160,6 @@ SessionStart)
         emit_osc7 "$(cat "${marker}")"
         exit 0
     fi
-
-    cwd=$(printf '%s' "${data}" |
-        command jq --raw-output '.cwd // .workspace.current_dir // empty')
 
     # Detect a worktree the session launched inside (created outside the
     # EnterWorktree tool, so no marker) the way statusline.sh does: a worktree's
@@ -164,13 +174,12 @@ SessionStart)
         esac
     fi
 
-    # Point new tabs at that worktree if one is active, else at the session tmp
-    # dir so a worktree-less session lands there rather than the launch dir.
+    # Point new tabs at that worktree if one is active, else at the launch
+    # directory so a worktree-less session lands where claude started.
     if [ -n "${worktree_root}" ]; then
         emit_osc7 "${worktree_root}"
-    else
-        mkdir -p "${dir}"
-        emit_osc7 "${dir}"
+    elif [ -n "${cwd}" ]; then
+        emit_osc7 "${cwd}"
     fi
     ;;
 esac
