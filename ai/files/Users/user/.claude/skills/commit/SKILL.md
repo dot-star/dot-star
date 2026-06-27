@@ -35,13 +35,19 @@ Collapse "draft a subject, pick one, commit" into one action for the currently s
 
 ## Draft
 
-Produce 4 distinct single-line subjects, then sort them best-first by the rubric below before presenting. Earlier criteria dominate later ones; only fall to the next criterion to break a tie:
+Produce 6 distinct single-line subjects (over-generate so the true best is in the pool, not just the first thing drafted), then score and rank them with the weighted sheet below, and keep only the top 3 to present.
 
-1. **Self-contained**: a reader who hasn't seen the diff understands what changed from the subject alone (e.g. "Reject uploads larger than 10 MB", not "Update handler").
-2. **Names the concrete thing**: the specific value or behavior, not a category (e.g. "Raise the upload limit to 50 MB", not "Adjust upload settings").
-3. **Intent over mechanism**: what changed and why, not where it landed; drop locational filler like "in Principles".
-4. **Imperative, verb-first**: `Add`, `Prefer`, `Fix`; not `Note`, `Adds`.
-5. **Tightest phrasing that still satisfies 1-4**: shorter wins only as a tiebreak, never at the cost of specificity.
+Score each draft 0, 1, or 2 on every criterion, multiply by the criterion's weight, sum to a total, then sort best-first by total descending. The descending weights keep the earlier criteria dominant (a self-contained subject almost always outranks a merely-tight one), but the continuous total lets a draft that's slightly weaker on one criterion still win when it's far stronger on the rest, which a strict lexicographic tiebreak can't express.
+
+| Weight | Criterion | 2 (full) | 0 (fail) |
+| --- | --- | --- | --- |
+| ×5 | **Self-contained** | a reader who hasn't seen the diff understands what changed from the subject alone ("Reject uploads larger than 10 MB") | opaque without the diff ("Update handler") |
+| ×4 | **Names the concrete thing** | the specific value or behavior ("Raise the upload limit to 50 MB") | a vague category ("Adjust upload settings") |
+| ×3 | **Intent over mechanism** | what changed and why | where it landed; locational filler like "in Principles" |
+| ×2 | **Imperative, verb-first** | `Add`, `Prefer`, `Fix` | `Note`, `Adds` |
+| ×1 | **Tightest phrasing** | no slack left without losing specificity | padded with words the diff already carries |
+
+On a tie in total, break it toward the higher self-contained score, then the higher concrete-thing score. Score honestly: don't inflate a draft to pad the pool, a 4-way tie at the top means the drafts aren't distinct enough, so revise before ranking.
 
 Each subject must:
 
@@ -55,7 +61,7 @@ Each subject must:
 
 ## Pick
 
-Call `AskUserQuestion` with a single question (`"Pick a commit message:"`, header `"Commit msg"`) and the 4 drafts as options. Put the full message in `label`, leave `description` empty or use it for a short rationale only when the framing isn't self-explanatory. `multiSelect` is false.
+Call `AskUserQuestion` with a single question (`"Pick a commit message:"`, header `"Commit msg"`) and the top 3 drafts as options, in best-first order. Put the full message in `label`, leave `description` empty or use it for a short rationale only when the framing isn't self-explanatory. `multiSelect` is false.
 
 ## Commit
 
