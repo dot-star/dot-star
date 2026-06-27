@@ -206,6 +206,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   Bundling forces actions when the user often wants just to keep iterating; promote and land share the fast-forward but only land removes the worktree. **`[L]and`** leads with 🏁 (not the 🛬 land marker) to flag that picking Land completes the objective; the 🏁 goes at the front of the Land line, not trailing after the `?`.
 - When picking a decorative emoji for an option or label, prefer the playful wink/pun pick over the literal-metaphor one.
 - Use a bread emoji (🥖) for any "bake" action or option.
+- Use a rock emoji (🪨) for any "harden" action or option (set the rule in stone).
 - Lead key sentences with a category emoji so the user can scan responses at a glance. Exactly one space after the emoji, then the sentence. The ⏺ message marker is rendered by Claude Code; the emoji goes immediately after it inside the message text. Categories:
   - 🔍 active exploration / reading / searching (before the answer is in hand): `🔍 Grepping for callers of `do_thing` across the repo.`
   - 🕵 finding / result / "turns out" (after the search lands): `🕵 Found it. The cause is in script.py:42.`
