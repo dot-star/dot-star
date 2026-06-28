@@ -177,7 +177,16 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     6. If any alternative lacks `[` ... `]`, fix before sending.
     7. Does any option carry a second label (`A.`/`B.`, `1.`/`2.`) beside its bracket prefix? Strip it, the bracket letter is the only label.
 - When an own `[c]ommit` follow-up offer is accepted (reply `c`/`cm`/`commit`/🚢 mapped to the commit option), invoke the `commit` skill via the `Skill` tool rather than running `git commit -m "<self-chosen subject>"` directly. The skill drafts numbered subject options for the user to pick; auto-picking bypasses that choice. Same rule for any other phrasing where the offered action was "commit" (e.g. "want me to commit?"). To commit without the skill, the user has to opt in explicitly.
-- When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment (any subset, not always all of them), each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**). Whenever two or more appear together, list them top-to-bottom in this fixed order: iterate → commit → promote → land. The slot order tracks least-to-most committal (don't-commit first, then commit-and-stay, then promote, then the teardown); land is the only one that tears the worktree down, so it's always last, never floated into the middle or reordered. **Pre-send check: whenever 🏁 `[L]and` appears it is the bottom row; if any option (even a lone keep/iterate slot) renders beneath it, reorder before sending.** The four options:
+- When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment (any subset, not always all of them), each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**). Whenever two or more appear together, list them top-to-bottom in this fixed order: iterate → commit → promote → land. The slot order tracks least-to-most committal (don't-commit first, then commit-and-stay, then promote, then the teardown); land is the only one that tears the worktree down, so it's always last, never floated into the middle or reordered. **Pre-send check: whenever 🏁 `[L]and` appears it is the bottom row; if any option (even a lone keep/iterate slot) renders beneath it, reorder before sending.**
+
+  **Applicability is a fact about the tree, not a guess.** Before sending, run `git status --porcelain` and branch on the result:
+
+  - **Non-empty** (something is actually uncommitted): offer `[c]ommit`.
+  - **Empty** (clean tree): drop `[c]ommit`, reframe `[i]terate` from "defer the commit" to "keep tuning", and narrow the menu to `[i]terate`/`[p]romote`/`[L]and` (they act on the already-committed work).
+
+  Never offer `[c]ommit` off a stale mental model of the tree (e.g. after edits that net back to the committed value) without re-checking.
+
+  The common options:
   - 🛠️ **`[i]terate`**: no commit yet, keep iterating in the worktree (the do-nothing default, named for the action rather than a passive "keep").
   - 💾 **`[c]ommit`**: commit, keep iterating in the worktree (commits what's there; `[i]terate` defers the commit).
   - ⬆️ **`[p]romote`**: commit + fast-forward the default branch to here, keep the worktree (via `worktree-promote`).
