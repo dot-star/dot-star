@@ -10,15 +10,61 @@
 # surfaces while content is still at risk rather than already gone.
 CLAUDE_SUPPLEMENTAL_WARN_BYTES=9000
 
-# Echo a context file's `claude-mention` keyword (the text between
-# "claude-mention:" and "-->"), or nothing when the file carries no marker. The
-# value may be a comma-separated keyword list; splitting and matching is the
+# Echo a context file's `claude-mention` keywords (the text between
+# "claude-mention:" and "-->"), or nothing when the file carries no marker.
+# List keywords one per line inside a single marker block for readable diffs:
+#     <!-- claude-mention:
+#         deploy
+#         rollback
+#         release
+#     -->
+# Accept a single-line too:
+#     <!-- claude-mention: deploy, rollback -->
+# Emit one comma-separated string either way; splitting and matching is the
 # caller's job.
 claude_supplemental_mention_keyword() {
     local file="$1"
 
-    sed -n 's/.*<!-- *claude-mention: *\(.*[^ ]\) *-->.*/\1/p' "${file}" |
-        head -n 1
+    awk '
+        function trim(s) {
+            gsub(/^[ \t]+|[ \t]+$/, "", s)
+            return s
+        }
+        function emit(s,   t) {
+            t = trim(s)
+            if (t != "") {
+                out = (out == "" ? t : out "," t)
+            }
+        }
+
+        # Collect keyword lines until the block closes with "-->".
+        collecting {
+            if (index($0, "-->") > 0) {
+                line = $0
+                sub(/-->.*/, "", line)
+                emit(line)
+                collecting = 0
+            } else {
+                emit($0)
+            }
+            next
+        }
+
+        # Open a marker; the keywords are inline (single-line) or below (block).
+        match($0, /<!--[ \t]*claude-mention:/) {
+            rest = substr($0, RSTART)
+            sub(/<!--[ \t]*claude-mention:/, "", rest)
+            if (index(rest, "-->") > 0) {
+                sub(/-->.*/, "", rest)
+                emit(rest)
+            } else {
+                emit(rest)
+                collecting = 1
+            }
+        }
+
+        END { print out }
+    ' "${file}"
 }
 
 # Emit <context> as additionalContext for the <event> hook, prepending a loud

@@ -22,6 +22,7 @@
     - **Always-on**: `~/.claude/CLAUDE_<name>.md`, auto-loaded every session by the hook above. For small global prefs.
     - **Full doc, in-repo**: `ai/contexts/<name>.md`, pulled into one repo by a gitignored `CLAUDE.local.md` there holding `@~/.dot-star/ai/contexts/<name>.md`. Native memory import: no cap, loads only in that repo.
     - **Reference on mention**: add `<!-- claude-mention: <keyword> -->` to an `ai/contexts/` doc; the `UserPromptSubmit` companion hook then injects a one-line pointer to it (not its content) the first time a prompt mentions `<keyword>`, deduped per session.
+      - List keywords one per line inside a single marker block (preferred), or comma-separated on one line; any one matches.
   - Where a new piece of context goes:
 
     ```
