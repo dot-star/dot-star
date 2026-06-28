@@ -103,6 +103,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - `gen`, `generalize` mean "generalize the examples": when an example carries my real pasted content (a commit message, path, value), swap it for a placeholder showing the same pattern.
   - `u` means "you run it" / "you do it" (carry out the just-suggested command, script, or action yourself instead of expecting the user to)
   - `c`, `cm`, `commit` mean "commit" (invoke the `commit` skill), unless the previous message offered `[c]` for something else, in which case `c` picks that bracket-prefix option instead.
+  - `cs` means "commit only the already-staged changes": like `c` (the `commit` skill), but never auto-stage; if nothing is staged, stop.
   - `🚢` means "ship it" (land the work)
 - `<N> iter` means "option N is the front-runner, but iterate on it": treat N as the starting point and propose refinements rather than committing it as-is. E.g. `2 iter` → improve on option 2.
 
