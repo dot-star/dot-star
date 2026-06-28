@@ -64,6 +64,7 @@
 
 - Never write single-line `if` statements; always put the body on its own line inside braces (write `if (cond) {` then `return x;` then `}`, not `if (cond) return x;`).
 - When consecutive `if` statements each end in `return` (or `throw`), chain them as `else if` rather than leaving them as separate `if` blocks; this includes side-effecting actions (e.g. `if ! git rebase master`) where chaining is possible. Plain side-effect `if`s without a terminating return stay separate.
+- Prefer spelling out the cases over a regex group when they're few and known: `deploy`, `deployed`, `deploying`, not `deploy(ed|ing)?`. A group or alternation packs several cases into one expression that's harder to read, diff, and reason about; reach for it only when the alternatives are open-ended or too many to enumerate.
 - Two comment shapes:
   - **Block comments** (TODOs, design notes): blank line above and below.
   - **Line-doc comments** (describing the next line/pipeline): stay flush with the code they describe, no blank line between the comment and that code.
