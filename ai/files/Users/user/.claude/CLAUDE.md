@@ -75,6 +75,7 @@
 - Build multi-line strings so the source mirrors the rendered output: one statement per output line, each carrying a literal newline, not several `\n` escapes packed into one long line. The split makes the rendered shape visible in the source and keeps diffs line-addressable. A `\n` mid-string is still fine (a header's trailing `\n\n` stays inline). Per-language idioms live in the matching style guide.
 - Instruction docs (`CLAUDE.md`, `CLAUDE_*.md`, READMEs) are read by humans too, not just the AI; whenever a rule is best served by structure (a long clause-dense line is the common trigger, not the only one), spend whatever improves readability: whitespace, nested sub-bullets, a table, even an ASCII diagram. These aids serve the human reader and don't count as the column-wrapping the previous rule forbids.
 - Keep a quoted example literal: don't embed annotation markers (`[1]`), labels, or commentary inside the quotes; put any mapping outside, beneath it. Bad (marker leaked in): `"the example text [2]"`.
+- Generalize examples to neutral placeholders before they land in a committed file. When an illustration (code, comment, doc, test) would otherwise carry real private content (actual values from a private file, not invented samples), swap in invented placeholders showing the same pattern (`deploy`/`rollback`, `foo`/`bar`). Committed files are public, and an example only has to demonstrate shape, so its content is invented, never real data.
 
 ## Styles
 
