@@ -2166,15 +2166,13 @@ git_worktree_promote() {
         return 1
     fi
 
-    # Refuse if the worktree has uncommitted or staged changes to tracked
-    # files. Untracked files don't gate: rebase has its own untracked-overwrite
-    # check, and promote keeps the worktree, so untracked files survive.
+    # Capture whether the worktree has staged or unstaged changes to tracked
+    # files. Don't gate on it here: a plain fast-forward promotes only committed
+    # work and leaves the worktree in place, so a dirty tree is harmless. Only
+    # the diverged/rebase path gates on it, once the default branch is known.
+    # Untracked files never gate: rebase has its own untracked-overwrite check.
     local dirty
     dirty="$(git status --porcelain | grep --invert-match '^?? ' || true)"
-    if [[ -n "${dirty}" ]]; then
-        echo "worktree has uncommitted changes"
-        return 1
-    fi
 
     # Main checkout is always the first entry in `git worktree list'.
     local main_checkout
@@ -2188,6 +2186,17 @@ git_worktree_promote() {
     if ! default_branch="$(git_default_branch "${main_checkout}")"; then
         echo "could not determine default branch in \"${main_checkout}\""
         return 1
+    fi
+
+    # Gate a dirty worktree only when a rebase is unavoidable. When the default
+    # branch isn't an ancestor of HEAD the branch has diverged and must be
+    # rebased onto it before it can fast-forward, and rebase refuses to run with
+    # a dirty tree; a plain fast-forward needs no such thing.
+    if ! git merge-base --is-ancestor "${default_branch}" HEAD; then
+        if [[ -n "${dirty}" ]]; then
+            echo "branch \"${branch}\" has diverged from ${default_branch} and needs a rebase, but the worktree has uncommitted changes; commit or stash them first"
+            return 1
+        fi
     fi
 
     # Return here when done; promote keeps the worktree, so we stay put.
