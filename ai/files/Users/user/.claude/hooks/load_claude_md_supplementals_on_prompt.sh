@@ -43,7 +43,11 @@ while IFS= read -r file; do
         continue
     fi
 
-    # Match any one of the marker's comma-separated keywords (case-insensitive substring).
+    # Match the prompt against any one of the marker's comma-separated keywords,
+    # each an extended-regex pattern (case-insensitive). A plain word still works
+    # as a literal substring; metacharacters are active, so author boundaries
+    # portably: prefer (^|[^[:alnum:]_])word([^[:alnum:]_]|$) over \b (GNU-only)
+    # or [[:<:]] (BSD-only), since dot-star runs on both macOS and Ubuntu.
     matched=""
     IFS=',' read -ra keyword_terms <<<"${keyword}"
     for term in "${keyword_terms[@]}"; do
@@ -52,7 +56,9 @@ while IFS= read -r file; do
         term="${term%"${term##*[![:space:]]}"}"
         term_lower=$(printf '%s' "${term}" |
             tr '[:upper:]' '[:lower:]')
-        if [ -n "${term_lower}" ] && [[ "${prompt_lower}" == *"${term_lower}"* ]]; then
+
+        # Leave term_lower unquoted so its metacharacters act as regex, not literals.
+        if [ -n "${term_lower}" ] && [[ "${prompt_lower}" =~ ${term_lower} ]]; then
             matched="${term}"
             break
         fi
