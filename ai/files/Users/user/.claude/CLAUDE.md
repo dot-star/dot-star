@@ -3,7 +3,7 @@
 ## Principles
 
 - Explicit is better than implicit.
-- Atomic commits: one logical change per commit.
+- Atomic commits: one logical change per commit; a change is one intent, so everything that serves it lands together (e.g. the edit with its docs and tests).
 - Optimize for readability and reviewer happiness.
 - Pursue correctness across the task; accept more churn when minimalist diffs and correctness conflict.
 - A refactor preserves behavior exactly. Any observable change (return value, status code, error path, output) means it is not a refactor: flag it and get sign-off, never fold it in silently.
