@@ -34,6 +34,14 @@ claude_run() {
     #   claude_run --resume <uuid>          # resume session <uuid> (explicit flag)
     #   claude_run --obj "<objective>" ...  # label the window for the state hooks
 
+    # Note a bare invocation (no args) before --obj shifts them away. A bare `cl`
+    # inside a worktree reopens that worktree's session rather than starting
+    # fresh, matching `clr`.
+    local bare_invocation=""
+    if [[ $# -eq 0 ]]; then
+        bare_invocation=1
+    fi
+
     # Capture a window-scoped objective the state hooks read (Terminal title and
     # wait-state notification from ~/.claude/hooks/announce_window_state.py), then
     # fall through to the launch/resume logic so it composes with either form.
@@ -54,14 +62,17 @@ claude_run() {
     # Redirect into the main checkout when invoked from a linked git worktree, so
     # cl/clr share the repo's one session pool. Claude keys sessions by cwd, and a
     # worktree's project dir holds none of the sessions started from the main
-    # checkout, so resuming from a worktree would never surface them. Remember the
-    # worktree we came from so a bare `--resume` can reopen its own session.
+    # checkout, so resuming from a worktree would never surface them. Note we're
+    # inside a worktree and which one, so a bare `cl` or `--resume` can reopen its
+    # own session.
+    local inside_worktree=""
     local worktree_dir=""
     local git_common_dir="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"
     local toplevel="$(git rev-parse --show-toplevel 2>/dev/null)"
     if [[ -n "${git_common_dir}" ]]; then
         local main_checkout="$(dirname "${git_common_dir}")"
         if [[ "${main_checkout}" != "${toplevel}" ]]; then
+            inside_worktree=1
             worktree_dir="${toplevel}"
             run_dir="${main_checkout}"
         fi
@@ -71,28 +82,50 @@ claude_run() {
     # Confine the cd to a subshell so the caller's directory survives once
     # claude exits.
     (
+        # Enter the run dir, bailing out of the subshell if the cd fails.
         cd "${run_dir}" ||
             exit
 
-        # Explicit `--resume <uuid>` form: pass straight through.
+        # Pass an explicit `--resume <uuid>` straight through:
+        #   $ cl --resume <uuid>
         if [[ "$1" == "--resume" && -n "$2" ]]; then
             claude "$@"
-        # Reopen the worktree's own session on a bare `--resume`, rather than the
-        # main checkout's picker that would list every session in the repo.
-        elif [[ "$1" == "--resume" && -n "${worktree_dir}" ]]; then
-            local worktree_session="$(claude_session_for_dir "${worktree_dir}" "${run_dir}")"
-            if [[ -n "${worktree_session}" ]]; then
-                claude --resume "${worktree_session}"
-            else
-                claude --resume
-            fi
-        # Open the normal picker for a bare `--resume` outside a worktree.
-        elif [[ "$1" == "--resume" ]]; then
-            claude "$@"
-        # Bare uuid as first arg: treat it as the session id to resume.
+
+        # Resume the session named by a bare uuid first arg:
+        #   $ cl <uuid>
         elif [[ "$1" =~ ${uuid_pattern} ]]; then
             claude --resume "$@"
-        # No args (or anything that isn't a uuid): start a fresh session.
+
+        # Inside a worktree, reopen its own session for a bare `cl` or `--resume`
+        # rather than the main checkout's picker that would list every session in
+        # the repo:
+        #   $ cl     (run inside a worktree)
+        #   $ clr    (run inside a worktree)
+        elif [[ -n "${inside_worktree}" ]]; then
+            if [[ "$1" == "--resume" || -n "${bare_invocation}" ]]; then
+                # Reopen the worktree's own session, else fall back to the picker
+                # for `--resume` or a fresh session for a bare `cl`.
+                local worktree_session="$(claude_session_for_dir "${worktree_dir}" "${run_dir}")"
+                if [[ -n "${worktree_session}" ]]; then
+                    claude --resume "${worktree_session}"
+                elif [[ "$1" == "--resume" ]]; then
+                    claude --resume
+                else
+                    claude
+                fi
+            else
+                # Pass other args straight through to a fresh session.
+                claude "$@"
+            fi
+
+        # Open the normal picker for a bare `--resume` outside a worktree:
+        #   $ clr    (run outside a worktree)
+        elif [[ "$1" == "--resume" ]]; then
+            claude "$@"
+
+        # Start a fresh session for no args or any non-uuid arg:
+        #   $ cl              (run outside a worktree)
+        #   $ cl --some-flag
         else
             claude "$@"
         fi
