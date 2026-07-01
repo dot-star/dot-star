@@ -567,7 +567,12 @@ git_diff_last() {
 
 git_diff_last_files() {
     # List file paths changed in last commit, optionally scoped to a path.
-    clear
+
+    # Clear only when stdout is a terminal, so command substitution like
+    # `md5sum $(dflf)` doesn't capture the clear escape codes as a filename.
+    if [[ -t 1 ]]; then
+        clear
+    fi
 
     # List files changed in last commit of project when path is not specified.
     if [[ -z "${1}" ]]; then
