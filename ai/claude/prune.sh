@@ -45,8 +45,17 @@ is_print_mode_transcript() {
     return 1
 }
 
+# True if the file is a resumable session, i.e. carries at least one main-thread
+# (non-sidechain) event. Subagent transcripts are entirely sidechain, so they
+# never match; this counts the same sessions the `claude --resume` picker lists.
+is_resumable_session() {
+    local file="${1}"
+    grep -q '"isSidechain":false' "${file}" 2>/dev/null
+}
+
 pruned=0
 remaining=0
+sessions=0
 while IFS= read -r -d '' file; do
     # Pre-filter with grep so jq parses only the last match, not the whole transcript.
     title="$(
@@ -62,7 +71,10 @@ while IFS= read -r -d '' file; do
         pruned=$((pruned + 1))
     else
         remaining=$((remaining + 1))
+        if is_resumable_session "${file}"; then
+            sessions=$((sessions + 1))
+        fi
     fi
 done < <(find "${projects_dir}" -type f -name '*.jsonl' -print0)
 
-printf '\r\033[K\033[90m⚪️ Pruning Claude sessions... done (%d pruned, %d remaining)\033[0m\n' "${pruned}" "${remaining}"
+printf '\r\033[K\033[90m⚪️ Pruning Claude sessions... done (%d pruned, %d remaining, %d sessions)\033[0m\n' "${pruned}" "${remaining}" "${sessions}"
