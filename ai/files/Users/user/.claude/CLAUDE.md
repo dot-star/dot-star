@@ -104,6 +104,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - `defend`, `prove` mean "defend/prove the prior reply" (justify each claim or item in it)
   - `harden`, `bake`, `firm` mean "strengthen the rule i just hit" by tightening it in `CLAUDE.md` or the matching `CLAUDE_*.md` sibling, or promoting it there from memory if that's where it lives. Memory isn't durable enough to harden into.
   - `t`, `trim` mean "strip whatever we're working on (a comment, a sentence, a rule, a block of code) to its load-bearing parts": cut non-load-bearing content outright (niceties, rationale, cross-references already obvious from context), not just tighten the wording, while preserving every constraint; flag anything load-bearing that can't be cut rather than dropping it silently.
+  - `ws` means "add whitespace for readability": reformat whatever we're working on (a doc, code, a comment, a rule) with blank lines between stanzas and sub-bullets for dense lists so it scans better, without changing the content.
   - `gen`, `generalize` mean "generalize the examples": when an example carries my real pasted content (a commit message, path, value), swap it for a placeholder showing the same pattern.
   - `u` means "you run it" / "you do it" (carry out the just-suggested command, script, or action yourself instead of expecting the user to)
   - `c`, `cm`, `commit` mean "commit" (invoke the `commit` skill), unless the previous message offered `[c]` for something else, in which case `c` picks that bracket-prefix option instead.
