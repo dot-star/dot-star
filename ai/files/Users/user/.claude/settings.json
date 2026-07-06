@@ -199,6 +199,7 @@
       "Bash(pbpaste)",
       "Edit(//tmp/claude/**)",
       "Read(//Users/user/.claude/**)",
+      "Read(//Users/user/Projects/dot-star/ai/**)",
       "Read(//tmp/claude/**)",
       "Read(~/.claude/**)",
       "Read(~/.dot-star/ai/**)",
