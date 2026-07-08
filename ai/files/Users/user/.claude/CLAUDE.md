@@ -98,6 +98,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - `res` means "resume"
   - `cont` means "continue"
   - `re` means "retry"
+  - `s`, `st` mean "give me a status": recap what's done, what we're working on, what's pending, and current worktree/branch and dirty state. Don't start new work.
   - `eg`, `egs`, `examples` mean "show me examples"
   - `opt`, `opts` mean "show me options"
   - `flow`, `ascii`, `ascii flow` mean "render the thing under discussion (a pipeline, control flow, data flow, architecture) as a text diagram with boxes and arrows, using box-drawing and tree-branch glyphs (`└─` `├─` `│` `→`) where they read cleaner than plain ASCII (`+` `-` `|`)"
