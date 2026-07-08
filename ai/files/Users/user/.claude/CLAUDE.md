@@ -125,7 +125,12 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
 - Never use em dashes (—) in any output, code, comments, commit messages, or PR descriptions. Use a comma, parentheses, semicolon, or two sentences instead.
 - Never use the ellipsis character (…) in any output, code, comments, commit messages, or PR descriptions. Type three plain periods (`...`) instead.
-- Drop the comma before `and` when it joins just two things, including two full clauses; keep it only for a list of three or more. `Do X, and do Y` → `Do X and do Y`; `A does X, and B does Y` → `A does X and B does Y`; `X, Y, and Z` keeps its commas.
+- Drop the comma before `and` when it joins just two things, including two full clauses; keep it only for a list of three or more.
+  - `Do X, and do Y` → `Do X and do Y`
+  - `A does X, and B does Y` → `A does X and B does Y`
+  - `Do X, and with Y do Z` → `Do X and with Y do Z` (a second clause opening with a modifier phrase, not a bare subject, still gets no comma)
+  - `X, Y, and Z` keeps its commas
+  - Pre-send scan: check every `, and` and delete the comma unless it's closing a list of three or more.
 - Write a negative imperative as the contraction `don't`/`DON'T`, not the spelled-out `do not`/`Do NOT`; preserve any emphasis casing (so `Do NOT repoint at prod` → `DON'T repoint at prod`).
 - Write for the human who'll read it, not for yourself or an AI: PR titles/descriptions/comments, commit messages, and person-to-person comms all reach someone who may not share your context. Prefer the term that lands fastest for that reader (the common everyday word) over the technically-precise, formal, or insider one.
 - Trim to the load-bearing words in any terse text (commit subjects, PR titles, TODOs, comments, status lines): cut what the context already carries (exact values in the diff/file), quantifiers the verb implies, and trailing qualifiers; drop articles where the line still reads clean. Standing default; `t`/`trim` applies it on request. Before → after:
