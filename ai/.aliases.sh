@@ -142,6 +142,22 @@ alias clr="claude_run --resume"
 
 alias clo="claude_run --obj"
 
+agy_run() {
+    # Run agy (Google Antigravity), or open its install page when it's missing.
+    if ! command -v agy >/dev/null 2>&1; then
+        echo "agy not installed; opening install page" >&2
+        if [[ "${OSTYPE}" == "darwin"* ]]; then
+            open "https://antigravity.google/"
+        else
+            xdg-open "https://antigravity.google/"
+        fi
+        return 1
+    fi
+
+    agy "$@"
+}
+alias ag="agy_run"
+
 claude_ask() {
     # Run a one-shot claude query and print the answer.
     # Tool access is scoped to common search roots; permissions follow the
