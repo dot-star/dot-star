@@ -156,6 +156,13 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     2. Alternative approach
     3. Fallback approach
   ```
+- When presenting a pass/fail checklist (style checks, pre-send audits, criteria run-downs), lead each line with a single-width status glyph (`✓`, `✗`, `!`), then the item, then the detail after a colon, so the statuses stack into a scannable left column; a trailing glyph buries the signal at ragged line-ends. Keep the glyph single-width: a double-width emoji like `⚠️` renders two columns wide and shoves its line one cell right, breaking the column. Rendered example:
+
+  ```
+  ✓ Tests pass: 47 of 47 green
+  ✗ Lint fails: 2 unused imports
+  ! Coverage dipped: 91% to 88%
+  ```
 - Chat color palette by surface: inline prose has three accents (plain inline-code, bold-inline-code per the bracket-prefix trick, link blue); fenced code blocks get the full syntax-highlight palette of the chosen lexer; status line bypasses markdown and supports full ANSI (8/256/truecolor). When asked about chat colors, distinguish the surface before claiming a limit, and reach for a fenced block when multi-color is needed and prose-inline isn't. Rendered example, file:line in a `python` fence so `42` shows in number-color:
 
   ```python
