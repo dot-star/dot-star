@@ -144,6 +144,11 @@ alias clo="claude_run --obj"
 
 agy_run() {
     # Run agy (Google Antigravity), or open its install page when it's missing.
+    # Usage:
+    #   agy_run                        # start a new conversation
+    #   agy_run <uuid>                 # resume conversation <uuid>
+    #   agy_run --conversation=<uuid>  # resume conversation <uuid> (explicit flag)
+    #   agy_run --continue             # continue the most recent conversation
     if ! command -v agy >/dev/null 2>&1; then
         echo "agy not installed; opening install page" >&2
         if [[ "${OSTYPE}" == "darwin"* ]]; then
@@ -154,9 +159,22 @@ agy_run() {
         return 1
     fi
 
+    # Resume the conversation named by a bare uuid first arg, the id agy prints
+    # on exit:
+    #   $ ag 00000000-1111-2222-3333-444444444444
+    local uuid_pattern='^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+    if [[ "$1" =~ ${uuid_pattern} ]]; then
+        local conversation="$1"
+        shift
+        agy --conversation="${conversation}" "$@"
+        return
+    fi
+
     agy "$@"
 }
 alias ag="agy_run"
+
+alias agr="agy_run --continue"
 
 claude_ask() {
     # Run a one-shot claude query and print the answer.
