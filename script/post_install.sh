@@ -21,6 +21,9 @@ git config --global color.diff.meta blue
 # Colorize the branch name in long-form `git status` ("On branch X").
 # https://git-scm.com/docs/git-config#Documentation/git-config.txt-colorstatusltslotgt
 git config --global color.status.branch "yellow bold"
+
+# Set the upstream automatically on a new branch's first push, so a bare `git push` creates origin/<branch> instead of failing with "no upstream branch".
+git config --global push.autoSetupRemote true
 bt_pop
 
 if [[ "${OSTYPE}" == "darwin"* ]]; then
