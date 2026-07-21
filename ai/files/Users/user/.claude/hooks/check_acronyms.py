@@ -77,6 +77,8 @@ WHITELIST = {
     "SPCX",
     "SQL",
     "SSH",
+    "TBD",
+    "TDD",
     "TODO",
     "UI",
     "URI",
