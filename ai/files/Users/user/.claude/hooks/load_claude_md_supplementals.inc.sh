@@ -20,6 +20,12 @@ CLAUDE_SUPPLEMENTAL_WARN_BYTES=9000
 #     -->
 # Accept a single-line too:
 #     <!-- claude-mention: deploy, rollback -->
+# Drop anything from " # " onward, so an opaque pattern can carry its intent:
+#     <!-- claude-mention:
+#         # Comment a whole line, or trail one after a keyword.
+#         (^|[^[:alnum:]_])ci([^[:alnum:]_]|$)  # match "ci", not "cite"
+#     -->
+# Space both sides of the "#" to comment; "C#" and "#hashtag" stay keywords.
 # Emit one comma-separated string either way; splitting and matching is the
 # caller's job.
 claude_supplemental_mention_keyword() {
@@ -31,6 +37,12 @@ claude_supplemental_mention_keyword() {
             return s
         }
         function emit(s,   t) {
+            # Strip a " # " comment to end of line. Require whitespace on both
+            # sides of the "#" so a keyword that itself contains one survives:
+            # the leading space spares "C#", the trailing one spares "#hashtag",
+            # which the surrounding indentation would otherwise make look like
+            # a whole-line comment.
+            sub(/[ \t]+#[ \t].*/, "", s)
             t = trim(s)
             if (t != "") {
                 out = (out == "" ? t : out "," t)
