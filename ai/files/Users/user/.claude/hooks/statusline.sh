@@ -7,8 +7,8 @@
 #
 # Sources:
 #   - context:   prompt tokens of the last main-chain assistant turn in the
-#                transcript, flagged ⚠️ past CONTEXT_WARN_TOKENS and 🚨 past
-#                CONTEXT_ALERT_TOKENS
+#                transcript, flagged ⚠️ past CONTEXT_WARN_TOKENS, 🚨 past
+#                CONTEXT_ALERT_TOKENS and ‼️ past CONTEXT_CRITICAL_TOKENS
 #   - worktree:  session-scoped marker (worktree_marker.sh), else cwd inspection
 #   - title:     most recent {"type":"custom-title", ...} in the transcript
 #                (written by /rename)
@@ -23,18 +23,22 @@ source "$(dirname -- "${BASH_SOURCE[0]}")/claude_session_dir.inc.sh"
 cyan=$'\033[36m'
 yellow=$'\033[33m'
 bold_red=$'\033[1;31m'
+bold_magenta=$'\033[1;35m'
 reset=$'\033[0m'
 
 OBJECTIVE_MAX_CHARS=60
 OBJECTIVE_MAX_WORDS=6
 
 # Warn (⚠️) on the context segment past this many tokens, then escalate to an
-# alert (🚨) past the higher mark. By tier, the segment renders:
+# alert (🚨) and a critical (‼️) past the higher marks. By tier, the segment
+# renders:
 #   [63k]           below warn
-#   [⚠️210k/300k]    warn
-#   [🚨312k/300k]    alert
+#   [⚠️210k/400k]    warn
+#   [🚨312k/400k]    alert
+#   [‼️412k/400k]    critical
 CONTEXT_WARN_TOKENS=200000
 CONTEXT_ALERT_TOKENS=300000
+CONTEXT_CRITICAL_TOKENS=400000
 
 flatten() {
     local s="$1"
@@ -152,13 +156,17 @@ if [ -n "${transcript}" ] && [ -f "${transcript}" ]; then
 fi
 
 # Format the context size, bare until it needs attention: below the warn mark it
-# shows just the count in the bar's own gray, then escalates to a ⚠️ and 🚨
-# budget against the alert ceiling.
+# shows just the count in the bar's own gray, then escalates to a ⚠️, 🚨 and ‼️
+# budget against the critical ceiling.
 context_segment=""
 if [ -n "${context_tokens}" ] && [ "${context_tokens}" -gt 0 ] 2>/dev/null; then
     context_k=$((context_tokens / 1000))
-    context_limit="/$((CONTEXT_ALERT_TOKENS / 1000))k"
-    if [ "${context_tokens}" -ge "${CONTEXT_ALERT_TOKENS}" ]; then
+    context_limit="/$((CONTEXT_CRITICAL_TOKENS / 1000))k"
+    if [ "${context_tokens}" -ge "${CONTEXT_CRITICAL_TOKENS}" ]; then
+        context_color="${bold_magenta}"
+        context_reset="${reset}"
+        context_marker="‼️"
+    elif [ "${context_tokens}" -ge "${CONTEXT_ALERT_TOKENS}" ]; then
         context_color="${bold_red}"
         context_reset="${reset}"
         context_marker="🚨"
