@@ -30,14 +30,18 @@ OBJECTIVE_MAX_CHARS=60
 OBJECTIVE_MAX_WORDS=6
 
 # Warn (⚠️) on the context segment past this many tokens, then escalate to an
-# alert (🚨) and a critical (‼️) past the higher marks. By tier, the segment
-# renders:
-#   [63k]           below warn
-#   [⚠️210k/400k]    warn
-#   [🚨312k/400k]    alert
-#   [‼️412k/400k]    critical
-CONTEXT_WARN_TOKENS=200000
-CONTEXT_ALERT_TOKENS=300000
+# alert (🚨) and a critical (‼️) past the higher marks. Track the bands where
+# model quality falls off:
+#   - The Sweet Spot (150k – 170k): recall and reasoning stay sharp.
+#   - The Warning Zone (250k – 350k): reasoning noticeably declines.
+#   - The Ceiling (400k): the model gets fuzzy and loses the thread.
+# By tier, the segment renders:
+#   [163k]          sweet spot
+#   [⚠️181k/400k]    past the sweet spot
+#   [🚨267k/400k]    warning zone
+#   [‼️412k/400k]    ceiling
+CONTEXT_WARN_TOKENS=170000
+CONTEXT_ALERT_TOKENS=250000
 CONTEXT_CRITICAL_TOKENS=400000
 
 flatten() {
