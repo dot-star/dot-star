@@ -54,19 +54,19 @@ shrink() {
     local original_count="${#words[@]}"
 
     # Drop whole trailing words until within the word cap and within the char
-    # cap (reserving one char for the ellipsis appended below).
+    # cap (reserving three chars for the ellipsis appended below).
     while [ "${#words[@]}" -gt "${max_words}" ] ||
-        { [ "${#words[@]}" -gt 1 ] && [ "${#s}" -gt "$((max_chars - 1))" ]; }; do
+        { [ "${#words[@]}" -gt 1 ] && [ "${#s}" -gt "$((max_chars - 3))" ]; }; do
         unset 'words[$((${#words[@]} - 1))]'
         s="${words[*]}"
     done
 
     if [ "${#words[@]}" -lt "${original_count}" ]; then
         # Words were dropped; signal the truncation.
-        s="${s}…"
+        s="${s}..."
     elif [ "${#s}" -gt "${max_chars}" ]; then
         # A single word still overflows the char cap; hard-cut it.
-        s="${s:0:max_chars-1}…"
+        s="${s:0:max_chars-3}..."
     fi
 
     printf '%s' "${s}"
