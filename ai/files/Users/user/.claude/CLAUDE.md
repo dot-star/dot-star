@@ -125,6 +125,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
 - Never use em dashes (—) in any output, code, comments, commit messages, or PR descriptions. Use a comma, parentheses, semicolon, or two sentences instead.
 - Never use the ellipsis character (…) in any output, code, comments, commit messages, or PR descriptions. Type three plain periods (`...`) instead.
+- Never use enclosed/circled alphanumeric glyphs (`①②③`, etc.) in any output, code, comments, commit messages, or PR descriptions. They render as unreadable rings/boxes in the terminal. Use plain ASCII digits and letters (`1`, `2`, `3`) instead.
 - Drop the comma before `and` when it joins just two things, including two full clauses; keep it only for a list of three or more.
   - `Do X, and do Y` → `Do X and do Y`
   - `A does X, and B does Y` → `A does X and B does Y`
