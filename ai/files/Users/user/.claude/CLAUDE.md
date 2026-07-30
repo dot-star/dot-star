@@ -116,6 +116,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 ## Shorthand
 
 - Interpret these tokens as shorthand for the named referent when they appear inside a user message (not as a whole reply). These are **input-only**: expand them when reading user input and always write the full word ("clipboard", "root", "spreadsheet", "worktree") in own output. Never echo the shorthand back in status updates, prose, or commit messages.
+  - `c` means "clipboard" (e.g. "... to c"; a whole-reply `c` means commit)
   - `cb` means "clipboard"
   - `r` means "root" (the main checkout, vs. a worktree)
   - `trix` means "spreadsheet"
@@ -138,7 +139,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     - `Darken the date-label outline to chocolate` → `Darken the date-label outline`
     - `TODO: Add more whitelist entries` → `TODO: Add whitelist entries`
     - `Landing the branch into master after the rebase` → `Landing branch into master`
-- Never emit `cb`, `r`, `trix`, or `wt` as standalone tokens in own output; always expand to "clipboard" / "root" / "spreadsheet" / "worktree". These are input-only shorthand (see the Shorthand section above) and reading them back as jargon obscures meaning.
+- Never emit `c`, `cb`, `r`, `trix`, or `wt` as standalone tokens in own output; always expand to "clipboard" / "root" / "spreadsheet" / "worktree". These are input-only shorthand (see the Shorthand section above) and reading them back as jargon obscures meaning.
 - Spell out niche or insider technical acronyms in prose rather than abbreviating: write "infrastructure as code", not "IaC". Keep only acronyms a reader skims without expansion (API, AWS, URL, PR). Pre-send check: scan output for all-caps tokens of 2+ letters; each must be whitelisted or spelled out.
 - When offering the user a choice between alternatives (commit messages, refactor approaches, naming options, phrasing variants, follow-up actions), present them as a numbered list. Numbers must be globally unique across the whole response: if a reply has multiple groups of choices, number sequentially across all of them (1-3 in section A, 4-6 in section B), never restart at 1 per section. Aim for ≤9 total items so each stays a single digit; fall back to digit+letter only when more are truly needed. Does not apply to step-by-step instructions or enumerations that aren't choices.
 - When a choice is *visual* (colors, ANSI styling, layout, formatting, rendering variants, anything the user judges by appearance), each option MUST include a concretely rendered sample, never just a prose description like "orange background, black text". This applies to numbered chat choices AND to `AskUserQuestion` options. The question tool's option label/description fields can't render ANSI, so when the visual is ANSI-only, emit the rendered samples in a numbered list in chat text (one rendered artifact per line, stacked) BEFORE or INSTEAD OF calling `AskUserQuestion` and let the user reply with the number. Describing the difference in words and expecting the user to mentally render it forces a wasted round-trip.
