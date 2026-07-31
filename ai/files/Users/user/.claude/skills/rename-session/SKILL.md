@@ -1,6 +1,6 @@
 ---
 name: rename-session
-description: Compose a short, descriptive session title for the `/rename` built-in and copy a ready-to-paste `/rename <title>` to the clipboard with `pbcopy`. The title is a brief plain-language description (not a slug), and a relevant PR is appended when one exists. TRIGGER when the user's whole message is exactly `ren`, when they invoke `/rename-session`, ask for a "name"/"title" for the session, ask to "name the session", or want a `/rename` line drafted for the current work. SKIP when the user wants to rename to a fixed prune marker like `del` (that is the literal `/rename del`, no drafting needed), or is asking about the `/rename` built-in itself rather than a name for this session.
+description: Compose a short, descriptive session title for the `/rename` built-in and copy a ready-to-paste `/rename <title>` to the clipboard with `pbcopy`. The title is a brief plain-language description (not a slug), and a relevant PR is appended when one exists. TRIGGER when the user's whole message is exactly `ren`, when they invoke `/ren` or `/rename-session`, ask for a "name"/"title" for the session, ask to "name the session", or want a `/rename` line drafted for the current work. SKIP when the user wants to rename to a fixed prune marker like `del` (that is the literal `/rename del`, no drafting needed), or is asking about the `/rename` built-in itself rather than a name for this session.
 ---
 
 # Rename session
