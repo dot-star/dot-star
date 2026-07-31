@@ -18,17 +18,19 @@ Collapse "draft a subject, pick one, commit" into one action for the currently s
    │   └── git diff --staged --stat
    │       ├── non-empty → proceed to step 3
    │       └── empty
-   │           ├── git add --update
+   │           ├── git add -- <path> [<path> ...]
    │           └── re-check staged → proceed, or stop ("nothing staged")
    └── root
        └── git diff --staged --stat
            ├── non-empty → proceed to step 3
            └── empty
-               ├── git add --update
+               ├── git add -- <path> [<path> ...]
                └── re-check staged → proceed, or stop ("nothing staged")
    ```
 
-   `git add --update` stages tracked-file modifications/deletions only; untracked files (`??`) are never auto-staged.
+   Name every path explicitly, and name only paths this session edited. Never blanket-stage: `git add --update`, `git add --all`, and `git add .` all sweep the whole tree, so the commit silently carries whatever the user changed in parallel (including files they deleted from disk). Ruling out untracked files is not enough; a parallel edit or deletion to a *tracked* file is the common damage.
+
+   Before staging, run `git status --porcelain` and compare it against the paths this session edited. Anything else in that list stops the commit: report those paths and let the user decide, don't fold them in.
 3. Read the full staged diff: `git --no-pager diff --staged`. This is the source of truth for what to summarize.
 4. Skim recent subjects for voice: `git --no-pager log --max-count=10 --format='%s'`.
 5. Re-read `~/.claude/CLAUDE_commit-message-style.md` so the drafts match the user's actual style.
@@ -65,7 +67,7 @@ Call `AskUserQuestion` with a single question (`"Pick a commit message:"`, heade
 
 ## Commit
 
-Run `git commit -m "<selection>"` with the user's pick verbatim. Don't amend, don't add a body, don't append trailers. If the commit fails (e.g. pre-commit hook), surface the error verbatim and stop; don't retry with `--no-verify`.
+Run `git commit -m "<selection>"` with the user's pick verbatim. Don't amend, don't add a body, don't append trailers, and never pass `--all`/`-a` (it re-stages the whole tree at the last step, undoing the explicit staging from the preflight). If the commit fails (e.g. pre-commit hook), surface the error verbatim and stop; don't retry with `--no-verify`.
 
 ## Follow-up
 
