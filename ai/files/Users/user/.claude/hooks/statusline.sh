@@ -15,6 +15,9 @@
 #   - objective: session-scoped marker /tmp/claude/<sid>/objective when present
 #                (caveman summary written by the assistant on the first user
 #                message), else the first plain user prompt in the transcript
+#
+# The whole bar sits on the session's own background color when session_color.py
+# ran in "stripe" mode; without that file the bar renders on the terminal's.
 
 set -euo pipefail
 
@@ -103,6 +106,20 @@ if [ -z "${worktree_name}" ]; then
             worktree_name="${worktree_name%%/*}"
             ;;
         esac
+    fi
+fi
+
+# Pick up the session's stripe color, written by session_color.py at SessionStart.
+session_bg=""
+color_marker="${sid_dir}/color.json"
+if [ -n "${sid_dir}" ] && [ -f "${color_marker}" ]; then
+    stripe=$(command jq --raw-output '.stripe // empty' "${color_marker}" 2>/dev/null || true)
+    if [ -n "${stripe}" ]; then
+        session_bg=$'\033[48;2;'"${stripe}"'m'
+
+        # Re-arm the background after every color reset, so the segment colors
+        # below switch the foreground without punching holes in the stripe.
+        reset="${reset}${session_bg}"
     fi
 fi
 
@@ -201,5 +218,5 @@ elif [ -n "${objective}" ]; then
 fi
 
 if [ -n "${out}" ]; then
-    printf '%s\n' "${out}"
+    printf '%s%s%s\n' "${session_bg}" "${out}" $'\033[0m'
 fi

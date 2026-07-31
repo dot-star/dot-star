@@ -7,6 +7,9 @@
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true
   },
+  "env": {
+    "CLAUDE_SESSION_COLOR": "tint,stripe"
+  },
   "hooks": {
     "Notification": [
       {
@@ -94,6 +97,16 @@
         "matcher": "Write|Edit"
       }
     ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "command": "${HOME}/.claude/hooks/session_color.py SessionEnd",
+            "type": "command"
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "hooks": [
@@ -111,6 +124,10 @@
           },
           {
             "command": "${HOME}/.claude/hooks/announce_window_state.py SessionStart",
+            "type": "command"
+          },
+          {
+            "command": "${HOME}/.claude/hooks/session_color.py SessionStart",
             "type": "command"
           }
         ]
