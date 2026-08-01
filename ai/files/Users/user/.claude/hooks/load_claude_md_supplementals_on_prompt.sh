@@ -68,8 +68,13 @@ while IFS= read -r file; do
         continue
     fi
 
+    # Resolve the symlink so the pointer names the real file. Some context docs
+    # symlink into another repo, and Edit/Write refuse to write through a
+    # symlink, so a pointer at the link path can be read but never edited.
+    target=$(readlink -f "${file}")
+
     title=$(sed -n 's/^# *//p' "${file}" | head -n 1)
-    context+="Relevant context (\"${matched}\" mentioned): read ${file} (${title}) if useful."$'\n'
+    context+="Relevant context (\"${matched}\" mentioned): read ${target} (${title}) if useful."$'\n'
     referenced_files+="${file##*/} "
     touch "${sentinel}"
 done < <(ls "${contexts_dir}"/*.md 2>/dev/null | sort --version-sort)
