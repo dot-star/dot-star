@@ -11,6 +11,7 @@
 - Prefer robust over brittle solutions: favor approaches that tolerate change.
 - Touched code self-heals, ratcheting toward the preferred style. When a documented preference (in `CLAUDE.md` or memory) conflicts with the local style, the lines your edit modifies must end in the preferred form; untouched lines nearby stay as-is. Land the style swap as a separate atomic commit; order relative to the feature commit doesn't matter.
 - Upgrade early, upgrade often. Small frequent upgrades are cheap; deferred ones compound in difficulty, risk, and security exposure.
+- Record an inferred fact as inferred: mark anything not stated plainly as unconfirmed and name what it was inferred from.
 - Organize this file semantically by topic, not by order added.
 - Within lists, sort items by natural alphabetical (case-insensitive) of the leading identifier (first backticked token, proper noun, or word). Skip when the order encodes meaning (steps, priorities, dependencies, manifesto hierarchies).
 
