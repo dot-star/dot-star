@@ -1237,7 +1237,10 @@ git_worktree_list_sorted() {
     )"
     git worktree list |
         awk 'NR>1' |
-        while read -r entry sha branch; do
+        # Read git's trailing markers ("locked", "prunable") into a discarded
+        # fourth field. Without it `branch` swallows them, which both breaks the
+        # `[worktree-<name>]` match below and widens the row.
+        while read -r entry sha branch markers; do
             name="${entry##*/}"
             IFS=$'\t' read -r rel mtime <<<"$(git_worktree_age "${entry}" "${git_bin}")"
             branch_kept=""
