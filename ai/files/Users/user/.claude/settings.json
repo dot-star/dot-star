@@ -166,6 +166,10 @@
       {
         "hooks": [
           {
+            "command": "${HOME}/.claude/hooks/inject_current_time.sh",
+            "type": "command"
+          },
+          {
             "command": "${HOME}/.claude/hooks/load_claude_md_supplementals_on_prompt.sh",
             "type": "command"
           }
@@ -180,6 +184,8 @@
       "Bash(brew list *)",
       "Bash(chmod +x *)",
       "Bash(command -v jq)",
+      "Bash(date)",
+      "Bash(date *)",
       "Bash(echo \"branch: $\\(git symbolic-ref --short HEAD\\)\")",
       "Bash(echo \"exit: $?\")",
       "Bash(gh pr checks *)",
