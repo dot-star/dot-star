@@ -5,7 +5,7 @@
   },
   "editorMode": "vim",
   "enabledPlugins": {
-    "pyright-lsp@claude-plugins-official": true
+    "pyright-lsp@claude-plugins-official": false
   },
   "env": {
     "CLAUDE_SESSION_COLOR": "tint,stripe"
