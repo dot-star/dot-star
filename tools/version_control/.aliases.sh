@@ -1099,18 +1099,17 @@ rc_push() {
     current_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
 
     # Route every worktree branch by the per-machine DOTSTAR_WORKTREE_PUSH
-    # setting, regardless of upstream: the -u push below sets an upstream whose
-    # name differs from the worktree-* local branch, so a later bare `git push`
-    # would fail under push.default=simple. Always deriving the remote name
-    # keeps `pus` idempotent across repeated pushes.
+    # setting. In pr-branch mode an already-configured upstream wins, so
+    # repeated pushes update the same remote branch (and any PR opened from it)
+    # instead of forking a fresh <slug>; the derived <slug> is only the
+    # first-push fallback.
     # DOTSTAR_WORKTREE_PUSH="default-branch":
     #    push the commits straight onto the repo's default branch, for personal
     #    repos where work lands on master and there are no pull requests.
     #    worktree-fix-login-redirect  ->  git push origin HEAD:master
     # DOTSTAR_WORKTREE_PUSH="pr-branch"
-    #    push to a <slug> branch and track it, so a later bare push targets
-    #    <slug> instead of the literal worktree-<...> name, for the work WIP
-    #    pull request.
+    #    push to the branch's upstream when set, else a derived <slug> branch,
+    #    and track it, for the work WIP pull request.
     #    worktree-asmith+add-login  ->  git push -u origin HEAD:asmith/add-login
     # pr-branch is the default so machines without an override keep the old
     # behavior.
@@ -1126,8 +1125,18 @@ rc_push() {
             fi
             git push origin "HEAD:${default_branch}" "$@"
         else
-            local remote_branch="${current_branch#worktree-}"
-            remote_branch="${remote_branch/+//}"
+            # Prefer the branch's existing upstream so repeated pushes update
+            # the same remote branch (and its PR) instead of forking a new
+            # <slug>. Derive <slug> only when no upstream is set yet.
+            local remote_branch
+            local upstream
+            upstream="$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null)"
+            if [[ -n "${upstream}" ]]; then
+                remote_branch="${upstream#*/}"
+            else
+                remote_branch="${current_branch#worktree-}"
+                remote_branch="${remote_branch/+//}"
+            fi
             git push -u origin "HEAD:${remote_branch}" "$@"
         fi
 
