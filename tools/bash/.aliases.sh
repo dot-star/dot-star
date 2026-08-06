@@ -128,15 +128,22 @@ mark_git_ignored() {
             if (!match(plain, /^([^ ]+ +){8}/)) {
                 next
             }
+            metadata_length = RLENGTH
 
             # Take what follows the metadata as the name, minus the symlink
             # target and the --classify suffix.
-            name = substr(plain, RLENGTH + 1)
+            name = substr(plain, metadata_length + 1)
             sub(/ -> .*$/, "", name)
             sub(/[*\/@=|>]$/, "", name)
 
             if (name in is_ignored) {
                 is_tagged[NR] = 1
+
+                # Dim the name to match its tag, but only on a row `ls` left
+                # uncolored, so an executable or symlink keeps its own color.
+                if (line[NR] == plain) {
+                    line[NR] = substr(plain, 1, metadata_length) "\033[2m" substr(plain, metadata_length + 1) "\033[0m"
+                }
             }
         }
         END {
