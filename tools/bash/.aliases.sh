@@ -57,9 +57,83 @@ require_watchman() {
     fi
 }
 
+# Print the one directory a listing covers, or nothing when it covers several.
+sole_listed_directory() {
+    local directory="."
+    local count=0
+
+    for argument in "${@}"; do
+        if [[ -d "${argument}" ]]; then
+            directory="${argument}"
+            count=$((count + 1))
+        fi
+    done
+
+    if [[ "${count}" -le 1 ]]; then
+        echo "${directory}"
+    fi
+}
+
+# Print the names git ignores in a directory, one per line.
+git_ignored_names() {
+    local ls_to_use="${1}"
+    local directory="${2}"
+
+    if [[ ! -d "${directory}" ]]; then
+        return
+    fi
+
+    "${ls_to_use}" --almost-all -1 --literal "${directory}" |
+        git -C "${directory}" check-ignore --stdin 2>/dev/null
+}
+
+# Tag each gitignored entry of a long listing with a faint "(git ignored)".
+mark_git_ignored() {
+    local ls_to_use="${1}"
+    local directory="${2}"
+
+    IGNORED_NAMES="$(git_ignored_names "${ls_to_use}" "${directory}")" awk '
+        BEGIN {
+            count = split(ENVIRON["IGNORED_NAMES"], names, "\n")
+            for (i = 1; i <= count; i++) {
+                if (names[i] != "") {
+                    is_ignored[names[i]] = 1
+                }
+            }
+        }
+        {
+            # Strip the color escapes so the name can be matched literally.
+            plain = $0
+            gsub(/\033\[[0-9;]*m/, "", plain)
+
+            # Skip lines without the eight metadata fields a long listing has
+            # (mode, links, owner, group, size, month, day, time).
+            if (!match(plain, /^([^ ]+ +){8}/)) {
+                print
+                next
+            }
+
+            # Take what follows the metadata as the name, minus the symlink
+            # target and the --classify suffix.
+            name = substr(plain, RLENGTH + 1)
+            sub(/ -> .*$/, "", name)
+            sub(/[*\/@=|>]$/, "", name)
+
+            if (name in is_ignored) {
+                print $0 "  \033[2m(git ignored)\033[0m"
+            } else {
+                print
+            }
+        }
+    '
+}
+
 alias_ls() {
     extra_args="${@}"
     clear
+
+    local listed_directory
+    listed_directory="$(sole_listed_directory "${@}")"
 
     local ls_to_use
     if [[ "${OSTYPE}" == "darwin"* ]]; then
@@ -93,7 +167,8 @@ alias_ls() {
             -X \
             -l \
             -v \
-            ${extra_args}
+            ${extra_args} |
+            mark_git_ignored "${ls_to_use}" "${listed_directory}"
     else
         # OS X `ls`
         ls -a -l -F -G ${extra_args}
