@@ -87,12 +87,22 @@ git_ignored_names() {
         git -C "${directory}" check-ignore --stdin 2>/dev/null
 }
 
-# Tag each gitignored entry of a long listing with a faint "(git ignored)".
+# Tag each gitignored entry of a long listing with a faint "(git ignored)",
+# lined up in a column that clears the longest row it can fit on screen.
 mark_git_ignored() {
     local ls_to_use="${1}"
     local directory="${2}"
 
-    IGNORED_NAMES="$(git_ignored_names "${ls_to_use}" "${directory}")" awk '
+    local terminal_width="${COLUMNS:-}"
+    if [[ -z "${terminal_width}" ]]; then
+        terminal_width="$(tput cols 2>/dev/null)"
+    fi
+
+    if [[ -z "${terminal_width}" ]]; then
+        terminal_width=80
+    fi
+
+    IGNORED_NAMES="$(git_ignored_names "${ls_to_use}" "${directory}")" awk -v terminal_width="${terminal_width}" '
         BEGIN {
             count = split(ENVIRON["IGNORED_NAMES"], names, "\n")
             for (i = 1; i <= count; i++) {
@@ -100,16 +110,22 @@ mark_git_ignored() {
                     is_ignored[names[i]] = 1
                 }
             }
+            tag = "(git ignored)"
         }
         {
-            # Strip the color escapes so the name can be matched literally.
+            # Hold every row, since the tag column is only known once the
+            # longest one has been seen.
+            line[NR] = $0
+
+            # Strip the color escapes so the name matches literally and the row
+            # measures in visible characters.
             plain = $0
             gsub(/\033\[[0-9;]*m/, "", plain)
+            width[NR] = length(plain)
 
             # Skip lines without the eight metadata fields a long listing has
             # (mode, links, owner, group, size, month, day, time).
             if (!match(plain, /^([^ ]+ +){8}/)) {
-                print
                 next
             }
 
@@ -120,9 +136,36 @@ mark_git_ignored() {
             sub(/[*\/@=|>]$/, "", name)
 
             if (name in is_ignored) {
-                print $0 "  \033[2m(git ignored)\033[0m"
-            } else {
-                print
+                is_tagged[NR] = 1
+            }
+        }
+        END {
+            # Set the tag column past the longest row, then pull it back to
+            # whatever still leaves the tag room on screen.
+            for (i = 1; i <= NR; i++) {
+                if (width[i] > column) {
+                    column = width[i]
+                }
+            }
+            column += 2
+
+            limit = terminal_width - length(tag)
+            if (column > limit) {
+                column = limit
+            }
+
+            for (i = 1; i <= NR; i++) {
+                if (!is_tagged[i]) {
+                    print line[i]
+                    continue
+                }
+
+                # Fall back to two spaces on a row too long to reach the column.
+                padding = column - width[i]
+                if (padding < 2) {
+                    padding = 2
+                }
+                printf "%s%*s\033[2m%s\033[0m\n", line[i], padding, "", tag
             }
         }
     '
