@@ -5,18 +5,13 @@
 # Block when the last assistant message contains a ?-terminated sentence
 # that offers alternatives (` or `) or pitches a commit/land/promote/push
 # follow-up but lacks any `[x]remainder` accept-prefix token, and feed the
-# violations back so Claude rewrites the question.
+# violations back so Claude rewrites the question. Block too when an option
+# is bracketed but malformed: the remainder placed outside the inline-code
+# span renders the `**` literally instead of bolding the option.
 
 set -euo pipefail
 
 input=$(cat)
-
-# Skip re-blocking once Claude is already re-running after a Stop block.
-stop_hook_active=$(printf '%s' "${input}" |
-    command jq --raw-output '.stop_hook_active // false')
-if [ "${stop_hook_active}" = "true" ]; then
-    exit 0
-fi
 
 msg=$(printf '%s' "${input}" |
     command jq --raw-output '.last_assistant_message // empty')
@@ -24,9 +19,48 @@ if [ -z "${msg}" ]; then
     exit 0
 fi
 
-# Strip fenced code blocks so `or` inside code samples doesn't trigger.
+# Strip fenced code blocks so `or` and quoted bad examples don't trigger.
 prose=$(printf '%s\n' "${msg}" |
     sed -E '/^```/,/^```/d')
+
+# Emit the Stop-hook payload that hands the feedback back to Claude.
+block() {
+    local reason="$1"
+    command jq --null-input --compact-output \
+        --arg reason "${reason}" \
+        '{decision: "block", reason: $reason}'
+}
+
+# Catch a bracket option whose remainder sits outside the code span, rendering
+# a literal `**`. Check ahead of the stop_hook_active guard below: the slip
+# lands on re-sends, exactly the messages that guard waves through.
+broken_span_re='`\[[a-zA-Z0-9-]{1,4}\]`\*\*[a-zA-Z0-9-]'
+broken_spans=$(printf '%s\n' "${prose}" |
+    grep --extended-regexp "${broken_span_re}" |
+    sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//') || true
+
+if [ -n "${broken_spans}" ]; then
+    reason=$'Your last message has bracket option(s) whose remainder sits outside the inline-code span, so the `**` renders literally (per ~/.claude/CLAUDE.md Output > bracket-prefix choice asks):\n\n'
+    while IFS= read -r broken; do
+        reason+="- ${broken}"$'\n'
+    done <<<"${broken_spans}"
+    reason+=$'\n┌─ 🤖 for Claude ──────────────────────────────────────'
+    reason+=$'\n│ Move the remainder inside the span, one span per'
+    reason+=$'\n│ option. Re-send.'
+    reason+=$'\n│   Wrong: **`[d]`**rier tone'
+    reason+=$'\n│   Right: **`[d]rier tone`**'
+    reason+=$'\n└──────────────────────────────────────────────────────'
+
+    block "${reason}"
+    exit 0
+fi
+
+# Skip re-blocking once Claude is already re-running after a Stop block.
+stop_hook_active=$(printf '%s' "${input}" |
+    command jq --raw-output '.stop_hook_active // false')
+if [ "${stop_hook_active}" = "true" ]; then
+    exit 0
+fi
 
 bracket_re='\[[a-zA-Z]{1,3}\][a-zA-Z]'
 
@@ -121,6 +155,4 @@ reason+=$'\n│ Rewrite each alternative as [x]remainder (bracketed'
 reason+=$'\n│ accept letter). See CLAUDE.md checklist. Re-send.'
 reason+=$'\n└──────────────────────────────────────────────────────'
 
-command jq --null-input --compact-output \
-    --arg reason "${reason}" \
-    '{decision: "block", reason: $reason}'
+block "${reason}"
