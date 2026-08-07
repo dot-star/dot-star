@@ -1,6 +1,6 @@
 ---
 name: codify
-description: Promote a saved memory from soft (text Claude must remember to apply) to hard (a hook, `settings.json` entry, `CLAUDE_*.md` line, shell alias, or skill that fires automatically). Propose 2-3 candidate target shapes that fit the memory, pick one via `AskUserQuestion`, then write the change. TRIGGER when the user's whole message is exactly `codify` or `/codify` (optionally followed by a memory slug); ALSO offer it as a single follow-up sentence immediately after you save a new memory file, but only if the memory expresses a behavioral rule (feedback/project type with a clear "do X" or "when Y, do Z"). SKIP for pure user/reference facts with nothing to enforce, for fluid rules the user is still trying out, or when the target shape would duplicate existing config.
+description: Promote a saved memory from soft (text Claude must remember to apply) to hard (a hook, `settings.json` entry, `CLAUDE_*.md` line, shell alias, or skill that fires automatically). Propose 2-3 candidate target shapes that fit the memory, pick one via `AskUserQuestion`, then write the change. TRIGGER when the user's whole message is exactly `cod`, `codify`, `/cod`, or `/codify` (optionally followed by a memory slug); ALSO offer it as a single follow-up sentence immediately after you save a new memory file, but only if the memory expresses a behavioral rule (feedback/project type with a clear "do X" or "when Y, do Z"). SKIP for pure user/reference facts with nothing to enforce, for fluid rules the user is still trying out, or when the target shape would duplicate existing config.
 ---
 
 # Codify
@@ -9,7 +9,7 @@ Memories capture intent; codify turns intent into mechanism. Once a rule is codi
 
 ## When to invoke
 
-- **Explicit:** user's whole message is exactly `codify` or `/codify`, optionally followed by a memory slug (e.g. `codify feedback_quoting_style`).
+- **Explicit:** user's whole message is exactly `cod`, `codify`, `/cod`, or `/codify`, optionally followed by a memory slug (e.g. `cod feedback_quoting_style`).
 - **Auto-offer:** immediately after you save a memory file, follow up with one short sentence (e.g. "Want to codify this?"). Only auto-offer for memories that express a behavioral rule. Skip the offer silently for pure user/project/reference facts.
 
 ## Subject
