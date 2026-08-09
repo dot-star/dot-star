@@ -446,6 +446,23 @@ ask_to_create_files() {
     done
 }
 
+should_collect_more_files() {
+    # Report whether "edit" should keep collecting candidate files. Collect
+    # every category when "ea" was used; otherwise stop at the first category
+    # that matched, so the fzf list stays narrow.
+    local files_found="${1}"
+
+    if [[ "${EDIT_SELECT_ALL}" == true ]]; then
+        return 0
+    fi
+
+    if [[ "${files_found}" -eq 0 ]]; then
+        return 0
+    fi
+
+    return 1
+}
+
 edit() {
     # Display an interface for selecting from a list of files to edit when no
     # file has been specified. Automatically select file when there's only one
@@ -479,8 +496,8 @@ edit() {
             files_to_edit+=("${renamed_files_result}")
         fi
 
-        # Fallback to looking for modified files.
-        if [[ "${#files_to_edit[*]}" -eq 0 ]]; then
+        # Look for modified files.
+        if should_collect_more_files "${#files_to_edit[*]}"; then
             modified_files_result=$(
                 git status --porcelain |
                     \grep "^ M " |
@@ -492,8 +509,8 @@ edit() {
             fi
         fi
 
-        # Fallback to looking for files with unmerged changes.
-        if [[ "${#files_to_edit[*]}" -eq 0 ]]; then
+        # Look for files with unmerged changes.
+        if should_collect_more_files "${#files_to_edit[*]}"; then
             unmerged_files_result=$(
                 git status --porcelain |
                     \grep "^UU " |
@@ -506,7 +523,7 @@ edit() {
         fi
 
         # Lastly, look for untracked files.
-        if [[ "${#files_to_edit[*]}" -eq 0 ]]; then
+        if should_collect_more_files "${#files_to_edit[*]}"; then
             untracked_files_result=$(
                 git status --porcelain |
                     \grep "^?? " |
@@ -528,7 +545,10 @@ edit() {
             fi
         '
 
-        files_to_edit_lines="$(echo "${files_to_edit[*]}")"
+        # Put every candidate on its own line. Each array element holds one
+        # category's newline-separated files, and "[*]" would join those blobs
+        # with a space instead.
+        files_to_edit_lines="$(printf "%s\n" "${files_to_edit[@]}")"
         files_to_edit_lines="$(echo "${files_to_edit_lines}" | sort | uniq)"
 
         # Edit every candidate file directly when "ea" was used; otherwise show
