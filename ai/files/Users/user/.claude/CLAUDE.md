@@ -105,6 +105,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - `s`, `st` mean "give me a status": recap what's done, what we're working on, what's pending, and current worktree/branch and dirty state. Don't start new work.
   - `eg`, `egs`, `examples` mean "show me examples"
   - `opt`, `opts` mean "show me options"
+  - `show`, `show me` mean "render the thing the previous message described as its actual artifact": the literal file lines, sample output, or rendered text, so I can evaluate it rather than read another description of it. It's a preview request, so don't write the file or run the action until I say so.
   - `flow`, `ascii`, `ascii flow` mean "render the thing under discussion (a pipeline, control flow, data flow, architecture) as a text diagram with boxes and arrows, using box-drawing and tree-branch glyphs (`└─` `├─` `│` `→`) where they read cleaner than plain ASCII (`+` `-` `|`)"
   - `defend`, `prove` mean "defend/prove the prior reply" (justify each claim or item in it)
   - `harden`, `bake`, `firm` mean "strengthen the rule i just hit" by tightening it in `CLAUDE.md` or the matching `CLAUDE_*.md` sibling, or promoting it there from memory if that's where it lives. Memory isn't durable enough to harden into.
@@ -117,6 +118,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - `cs` means "commit only the already-staged changes": like `c` (the `commit` skill), but never auto-stage; if nothing is staged, stop.
   - `🚢` means "ship it" (land the work)
 - `<N> iter` means "option N is the front-runner, but iterate on it": treat N as the starting point and propose refinements rather than committing it as-is. E.g. `2 iter` → improve on option 2.
+- `show me <x>` means "render `<x>` concretely": `<x>` names something the last message described (a rule, an edit, an output line, an option); produce that artifact itself, not a summary of it. Same preview-only semantics as `show`.
 
 ## Shorthand
 
