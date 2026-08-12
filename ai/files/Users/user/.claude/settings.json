@@ -74,6 +74,10 @@
           {
             "command": "${HOME}/.claude/hooks/validate_bash_command.sh",
             "type": "command"
+          },
+          {
+            "command": "${HOME}/.claude/hooks/block_bsd_long_flags.sh",
+            "type": "command"
           }
         ],
         "matcher": "Bash"
