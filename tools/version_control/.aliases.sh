@@ -821,11 +821,21 @@ git_shows() {
 git_with_warnings() {
     # Pass git's stderr through grep so WARNING-style lines stand out
     # (forced updates, rejected pushes, GitHub security notices, bare WARNING markers).
+    # Paint each marker by how loudly it needs to land:
+    # - Show "rejected" in bright red, since a rejected push is an outright failure.
+    # - Show "forced update" on a yellow background, since rewritten history deserves a second look.
+    # - Show the remaining markers in orange.
     # Leave stdout and pagers untouched.
     command git "${@}" 2> >(
-        GREP_COLORS="mt=01;38;5;208" \
+        GREP_COLORS="mt=01;38;5;196" \
             \grep --line-buffered --color=always --extended-regexp \
-            'WARNING|warning|forced update|rejected|vulnerabilit(y|ies)|^remote: GitHub|$' >&2
+            'rejected|$' |
+            GREP_COLORS="mt=01;30;43" \
+                \grep --line-buffered --color=always --extended-regexp \
+                'forced update|$' |
+            GREP_COLORS="mt=01;38;5;208" \
+                \grep --line-buffered --color=always --extended-regexp \
+                'WARNING|warning|vulnerabilit(y|ies)|^remote: GitHub|$' >&2
     )
 }
 alias git="git_with_warnings"
