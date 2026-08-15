@@ -123,8 +123,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 ## Shorthand
 
 - Interpret these tokens as shorthand for the named referent when they appear inside a user message (not as a whole reply). These are **input-only**: expand them when reading user input and always write the full word ("clipboard", "root", "spreadsheet", "worktree") in own output. Never echo the shorthand back in status updates, prose, or commit messages.
-  - `c` means "clipboard" (e.g. "... to c"; a whole-reply `c` means commit)
-  - `cb` means "clipboard"
+  - `c`, `cb` mean "clipboard" (e.g. "... to c", "... to cb"; a whole-reply `c` means commit)
   - `r` means "root" (the main checkout, vs. a worktree)
   - `trix` means "spreadsheet"
   - `wt` means "worktree"
