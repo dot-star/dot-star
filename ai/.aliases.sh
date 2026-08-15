@@ -1,38 +1,16 @@
 export DISABLE_TELEMETRY=1
 
-claude_session_for_dir() {
-    # Print the uuid of the most-recently-active session whose recorded cwd is
-    # <dir>. Transcripts key under the launch cwd's project dir, so pass the main
-    # checkout (<project_root>) where a worktree's sessions actually live.
-    local dir="$1"
-    local project_root="$2"
-
-    # Mangle the project root into Claude's project-dir name.
-    local key="${project_root//[^a-zA-Z0-9]/-}"
-    local transcript_dir="${HOME}/.claude/projects/${key}"
-
-    # Walk transcripts newest-first and return the first one whose cwd matches;
-    # --fixed-strings keeps the dot in a path like `.claude` literal. Read via
-    # process substitution so a session uuid never word-splits and the loop runs
-    # in this shell (a `… | while` pipe would subshell the `return`).
-    local transcript
-    while IFS= read -r transcript; do
-        if \grep --quiet --fixed-strings "\"cwd\":\"${dir}\"" "${transcript}"; then
-            basename "${transcript}" .jsonl
-            return 0
-        fi
-    done < <(\find "${transcript_dir}" -maxdepth 1 -name '*.jsonl' -exec \ls -t {} + 2>/dev/null)
-
-    return 1
-}
-
 claude_run() {
     # Run claude, optionally resuming a session and/or labeling the window.
     # Usage:
     #   claude_run                          # start a new session
     #   claude_run <uuid>                   # resume session <uuid>
     #   claude_run --resume <uuid>          # resume session <uuid> (explicit flag)
+    #   claude_run --resume                 # open the session picker
     #   claude_run --obj "<objective>" ...  # label the window for the state hooks
+    #
+    # Inside a linked worktree, a bare call and a bare --resume both continue
+    # that worktree's own last session instead of starting fresh or picking.
 
     # Note a bare invocation (no args) before --obj shifts them away. A bare `cl`
     # inside a worktree reopens that worktree's session rather than starting
@@ -59,23 +37,15 @@ claude_run() {
         run_dir="${HOME}/.dot-star"
     fi
 
-    # Redirect into the main checkout when invoked from a linked git worktree, so
-    # cl/clr share the repo's one session pool. Claude keys sessions by cwd, and a
-    # worktree's project dir holds none of the sessions started from the main
-    # checkout, so resuming from a worktree would never surface them. Note we're
-    # inside a worktree and which one, so a bare `cl` or `--resume` can reopen its
-    # own session.
+    # Note whether we're in a linked git worktree, so a bare `cl` or `--resume`
+    # can reopen that worktree's own session. Launching stays in the worktree:
+    # claude keys sessions by cwd, so the worktree gets its own session pool and
+    # `--continue` finds the last one without any transcript lookup.
     local inside_worktree=""
-    local worktree_dir=""
     local git_common_dir="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"
     local toplevel="$(git rev-parse --show-toplevel 2>/dev/null)"
-    if [[ -n "${git_common_dir}" ]]; then
-        local main_checkout="$(dirname "${git_common_dir}")"
-        if [[ "${main_checkout}" != "${toplevel}" ]]; then
-            inside_worktree=1
-            worktree_dir="${toplevel}"
-            run_dir="${main_checkout}"
-        fi
+    if [[ -n "${git_common_dir}" && "$(dirname "${git_common_dir}")" != "${toplevel}" ]]; then
+        inside_worktree=1
     fi
 
     local uuid_pattern='^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
@@ -96,27 +66,13 @@ claude_run() {
         elif [[ "$1" =~ ${uuid_pattern} ]]; then
             claude --resume "$@"
 
-        # Inside a worktree, reopen its own session for a bare `cl` or `--resume`
-        # rather than the main checkout's picker that would list every session in
-        # the repo:
+        # Inside a worktree, continue its own last session for a bare `cl` or
+        # `--resume` rather than opening a picker listing every session in the
+        # repo. Falls back to a fresh session when the worktree has none yet:
         #   $ cl     (run inside a worktree)
         #   $ clr    (run inside a worktree)
-        elif [[ -n "${inside_worktree}" ]]; then
-            if [[ "$1" == "--resume" || -n "${bare_invocation}" ]]; then
-                # Reopen the worktree's own session, else fall back to the picker
-                # for `--resume` or a fresh session for a bare `cl`.
-                local worktree_session="$(claude_session_for_dir "${worktree_dir}" "${run_dir}")"
-                if [[ -n "${worktree_session}" ]]; then
-                    claude --resume "${worktree_session}"
-                elif [[ "$1" == "--resume" ]]; then
-                    claude --resume
-                else
-                    claude
-                fi
-            else
-                # Pass other args straight through to a fresh session.
-                claude "$@"
-            fi
+        elif [[ -n "${inside_worktree}" && ("$1" == "--resume" || -n "${bare_invocation}") ]]; then
+            claude --continue
 
         # Open the normal picker for a bare `--resume` outside a worktree:
         #   $ clr    (run outside a worktree)
