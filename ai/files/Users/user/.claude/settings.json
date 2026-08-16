@@ -76,11 +76,11 @@
             "type": "command"
           },
           {
-            "command": "${HOME}/.claude/hooks/block_bsd_long_flags.sh",
+            "command": "${HOME}/.claude/hooks/block_bsd_flags_on_gnu_build.sh",
             "type": "command"
           },
           {
-            "command": "${HOME}/.claude/hooks/block_bsd_only_flags.sh",
+            "command": "${HOME}/.claude/hooks/block_gnu_flags_on_bsd_build.sh",
             "type": "command"
           }
         ],

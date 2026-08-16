@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # PreToolUse hook: deny a BSD-only flag handed to a tool whose installed build
 # is GNU (Homebrew's coreutils shadows the macOS date, stat, and readlink),
-# where it would abort with "invalid option". Mirror of block_bsd_long_flags.sh,
-# which catches the opposite mistake. The build itself decides, so the hook
-# stops firing once a BSD build is back on PATH.
+# where it would abort with "invalid option". Mirror of
+# block_gnu_flags_on_bsd_build.sh, which catches the opposite mistake. The build
+# itself decides, so the hook stops firing once a BSD build is back on PATH.
 
 set -u
 
