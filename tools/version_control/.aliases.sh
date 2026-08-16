@@ -617,6 +617,7 @@ git_edit_last_files() {
 
     edit "${paths[@]}"
 }
+alias vdf="git_edit_last_files"
 alias vdfl="git_edit_last_files"
 alias vdflf="git_edit_last_files"
 
