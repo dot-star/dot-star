@@ -1,0 +1,135 @@
+[
+  {
+    "build": "GNU",
+    "cmd": "date -j -f \"%Y-%m-%d\" 2026-06-30 \"+%A %b %e\"",
+    "expected": "deny",
+    "name": "date -j -f parses a date the BSD way",
+    "tool": "date"
+  },
+  {
+    "build": "GNU",
+    "cmd": "date -jf \"%Y-%m-%d\" 2026-06-30",
+    "expected": "deny",
+    "name": "date -jf bundles the same flags into one cluster",
+    "tool": "date"
+  },
+  {
+    "build": "GNU",
+    "cmd": "date -u -v+1d \"+%F\"",
+    "expected": "deny",
+    "name": "date -v adjusts the date the BSD way",
+    "tool": "date"
+  },
+  {
+    "build": "GNU",
+    "cmd": "stat -f \"%z\" README.md",
+    "expected": "deny",
+    "name": "stat -f takes a BSD format string",
+    "tool": "stat"
+  },
+  {
+    "build": "GNU",
+    "cmd": "stat -Lf %z README.md",
+    "expected": "deny",
+    "name": "stat -Lf bundles the format flag into a cluster",
+    "tool": "stat"
+  },
+  {
+    "build": "BSD",
+    "cmd": "sed --quiet \"1,5p\" file",
+    "expected": "deny",
+    "name": "sed --quiet is a GNU long flag",
+    "tool": "sed"
+  },
+  {
+    "build": "BSD",
+    "cmd": "awk --field-separator=, \"{print \\$1}\" file",
+    "expected": "deny",
+    "name": "awk --field-separator is a GNU long flag",
+    "tool": "awk"
+  },
+  {
+    "build": "BSD",
+    "cmd": "xargs --max-args=1 echo",
+    "expected": "deny",
+    "name": "xargs --max-args is a GNU long flag",
+    "tool": "xargs"
+  },
+  {
+    "build": "any",
+    "cmd": "date --date=2026-06-30 \"+%A %b %e\"",
+    "expected": "fall-through",
+    "name": "date --date is the GNU spelling",
+    "tool": "-"
+  },
+  {
+    "build": "any",
+    "cmd": "date -d \"2026-06-30\" +%F",
+    "expected": "fall-through",
+    "name": "date -d is the short GNU spelling",
+    "tool": "-"
+  },
+  {
+    "build": "any",
+    "cmd": "stat --format=\"%s\" README.md",
+    "expected": "fall-through",
+    "name": "stat --format is the GNU spelling",
+    "tool": "-"
+  },
+  {
+    "build": "any",
+    "cmd": "stat -f /",
+    "expected": "fall-through",
+    "name": "stat -f without a format string asks GNU for filesystem info",
+    "tool": "-"
+  },
+  {
+    "build": "any",
+    "cmd": "sed -n \"1,5p\" file",
+    "expected": "fall-through",
+    "name": "sed -n is the short flag both builds accept",
+    "tool": "-"
+  },
+  {
+    "build": "any",
+    "cmd": "sed -i \"\" -e s/a/b/ file",
+    "expected": "fall-through",
+    "name": "sed -i takes the BSD empty suffix",
+    "tool": "-"
+  },
+  {
+    "build": "any",
+    "cmd": "git log --oneline | sed -n 1p",
+    "expected": "fall-through",
+    "name": "sed downstream of a pipe keeps its short flag",
+    "tool": "-"
+  },
+  {
+    "build": "any",
+    "cmd": "git log --date=iso --pretty=format:\"%ad %s\"",
+    "expected": "fall-through",
+    "name": "git log --date is not the date command",
+    "tool": "-"
+  },
+  {
+    "build": "any",
+    "cmd": "grep --recursive --files-with-matches foo .",
+    "expected": "fall-through",
+    "name": "grep takes long flags on both builds",
+    "tool": "-"
+  },
+  {
+    "build": "any",
+    "cmd": "grep --recursive --files-with-matches jv .",
+    "expected": "fall-through",
+    "name": "a pattern holding the BSD flag letters is not a flag",
+    "tool": "-"
+  },
+  {
+    "build": "any",
+    "cmd": "echo updated -v",
+    "expected": "fall-through",
+    "name": "a word ending in date is not the date command",
+    "tool": "-"
+  }
+]
