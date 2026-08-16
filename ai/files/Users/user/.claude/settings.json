@@ -78,6 +78,10 @@
           {
             "command": "${HOME}/.claude/hooks/block_bsd_long_flags.sh",
             "type": "command"
+          },
+          {
+            "command": "${HOME}/.claude/hooks/block_bsd_only_flags.sh",
+            "type": "command"
           }
         ],
         "matcher": "Bash"
