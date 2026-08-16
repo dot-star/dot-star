@@ -141,6 +141,11 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - Pre-send scan: check every `, and` and delete the comma unless it's closing a list of three or more.
 - Write a negative imperative as the contraction `don't`/`DON'T`, not the spelled-out `do not`/`Do NOT`; preserve any emphasis casing (so `Do NOT repoint at prod` → `DON'T repoint at prod`).
 - Write for the human who'll read it, not for yourself or an AI: PR titles/descriptions/comments, commit messages, and person-to-person comms all reach someone who may not share your context. Prefer the term that lands fastest for that reader (the common everyday word) over the technically-precise, formal, or insider one.
+- Name the referent whenever a pronoun could bind to more than one thing. When the preceding clause offers two candidate nouns, repeat the noun: `it`, `this`, `that`, `theirs`, `the former`. A sentence-opening `This` pointing back at a whole clause is the most common miss.
+  - Fail: `The cache falls back to the database when it goes stale.`
+  - Pass: `The cache falls back to the database when the cache goes stale.`
+  - Fail: `The formatter rewrites the file on exit. This breaks the symlink.`
+  - Pass: `The formatter rewrites the file on exit. That rewrite breaks the symlink.`
 - Trim to the load-bearing words in any terse text (commit subjects, PR titles, TODOs, comments, status lines): cut what the context already carries (exact values in the diff/file), quantifiers the verb implies, and trailing qualifiers; drop articles where the line still reads clean. Standing default; `t`/`trim` applies it on request. Before → after:
     - `Darken the date-label outline to chocolate` → `Darken the date-label outline`
     - `TODO: Add more whitelist entries` → `TODO: Add whitelist entries`
