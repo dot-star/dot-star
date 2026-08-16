@@ -27,7 +27,7 @@ Compatibility targets: macOS and Ubuntu (`script/post_install.sh` branches on `$
 
 - Install / update: `./install.sh`. `./update.sh` is a symlink to the same script and detects the invocation name to decide whether to also `git pull` and `brew upgrade` (see `script/update.sh`). Inside an installed shell, the alias `dotstar` runs the update.
 - Lint (matches CI in `.github/workflows/lint.yml`): `pre-commit run --all-files`. The only configured hook is `shfmt --indent=4 --diff --write` over shell files (see `.pre-commit-config.yaml`).
-- Run the self-contained automated tests, the only two in the repo: `bash tools/bash/.safer_rm_test.sh` and `bash ai/.claude_run_test.sh`.
+- Run the self-contained automated tests, one per script: `find . -name '*_test.sh' -o -name '*_test.py'` lists them, `bash <path>` or `python <path>` runs one.
 - Reload the shell environment after editing without re-installing: `source ~/.dot-star/bootstrap/.bash_profile`.
 
 ## Architecture
