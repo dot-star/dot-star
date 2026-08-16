@@ -591,6 +591,14 @@ git_edit_last_files() {
     local root_dir
     root_dir="$(git rev-parse --show-toplevel)"
 
+    # Open the unmerged files while a merge or rebase is in progress, matching
+    # what git_diff_last lists; the last commit is unrelated to the conflict.
+    local files_to_edit
+    files_to_edit="$(git diff --name-only --diff-filter=U)"
+    if [[ -z "${files_to_edit}" ]]; then
+        files_to_edit="$(git log --max-count=1 --name-only --format= "${@}")"
+    fi
+
     # Collect the changed paths, skipping the blank lines the empty --format
     # emits between commits.
     local paths=()
@@ -600,7 +608,7 @@ git_edit_last_files() {
             # the current directory.
             paths+=("${root_dir}/${file}")
         fi
-    done < <(git log --max-count=1 --name-only --format= "${@}")
+    done <<<"${files_to_edit}"
 
     if [[ ${#paths[@]} -eq 0 ]]; then
         echo "No files changed in last commit."
