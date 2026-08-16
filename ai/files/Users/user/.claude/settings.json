@@ -76,11 +76,7 @@
             "type": "command"
           },
           {
-            "command": "${HOME}/.claude/hooks/block_bsd_flags_on_gnu_build.sh",
-            "type": "command"
-          },
-          {
-            "command": "${HOME}/.claude/hooks/block_gnu_flags_on_bsd_build.sh",
+            "command": "${HOME}/.claude/hooks/block_wrong_build_flags.sh",
             "type": "command"
           }
         ],
