@@ -1,0 +1,104 @@
+[
+  {
+    "name": "two full clauses joined",
+    "msg": "The cache falls back to disk, and the database goes stale.",
+    "stop": false,
+    "expected": "block"
+  },
+  {
+    "name": "two predicates joined",
+    "msg": "Wine for me, and I'll bring a bottle so you don't need to grab any.",
+    "stop": false,
+    "expected": "block"
+  },
+  {
+    "name": "earlier clause comma doesn't excuse the join",
+    "msg": "It asks them to buy wine, so they may double up, and it never confirms the time.",
+    "stop": false,
+    "expected": "block"
+  },
+  {
+    "name": "second clause opening with a modifier phrase",
+    "msg": "Add the hook, and with the test cases in place wire it into settings.",
+    "stop": false,
+    "expected": "block"
+  },
+  {
+    "name": "join inside a list bullet",
+    "msg": "Options:\n- Confirms the time, and resolves the double-buy\n- Keeps your wording",
+    "stop": false,
+    "expected": "block"
+  },
+  {
+    "name": "two nouns joined",
+    "msg": "Stage the hook, and the runner.",
+    "stop": false,
+    "expected": "block"
+  },
+  {
+    "name": "serial comma in a list of three",
+    "msg": "Stage the hook, the test cases, and the runner.",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "serial comma in a list of four",
+    "msg": "It strips fences, blockquotes, inline code, and Jira keys.",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "list of three after a colon",
+    "msg": "Three files land: the hook, the cases, and the runner.",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "no comma before the and",
+    "msg": "Wine for me and I'll bring a bottle.",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "comma before and inside a fenced block",
+    "msg": "Here is the draft:\n\n```\nThat sounds great, and I'll bring a bottle.\n```",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "comma before and inside an inline code span",
+    "msg": "The rule fires on `foo, and bar` in prose.",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "comma before and inside a blockquote",
+    "msg": "The rule reads:\n\n> Do X, and do Y",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "join split across a sentence boundary",
+    "msg": "Wine for me. And I'll bring a bottle.",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "andrew is not the conjunction",
+    "msg": "Ping the host, andrew is bringing the wine.",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "stop hook already active",
+    "msg": "The cache falls back to disk, and the database goes stale.",
+    "stop": true,
+    "expected": "pass"
+  },
+  {
+    "name": "empty message",
+    "msg": "",
+    "stop": false,
+    "expected": "pass"
+  }
+]
