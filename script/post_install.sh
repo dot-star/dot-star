@@ -204,6 +204,30 @@ elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
     bt_pop # linux section
 fi
 
+bt_push "pip packages"
+# Install Python packages for the shell's `python3`, on every platform. Take
+# pandas with its `excel` extra: pandas ships no spreadsheet reader of its own,
+# so a bare install raises ImportError from `read_excel`, and the extra is what
+# pulls in openpyxl for `.xlsx` alongside the engines for the other formats.
+pip_packages=(
+    "pandas[excel]"
+)
+
+# Install into the per-user site directory. Homebrew and Debian both mark their
+# Python externally managed, which makes a plain install refuse outright;
+# `--user` writes to `~/Library/Python/<ver>` (or `~/.local`) instead, keeping
+# the packages clear of the managed prefix that the override alone would touch.
+#
+# Let pip do the presence check rather than pre-filtering the way brew and apt
+# do above. An already-satisfied run resolves locally in under half a second and
+# never reaches the network, so a re-install stays cheap.
+if ! python3 -m pip install --user --break-system-packages --quiet "${pip_packages[@]}"; then
+    # Quote each spec so a copy-pasted retry survives zsh globbing the `[extra]` brackets.
+    printf -v quoted_pip_packages "'%s' " "${pip_packages[@]}"
+    warn "Failed to install Python packages: ${pip_packages[*]}" "python3 -m pip install --user --break-system-packages ${quoted_pip_packages}"
+fi
+bt_pop
+
 bt_push "git-delta config"
 # Use delta as git's pager via the repo wrapper.
 git config --global core.pager "${DOT_STAR_ROOT}/tools/version_control/git_pager.sh"
