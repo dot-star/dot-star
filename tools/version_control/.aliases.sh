@@ -1284,7 +1284,8 @@ git_worktree_list_render() {
     # Render `git_worktree_list_sorted`'s TSV rows, read from stdin, as an
     # indented table under a "<count> worktrees:" header. Show at most the given
     # number of rows; 0 shows every row.
-    # Used by rc_status's `s` summary so its table and `wt`'s row numbers agree.
+    # Used by rc_status's `s` summary and `wta` so their tables and `wt`'s row
+    # numbers agree.
     # Usage:
     #   $ git_worktree_list_sorted | git_worktree_list_render 10
 
@@ -1348,7 +1349,7 @@ git_worktree_list_render() {
                     }
 
                     # Brackets hint that the number is a live
-                    # `cd` alias bound by `s` for this row.
+                    # `cd` alias bound by `s`/`wta` for this row.
                     idx_str = sprintf("[%*d]", digits, i)
                     if (branch_kept == "") {
                         printf "\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m\n", idx_str, max_name, name, sha, code, rel

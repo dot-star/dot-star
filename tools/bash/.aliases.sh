@@ -2153,6 +2153,40 @@ git_worktree_cd() {
 }
 alias wt="git_worktree_cd"
 
+git_worktree_list_all() {
+    # List every linked worktree, newest last, in the table `s` shows. Unlike
+    # `s`, run from any worktree and print every row rather than the first 10.
+    # Usage:
+    #   $ wta
+
+    if ! git rev-parse --is-inside-work-tree &>/dev/null; then
+        echo "not in a git repository"
+        return 1
+    fi
+
+    local sorted_worktrees
+    sorted_worktrees="$(git_worktree_list_sorted)"
+    if [[ -z "${sorted_worktrees}" ]]; then
+        echo "no linked worktrees"
+        return 1
+    fi
+
+    # Rebind digit aliases `1`..`N` to `cd <worktree-path>` so the user can jump
+    # to the Nth worktree by typing its index, the same way `s` does. Rebinding
+    # matters even when `s` already bound them: rows are ranked by recency, so a
+    # stale binding can point at a different worktree than the row now shows.
+    local idx=1
+    local entry
+    while read -r entry; do
+        alias -- "${idx}"="cd ${entry}"
+        idx=$((idx + 1))
+    done < <(echo "${sorted_worktrees}" | awk -F'\t' '{print $2}')
+
+    echo "${sorted_worktrees}" |
+        git_worktree_list_render 0
+}
+alias wta="git_worktree_list_all"
+
 git_worktree_done() {
     # Merge the current worktree's branch into the default branch in
     # the main checkout, remove the worktree, and delete the branch.
