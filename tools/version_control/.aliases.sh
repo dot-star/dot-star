@@ -1280,6 +1280,90 @@ git_worktree_list_sorted() {
         sort -t $'\t' -k1,1 -rn
 }
 
+git_worktree_list_render() {
+    # Render `git_worktree_list_sorted`'s TSV rows, read from stdin, as an
+    # indented table under a "<count> worktrees:" header. Show at most the given
+    # number of rows; 0 shows every row.
+    # Used by rc_status's `s` summary so its table and `wt`'s row numbers agree.
+    # Usage:
+    #   $ git_worktree_list_sorted | git_worktree_list_render 10
+
+    local max_rows="${1}"
+
+    local rows
+    rows="$(cat)"
+
+    local total
+    total="$(echo "${rows}" | wc -l | tr -d ' ')"
+
+    local label
+    if [[ "${total}" -gt 1 ]]; then
+        label="worktrees"
+    else
+        label="worktree"
+    fi
+
+    echo -e "\033[1;36m${total}\033[0m \033[2m${label}:\033[0m"
+
+    # Show basenames only and drop the branch column when it matches
+    # the auto-generated `worktree-<name>` convention. The leading
+    # index column matches the row number `wt N` accepts. Rows print
+    # oldest-first so [1] (newest) lands closest to the prompt, the
+    # same orientation `wt`'s fzf picker uses.
+    # Example output:
+    #     [2]  custom-checkout   abc1234 (2 days ago)  [feature/foo]
+    #     [1]  pretty-tail-glow  e762c60 (1 day ago)
+    # awk fades the parenthetical from 256-color 255 (white) at
+    # newest down to 239 (gray) at oldest, linearly by rank,
+    # right-pads the 1-based index for two-digit alignment, and
+    # right-pads the parenthetical so the branch column lines up.
+    if [[ "${max_rows}" -gt 0 && "${total}" -gt "${max_rows}" ]]; then
+        echo -e "    \033[2m... and \033[0m\033[1;36m$((total - max_rows))\033[0m\033[2m more\033[0m"
+    fi
+
+    echo "${rows}" |
+        awk -F'\t' -v max_rows="${max_rows}" '
+            {
+                lines[NR] = $0
+                if (length($5) > max_name) {
+                    max_name = length($5)
+                }
+                if (length($6) > max_rel) {
+                    max_rel = length($6)
+                }
+            }
+            END {
+                total = NR
+                digits = length(total "")
+                visible = (max_rows > 0 && total > max_rows) ? max_rows : total
+                # Iterate oldest-of-visible down to newest so [1]
+                # ends up at the bottom, next to the prompt.
+                for (i = visible; i >= 1; i--) {
+                    split(lines[i], f, "\t")
+                    sha = f[3]; branch_kept = f[4]; name = f[5]; rel = f[6]
+                    if (total <= 1) {
+                        code = 255
+                    } else {
+                        code = 255 - int((i - 1) * 16 / (total - 1))
+                    }
+
+                    # Brackets hint that the number is a live
+                    # `cd` alias bound by `s` for this row.
+                    idx_str = sprintf("[%*d]", digits, i)
+                    if (branch_kept == "") {
+                        printf "\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m\n", idx_str, max_name, name, sha, code, rel
+                    } else {
+                        # Right-pad the parenthetical to its widest so
+                        # the branch column lines up across rows.
+                        rel_pad = sprintf("%*s", max_rel - length(rel), "")
+                        printf "\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m%s  \033[38;5;177m%s\033[0m\n", idx_str, max_name, name, sha, code, rel, rel_pad, branch_kept
+                    }
+                }
+            }
+        ' |
+        sed 's/^/    /'
+}
+
 stack_renamed_paths() {
     # Stack each `git status` rename onto three lines: a bare "renamed:" label,
     # then the old and new paths beneath it as a red "-"/green "+" diff. The
@@ -1432,14 +1516,7 @@ rc_status() {
                 local worktree_count
                 worktree_count="$(git worktree list | awk 'NR>1' | wc -l | tr -d ' ')"
                 if [[ "${worktree_count}" -gt 0 ]]; then
-                    local worktree_label
-                    if [[ "${worktree_count}" -gt 1 ]]; then
-                        worktree_label="worktrees"
-                    else
-                        worktree_label="worktree"
-                    fi
-
-                    echo -e "\n\033[1;36m${worktree_count}\033[0m \033[2m${worktree_label}:\033[0m"
+                    echo
 
                     local sorted_worktrees
                     sorted_worktrees="$(git_worktree_list_sorted)"
@@ -1456,62 +1533,9 @@ rc_status() {
                         idx=$((idx + 1))
                     done < <(echo "${sorted_worktrees}" | awk -F'\t' '{print $2}')
 
-                    # Show basenames only and drop the branch column when it matches
-                    # the auto-generated `worktree-<name>` convention. The leading
-                    # index column matches the row number `wt N` accepts. Rows print
-                    # oldest-first so [1] (newest) lands closest to the prompt, the
-                    # same orientation `wt`'s fzf picker uses.
-                    # Example output:
-                    #     [2]  custom-checkout   abc1234 (2 days ago)  [feature/foo]
-                    #     [1]  pretty-tail-glow  e762c60 (1 day ago)
-                    # awk fades the parenthetical from 256-color 255 (white) at
-                    # newest down to 239 (gray) at oldest, linearly by rank,
-                    # right-pads the 1-based index for two-digit alignment, and
-                    # right-pads the parenthetical so the branch column lines up.
-                    if [[ "${worktree_count}" -gt 10 ]]; then
-                        echo -e "    \033[2m... and \033[0m\033[1;36m$((worktree_count - 10))\033[0m\033[2m more\033[0m"
-                    fi
+                    # Cap the table at the 10 rows the digit aliases cover.
                     echo "${sorted_worktrees}" |
-                        awk -F'\t' '
-                            {
-                                lines[NR] = $0
-                                if (length($5) > max_name) {
-                                    max_name = length($5)
-                                }
-                                if (length($6) > max_rel) {
-                                    max_rel = length($6)
-                                }
-                            }
-                            END {
-                                total = NR
-                                digits = length(total "")
-                                visible = (total > 10) ? 10 : total
-                                # Iterate oldest-of-visible down to newest so [1]
-                                # ends up at the bottom, next to the prompt.
-                                for (i = visible; i >= 1; i--) {
-                                    split(lines[i], f, "\t")
-                                    sha = f[3]; branch_kept = f[4]; name = f[5]; rel = f[6]
-                                    if (total <= 1) {
-                                        code = 255
-                                    } else {
-                                        code = 255 - int((i - 1) * 16 / (total - 1))
-                                    }
-
-                                    # Brackets hint that the number is a live
-                                    # `cd` alias bound by `s` for this row.
-                                    idx_str = sprintf("[%*d]", digits, i)
-                                    if (branch_kept == "") {
-                                        printf "\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m\n", idx_str, max_name, name, sha, code, rel
-                                    } else {
-                                        # Right-pad the parenthetical to its widest so
-                                        # the branch column lines up across rows.
-                                        rel_pad = sprintf("%*s", max_rel - length(rel), "")
-                                        printf "\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m%s  \033[38;5;177m%s\033[0m\n", idx_str, max_name, name, sha, code, rel, rel_pad, branch_kept
-                                    }
-                                }
-                            }
-                        ' |
-                        sed 's/^/    /'
+                        git_worktree_list_render 10
                 fi
             fi
         fi
