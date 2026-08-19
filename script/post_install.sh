@@ -142,12 +142,33 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     # TODO: Gate the fzf install hook on `[ -f ~/.fzf.bash ]` plus a grep that
     # the `~/.bashrc` snippet is already present (~700ms wasted per re-run).
 
+    brew_prefix="$(brew --prefix)"
+
+    # Report whether the installed keg is the one currently linked. Homebrew
+    # records the linked keg as a symlink under `var/homebrew/linked/<formula>`,
+    # so this costs no fork; re-running `brew link` on an already-linked keg only
+    # prints an "Already linked" warning.
+    is_linked() {
+        local formula="${1}"
+        local linked_keg="${brew_prefix}/var/homebrew/linked/${formula}"
+        if [ ! -e "${linked_keg}" ]; then
+            return 1
+        fi
+
+        # Compare inodes so an upgraded-but-unlinked keg still relinks.
+        [ "${linked_keg}" -ef "${brew_prefix}/opt/${formula}" ]
+    }
+
     # curl is keg-only; force-link so the Homebrew build wins over /usr/bin/curl.
-    brew link --force --overwrite curl
+    if ! is_linked curl; then
+        brew link --force --overwrite curl
+    fi
 
     # `--overwrite` takes the `bin/pear` symlink from any older php@N keg
     # that currently owns it (php@8.0, in practice).
-    brew link --overwrite php@8.4
+    if ! is_linked php@8.4; then
+        brew link --overwrite php@8.4
+    fi
 
     # Install fzf key bindings and fuzzy completion.
     "$(brew --prefix)/opt/fzf/install" --all
