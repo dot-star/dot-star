@@ -6,6 +6,27 @@ Conventions for hand-written shell (bash, zsh) that go beyond what `shfmt` enfor
 
 Blank lines around `if` blocks track logical grouping. Keep an assignment flush with the `if` that consumes its result (`x="$(...)"` immediately above `if [[ -z "${x}" ]]; then`); same for consecutive assignments feeding the same conditional. Insert a blank line above standalone `if`s not fed by the previous line, after a closing `fi`, and after the function's `local` declaration block. A line-doc comment describing the `if` stays flush with it, so the blank line goes above the comment.
 
+## Multi-flag invocations
+
+Split a command carrying two or more flags one flag per line. Leave a trailing `\` on each continued line, indent the flags one level under the command, and give any positional argument its own line at the end.
+
+Why: each flag diffs on its own line, so adding, removing, or retuning one flag touches one source line (same reasoning as the pipeline rule below).
+
+```
+curl \
+    --fail \
+    --silent \
+    "${url}"
+```
+
+Not (every flag packed onto one line):
+
+```
+curl --fail --silent "${url}"
+```
+
+A single-flag command stays on one line. The rule covers commands landing in a committed file (script, CI `run:` block, Makefile, doc example), not one-off invocations typed at a terminal.
+
 ## Multi-line strings
 
 Build a multi-line string so its source mirrors the rendered output: one append per output line, each carrying a literal `\n`, rather than packing every `\n` into a single `$'...'`.

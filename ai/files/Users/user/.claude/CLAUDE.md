@@ -59,6 +59,14 @@
 
 - Dot-star manages the user's dotfiles at `~/.dot-star/`; aliases and short commands referenced in chat are defined in `*/.aliases.sh` files fanned out across per-tool dirs. Grep `~/.dot-star/` before asking.
 - Prefer long `--flag` forms over short `-f` forms, but only where the command actually supports them; long flags are self-describing (e.g. `grep --recursive --files-with-matches`, not `grep -rl`). Several BSD tools on macOS have none at all and abort with `illegal option -- -`, `sed` being the one that bites most often. When unsure, check `<cmd> --version` first.
+- Split a command's flags one per line, `\`-continued and indented one level under the command, once it carries two or more flags and lands in a committed file (shell script, CI `run:` block, Makefile, doc example). Each flag then diffs on its own line, and retuning one touches one line. Ad-hoc Bash tool calls stay on one line; nothing reviews or diffs them. Worked example in `~/.claude/styles/shell-style.md`.
+
+  ```
+  curl \
+      --fail \
+      --silent \
+      "${url}"
+  ```
 - Stage git changes by naming every path: `git add -- <path> [<path> ...]`, and only paths this session edited. The user edits the same checkout in parallel, so anything blanket commits their unreviewed work.
   - Reject these forms outright, even when they look convenient: `git add --all`, `git add -A`, `git add .`, `git add --update`, `git add -u`, `git commit --all`, `git commit -a`, `git commit -am`.
   - Check the tree before staging: run `git status --porcelain` and compare it against the paths this session edited. Stop when the list holds anything else, report those paths, and let the user decide; never fold them in. Deletions are the easy miss, since a file gone from disk shows as a staged-looking change nobody asked for.
