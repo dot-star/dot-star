@@ -4,7 +4,8 @@
 
 - One-line is the default.
 - Multi-line when one of these is true:
-  - The contract has params/returns worth naming.
+  - The function takes params. Document every one with its own `:param:` entry; there is no "obvious enough to skip" param, and a single-param private helper is no exception.
+  - The return value carries something the summary line doesn't already say.
   - The behavior contrasts with a clear alternative.
   - The WHY is non-obvious (legacy compat, race, perf, hidden invariant).
   - Setup or environmental context needs explaining.
@@ -34,6 +35,8 @@ Examples:
 ```
 
 Some codebases use an older `Tests X.` / `Tests that X.` pattern. For new code, prefer `Ensure`: it names the unit, asserts the behavior, and qualifies the condition, all in one sentence.
+
+A bare `self` isn't a param, so the one-liner holds for the usual test method. A test taking real params (fixtures, `parametrize` arguments) documents each one per the params rule above.
 
 Test docstrings must mirror the length and shape of existing test docstrings in the same file. Never embed the WHY for the change being tested; that's the production function's docstring's job.
 
@@ -70,6 +73,18 @@ One-line opener verb followed by the object, ending in a period.
 ## Multi-line function / method docstrings
 
 Structure: lead summary line, blank line, body paragraph(s) explaining non-obvious WHAT/WHY, blank line, `:param:` / `:return:` / `:raises:` block. Param continuations indent four spaces under the param name. Each param description gets a concrete `e.g.` when it clarifies the contract.
+
+A signature of any size lands here, not just a wide one. A one-param private helper takes the multi-line frame and its `:param:` line rather than the bare one-liner it can fit on:
+
+```python
+def _color_for(level: str) -> Color:
+    """
+    Returns the display color for a severity level.
+
+    :param level: Severity level (e.g. "warn", "error").
+    :return: Color the level renders in.
+    """
+```
 
 ```python
 def build_response_sections(
