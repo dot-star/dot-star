@@ -25,7 +25,11 @@ Codify operates on one memory file under `~/.claude/projects/<project-slug>/memo
 Pick 2-3 candidates that fit the memory's content. Skip shapes that don't fit, don't pad to three.
 
 - **Hook** in `~/.claude/settings.json`: for "every time / before X / after X" rules with a clear harness event (PreToolUse, PostToolUse, Stop, SessionStart, etc).
-- **`CLAUDE_*.md` line** in `~/.claude/`: for preference-style rules that need to be loaded every session but have no event boundary (style, tone, shell conventions, output formatting).
+- **Markdown rule** in an always-on doc: for preference-style rules loaded every session with no event boundary (style, tone, shell conventions, output formatting).
+
+  - Prefer tightening the rule where it already lives (`~/.claude/CLAUDE.md`, an existing `CLAUDE_<name>.md`, a `~/.claude/styles/<type>-style.md` guide) over appending a fresh line elsewhere; a second copy of a rule is a divergence waiting to happen.
+  - Create a new `CLAUDE_<name>.md` only when no existing doc owns the topic.
+
 - **`settings.json` entry** (non-hook): for permission allow/deny rules, env vars, or other harness options.
 - **Shell alias or function** in `~/.dot-star/<tool>/.aliases.sh`: for workflow rules that map to a repeatable shell command. Topical aliases live with their tool.
 - **Skill** at `~/.dot-star/ai/files/Users/user/.claude/skills/<name>/SKILL.md`: for multi-step workflows worth a named, explicit invocation.
