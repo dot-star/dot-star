@@ -21,13 +21,15 @@ claude() {
     echo "$(pwd)|$*|${CLAUDE_OBJECTIVE:-}"
 }
 
-# Point HOME at a throwaway dir holding a no-op prune.sh, so the run doesn't
-# sweep the real session store on the way out.
+# Point HOME at a throwaway dir holding no-op cleanup scripts, so the run doesn't
+# sweep the real session store or kill real background workers on the way out.
 HOME="$(mktemp -d)"
 export HOME
 mkdir --parents "${HOME}/.dot-star/ai/claude"
-echo '#!/usr/bin/env bash' >"${HOME}/.dot-star/ai/claude/prune.sh"
-chmod +x "${HOME}/.dot-star/ai/claude/prune.sh"
+for cleanup_script in prune.sh reap_stale_workers.sh; do
+    echo '#!/usr/bin/env bash' >"${HOME}/.dot-star/ai/claude/${cleanup_script}"
+    chmod +x "${HOME}/.dot-star/ai/claude/${cleanup_script}"
+done
 
 # Attach a throwaway worktree to exercise the in-worktree branches.
 WORKTREE_DIR="$(mktemp -d)/worktree"

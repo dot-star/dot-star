@@ -88,6 +88,7 @@ claude_run() {
     )
 
     ~/.dot-star/ai/claude/prune.sh
+    ~/.dot-star/ai/claude/reap_stale_workers.sh
 }
 alias cl="claude_run"
 
