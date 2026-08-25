@@ -208,24 +208,57 @@ setup_bootstrap() {
     filename="${1}"
     script="${2}"
 
-    # Strip any existing bootstrap block, then drop stray footers. Write back
-    # through a redirect, not `sed -i`/`mv`: both break a symlinked rc file (e.g.
-    # a ~/.zshrc linked into another repo), and `sed -i` errors on symlinks
-    # outright. A single range delete also replaces the old re-scan loop, which
-    # spun forever once `sed -i` started failing.
+    block="${dotstar_header}
+${script}
+${dotstar_footer}"
+
+    # Rewrite the block where it already sits, dropping any duplicate block or
+    # stray footer, and append it only when the file carries no block yet.
+    # Stripping and re-appending instead would relocate the block to the end of
+    # the file whenever another installer had appended below it, churning the
+    # diff of the repo that tracks these rc files. Write back through a redirect,
+    # not `sed -i`/`mv`: both break a symlinked rc file (e.g. a ~/.zshrc linked
+    # into another repo) and `sed -i` errors on symlinks outright.
     if [ -e "${filename}" ]; then
         tmp="${filename}.dotstar.tmp"
-        sed "/${dotstar_header}/,/${dotstar_footer}/d" "${filename}" |
-            grep -v "${dotstar_footer}" >"${tmp}"
+        dotstar_block="${block}" awk \
+            -v header="${dotstar_header}" \
+            -v footer="${dotstar_footer}" \
+            '
+            function print_block() {
+                print ENVIRON["dotstar_block"]
+            }
+            $0 == header {
+                inside = 1
+                if (!seen) {
+                    print_block()
+                    seen = 1
+                }
+                next
+            }
+            inside {
+                if ($0 == footer) {
+                    inside = 0
+                }
+                next
+            }
+            $0 == footer {
+                next
+            }
+            {
+                print
+            }
+            END {
+                if (!seen) {
+                    print_block()
+                }
+            }
+            ' "${filename}" >"${tmp}"
         cat "${tmp}" >"${filename}"
         rm -f "${tmp}"
+    else
+        echo "${block}" >"${filename}"
     fi
-
-    {
-        echo -e "${dotstar_header}"
-        echo -e "${script}"
-        echo -e "${dotstar_footer}"
-    } >>"${filename}"
 }
 
 setup_bootstrap "${HOME}/.bash_profile" 'if shopt -q login_shell; then
