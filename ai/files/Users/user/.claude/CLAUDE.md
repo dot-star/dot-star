@@ -138,6 +138,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
 ## Output
 
+- Run the pre-send scans below before ending any message. A Stop hook block is expensive: it forces a full re-send, so the rejected draft stays on screen and the reader sees the message twice.
 - Never use em dashes (—) in any output, code, comments, commit messages, or PR descriptions. Use a comma, parentheses, semicolon, or two sentences instead.
 - Never use the ellipsis character (…) in any output, code, comments, commit messages, or PR descriptions. Type three plain periods (`...`) instead.
 - Never use enclosed/circled alphanumeric glyphs (`①②③`, etc.) in any output, code, comments, commit messages, or PR descriptions. They render as unreadable rings/boxes in the terminal. Use plain ASCII digits and letters (`1`, `2`, `3`) instead.
@@ -147,7 +148,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - `A does X, and B does Y` → `A does X and B does Y`
   - `Do X, and with Y do Z` → `Do X and with Y do Z` (a second clause opening with a modifier phrase, not a bare subject, still gets no comma)
   - `X, Y, and Z` keeps its commas
-  - The `check_comma_before_and.py` Stop hook backstops the scan, but a block is expensive: it forces a full re-send, so the rejected draft stays on screen and the message prints twice. The hook also skips code spans, fences, and blockquotes, so the scan still owns those.
+  - The `check_comma_before_and.py` Stop hook backstops the scan, but it skips code spans, fences, and blockquotes, so the scan still owns those.
 - Write a negative imperative as the contraction `don't`/`DON'T`, not the spelled-out `do not`/`Do NOT`; preserve any emphasis casing (so `Do NOT repoint at prod` → `DON'T repoint at prod`).
 - Write for the human who'll read it, not for yourself or an AI: PR titles/descriptions/comments, commit messages, and person-to-person comms all reach someone who may not share your context. Prefer the term that lands fastest for that reader (the common everyday word) over the technically-precise, formal, or insider one.
 - Name the referent whenever a pronoun could bind to more than one thing. When the preceding clause offers two candidate nouns, repeat the noun: `it`, `this`, `that`, `theirs`, `the former`. A sentence-opening `This` pointing back at a whole clause is the most common miss.
