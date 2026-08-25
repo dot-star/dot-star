@@ -218,18 +218,23 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     6. If any alternative lacks `[` ... `]`, fix before sending.
     7. Does any option carry a second label (`A.`/`B.`, `1.`/`2.`) beside its bracket prefix? Strip it, the bracket letter is the only label.
 - When an own `[c]ommit` follow-up offer is accepted (reply `c`/`cm`/`commit`/🚢 mapped to the commit option), invoke the `commit` skill via the `Skill` tool rather than running `git commit -m "<self-chosen subject>"` directly. The skill drafts numbered subject options for the user to pick; auto-picking bypasses that choice. Same rule for any other phrasing where the offered action was "commit" (e.g. "want me to commit?"). To commit without the skill, the user has to opt in explicitly.
-- When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment (any subset, not always all of them), each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**). Whenever two or more appear together, list them top-to-bottom in this fixed order: iterate → commit → promote → land. The slot order tracks least-to-most committal (don't-commit first, then commit-and-stay, then promote, then the teardown); land is the only one that tears the worktree down, so it's always last, never floated into the middle or reordered. **Pre-send check: whenever 🏁 `[L]and` appears it is the bottom row; if any option (even a lone keep/iterate slot) renders beneath it, reorder before sending.**
+- When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment (any subset, not always all of them), each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**). Whenever two or more appear together, list them top-to-bottom in this fixed order: iterate → commit → fold → promote → land. The slot order tracks least-to-most committal (don't-commit first, then commit-and-stay, then rewrite-and-stay, then promote, then the teardown); land is the only one that tears the worktree down, so it's always last, never floated into the middle or reordered. **Pre-send check: whenever 🏁 `[L]and` appears it is the bottom row; if any option (even a lone keep/iterate slot) renders beneath it, reorder before sending.**
 
   **Applicability is a fact about the tree, not a guess.** Before sending, run `git status --porcelain` and branch on the result:
 
-  - **Non-empty** (something is actually uncommitted): offer `[c]ommit`.
-  - **Empty** (clean tree): drop `[c]ommit`, reframe `[i]terate` from "defer the commit" to "keep tuning", and narrow the menu to `[i]terate`/`[p]romote`/`[L]and` (they act on the already-committed work).
+  - **Non-empty** (something is actually uncommitted): offer `[c]ommit`, plus `[f]old` when both of these hold:
+
+    - **HEAD is unpublished.** Run the check, don't assume: `git status --short --branch` prints `[ahead N]`, `git log --oneline @{upstream}..HEAD` lists HEAD, or (no upstream configured, the usual case on a worktree branch) `git branch --remotes --contains HEAD` prints nothing. A published HEAD gets no fold slot, since amending it breaks the golden rule of rebasing: don't rewrite published history.
+    - **The pending change belongs to HEAD's commit**, finishing or fixing that one intent rather than standing on its own (atomic commits). A change that deserves its own subject gets `[c]ommit`, not `[f]old`.
+
+  - **Empty** (clean tree): drop `[c]ommit` and `[f]old`, reframe `[i]terate` from "defer the commit" to "keep tuning", and narrow the menu to `[i]terate`/`[p]romote`/`[L]and` (they act on the already-committed work).
 
   Never offer `[c]ommit` off a stale mental model of the tree (e.g. after edits that net back to the committed value) without re-checking.
 
   The common options:
   - 🛠️ **`[i]terate`**: no commit yet, keep iterating in the worktree (the do-nothing default, named for the action rather than a passive "keep").
   - 💾 **`[c]ommit`**: commit, keep iterating in the worktree (commits what's there; `[i]terate` defers the commit).
+  - 📦 **`[f]old`**: amend the pending change into HEAD with `git commit --amend --no-edit`, keep iterating in the worktree. Read the combined diff afterward and offer a reworded subject when the old one no longer covers it.
   - ⬆️ **`[p]romote`**: commit + fast-forward the default branch to here, keep the worktree (via `worktree-promote`).
   - 🏁 **`[L]and`**: commit + `worktree-done`, which also tears the worktree down.
 
@@ -240,6 +245,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   > 👉 How do you want to proceed?
   >   🛠️ **`[i]terate`** (no commit + keep iterating)
   >   💾 **`[c]ommit`**  (commit + keep iterating)
+  >   📦 **`[f]old`**    (amend into HEAD + keep iterating)
   >   ⬆️ **`[p]romote`** (commit + ✅ promote to master)
   >   🏁 **`[L]and`**    (commit + 🪓 tear down worktree)
 
@@ -255,7 +261,14 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   >   🛠️ **`[i]terate`** (no commit + keep iterating)
   >   🏁 **`[L]and`**    (commit + 🪓 tear down worktree)
 
-  Bundling forces actions when the user often wants just to keep iterating; promote and land share the fast-forward but only land removes the worktree. **`[L]and`** leads with 🏁 (not the 🛬 land marker) to flag that picking Land completes the objective; the 🏁 goes at the front of the Land line, not trailing after the `?`.
+  Subset (a follow-up edit that finishes the unpublished HEAD commit, so fold joins commit):
+
+  > 👉 How do you want to proceed?
+  >   🛠️ **`[i]terate`** (no commit + keep iterating)
+  >   💾 **`[c]ommit`**  (commit + keep iterating)
+  >   📦 **`[f]old`**    (amend into HEAD + keep iterating)
+
+  Bundling forces actions when the user often wants just to keep iterating; commit and fold are the two ways to bank the same pending change, so they sit adjacent; promote and land share the fast-forward but only land removes the worktree. **`[L]and`** leads with 🏁 (not the 🛬 land marker) to flag that picking Land completes the objective; the 🏁 goes at the front of the Land line, not trailing after the `?`.
 - When picking a decorative emoji for an option or label, prefer the playful wink/pun pick over the literal-metaphor one.
 - Use a bread emoji (🥖) for any "bake" action or option.
 - Use a rock emoji (🪨) for any "harden" action or option (set the rule in stone).
