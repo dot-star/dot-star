@@ -271,6 +271,34 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   >   📦 **`[f]old`**    (amend into HEAD + keep iterating)
 
   Bundling forces actions when the user often wants just to keep iterating; commit and fold are the two ways to bank the same pending change, so they sit adjacent; promote and land share the fast-forward but only land removes the worktree. **`[L]and`** leads with 🏁 (not the 🛬 land marker) to flag that picking Land completes the objective; the 🏁 goes at the front of the Land line, not trailing after the `?`.
+- Whenever a message names loose ends (work this session surfaced but didn't do: a figure still unsourced, a file still to write, a decision the user has to make), offer 📋 **`[a]dd`** to bank them in a TODO section. Fires anywhere loose ends get named, not just at wrap-up: the 🏁 completion recap, a worktree follow-up, or a plain answer trailing off in "still needs". A loose end left in chat scrollback dies with the session; a TODO entry outlives it.
+
+  **Where the entries land**, resolved in this order, first hit wins:
+
+  1. A TODO section in the markdown beside the work (`todo.md`, `CLAUDE.md`, `README.md` in the directory being edited).
+  2. A TODO section in the repository root's markdown.
+  3. Neither exists: create `todo.md` at the repository root with a `# todo` heading.
+
+  Match a heading case-insensitively (`# todo`, `## TODO`, `## Todo`) and append to the end of that section, never the top; existing entries were banked first and keep their slots.
+
+  **What each entry carries:** one entry per loose end, shaped like the entries already in that section (bullet marker, sentence vs. fragment), leading with an action verb per the TODO rule above. Spell out the context the chat message carried implicitly (`file_path:line_number`, what's wrong, what "it" refers to), since the reader picking this up months later has none of this session.
+
+  **Slot order:** 📋 **`[a]dd`** sits above 🛠️ **`[i]terate`** when it joins the worktree menu. It writes a doc and touches no git state, so it's the least committal row; 🏁 **`[L]and`** still ends the list.
+
+  **Pair it with ☕ `[d]iscuss`** when the ask stands alone, so the user can reshape or reject an entry before it's banked instead of undoing a write afterward. A worktree menu needs no such slot; 🛠️ **`[i]terate`** already covers staying put and talking.
+
+  Rendered example, joining a worktree menu:
+
+  > 👉 How do you want to proceed?
+  >   📋 **`[a]dd`**     (bank 2 loose ends as todos)
+  >   🛠️ **`[i]terate`** (no commit + keep iterating)
+  >   🏁 **`[L]and`**    (commit + 🪓 tear down worktree)
+
+  Rendered example, standing alone after an answer:
+
+  > 👉 Two loose ends came out of this. What next?
+  >   📋 **`[a]dd`**     (bank the loose ends as todos)
+  >   ☕ **`[d]iscuss`** (talk them through first)
 - When picking a decorative emoji for an option or label, prefer the playful wink/pun pick over the literal-metaphor one.
 - Use a bread emoji (🥖) for any "bake" action or option.
 - Use a rock emoji (🪨) for any "harden" action or option (set the rule in stone).
