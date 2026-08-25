@@ -1172,111 +1172,152 @@ rc_push() {
     fi
 }
 
-git_worktree_age() {
-    # Print "<rel>\t<mtime>" for when the worktree's HEAD ref was last
-    # updated, where <rel> is "X units ago" and <mtime> is Unix seconds.
-    # Callers downstream rank by <mtime> to color rows relative to siblings.
-    # HEAD's mtime captures creation, commits, and HEAD-moving checkouts; not
-    # unstaged edits. The committer date of the HEAD sha is misleading for
-    # worktrees parked at another branch's tip (e.g. a fresh worktree at
-    # master's tip would show master's last-commit age instead of the
-    # worktree's own age).
-    # Usage:
-    #   $ git_worktree_age <worktree_path> [git_bin]
-    local worktree_path="${1}"
-    local git_bin="${2:-git}"
-    local gitdir head_file mtime now diff value unit rel
-
-    gitdir="$("${git_bin}" -C "${worktree_path}" rev-parse --absolute-git-dir 2>/dev/null)"
-    if [[ -z "${gitdir}" ]]; then
-        return 1
-    fi
-
-    head_file="${gitdir}/HEAD"
-    if [[ ! -e "${head_file}" ]]; then
-        return 1
-    fi
-
-    # On macOS, call /usr/bin/stat directly: homebrew's GNU stat may shadow
-    # BSD stat on PATH and `stat -f` means "filesystem info" there, not mtime.
-    if [[ "${OSTYPE}" == "darwin"* ]]; then
-        mtime="$(/usr/bin/stat -f %m "${head_file}" 2>/dev/null)"
-    else
-        mtime="$(stat -c %Y "${head_file}" 2>/dev/null)"
-    fi
-
-    if [[ -z "${mtime}" ]]; then
-        return 1
-    fi
-
-    # Absolute path: zsh's PATH lookup gets confused inside the nested
-    # $(...) under a `while read` pipeline once dot-star aliases load.
-    now="$(/bin/date +%s)"
-    diff=$((now - mtime))
-    if ((diff < 60)); then
-        value="${diff}"
-        unit="second"
-    elif ((diff < 3600)); then
-        value=$((diff / 60))
-        unit="minute"
-    elif ((diff < 86400)); then
-        value=$((diff / 3600))
-        unit="hour"
-    elif ((diff < 604800)); then
-        value=$((diff / 86400))
-        unit="day"
-    elif ((diff < 2592000)); then
-        value=$((diff / 604800))
-        unit="week"
-    elif ((diff < 31536000)); then
-        value=$((diff / 2592000))
-        unit="month"
-    else
-        value=$((diff / 31536000))
-        unit="year"
-    fi
-
-    if ((value == 1)); then
-        rel="${value} ${unit} ago"
-    else
-        rel="${value} ${unit}s ago"
-    fi
-    printf '%s\t%s\n' "${rel}" "${mtime}"
-}
-
 git_worktree_list_sorted() {
     # Emit linked worktrees as TSV, sorted by HEAD mtime descending. Columns:
     #   mtime \t entry \t sha \t branch_kept \t name \t rel
-    # Excludes the main checkout. branch_kept is empty when the branch matches
-    # the auto-generated `worktree-<name>` convention.
+    # <rel> reads "X units ago". Excludes the main checkout. branch_kept is
+    # empty when the branch matches the auto-generated `worktree-<name>`
+    # convention.
     # Used by rc_status's `s` summary and git_worktree_cd's `wt` picker so
     # their row order and numbering line up.
+    # Rank by HEAD's mtime, which captures creation, commits, and HEAD-moving
+    # checkouts; not unstaged edits. The committer date of the HEAD sha is
+    # misleading for worktrees parked at another branch's tip (e.g. a fresh
+    # worktree at master's tip would show master's last-commit age instead of
+    # the worktree's own age).
+    # Keep the per-worktree loop free of subprocesses: a repo with dozens of
+    # worktrees runs it on every `s`, and one fork per row dominated the cost.
+    # One `stat` covers every HEAD file and awk joins the mtimes back on.
     # Usage:
     #   $ git_worktree_list_sorted
 
-    # Cache git's absolute path: zsh fails to find it inside the nested
-    # $(...) under a `while read` pipeline once dot-star aliases load.
-    # Drop the `git` alias inside the subshell first; otherwise `command -v`
-    # reports the alias definition instead of the binary path.
-    local git_bin
-    git_bin="$(
-        unalias git 2>/dev/null
-        \command -v git
-    )"
-    git worktree list |
-        awk 'NR>1' |
-        # Read git's trailing markers ("locked", "prunable") into a discarded
-        # fourth field. Without it `branch` swallows them, which both breaks the
-        # `[worktree-<name>]` match below and widens the row.
-        while read -r entry sha branch markers; do
-            name="${entry##*/}"
-            IFS=$'\t' read -r rel mtime <<<"$(git_worktree_age "${entry}" "${git_bin}")"
-            branch_kept=""
-            if [[ "${branch}" != "[worktree-${name}]" ]]; then
-                branch_kept="${branch}"
+    local entry sha branch markers
+    local name gitdir head_file branch_kept
+    local rows=""
+    local -a head_files=()
+
+    # Read git's trailing markers ("locked", "prunable") into a discarded
+    # fourth field. Without it `branch` swallows them, which both breaks the
+    # `[worktree-<name>]` match below and widens the row.
+    while read -r entry sha branch markers; do
+        name="${entry##*/}"
+
+        # Resolve HEAD through the worktree's `.git` pointer file
+        # ("gitdir: <admin dir>"), which a builtin read gets for free; asking
+        # git for the same path costs a process per worktree. Resolve a
+        # relative pointer (`git worktree add --relative-paths`) against the
+        # worktree itself.
+        head_file=""
+        if [[ -f "${entry}/.git" ]]; then
+            read -r gitdir <"${entry}/.git"
+            gitdir="${gitdir#gitdir: }"
+            if [[ "${gitdir}" != /* ]]; then
+                gitdir="${entry}/${gitdir}"
             fi
-            printf '%s\t%s\t%s\t%s\t%s\t%s\n' "${mtime}" "${entry}" "${sha}" "${branch_kept}" "${name}" "${rel}"
-        done |
+            head_file="${gitdir}/HEAD"
+        fi
+
+        # Drop a HEAD that isn't there (a prunable worktree whose directory is
+        # gone) so `stat` sees only readable paths. Its row still prints, with
+        # an empty mtime and age, the way an unreadable HEAD always has.
+        if [[ ! -e "${head_file}" ]]; then
+            head_file=""
+        fi
+
+        if [[ -n "${head_file}" ]]; then
+            head_files+=("${head_file}")
+        fi
+
+        branch_kept=""
+        if [[ "${branch}" != "[worktree-${name}]" ]]; then
+            branch_kept="${branch}"
+        fi
+
+        rows+="${entry}"$'\t'"${sha}"$'\t'"${branch_kept}"$'\t'"${name}"$'\t'"${head_file}"$'\n'
+    done < <(git worktree list | awk 'NR>1')
+
+    if [[ -z "${rows}" ]]; then
+        return 0
+    fi
+
+    # Stat every HEAD file in one call: "<mtime> <path>" per line.
+    local mtimes=""
+    if [[ "${#head_files[@]}" -gt 0 ]]; then
+        if [[ "${OSTYPE}" == "darwin"* ]]; then
+            # On macOS, call /usr/bin/stat directly: homebrew's GNU stat may
+            # shadow BSD stat on PATH and `stat -f` means "filesystem info"
+            # there, not mtime.
+            mtimes="$(/usr/bin/stat -f '%m %N' "${head_files[@]}" 2>/dev/null)"
+        else
+            mtimes="$(stat -c '%Y %n' "${head_files[@]}" 2>/dev/null)"
+        fi
+    fi
+
+    # Absolute path: zsh's PATH lookup gets confused inside a nested $(...)
+    # once dot-star aliases load.
+    local now
+    now="$(/bin/date +%s)"
+
+    awk \
+        -F'\t' \
+        -v now="${now}" \
+        '
+            # Spell an mtime as "X units ago", the way `git log --relative-date`
+            # reads. Truncate toward zero, so 90 minutes reads "1 hour ago".
+            function relative_age(mtime,    diff, value, unit) {
+                diff = now - mtime
+                if (diff < 60) {
+                    value = diff
+                    unit = "second"
+                } else if (diff < 3600) {
+                    value = int(diff / 60)
+                    unit = "minute"
+                } else if (diff < 86400) {
+                    value = int(diff / 3600)
+                    unit = "hour"
+                } else if (diff < 604800) {
+                    value = int(diff / 86400)
+                    unit = "day"
+                } else if (diff < 2592000) {
+                    value = int(diff / 604800)
+                    unit = "week"
+                } else if (diff < 31536000) {
+                    value = int(diff / 2592000)
+                    unit = "month"
+                } else {
+                    value = int(diff / 31536000)
+                    unit = "year"
+                }
+
+                if (value == 1) {
+                    return value " " unit " ago"
+                }
+                return value " " unit "s ago"
+            }
+
+            # Index the first file, `stat`s output, by path. Split on the first
+            # space only: a path may hold spaces of its own, an mtime cannot.
+            NR == FNR {
+                pos = index($0, " ")
+                if (pos > 0) {
+                    mtime[substr($0, pos + 1)] = substr($0, 1, pos - 1)
+                }
+                next
+            }
+
+            {
+                entry = $1; sha = $2; branch_kept = $3; name = $4; head_file = $5
+                mt = ""
+                rel = ""
+                if (head_file != "" && (head_file in mtime)) {
+                    mt = mtime[head_file]
+                    rel = relative_age(mt)
+                }
+                printf "%s\t%s\t%s\t%s\t%s\t%s\n", mt, entry, sha, branch_kept, name, rel
+            }
+        ' \
+        <(printf '%s\n' "${mtimes}") \
+        <(printf '%s' "${rows}") |
         sort -t $'\t' -k1,1 -rn
 }
 
