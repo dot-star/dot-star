@@ -2074,11 +2074,19 @@ git_worktree_cd() {
                             } else {
                                 code = 255 - int((i - 1) * 16 / (total - 1))
                             }
+                            # Paint a seconds-old age white on a dark green
+                            # background so a worktree touched moments ago
+                            # pops out of the faded column.
+                            if (rel ~ /second/) {
+                                age_color = "\033[38;5;231;48;5;22m"
+                            } else {
+                                age_color = sprintf("\033[38;5;%dm", code)
+                            }
                             idx_str = sprintf("%*d", num_width, idx)
                             if (branch_kept == "") {
-                                printf "%s\t\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m\n", entry, idx_str, max_name, name, sha, code, rel
+                                printf "%s\t\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m %s(%s)\033[0m\n", entry, idx_str, max_name, name, sha, age_color, rel
                             } else {
-                                printf "%s\t\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m  \033[38;5;177m%s\033[0m\n", entry, idx_str, max_name, name, sha, code, rel, branch_kept
+                                printf "%s\t\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m %s(%s)\033[0m  \033[38;5;177m%s\033[0m\n", entry, idx_str, max_name, name, sha, age_color, rel, branch_kept
                             }
                         }
                     }

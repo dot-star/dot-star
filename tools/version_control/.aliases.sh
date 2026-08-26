@@ -1389,16 +1389,25 @@ git_worktree_list_render() {
                         code = 255 - int((i - 1) * 16 / (total - 1))
                     }
 
+                    # Paint a seconds-old age white on a dark green
+                    # background so a worktree touched moments ago
+                    # pops out of the faded column.
+                    if (rel ~ /second/) {
+                        age_color = "\033[38;5;231;48;5;22m"
+                    } else {
+                        age_color = sprintf("\033[38;5;%dm", code)
+                    }
+
                     # Brackets hint that the number is a live
                     # `cd` alias bound by `s`/`wta` for this row.
                     idx_str = sprintf("[%*d]", digits, i)
                     if (branch_kept == "") {
-                        printf "\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m\n", idx_str, max_name, name, sha, code, rel
+                        printf "\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m %s(%s)\033[0m\n", idx_str, max_name, name, sha, age_color, rel
                     } else {
                         # Right-pad the parenthetical to its widest so
                         # the branch column lines up across rows.
                         rel_pad = sprintf("%*s", max_rel - length(rel), "")
-                        printf "\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m \033[38;5;%dm(%s)\033[0m%s  \033[38;5;177m%s\033[0m\n", idx_str, max_name, name, sha, code, rel, rel_pad, branch_kept
+                        printf "\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m %s(%s)\033[0m%s  \033[38;5;177m%s\033[0m\n", idx_str, max_name, name, sha, age_color, rel, rel_pad, branch_kept
                     }
                 }
             }
