@@ -142,10 +142,10 @@ def main():
         "(per ~/.claude/CLAUDE.md Output > drop the comma before `and`):\n"
         + "\n".join("  " + offender for offender in offenders)
         + "\n"
-        "\n┌─ 🤖 for Claude ──────────────────────────────────────"
-        "\n│ Delete the comma unless it closes a list of three or"
-        "\n│ more. Send the fix only, not the whole message."
-        "\n└──────────────────────────────────────────────────────"
+        "\n┌─ 🤖 for Claude ───────────────────────────────────────────────────────"
+        "\n│ Delete the comma unless it closes a list of three or more. Send the"
+        "\n│ fix only, not the whole message."
+        "\n└───────────────────────────────────────────────────────────────────────"
     )
     print(json.dumps({"decision": "block", "reason": reason}))
     return 0

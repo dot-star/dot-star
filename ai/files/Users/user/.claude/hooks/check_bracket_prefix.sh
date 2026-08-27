@@ -44,12 +44,12 @@ if [ -n "${broken_spans}" ]; then
     while IFS= read -r broken; do
         reason+="- ${broken}"$'\n'
     done <<<"${broken_spans}"
-    reason+=$'\n┌─ 🤖 for Claude ──────────────────────────────────────'
-    reason+=$'\n│ Move the remainder inside the span, one span per'
-    reason+=$'\n│ option. Send the fix only, not the whole message.'
+    reason+=$'\n┌─ 🤖 for Claude ───────────────────────────────────────────────────────'
+    reason+=$'\n│ Move the remainder inside the span, one span per option. Send the fix'
+    reason+=$'\n│ only, not the whole message.'
     reason+=$'\n│   Wrong: **`[d]`**rier tone'
     reason+=$'\n│   Right: **`[d]rier tone`**'
-    reason+=$'\n└──────────────────────────────────────────────────────'
+    reason+=$'\n└───────────────────────────────────────────────────────────────────────'
 
     block "${reason}"
     exit 0
@@ -150,10 +150,9 @@ reason=$'Your last message has question(s) offering alternatives without bracket
 for v in "${violations[@]}"; do
     reason+="- ${v}"$'\n'
 done
-reason+=$'\n┌─ 🤖 for Claude ──────────────────────────────────────'
-reason+=$'\n│ Rewrite each alternative as [x]remainder (bracketed'
-reason+=$'\n│ accept letter). See CLAUDE.md checklist. Send the'
-reason+=$'\n│ fix only, not the whole message.'
-reason+=$'\n└──────────────────────────────────────────────────────'
+reason+=$'\n┌─ 🤖 for Claude ───────────────────────────────────────────────────────'
+reason+=$'\n│ Rewrite each alternative as [x]remainder (bracketed accept letter).'
+reason+=$'\n│ See CLAUDE.md checklist. Send the fix only, not the whole message.'
+reason+=$'\n└───────────────────────────────────────────────────────────────────────'
 
 block "${reason}"

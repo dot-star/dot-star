@@ -183,11 +183,10 @@ def main():
     reason = (
         "Your last message uses unexplained acronym(s) in prose "
         "(per ~/.claude/CLAUDE.md Output > spell out niche acronyms): " + ", ".join(offenders) + "\n"
-        "\n┌─ 🤖 for Claude ──────────────────────────────────────"
-        "\n│ Spell out on first use or add to WHITELIST in"
-        "\n│ check_acronyms.py if skim-without-expansion. Send"
-        "\n│ the fix only, not the whole message."
-        "\n└──────────────────────────────────────────────────────"
+        "\n┌─ 🤖 for Claude ───────────────────────────────────────────────────────"
+        "\n│ Spell out on first use or add to WHITELIST in check_acronyms.py if"
+        "\n│ skim-without-expansion. Send the fix only, not the whole message."
+        "\n└───────────────────────────────────────────────────────────────────────"
     )
     print(json.dumps({"decision": "block", "reason": reason}))
     return 0
