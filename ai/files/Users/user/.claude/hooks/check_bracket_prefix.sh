@@ -46,7 +46,7 @@ if [ -n "${broken_spans}" ]; then
     done <<<"${broken_spans}"
     reason+=$'\n┌─ 🤖 for Claude ──────────────────────────────────────'
     reason+=$'\n│ Move the remainder inside the span, one span per'
-    reason+=$'\n│ option. Re-send.'
+    reason+=$'\n│ option. Send the fix only, not the whole message.'
     reason+=$'\n│   Wrong: **`[d]`**rier tone'
     reason+=$'\n│   Right: **`[d]rier tone`**'
     reason+=$'\n└──────────────────────────────────────────────────────'
@@ -152,7 +152,8 @@ for v in "${violations[@]}"; do
 done
 reason+=$'\n┌─ 🤖 for Claude ──────────────────────────────────────'
 reason+=$'\n│ Rewrite each alternative as [x]remainder (bracketed'
-reason+=$'\n│ accept letter). See CLAUDE.md checklist. Re-send.'
+reason+=$'\n│ accept letter). See CLAUDE.md checklist. Send the'
+reason+=$'\n│ fix only, not the whole message.'
 reason+=$'\n└──────────────────────────────────────────────────────'
 
 block "${reason}"

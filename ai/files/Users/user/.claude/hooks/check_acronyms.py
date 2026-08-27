@@ -185,7 +185,8 @@ def main():
         "(per ~/.claude/CLAUDE.md Output > spell out niche acronyms): " + ", ".join(offenders) + "\n"
         "\n┌─ 🤖 for Claude ──────────────────────────────────────"
         "\n│ Spell out on first use or add to WHITELIST in"
-        "\n│ check_acronyms.py if skim-without-expansion. Re-send."
+        "\n│ check_acronyms.py if skim-without-expansion. Send"
+        "\n│ the fix only, not the whole message."
         "\n└──────────────────────────────────────────────────────"
     )
     print(json.dumps({"decision": "block", "reason": reason}))

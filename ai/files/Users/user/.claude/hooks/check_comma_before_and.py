@@ -144,7 +144,7 @@ def main():
         + "\n"
         "\n┌─ 🤖 for Claude ──────────────────────────────────────"
         "\n│ Delete the comma unless it closes a list of three or"
-        "\n│ more. Re-send."
+        "\n│ more. Send the fix only, not the whole message."
         "\n└──────────────────────────────────────────────────────"
     )
     print(json.dumps({"decision": "block", "reason": reason}))

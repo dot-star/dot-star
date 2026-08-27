@@ -139,7 +139,9 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
 ## Output
 
-- Run the pre-send scans below before ending any message. A Stop hook block is expensive: it forces a full re-send, so the rejected draft stays on screen and the reader sees the message twice.
+- Run the pre-send scans below before ending any message. A Stop hook block is expensive: the rejected draft stays on screen and the fix costs another turn.
+  - Send only the correction when a block fires, never the whole message again. The rejected draft is still on screen; repeating it makes the reader scan the same ground twice for a one-character fix.
+  - Shape the correction as a one-line lead naming what it replaces, then the corrected text, then the rejected message's trailing ask re-rendered so the user still has something to reply to.
 - Never use em dashes (—) in any output, code, comments, commit messages, or PR descriptions. Use a comma, parentheses, semicolon, or two sentences instead.
 - Never use the ellipsis character (…) in any output, code, comments, commit messages, or PR descriptions. Type three plain periods (`...`) instead.
 - Never use enclosed/circled alphanumeric glyphs (`①②③`, etc.) in any output, code, comments, commit messages, or PR descriptions. They render as unreadable rings/boxes in the terminal. Use plain ASCII digits and letters (`1`, `2`, `3`) instead.
