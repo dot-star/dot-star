@@ -39,6 +39,57 @@ commit_bump() {
 
 alias bump="commit_bump"
 
+git_cd_into() {
+    # Change into the deepest directory holding every added, changed, and untracked file.
+    #
+    # $ git status --short
+    # >>  M tools/foo/bar/one.txt
+    # >> ?? tools/foo/bar/baz/two.txt
+    # $ cdi
+    # >> cd tools/foo/bar
+
+    local repository_root
+    repository_root="$(git rev-parse --show-toplevel 2>/dev/null)"
+    if [[ -z "${repository_root}" ]]; then
+        echo "Error: Not inside a git repository."
+        return 1
+    fi
+
+    # List every changed path, one per line, relative to the repository root.
+    local changed_paths
+    changed_paths="$(
+        git -c core.quotePath=false status --porcelain --untracked-files=all |
+            sed -e 's/^...//' -e 's/^.* -> //' -e 's/^"\(.*\)"$/\1/'
+    )"
+
+    if [[ -z "${changed_paths}" ]]; then
+        echo "Error: No changed files."
+        return 1
+    fi
+
+    # Shrink the common directory until it holds every changed path.
+    local common_directory=""
+    local directory
+    local changed_path
+    while IFS= read -r changed_path; do
+        directory="$(dirname "${changed_path}")"
+
+        if [[ -z "${common_directory}" ]]; then
+            common_directory="${directory}"
+            continue
+        fi
+
+        while [[ "${common_directory}" != "." && "${directory}/" != "${common_directory}/"* ]]; do
+            common_directory="$(dirname "${common_directory}")"
+        done
+    done <<<"${changed_paths}"
+
+    cd "${repository_root}/${common_directory}" &&
+        l
+}
+alias cdi="git_cd_into"
+alias ci="git_cd_into"
+
 alias checkout="rc_checkout"
 
 commit_clean_up() {
@@ -78,8 +129,6 @@ alias nvcu="commit_no_verify_clean_up"
 
 # TODO: Implement `git cherry-pick' with selection using fzf.
 alias cherry_pick="git cherry-pick"
-
-alias ci="rc_commit"
 
 git_clone() {
     # Clone the repository and change into the directory automatically.
