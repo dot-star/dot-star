@@ -61,6 +61,8 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
         grep
         lazygit
         php@8.4
+        # Provide `pdftoppm` and `pdfinfo`, which Claude Code shells out to when reading a PDF.
+        poppler
         pyenv
         pyenv-virtualenv
         rsync
