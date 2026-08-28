@@ -15,6 +15,8 @@
 - Record an inferred fact as inferred: mark anything not stated plainly as unconfirmed and name what it was inferred from.
 - Organize this file semantically by topic, not by order added.
 - Within lists, sort items by natural alphabetical (case-insensitive) of the leading identifier (first backticked token, proper noun, or word). Skip when the order encodes meaning (steps, priorities, dependencies, manifesto hierarchies).
+  - Reserve natural alphabetical for lists a human reads: markdown, comments, prose, source code.
+  - Sort a machine-read config file (JSON, YAML) by code point instead, the order `sort` and `jq`'s `sort` give, so every tool that touches the file agrees and a `jsonsort` pass leaves it byte-identical rather than re-shuffling it. Capitalized items lead, lowercase trails.
 
 ## Supplemental preferences
 
