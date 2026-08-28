@@ -285,7 +285,8 @@ is_valid_json() {
 }
 
 sort_json() {
-    # Alphabetize the keys of one or more JSON files in place.
+    # Alphabetize the keys of one or more JSON files in place, along with every
+    # array holding nothing but non-flag strings.
     # Usage:
     #   $ jsonsort file.json
 
@@ -295,6 +296,28 @@ sort_json() {
         echo "Usage: jsonsort <file.json> [file.json ...]"
         return 1
     fi
+
+    # Sort every array whose items are all strings. Leave an array alone when it
+    # sits under an "args" key or holds an item starting with "-", so argv lists
+    # ("args": ["run", "build"], ["-y", "pkg"]) keep their order. Compare by code
+    # point via jq's own "sort", so every capitalized item leads and "mcp__*"
+    # trails, matching what "sort" gives outside jq.
+    local jq_sort_arrays='
+        def sort_arrays($key):
+            if type == "object" then
+                with_entries(.key as $child_key | .value |= sort_arrays($child_key))
+            elif type == "array" then
+                map(sort_arrays($key))
+                | if $key != "args" and all(type == "string") and all(startswith("-") | not) then
+                      sort
+                  else
+                      .
+                  end
+            else
+                .
+            end;
+        sort_arrays("")
+    '
 
     local file
     for file in "${@}"; do
@@ -314,7 +337,7 @@ sort_json() {
             return 1
         }
 
-        if command jq --sort-keys . "${file}" >"${tmp_file}"; then
+        if command jq --sort-keys "${jq_sort_arrays}" "${file}" >"${tmp_file}"; then
             mv "${tmp_file}" "${file}"
             echo "✅ Sorted ${file}"
         else
