@@ -180,13 +180,15 @@ alias_jq() {
         return
     fi
 
-    # Detect when a file has been passed to jq.
-    if [[ $# -eq 1 ]] && [[ -f "${1}" ]]; then
+    # Detect when a file has been passed to jq. Require a terminal too: fzf
+    # draws the explorer on one, so without it the call would hang.
+    if [[ $# -eq 1 ]] && [[ -f "${1}" ]] && [[ -t 2 ]]; then
         use_preview=true
         file_path="${1}"
 
-    # Handle non-interactive shell (e.g. "$ cat response.json | jq").
-    elif [[ ! -t 0 ]]; then
+    # Handle piped input with no filter (e.g. "$ cat response.json | jq").
+    # Leave any filter or flags the caller passed to jq itself.
+    elif [[ $# -eq 0 ]] && [[ ! -t 0 ]] && [[ -t 2 ]]; then
         use_preview=true
         file_path="$(mktemp).json"
 
@@ -233,7 +235,7 @@ else:
     # echo "input: <<<${input}>>>"
     # echo "use_preview: ${use_preview}"
 
-    if [[ $use_preview ]]; then
+    if [[ "${use_preview}" == true ]]; then
         # echo "using preview"
 
         # Start fzf finder with an initial query of "." to avoid error on
