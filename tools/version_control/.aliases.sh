@@ -1440,9 +1440,13 @@ git_worktree_list_render() {
 
                     # Paint a seconds-old age white on a dark green
                     # background so a worktree touched moments ago
-                    # pops out of the faded column.
+                    # pops out of the faded column. Tint an age still
+                    # measured in minutes or hours green so a worktree
+                    # from the current session reads as live.
                     if (rel ~ /second/) {
                         age_color = "\033[38;5;231;48;5;22m"
+                    } else if (rel ~ /minute/ || rel ~ /hour/) {
+                        age_color = "\033[38;5;78m"
                     } else {
                         age_color = sprintf("\033[38;5;%dm", code)
                     }
