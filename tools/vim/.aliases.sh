@@ -38,8 +38,31 @@ alias_vim() {
     fi
 }
 
+vim_find() {
+    # Open every file under the current directory whose name matches a pattern.
+    # Quote the pattern so the shell hands it to `find' instead of expanding it.
+    # Usage:
+    #   $ vf "*.rej"
+    pattern="${1:-}"
+
+    if [[ -z "${pattern}" ]]; then
+        echo "usage: vf <name pattern>"
+        return 1
+    fi
+
+    results="$(find . -type f -name "${pattern}")"
+
+    if [[ -z "${results}" ]]; then
+        echo "no files matching \"${pattern}\""
+        return 1
+    fi
+
+    open_files "${results}"
+}
+
 alias v.="edit ."
 alias v="edit"
+alias vf="vim_find"
 alias vi="alias_vim"
 alias vim="alias_vim"
 alias vpy="edit *.py"
