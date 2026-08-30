@@ -31,15 +31,6 @@ import sys
 from functools import lru_cache
 from pathlib import Path
 
-# Waive the option-smuggling check for rules that predate it.
-# Keep each entry printing a WAIVE line until the rule pins an exact path.
-WAIVED_ALLOW_RULES = {
-    "Bash(git -C * checkout *)": "worktree skills fast-forward the main checkout",
-    "Bash(git -C * merge *)": "worktree skills fast-forward the main checkout",
-    "Bash(git -C * merge-base *)": "worktree skills fast-forward the main checkout",
-    "Bash(git -C * stash *)": "worktree skills stash around the fast-forward",
-}
-
 # Map the installed ~/.claude/ prefix back to this repository.
 # Cover every spelling a hook command uses for the home directory.
 HOOK_PATH_PREFIXES = (
@@ -261,8 +252,6 @@ def check_shape(settings, settings_dir, results):
             continue
         if not wildcard_reaches_options(rule[len("Bash(") : -1]):
             results.append(("PASS", f"no option smuggling: {rule}", ""))
-        elif rule in WAIVED_ALLOW_RULES:
-            results.append(("WAIVE", f"no option smuggling: {rule}", WAIVED_ALLOW_RULES[rule]))
         else:
             results.append(("FAIL", f"no option smuggling: {rule}", "wildcard precedes the subcommand"))
 
@@ -282,9 +271,6 @@ def check_behavior(cases, permissions, results):
     """
     Records the outcome each table case lands on under one rule set.
 
-    A case carrying a `waived` reason reports WAIVE instead of FAIL when the
-    outcome differs, which keeps a known gap visible without failing the suite.
-
     :param cases: Parsed behavior table entries.
     :param permissions: The `permissions` object from the settings file.
     :param results: Result list to append to.
@@ -295,8 +281,6 @@ def check_behavior(cases, permissions, results):
         expected = case["expected"]
         if actual == expected:
             results.append(("PASS", f"[{actual}] {case['name']}", ""))
-        elif case.get("waived"):
-            results.append(("WAIVE", f"[{actual}] {case['name']}", case["waived"]))
         else:
             results.append(("FAIL", case["name"], f"expected={expected} got={actual}"))
 
@@ -330,11 +314,10 @@ def main(argv):
         paths = [Path(__file__).with_name("settings.json")]
 
     failures = 0
-    waivers = 0
     for path in paths:
         results = []
         run(path, results)
-        counts = {"PASS": 0, "FAIL": 0, "WAIVE": 0}
+        counts = {"PASS": 0, "FAIL": 0}
         print(f"== {path} ==")
         for status, label, detail in results:
             counts[status] += 1
@@ -342,13 +325,9 @@ def main(argv):
                 continue
             suffix = f"  ({detail})" if detail else ""
             print(f"  {status:<6}{label}{suffix}")
-        print(f"  {counts['PASS']} passed, {counts['FAIL']} failed, {counts['WAIVE']} waived")
+        print(f"  {counts['PASS']} passed, {counts['FAIL']} failed")
         failures += counts["FAIL"]
-        waivers += counts["WAIVE"]
 
-    # Report the waiver tally last so a green run still says what it excused.
-    if waivers:
-        print(f"\n{waivers} waived check(s) still need a real fix.")
     if failures:
         return 1
     return 0
