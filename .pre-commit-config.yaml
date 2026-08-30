@@ -1,6 +1,13 @@
 repos:
   - repo: local
     hooks:
+      - id: settings-tests
+        name: settings tests
+        language: system
+        entry: python3 ai/files/Users/user/.claude/settings_test.py
+        files: ^ai/files/Users/user/\.claude/(settings\.json|settings_test\.py|settings_test_cases\.json|hooks/)
+        pass_filenames: false
+
       - id: shfmt
         name: shfmt
         language: golang

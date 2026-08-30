@@ -1,0 +1,26 @@
+[
+    {"cmd": "git log", "expected": "allow", "name": "bare git log"},
+    {"cmd": "git log --oneline", "expected": "allow", "name": "git log with args"},
+    {"cmd": "git log --oneline | head -20", "expected": "allow", "name": "pipe of two allowed commands"},
+    {"cmd": "head -50 notes.txt", "expected": "allow", "name": "head reads a file"},
+    {"cmd": "gh repo clone owner/name", "expected": "allow", "name": "gh repo clone"},
+    {"cmd": "gh api repos/owner/name/pulls/1", "expected": "allow", "name": "gh api plain read"},
+
+    {"cmd": "gh api repos/owner/name -X DELETE", "expected": "ask", "name": "gh api -X outranks the blanket allow"},
+    {"cmd": "gh api repos/owner/name --method POST", "expected": "ask", "name": "gh api --method"},
+    {"cmd": "gh api repos/owner/name --field title=x", "expected": "ask", "name": "gh api --field"},
+    {"cmd": "gh api repos/owner/name -f title=x", "expected": "ask", "name": "gh api -f"},
+    {"cmd": "gh api graphql -F query=@mutation.graphql", "expected": "ask", "name": "gh api -F from a file"},
+    {"cmd": "gh api repos/owner/name --input body.json", "expected": "ask", "name": "gh api --input"},
+    {"cmd": "git commit -m subject", "expected": "ask", "name": "git commit"},
+    {"cmd": "git log --oneline && git commit -m subject", "expected": "ask", "name": "chain takes the stricter outcome"},
+
+    {"cmd": "gh pr merge 1", "expected": "deny", "name": "gh pr merge"},
+    {"cmd": "git log --oneline && gh pr close 1", "expected": "deny", "name": "deny wins anywhere in a chain"},
+
+    {"cmd": "git push origin master", "expected": "unmatched", "name": "git push prompts"},
+    {"cmd": "git status --short && rm -rf /tmp/scratch", "expected": "unmatched", "name": "one unmatched subcommand sinks the chain"},
+
+    {"cmd": "gh api repos/owner/name --brand-new-write-flag body=x", "expected": "unmatched", "name": "unknown gh api write flag", "waived": "Bash(gh api:*) permits it; the ask list only names today's write flags"},
+    {"cmd": "git -C /repo -c core.pager=pager checkout master", "expected": "unmatched", "name": "git -C option smuggling", "waived": "Bash(git -C * checkout *) swallows the inserted -c"}
+]
