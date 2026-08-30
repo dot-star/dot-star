@@ -72,6 +72,10 @@
       {
         "hooks": [
           {
+            "command": "${HOME}/.claude/hooks/block_hidden_characters.py",
+            "type": "command"
+          },
+          {
             "command": "${HOME}/.claude/hooks/validate_bash_command.sh",
             "type": "command"
           },
