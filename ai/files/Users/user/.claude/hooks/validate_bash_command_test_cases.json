@@ -6,6 +6,16 @@
     {"cmd": "git log master..HEAD", "expected": "allow", "name": "git log range"},
     {"cmd": "git log --author=alice -- path/to/file", "expected": "allow", "name": "git log --author with -- path"},
     {"cmd": "git log -p --follow path", "expected": "allow", "name": "git log -p --follow"},
+    {"cmd": "gh api user", "expected": "allow", "name": "gh api bare endpoint"},
+    {"cmd": "gh api repos/owner/name/pulls/1", "expected": "allow", "name": "gh api nested endpoint"},
+
+    {"cmd": "gh api repos/owner/name -X DELETE", "expected": "fall-through", "name": "gh api write flag"},
+    {"cmd": "gh api repos/owner/name --input body.json", "expected": "fall-through", "name": "gh api --input"},
+    {"cmd": "gh api repos/owner/name --brand-new-flag", "expected": "fall-through", "name": "gh api unknown flag"},
+    {"cmd": "gh api repos/owner/name --paginate", "expected": "fall-through", "name": "gh api read flag still prompts"},
+    {"cmd": "gh api -X POST repos/owner/name", "expected": "fall-through", "name": "gh api flag before the endpoint"},
+    {"cmd": "gh api", "expected": "fall-through", "name": "bare gh api"},
+    {"cmd": "gh apifoo bar", "expected": "fall-through", "name": "gh apifoo prefix-collision"},
 
     {"cmd": "git status", "expected": "fall-through", "name": "git status"},
     {"cmd": "git diff", "expected": "fall-through", "name": "git diff"},

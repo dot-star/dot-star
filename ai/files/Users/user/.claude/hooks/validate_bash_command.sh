@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# PreToolUse hook: auto-allow `git log` (with or without args). Anything else,
-# or any shell metacharacter, falls through to the normal permission flow.
+# PreToolUse hook: auto-allow `git log` (with or without args) and a bare
+# `gh api <endpoint>` read. Anything else, or any shell metacharacter, falls
+# through to the normal permission flow.
 
 set -u
 
@@ -29,10 +30,31 @@ case "${cmd}" in
 esac
 
 # Safe-list: each entry covers the bare form and the args form; nothing else.
+reason=""
 case "${cmd}" in
 "git log" | \
-    "git log "*) ;;
-*) exit 0 ;;
+    "git log "*)
+    reason="read-only git log"
+    ;;
+"gh api "*)
+    # Require a lone endpoint. Any flag can turn the request into a write
+    # (-X, -F, -f, --input), and whitelisting the read-only ones would grant
+    # every flag gh adds later, so anything past the endpoint falls through.
+    endpoint="${cmd#gh api }"
+    case "${endpoint}" in
+    "" | -* | *" "*)
+        exit 0
+        ;;
+    esac
+    reason="read-only gh api endpoint fetch"
+    ;;
+*)
+    exit 0
+    ;;
 esac
 
-printf '%s' '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow","permissionDecisionReason":"read-only git log"}}'
+command jq \
+    --null-input \
+    --compact-output \
+    --arg reason "${reason}" \
+    '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"allow",permissionDecisionReason:$reason}}'
