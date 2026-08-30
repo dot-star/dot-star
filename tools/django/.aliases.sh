@@ -38,8 +38,7 @@ shell() {
     fi
 }
 
-alias sqlall="python manage.py sqlall"
+# Replace the `validate' alias, dropped from Django in 1.7.
+alias check="python manage.py check"
 alias startapp="python manage.py startapp"
 alias startproject="python manage.py startproject"
-alias syncdb="python manage.py syncdb --no-initial-data"
-alias validate="python manage.py validate"
