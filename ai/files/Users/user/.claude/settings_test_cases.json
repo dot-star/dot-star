@@ -4,7 +4,6 @@
     {"cmd": "git log --oneline | head -20", "expected": "allow", "name": "pipe of two allowed commands"},
     {"cmd": "head -50 notes.txt", "expected": "allow", "name": "head reads a file"},
     {"cmd": "gh repo clone owner/name", "expected": "allow", "name": "gh repo clone"},
-    {"cmd": "gh api repos/owner/name/pulls/1", "expected": "allow", "name": "gh api plain read"},
 
     {"cmd": "gh api repos/owner/name -X DELETE", "expected": "ask", "name": "gh api -X outranks the blanket allow"},
     {"cmd": "gh api repos/owner/name --method POST", "expected": "ask", "name": "gh api --method"},
@@ -21,6 +20,7 @@
     {"cmd": "git push origin master", "expected": "unmatched", "name": "git push prompts"},
     {"cmd": "git status --short && rm -rf /tmp/scratch", "expected": "unmatched", "name": "one unmatched subcommand sinks the chain"},
 
-    {"cmd": "gh api repos/owner/name --brand-new-write-flag body=x", "expected": "unmatched", "name": "unknown gh api write flag", "waived": "Bash(gh api:*) permits it; the ask list only names today's write flags"},
-    {"cmd": "git -C /repo -c core.pager=pager checkout master", "expected": "unmatched", "name": "git -C option smuggling", "waived": "Bash(git -C * checkout *) swallows the inserted -c"}
+    {"cmd": "gh api repos/owner/name/pulls/1", "expected": "unmatched", "name": "gh api read is the hook's call, not a rule's"},
+    {"cmd": "gh api repos/owner/name --brand-new-write-flag body=x", "expected": "unmatched", "name": "unknown gh api write flag"},
+    {"cmd": "git -C /repo -c core.pager=pager checkout master", "expected": "unmatched", "name": "git -C option smuggling"}
 ]
