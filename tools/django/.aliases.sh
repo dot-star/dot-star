@@ -13,7 +13,13 @@ createsuperuser() {
 }
 
 django_runserver() {
+    # Serve on every interface on port 8000 by default.
+    # Usage:
+    #   $ runserver
+    #   $ runserver 8080
+    #   $ runserver 127.0.0.1:8080
     production="${1}"
+    address="${2:-}"
 
     if "${production}" 2>/dev/null; then
         export PRODUCTION=1
@@ -21,7 +27,14 @@ django_runserver() {
         export PRODUCTION=0
     fi
 
-    python manage.py runserver 0.0.0.0:8000
+    # Expand a bare port to a full address so only the port has to be typed.
+    if [[ -z "${address}" ]]; then
+        address="0.0.0.0:8000"
+    elif [[ "${address}" != *:* ]]; then
+        address="0.0.0.0:${address}"
+    fi
+
+    python manage.py runserver "${address}"
 }
 
 alias dbshell="python manage.py dbshell"
