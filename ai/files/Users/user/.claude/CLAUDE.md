@@ -235,7 +235,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   **Pre-send check**, run on every worktree menu:
 
     1. Does every row wrap its option as `**` + `` ` `` + `[x]remainder` + `` ` `` + `**`? A bare `🧹 [cl]ean` is a fail; the bold inline-code span is as mandatory here as anywhere else.
-    2. Is 🛠️ **`[i]terate`** the top row? Only 📋 **`[a]dd`** may sit above it.
+    2. Is 🛠️ **`[i]terate`** the top row? Only ⚡ **`[n]ow`** and 📋 **`[a]dd`** may sit above it, in that order.
     3. Is 🏁 **`[L]and`** the bottom row? If any option (even a lone keep/iterate slot) renders beneath it, reorder before sending.
     4. Is there exactly one space between each emoji and its bracket span? The column padding goes after the closing `**`, before the `(`, never between the emoji and the bracket.
 
@@ -302,13 +302,24 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
   **What each entry carries:** one entry per loose end, shaped like the entries already in that section (bullet marker, sentence vs. fragment), leading with an action verb per the TODO rule above. Spell out the context the chat message carried implicitly (`file_path:line_number`, what's wrong, what "it" refers to), since the reader picking this up months later has none of this session.
 
-  **Slot order:** 📋 **`[a]dd`** sits above 🛠️ **`[i]terate`** when it joins the worktree menu. It writes a doc and touches no git state, so it's the least committal row; 🏁 **`[L]and`** still ends the list.
+  **Slot order:** ⚡ **`[n]ow`** leads, then 📋 **`[a]dd`**, then the rest. Joining a worktree menu, both sit above 🛠️ **`[i]terate`** and 🏁 **`[L]and`** still ends the list.
+
+  The loose-end slots front the action rather than tracking least-to-most committal like the worktree rows do: closing the loose end is what the user usually wants, so it reads first and the deferring slots follow.
+
+  **Pair it with ⚡ `[n]ow`** whenever the loose end is something you could just do. The other two slots both defer, since 📋 **`[a]dd`** banks the work and ☕ **`[d]iscuss`** talks about it, so without a do-it token the user has to type a sentence to accept the obvious next step.
+
+  Never smuggle the action into another option's parenthetical (`☕ [d]iscuss (or just wire it up now)`); an action the user can pick needs its own letter.
+
+  Drop the slot only when the loose end isn't yours to close: a decision only the user can make, or a fact only they know.
+
+  Word the parenthetical as the concrete job (`wire it into the loader script`), not the generic `implement both now` the examples below fall back on for want of a real loose end to name.
 
   **Pair it with ☕ `[d]iscuss`** when the ask stands alone, so the user can reshape or reject an entry before it's banked instead of undoing a write afterward. A worktree menu needs no such slot; 🛠️ **`[i]terate`** already covers staying put and talking.
 
   Rendered example, joining a worktree menu:
 
   > 👉 How do you want to proceed?
+  >   ⚡ **`[n]ow`**     (implement both now)
   >   📋 **`[a]dd`**     (bank 2 loose ends as todos)
   >   🛠️ **`[i]terate`** (no commit + keep iterating)
   >   🏁 **`[L]and`**    (commit + 🪓 tear down worktree)
@@ -316,6 +327,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   Rendered example, standing alone after an answer:
 
   > 👉 Two loose ends came out of this. What next?
+  >   ⚡ **`[n]ow`**     (implement both now)
   >   📋 **`[a]dd`**     (bank the loose ends as todos)
   >   ☕ **`[d]iscuss`** (talk them through first)
 - When picking a decorative emoji for an option or label, prefer the playful wink/pun pick over the literal-metaphor one.
