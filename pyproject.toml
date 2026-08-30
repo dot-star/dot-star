@@ -3,3 +3,7 @@ line-length = 120
 
 [tool.ruff]
 line-length = 120
+
+[tool.ty.src]
+# Skip the worktree checkouts, which each hold a full copy of the tree.
+exclude = [".claude"]

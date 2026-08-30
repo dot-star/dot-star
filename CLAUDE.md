@@ -26,7 +26,8 @@ Compatibility targets: macOS and Ubuntu (`script/post_install.sh` branches on `$
 ## Commands
 
 - Install / update: `./install.sh`. `./update.sh` is a symlink to the same script and detects the invocation name to decide whether to also `git pull` and `brew upgrade` (see `script/update.sh`). Inside an installed shell, the alias `dotstar` runs the update.
-- Lint (matches CI in `.github/workflows/lint.yml`): `pre-commit run --all-files`. The only configured hook is `shfmt --indent=4 --diff --write` over shell files (see `.pre-commit-config.yaml`).
+- Lint (matches CI in `.github/workflows/lint.yml`): `pre-commit run --all-files`. The hooks are `shfmt` over shell files, `ruff-check` and `black` over Python, `ty` for Python type checking, and the settings test suite (see `.pre-commit-config.yaml`).
+- Python version: `.python-version` at the repository root is the single source. CI reads it via `actions/setup-python`, and `ty` picks it up through `uv`; `[tool.ty.environment]` in `pyproject.toml` would be overridden by `uv`, so don't set the version there.
 - Run the self-contained automated tests, one per script: `find . -name '*_test.sh' -o -name '*_test.py'` lists them, `bash <path>` or `python <path>` runs one.
 - Reload the shell environment after editing without re-installing: `source ~/.dot-star/bootstrap/.bash_profile`.
 
