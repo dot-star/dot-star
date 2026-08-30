@@ -111,6 +111,9 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 ## Input
 
 - Interpret a bare one-token reply or a short fixed phrase as shorthand. Fires only when the entire message is exactly that token or phrase; if the message starts with a question word (what/how/why/is/should/can/does/...) it's a question *about* the token, not an invocation.
+
+  **A bracket-prefix offer outranks this table.** When the previous message offered `[x]`-prefixed options, a bare reply matching one of those letters (case-insensitive) picks that option, whatever the token means below. So `n` answering a **`[n]ow`** offer means "now", not "no"; `t` answering a **`[t]ear`** offer means "tear", not "trim". Fall back to the table only when no offered option claims the letter.
+
   - `y`, `ya` mean "yes" (treat as a `y/n?` style answer)
   - `n`, `no`, `nope` mean "no"
   - `res` means "resume"
@@ -130,7 +133,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - `vws` means `ws` weighted vertical: reach for blank lines first and add sub-bullets only where spacing alone leaves the block dense.
   - `gen`, `generalize`, `neu`, `neutral` mean "generalize the examples": when an example carries my real pasted content (a commit message, path, value), swap it for a neutral placeholder showing the same pattern.
   - `u` means "you run it" / "you do it" (carry out the just-suggested command, script, or action yourself instead of expecting the user to)
-  - `c`, `cm`, `commit` mean "commit" (invoke the `commit` skill), unless the previous message offered `[c]` for something else, in which case `c` picks that bracket-prefix option instead.
+  - `c`, `cm`, `commit` mean "commit" (invoke the `commit` skill).
   - `cs` means "commit only the already-staged changes": like `c` (the `commit` skill), but never auto-stage; if nothing is staged, stop.
   - `🚢` means "ship it" (land the work)
 - `<N> iter` means "option N is the front-runner, but iterate on it": treat N as the starting point and propose refinements rather than committing it as-is. E.g. `2 iter` → improve on option 2.
@@ -216,7 +219,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
     Keep the stem free of a bare ` or ` enumeration of the choices: either end it before the options (as above, where ` or ` sits on a bracketed line) or make it a neutral question (`How should I handle this?`). Re-stating the choices in the stem (`Want me to commit, or land it?`) is redundant with the brackets below and trips the `check_bracket_prefix.sh` stop hook, which reads the stem line in isolation.
   - **Bracket every option, no exceptions:** wrap the whole option (bracket prefix + remainder) in a single bold inline-code span so the brackets, inner letter(s), and remainder share one color and weight. Source form is `**` + `` ` `` + `[` + letter(s) + `]` + remainder + `` ` `` + `**`.
-  - **Reply:** accept the bracketed prefix (case-insensitive) as a complete reply and map it back to the full option.
+  - **Reply:** accept the bracketed prefix (case-insensitive) as a complete reply and map it back to the full option. The offered letter outranks the `Input` shorthand table, so a bare `n` after a **`[n]ow`** offer picks that option rather than answering "no".
   - **On letter collisions:** prefer the single-letter prefix; extend to multi-character (rendered **`[am]end`** vs **`[ad]d`**) only when two options would otherwise share the same letter. Case never disambiguates, since matching is case-insensitive: **`[d]iff`** vs **`[D]iff+args`** both map to `d` and the second is unpickable, so go multi-character instead (e.g. **`[de]xact`** vs **`[da]rgs`**). The collision test is the first character, not the whole prefix: **`[cl]ean`** vs **`[c]ommit`** still collides on `c`, so both sides extend to **`[cl]ean`** vs **`[co]mmit`**. Extending only the newcomer is the common miss; it leaves the incumbent's bare letter reading as a truncation of the longer one.
   - **Reserved letters track their shorthand:** never assign `[c]` to a non-commit action and reserve `[f]` for fold. `[c]` always means commit (matching the global `c` shorthand); handing it to a fold (e.g. **`[c]ommit-only fold`**) collides with that meaning, so a reflexive `c` lands on the wrong option. When two variants of the same action both need a slot, branch off the action's own letter with a distinguishing second char (e.g. **`[fr]eply fold`** vs **`[fs]ilent fold`**), leaving `[c]` free. The reservation keeps `[c]` away from other actions; it does not exempt commit from extending when a `c`-initial option joins the list. Render commit as **`[co]mmit`** then; a bare `c` reply still lands on commit via the global `c` shorthand.
   - **On casing:** purely a readability choice on the letter itself. Uppercase only when the letter is visually ambiguous in lowercase (`l` looks like `1`, `I` looks like `l`, `o` looks like `0`); unambiguous letters stay lowercase. So **`[c]ommit`** and **`[L]and`** in the same prompt is correct (mixed casing on purpose), not **`[C]ommit`** + **`[L]and`**.
