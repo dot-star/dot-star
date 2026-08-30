@@ -73,6 +73,9 @@
 - Stage git changes by naming every path: `git add -- <path> [<path> ...]`, and only paths this session edited. The user edits the same checkout in parallel, so anything blanket commits their unreviewed work.
   - Reject these forms outright, even when they look convenient: `git add --all`, `git add -A`, `git add .`, `git add --update`, `git add -u`, `git commit --all`, `git commit -a`, `git commit -am`.
   - Check the tree before staging: run `git status --porcelain` and compare it against the paths this session edited. Stop when the list holds anything else, report those paths, and let the user decide; never fold them in. Deletions are the easy miss, since a file gone from disk shows as a staged-looking change nobody asked for.
+- Test an edited shell function by sourcing its file from a throwaway script and calling the function directly. The edit never reaches this session's own shell: Claude Code freezes the environment into a snapshot at session start (`~/.claude/shell-snapshots/snapshot-*.sh`) and re-sources that snapshot for every Bash call, so the old body keeps running however the file on disk reads. A mid-session `source` doesn't help either, since shell state doesn't carry between Bash calls.
+  - Judge the result by behavior, never by the definition: under zsh `type <function>` prints a one-line origin instead of the body, so grepping that output proves nothing either way.
+  - Patch the snapshot's own copy of the function when the aliased form has to work in-session, keeping a backup first. The snapshot is disposable state regenerated per session, so a new session picks up the real fix on its own.
 - To remove a symlink, suggest `unlink <path>`, not `rm <path>`. Keep `rm` / `rm -r` for regular files and directories.
 
 ## Code style
