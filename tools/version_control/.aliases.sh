@@ -205,7 +205,22 @@ alias default="rc_checkout_default_branch"
 alias delete_branch="git_delete_branch"
 
 delete_commit() {
-    git reset --hard HEAD~1
+    # Delete the last commit and discard its changes.
+    # Show the commit's log and diff first, then confirm, since the changes are
+    # unrecoverable from the working tree once the reset lands.
+    if ! git rev-parse --verify --quiet HEAD >/dev/null; then
+        echo "no commits to delete"
+        return 1
+    fi
+
+    git show HEAD
+
+    subject="$(git log --max-count=1 --format="%h %s" HEAD)"
+    response="$(display_confirm_prompt_destructive "Delete commit ${subject}? [y/n]")"
+    echo
+    if [[ "${response}" =~ ^[Yy]$ ]]; then
+        git reset --hard HEAD~1
+    fi
 }
 alias delete_commit="delete_commit"
 
