@@ -11,20 +11,7 @@ set -euo pipefail
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/load_claude_md_supplementals.inc.sh"
 
-claude_dir="${CLAUDE_SUPPLEMENTAL_DIR:-${HOME}/.claude}"
-
-# Concatenate each supplemental under a provenance header. Skip an unreadable
-# entry (e.g. a dangling symlink left by a since-moved file) so one stale link
-# can't abort the whole load under `set -e`.
-context=""
-loaded_files=""
-while IFS= read -r file; do
-    if [ ! -r "${file}" ]; then
-        continue
-    fi
-    context+="===== ${file} ====="$'\n'
-    context+="$(cat "${file}")"$'\n\n'
-    loaded_files+="${file##*/} "
-done < <(ls "${claude_dir}"/CLAUDE_*.md 2>/dev/null | sort --version-sort)
-
-claude_supplemental_emit "${context}" "SessionStart" "${loaded_files% }"
+# Assemble the payload via the shared helper, so the statusline's size check
+# measures the same bytes this loader emits.
+claude_supplemental_assemble
+claude_supplemental_emit "${CLAUDE_SUPPLEMENTAL_CONTEXT}" "SessionStart" "${CLAUDE_SUPPLEMENTAL_FILES}"

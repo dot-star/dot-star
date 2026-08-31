@@ -3,11 +3,15 @@
 # companion). Source this; do not execute it. Parse the `claude-mention` marker
 # and emit additionalContext, warning loudly when the payload nears the cap.
 
-# Warn before the payload breaches the documented 10,000-character cap on hook
-# additionalContext (see https://code.claude.com/docs/en/hooks.md#size-limits).
-# Past the cap the string is offloaded to a file and replaced with a short
-# preview, silently dropping the rest. Keep this below the cap so the banner
-# surfaces while content is still at risk rather than already gone.
+# Mirror the documented 10,000-character cap on hook additionalContext (see
+# https://code.claude.com/docs/en/hooks.md#size-limits). Past the cap the
+# string is offloaded to a file and replaced with a short preview, silently
+# dropping the rest.
+CLAUDE_SUPPLEMENTAL_CAP_BYTES=10000
+
+# Warn before the payload breaches the cap above, so the banner (and the
+# statusline segment) surfaces while content is still at risk rather than
+# already gone.
 CLAUDE_SUPPLEMENTAL_WARN_BYTES=9000
 
 # Echo a context file's `claude-mention` keywords (the text between
@@ -77,6 +81,31 @@ claude_supplemental_mention_keyword() {
 
         END { print out }
     ' "${file}"
+}
+
+# Assemble the always-on ~/.claude/CLAUDE_*.md supplementals in version-sort
+# order into two globals: CLAUDE_SUPPLEMENTAL_CONTEXT (the payload, one
+# provenance header per file) and CLAUDE_SUPPLEMENTAL_FILES (space-separated
+# basenames). Skip an unreadable entry (e.g. a dangling symlink left by a
+# since-moved file) so one stale link can't abort a `set -e` caller. Shared by
+# the SessionStart loader (which emits the payload) and the statusline (which
+# measures it), so the two agree byte-for-byte.
+claude_supplemental_assemble() {
+    local claude_dir="${CLAUDE_SUPPLEMENTAL_DIR:-${HOME}/.claude}"
+    local file
+
+    CLAUDE_SUPPLEMENTAL_CONTEXT=""
+    CLAUDE_SUPPLEMENTAL_FILES=""
+    while IFS= read -r file; do
+        if [ ! -r "${file}" ]; then
+            continue
+        fi
+        CLAUDE_SUPPLEMENTAL_CONTEXT+="===== ${file} ====="$'\n'
+        CLAUDE_SUPPLEMENTAL_CONTEXT+="$(cat "${file}")"$'\n\n'
+        CLAUDE_SUPPLEMENTAL_FILES+="${file##*/} "
+    done < <(ls "${claude_dir}"/CLAUDE_*.md 2>/dev/null |
+        sort --version-sort)
+    CLAUDE_SUPPLEMENTAL_FILES="${CLAUDE_SUPPLEMENTAL_FILES% }"
 }
 
 # Emit <context> as additionalContext for the <event> hook, prepending a loud

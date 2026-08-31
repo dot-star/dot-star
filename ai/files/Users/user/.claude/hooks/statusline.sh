@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 #
 # statusLine hook: prints adjacent bracketed segments of the form
-#   [<context-size>][<worktree-name>][<title> - <objective>]
-# Each bracket is optional. The second bracket renders whichever of title /
-# objective is present; both together are joined with " - ".
+#   [<context-size>][<supplemental-size>][<worktree-name>][<title> - <objective>]
+# Each bracket is optional. The title/objective bracket renders whichever of
+# title / objective is present; both together are joined with " - ".
 #
 # Sources:
 #   - context:   prompt tokens of the last main-chain assistant turn in the
 #                transcript, flagged ⚠️ past CONTEXT_WARN_TOKENS, 🚨 past
 #                CONTEXT_ALERT_TOKENS and ‼️ past CONTEXT_CRITICAL_TOKENS
+#   - supplemental: byte size of the always-on ~/.claude/CLAUDE_*.md payload,
+#                shown only past the loader's warn threshold (⚠️md<kb>k/<cap>k,
+#                🚨 once the harness cap silently truncates it)
 #   - worktree:  session-scoped marker (worktree_marker.sh), else cwd inspection
 #   - title:     most recent {"type":"custom-title", ...} in the transcript
 #                (written by /rename)
@@ -22,6 +25,7 @@
 set -euo pipefail
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/claude_session_dir.inc.sh"
+source "$(dirname -- "${BASH_SOURCE[0]}")/load_claude_md_supplementals.inc.sh"
 
 cyan=$'\033[36m'
 yellow=$'\033[33m'
@@ -204,7 +208,25 @@ if [ -n "${context_tokens}" ] && [ "${context_tokens}" -gt 0 ] 2>/dev/null; then
     context_segment="[${context_color}${context_marker}${context_k}k${context_limit}${context_reset}]"
 fi
 
-out="${context_segment}"
+# Flag the always-on CLAUDE_*.md supplemental payload once it crosses the
+# loader's warn threshold, escalating past the harness cap where content is
+# silently truncated. Healthy sizes stay off the bar.
+supplemental_segment=""
+claude_supplemental_assemble
+supplemental_bytes=$(printf '%s' "${CLAUDE_SUPPLEMENTAL_CONTEXT}" |
+    wc -c |
+    awk '{print $1}')
+if [ "${supplemental_bytes}" -gt "${CLAUDE_SUPPLEMENTAL_WARN_BYTES}" ]; then
+    supplemental_kb=$(awk "BEGIN { printf \"%.1f\", ${supplemental_bytes} / 1024 }")
+    supplemental_cap_kb=$(awk "BEGIN { printf \"%.1f\", ${CLAUDE_SUPPLEMENTAL_CAP_BYTES} / 1024 }")
+    if [ "${supplemental_bytes}" -gt "${CLAUDE_SUPPLEMENTAL_CAP_BYTES}" ]; then
+        supplemental_segment="[${bold_red}🚨md${supplemental_kb}k/${supplemental_cap_kb}k${reset}]"
+    else
+        supplemental_segment="[${yellow}⚠️md${supplemental_kb}k/${supplemental_cap_kb}k${reset}]"
+    fi
+fi
+
+out="${context_segment}${supplemental_segment}"
 if [ -n "${worktree_name}" ]; then
     out+="[${cyan}${worktree_name}${reset}]"
 fi
