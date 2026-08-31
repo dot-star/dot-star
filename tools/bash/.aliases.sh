@@ -630,7 +630,7 @@ alias_grep() {
             --line-number \
             "$@"
     else
-        # Run grep without line numbers when shell is non-interactive (e.g.
+        # Run grep with line numbers even when shell is non-interactive (e.g.
         # "$ my_command | grep ...").
         grep \
             --binary-files="without-match" \
