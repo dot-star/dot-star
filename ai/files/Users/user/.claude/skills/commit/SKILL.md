@@ -33,7 +33,7 @@ Collapse "draft a subject, pick one, commit" into one action for the currently s
    Before staging, run `git status --porcelain` and compare it against the paths this session edited. Anything else in that list stops the commit: report those paths and let the user decide, don't fold them in.
 3. Read the full staged diff: `git --no-pager diff --staged`. This is the source of truth for what to summarize.
 4. Skim recent subjects for voice: `git --no-pager log --max-count=10 --format='%s'`.
-5. Re-read `~/.claude/CLAUDE_commit-message-style.md` so the drafts match the user's actual style.
+5. Re-read `~/.claude/styles/commit-message-style.md` so the drafts match the user's actual style.
 
 ## Draft
 
