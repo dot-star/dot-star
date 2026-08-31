@@ -638,14 +638,27 @@ git_diff_last_files() {
         clear
     fi
 
+    # Exclude deletions so the list only names paths still on disk. Callers feed
+    # it to file-consuming commands like `sy $(dflf)`, which fail on a path the
+    # last commit deleted.
+
     # List files changed in last commit of project when path is not specified.
     if [[ -z "${1}" ]]; then
-        git log --max-count=1 --name-only --format=
+        git log \
+            --diff-filter=d \
+            --format= \
+            --max-count=1 \
+            --name-only
 
     # List files changed in last commit under path when path is specified.
     else
         file_path="${1}"
-        git log --max-count=1 --name-only --format= "${file_path}"
+        git log \
+            --diff-filter=d \
+            --format= \
+            --max-count=1 \
+            --name-only \
+            "${file_path}"
     fi
 }
 
