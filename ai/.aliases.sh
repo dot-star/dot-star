@@ -165,7 +165,17 @@ claude_draft_commit_message_options() {
     #     Fix the off-by-one in bar
     #     Rename the baz flag
     local instructions commit_diff prompt response
-    commit_diff="${2:-$(git diff --cached)}"
+
+    # Name the enclosing JSON key in each hunk header (`@@ ... @@ "deny": [`).
+    # Keep it in the diff: git's default three lines of context stop short of
+    # the key, so the model guesses which key an added entry lands under and
+    # drafts an addition to "deny" as "Allow ...".
+    commit_diff="${2:-$(
+        git \
+            -c core.attributesFile="${HOME}/.dot-star/tools/version_control/gitattributes" \
+            -c 'diff.json.xfuncname=^[[:space:]]*"[^"]*"[[:space:]]*:[[:space:]]*[[{]' \
+            diff --cached
+    )}"
 
     instructions="$(
         cat <<'EOF'

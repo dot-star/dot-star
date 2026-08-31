@@ -1,0 +1,4 @@
+# Bind JSON to the "json" diff driver so hunk headers name the enclosing key.
+# Pass this file to git with -c core.attributesFile, since git reads no
+# attributes from $HOME on its own.
+*.json diff=json
