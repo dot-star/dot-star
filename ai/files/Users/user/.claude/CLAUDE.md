@@ -137,7 +137,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - `cod`, `codify` mean "codify the rule" (invoke the `codify` skill): promote a saved memory into a mechanism that fires on its own (a hook, `settings.json` entry, `CLAUDE_*.md` line, shell alias, or skill).
   - `t`, `trim` mean "strip whatever we're working on (a comment, a sentence, a rule, a block of code) to its load-bearing parts": cut non-load-bearing content outright (niceties, rationale, cross-references already obvious from context), not just tighten the wording, while preserving every constraint; flag anything load-bearing that can't be cut rather than dropping it silently.
   - `ws` means "add whitespace for readability": reformat whatever we're working on (a doc, code, a comment, a rule) with blank lines between stanzas and sub-bullets for dense lists so it scans better, without changing the content.
-  - `vws` means `ws` weighted vertical: reach for blank lines first and add sub-bullets only where spacing alone leaves the block dense.
+  - `vws` means `ws` weighted vertical: reach for blank lines first and add sub-bullets only where spacing alone leaves the block dense. Match the surrounding list's density, though: where the neighboring bullets sit tight, the block stays tight too, sub-bullets included.
   - `gen`, `generalize`, `neu`, `neutral` mean "generalize the examples": when an example carries my real pasted content (a commit message, path, value), swap it for a neutral placeholder showing the same pattern.
   - `u` means "you run it" / "you do it" (carry out the just-suggested command, script, or action yourself instead of expecting the user to)
   - `c`, `cm`, `commit` mean "commit" (invoke the `commit` skill).
