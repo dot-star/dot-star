@@ -158,6 +158,19 @@ claude_ask() {
 }
 alias ask="claude_ask"
 
+claude_git_with_json_hunk_headers() {
+    # Run git with the JSON diff driver bound, so each hunk header names the
+    # enclosing key (`@@ ... @@ "deny": [`).
+    #
+    # Feed that key to the model: git's default three lines of context stop
+    # short of it, so the model guesses which key an added entry lands under
+    # and drafts an addition to "deny" as "Allow ...".
+    git \
+        -c core.attributesFile="${HOME}/.dot-star/tools/version_control/gitattributes" \
+        -c 'diff.json.xfuncname=^[[:space:]]*"[^"]*"[[:space:]]*:[[:space:]]*[[{]' \
+        "$@"
+}
+
 claude_draft_commit_message_options() {
     # Draft single-line commit-message options for the staged diff (or the diff
     # in $2) and print them one per line:
@@ -165,17 +178,7 @@ claude_draft_commit_message_options() {
     #     Fix the off-by-one in bar
     #     Rename the baz flag
     local instructions commit_diff prompt response
-
-    # Name the enclosing JSON key in each hunk header (`@@ ... @@ "deny": [`).
-    # Keep it in the diff: git's default three lines of context stop short of
-    # the key, so the model guesses which key an added entry lands under and
-    # drafts an addition to "deny" as "Allow ...".
-    commit_diff="${2:-$(
-        git \
-            -c core.attributesFile="${HOME}/.dot-star/tools/version_control/gitattributes" \
-            -c 'diff.json.xfuncname=^[[:space:]]*"[^"]*"[[:space:]]*:[[:space:]]*[[{]' \
-            diff --cached
-    )}"
+    commit_diff="${2:-$(claude_git_with_json_hunk_headers diff --cached)}"
 
     instructions="$(
         cat <<'EOF'
@@ -268,7 +271,12 @@ claude_git_stash() {
     # the new message, since git has no in-place stash-message edit.
     (
         local diff summary
-        diff="$(git stash show --patch --include-untracked "${stash_sha}")"
+        diff="$(
+            claude_git_with_json_hunk_headers stash show \
+                --patch \
+                --include-untracked \
+                "${stash_sha}"
+        )"
         summary="$(
             claude_draft_commit_message_options "" "${diff}" |
                 head --lines=1
