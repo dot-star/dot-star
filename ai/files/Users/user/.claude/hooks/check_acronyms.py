@@ -72,6 +72,7 @@ WHITELIST = {
     "PR",
     "PTAL",
     "QA",
+    "QR",
     "RAM",
     "README",
     "RSVP",
