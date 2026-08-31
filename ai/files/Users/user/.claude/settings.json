@@ -322,6 +322,7 @@
     "type": "command"
   },
   "theme": "dark",
+  "tui": "fullscreen",
   "voice": {
     "enabled": true,
     "mode": "tap"
