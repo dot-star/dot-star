@@ -1,0 +1,29 @@
+# Hide the titlebar so a fullscreen window is one uninterrupted text grid with
+# no chrome band above it. Switch back to "transparent" if windowed mode gets
+# use: a hidden titlebar leaves no strip to drag the window by.
+macos-titlebar-style = hidden
+
+# Suppress the pane-size overlay that appears while resizing a split. It is a
+# transient box surfacing in the periphery, the exact interruption a fullscreen
+# terminal is meant to remove.
+resize-overlay = never
+
+# Hide the pointer while typing. A parked mouse cursor is one more object in the
+# field that twitches on every trackpad brush.
+mouse-hide-while-typing = true
+
+# Dim the inactive split just enough to mark which pane holds focus. Ghostty's
+# default of 0.7 reads as disabled rather than merely inactive.
+unfocused-split-opacity = 0.85
+
+# Pad the grid off the window edges so text does not run into the frame.
+window-padding-x = 8
+window-padding-y = 8
+
+# Spread leftover pixels across both edges instead of banking them on one side,
+# keeping the text block centered as the window resizes.
+window-padding-balance = true
+
+# TODO: Set split-divider-color once a theme is picked. Left unset, Ghostty
+# derives the divider from the active theme; a hardcoded gray here would have to
+# be kept in sync with whatever background that theme sets.

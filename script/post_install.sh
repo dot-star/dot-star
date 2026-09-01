@@ -291,3 +291,10 @@ ensure_symlink "${DOT_STAR_ROOT}/tools/vim/.vimrc" "${HOME}/.vimrc"
 
 ensure_symlink "${DOT_STAR_ROOT}/tools/bash/.jshintrc" "${HOME}/.jshintrc"
 bt_pop # vim setup
+
+bt_push "ghostty setup"
+# Create the config directory Ghostty reads at startup.
+mkdir -p "${HOME}/.config/ghostty/"
+
+ensure_symlink "${DOT_STAR_ROOT}/tools/ghostty/config" "${HOME}/.config/ghostty/config"
+bt_pop # ghostty setup
