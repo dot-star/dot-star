@@ -94,6 +94,7 @@ WHITELIST = {
     "VIII",
     "XI",
     "XII",
+    "YAML",
 }
 
 # Flag mixed-case insider acronyms the all-caps scan misses (an embedded
