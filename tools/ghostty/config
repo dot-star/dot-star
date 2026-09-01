@@ -25,6 +25,16 @@ mouse-hide-while-typing = true
 unfocused-split-opacity = 0.85
 unfocused-split-fill = #6a5acd
 
+# Even out every pane after a split. Ghostty lays splits out as a binary tree,
+# so a split halves only the focused pane and a third one leaves the first pane
+# twice the width of the other two; equalizing restores the even row editors
+# like VS Code give by default. The chain keyword appends an action to the
+# keybind above it and needs Ghostty 1.3.0 or newer.
+keybind = super+d=new_split:right
+keybind = chain=equalize_splits
+keybind = super+shift+d=new_split:down
+keybind = chain=equalize_splits
+
 # Pad the grid off the window edges so text does not run into the frame.
 window-padding-x = 8
 window-padding-y = 8
