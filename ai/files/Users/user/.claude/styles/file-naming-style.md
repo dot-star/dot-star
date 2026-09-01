@@ -37,6 +37,8 @@ update_readme_methods.sh
 - `make_release*`: shared prefix gathers the release-tooling family; `make_release_requirements.<ext>` nests a sub-family where the axis is the extension.
 - `update_readme_methods.sh`: verb-first reads as an action.
 
+The position is only visible once a second file exists. `private-todo.md` reads fine alone, but a second repo's list can only be `private-todo-<repo>.md`, burying the axis at the end. Naming it `private-dot-star-todo.md` up front leaves `private-<repo>-todo.md` free and keeps the kind as the trailing token.
+
 More patterns from `php-curl-class/examples/` and `tests/`:
 
 - **Sibling prefixes mirror parent families.** When a parallel set of functionality exists, the new family's filenames mirror the first's vocabulary token-for-token: `curl_after_send.php` ↔ `multi_curl_after_send.php`, `curl_before_send_retry.php` ↔ `multi_curl_before_send_retry.php`. Pick the matching suffix instead of inventing a new one.
@@ -48,5 +50,6 @@ More patterns from `php-curl-class/examples/` and `tests/`:
 ## When creating any new file
 
 1. Is there an existing group it belongs in? If yes, match the prefix.
-2. Does the remainder of the name tell a reader what the file does/contains/supplements? If no, rename until it does.
-3. Avoid generic names like `utils.sh`, `notes.txt`, `helper.md`, `misc.md`.
+2. Name the second file before settling on the first. If the next sibling can't slot in without renaming this one, the variable part sits in the wrong position: `private-todo.md` forces a second repo's list to become `private-todo-<repo>.md`, while `private-dot-star-todo.md` leaves `private-<repo>-todo.md` free.
+3. Does the remainder of the name tell a reader what the file does/contains/supplements? If no, rename until it does.
+4. Avoid generic names like `utils.sh`, `notes.txt`, `helper.md`, `misc.md`.
