@@ -50,6 +50,16 @@ keybind = chain=equalize_splits
 keybind = super+shift+d=new_split:down
 keybind = chain=equalize_splits
 
+# Even out the panes that survive a ctrl+d close too. Ctrl+d is the shell's
+# end-of-file rather than a Ghostty keybind, so no close action exists to chain
+# onto; unconsumed still passes the key through to the shell and runs the
+# equalize alongside it.
+#
+# TODO: Drop this line if the equalize lands before the pane finishes closing,
+# or if re-equalizing on every other ctrl+d (vim's half-page scroll, less, a
+# Python prompt) proves more annoying than the uneven row it fixes.
+keybind = unconsumed:ctrl+d=equalize_splits
+
 # Pad the grid off the window edges so text does not run into the frame.
 window-padding-x = 8
 window-padding-y = 8
