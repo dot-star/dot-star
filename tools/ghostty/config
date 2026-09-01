@@ -1,3 +1,8 @@
+# Open every window at a readable size. Ghostty's macOS default of 13 lands a
+# few Cmd-+ steps short, and those steps do not persist, so each new window
+# starts with the same ritual.
+font-size = 18
+
 # Hide the titlebar so a fullscreen window is one uninterrupted text grid with
 # no chrome band above it. Switch back to "transparent" if windowed mode gets
 # use: a hidden titlebar leaves no strip to drag the window by.
