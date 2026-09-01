@@ -3,6 +3,21 @@
 # starts with the same ritual.
 font-size = 18
 
+# Size new windows at open. The option+i toggle shows and hides Ghostty rather
+# than launching it fresh, so this is what every session lands in. Values:
+#   non-native              -- Fill the screen with no animation and hide the
+#                              menu bar. Snappiest for a show/hide hotkey, but
+#                              breaks macOS native tabs.
+#   non-native-visible-menu -- Fill the screen with no animation and keep the
+#                              menu bar visible.
+#   non-native-padded-notch -- Fill the screen with no animation, hide the menu
+#                              bar, and pad the window clear of the notch.
+#   true                    -- Enter native macOS fullscreen. Keeps tabs
+#                              working, but animates into and out of its own
+#                              Space on every hide and show.
+#   false                   -- Open windows at Ghostty's default size.
+fullscreen = non-native
+
 # Hide the titlebar so a fullscreen window is one uninterrupted text grid with
 # no chrome band above it. Switch back to "transparent" if windowed mode gets
 # use: a hidden titlebar leaves no strip to drag the window by.
