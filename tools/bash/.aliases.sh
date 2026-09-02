@@ -293,7 +293,7 @@ conditional_c() {
             cd "${1}"
         # Call `cat $filename [$filename ...]' when one or more parameters are passed (e.g. c file1.log file2.log).
         else
-            cat "${@}"
+            pretty_cat "${@}"
         fi
     else
         # Pipe input (non-interactive).
