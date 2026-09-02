@@ -285,6 +285,9 @@ ensure_symlink "${DOT_STAR}/tools/screen/.screenrc" "${HOME}/.screenrc"
 # Install gitk config; git_browser() (tools/version_control/.aliases.sh) strips geometry lines around each run so the symlink target stays clean.
 mkdir -p "${HOME}/.config/git"
 ensure_symlink "${DOT_STAR}/tools/version_control/gitk" "${HOME}/.config/git/gitk"
+
+# Install the global attributes file; git reads this path whenever core.attributesFile is unset, so every repo gets the diff drivers.
+ensure_symlink "${DOT_STAR}/tools/version_control/gitattributes" "${HOME}/.config/git/attributes"
 bt_pop
 
 bt_push "ipython"

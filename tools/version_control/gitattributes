@@ -1,4 +1,10 @@
-# Bind JSON to the "json" diff driver so hunk headers name the enclosing key.
-# Pass this file to git with -c core.attributesFile, since git reads no
-# attributes from $HOME on its own.
+# Bind file types to diff drivers so each hunk header names the enclosing scope.
+# Symlink this file to ~/.config/git/attributes (core.attributesFile's default
+# path) so every repo picks it up.
+
+# Name the enclosing key. Needs diff.json.xfuncname, which
+# claude_git_with_json_hunk_headers() (ai/.aliases.sh) supplies.
 *.json diff=json
+
+# Name the enclosing heading. Git ships this driver, so no xfuncname is needed.
+*.md diff=markdown
