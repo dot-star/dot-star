@@ -68,11 +68,14 @@ claude_run() {
 
         # Inside a worktree, continue its own last session for a bare `cl` or
         # `--resume` rather than opening a picker listing every session in the
-        # repo. Falls back to a fresh session when the worktree has none yet:
+        # repo. Start fresh when the worktree has hosted none yet, since
+        # `--continue` exits with "No conversation found to continue" instead of
+        # falling back on its own:
         #   $ cl     (run inside a worktree)
         #   $ clr    (run inside a worktree)
         elif [[ -n "${inside_worktree}" && ("$1" == "--resume" || -n "${bare_invocation}") ]]; then
-            claude --continue
+            claude --continue ||
+                claude
 
         # Open the normal picker for a bare `--resume` outside a worktree:
         #   $ clr    (run outside a worktree)

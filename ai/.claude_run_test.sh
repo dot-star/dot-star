@@ -16,9 +16,13 @@ MAIN_CHECKOUT="$(cd "$(dirname "${GIT_COMMON_DIR}")" && pwd -P)"
 source "${SCRIPT_DIR}/.aliases.sh"
 
 # Stub claude so nothing launches; report the launch dir, the args it would get,
-# and the objective claude_run exported.
+# and the objective claude_run exported. Fail `--continue` while STUB_NO_SESSION
+# is set, standing in for a worktree that has hosted no session yet.
 claude() {
     echo "$(pwd)|$*|${CLAUDE_OBJECTIVE:-}"
+    if [[ -n "${STUB_NO_SESSION:-}" && "$1" == "--continue" ]]; then
+        return 1
+    fi
 }
 
 # Point HOME at a throwaway dir holding no-op cleanup scripts, so the run doesn't
@@ -70,6 +74,15 @@ assert_dispatch "worktree, bare cl continues its own session" \
     "${WORKTREE_DIR}" "${WORKTREE_DIR}|--continue|"
 assert_dispatch "worktree, clr continues its own session" \
     "${WORKTREE_DIR}" "${WORKTREE_DIR}|--continue|" --resume
+
+# Flag the stub for the two no-session cases, then clear it so the rest keep
+# exercising a worktree that has a session to continue.
+STUB_NO_SESSION=1
+assert_dispatch "worktree with no session, bare cl starts a fresh one" \
+    "${WORKTREE_DIR}" "${WORKTREE_DIR}|--continue|"$'\n'"${WORKTREE_DIR}||"
+assert_dispatch "worktree with no session, clr starts a fresh one" \
+    "${WORKTREE_DIR}" "${WORKTREE_DIR}|--continue|"$'\n'"${WORKTREE_DIR}||" --resume
+unset STUB_NO_SESSION
 assert_dispatch "worktree, explicit --resume <uuid> passes through" \
     "${WORKTREE_DIR}" "${WORKTREE_DIR}|--resume ${uuid}|" --resume "${uuid}"
 assert_dispatch "worktree, bare <uuid> resumes that session" \
