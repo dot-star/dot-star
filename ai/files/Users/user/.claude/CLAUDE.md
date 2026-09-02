@@ -59,6 +59,7 @@
 
 - For temporary files, write only to the session-scoped directory `/tmp/claude/<session_id>/` (surfaced via SessionStart). Don't write directly under `/tmp/` or `/tmp/claude/`.
 - Before making any code edits in a git repository, work from an isolated worktree to keep the main checkout free for parallel work. Subagents: pass `isolation: "worktree"`. Direct edits: call `EnterWorktree` first, `ExitWorktree` with `action: "remove"` when done.
+  - `nwt` ("no worktree") anywhere in a user message waives that default: edit in the main checkout. The waiver covers that work and its follow-ups; a later unrelated request re-defaults to a worktree.
 - When working directly in the main checkout (worktree skipped), commit on the default branch; don't auto-create a feature branch first. Overrides the harness default of branching before committing on the default branch. Branch only when the user asks, or a PR needs one to push.
 - When the working directory is already inside a git repository, prefer plain `git ...` invocations over `git -C <path> ...`. The cwd already has the right scope and `-C` triggers extra permission prompts.
 - `~/.claude/` is wired into `~/.dot-star/ai/files/Users/user/.claude/` two ways. Whole-directory symlinks: `commands/`, `hooks/`, `skills/`, `styles/` (a new file inside any of these auto-surfaces, no per-file symlink needed). Per-entry file symlinks: `CLAUDE.md`, `settings.json` (a new top-level entry needs its own `ln -s <real-path> ~/.claude/<name>`). Always write/edit at the real dot-star path; `Edit`/`Write` refuse to write through symlinks.
@@ -161,6 +162,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - `r` means "root" (the main checkout, vs. a worktree)
   - `trix` means "spreadsheet"
   - `wt` means "worktree"
+    - `nwt` means "no worktree": waives the isolated-worktree default (see Workflow).
 
 ## Output
 
