@@ -30,6 +30,13 @@ case "${file_path}" in
     ;;
 esac
 
+# Add the test guide on test files, on top of the docstring guide above.
+case "${file_path}" in
+*_test.py | */test_*.py)
+    guides+=("python-test-style.md")
+    ;;
+esac
+
 # Nudge the naming guide on Write; creating a file is when the name matters.
 if [ "${tool_name}" = "Write" ]; then
     guides+=("file-naming-style.md")
