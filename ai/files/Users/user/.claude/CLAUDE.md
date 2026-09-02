@@ -91,6 +91,10 @@
 - When consecutive `if` statements each end in `return` (or `throw`), chain them as `else if` rather than leaving them as separate `if` blocks; this includes side-effecting actions (e.g. `if ! git rebase master`) where chaining is possible. Plain side-effect `if`s without a terminating return stay separate.
 - Prefer the most explicit form when it reads more plainly: an explicit `for` loop with an inner `if` and early `return` beats a compact `any(... for ...)` / comprehension when the loop makes the intent obvious. Readability over conciseness.
 - Prefer spelling out the cases over a regex group when they're few and known: `deploy`, `deployed`, `deploying`, not `deploy(ed|ing)?`. A group or alternation packs several cases into one expression that's harder to read, diff, and reason about; reach for it only when the alternatives are open-ended or too many to enumerate.
+- Make every concrete subclass state its own answer for a base-class hook; never let one inherit a silent no-op default. A subclass that never addresses the hook otherwise behaves as if it had chosen the default, with nothing marking the omission.
+  - Raise `NotImplementedError` (or the language's equivalent) in the base, so a missing override fails loudly at the call site instead of quietly doing nothing.
+  - Override with an explicit no-op body in each subclass whose honest answer is "nothing to do", carrying a comment that names why that case is exempt.
+  - Write that no-op body as an explicit statement (`pass` in Python, `{}` where the language needs nothing), never a bare docstring or comment with no statement under it. A body that only documents itself reads as unfinished, so the next reader "finishes" it by raising, breaking every caller that relied on the no-op.
 - Two comment shapes:
   - **Block comments** (TODOs, design notes): blank line above and below.
   - **Line-doc comments** (describing the next line/pipeline): stay flush with the code they describe, no blank line between the comment and that code.
