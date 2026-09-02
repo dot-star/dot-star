@@ -320,6 +320,14 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   Bundling forces actions when the user often wants just to keep iterating; commit and fold are the two ways to bank the same pending change, so they sit adjacent; promote and land share the fast-forward but only land removes the worktree. **`[L]and`** leads with 🏁 (not the 🛬 land marker) to flag that picking Land completes the objective; the 🏁 goes at the front of the Land line, not trailing after the `?`.
 - Whenever a message names loose ends (work this session surfaced but didn't do: a figure still unsourced, a file still to write, a decision the user has to make), offer 📋 **`[a]dd`** to bank them in a TODO section. Fires anywhere loose ends get named, not just at wrap-up: the 🏁 completion recap, a worktree follow-up, or a plain answer trailing off in "still needs". A loose end left in chat scrollback dies with the session; a TODO entry outlives it.
 
+  **Pre-send check**, run on every message that names a loose end, not only on ones already shaped as a menu:
+
+    1. Does the message name a loose end? A 🔴 caveat or a trailing note in any wording (left alone, still needs, untouched code) names one; flagging it as deliberately-not-done doesn't make it less of a loose end.
+    2. Is there a 📋 **`[a]dd`** row? Add one if not.
+    3. Could you close the loose end yourself? Then ⚡ **`[n]ow`** goes above the 📋 row. Drop it only per the not-yours-to-close exception below; choosing not to touch the code isn't that exception.
+    4. Does the ⚡ row's parenthetical name the concrete job rather than generic filler?
+    5. Is there no worktree menu beneath? Then ☕ **`[d]iscuss`** joins too.
+
   **Where the entries land**, resolved in this order, first hit wins:
 
   1. A TODO section in the markdown beside the work (`todo.md`, `CLAUDE.md`, `README.md` in the directory being edited).
