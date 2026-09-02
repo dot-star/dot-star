@@ -252,14 +252,15 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     7. If any alternative lacks `[` ... `]`, fix before sending.
     8. Does any option carry a second label (`A.`/`B.`, `1.`/`2.`) beside its bracket prefix? Strip it, the bracket letter is the only label.
 - When an own `[c]ommit` follow-up offer is accepted (reply `c`/`cm`/`commit`/🚢 mapped to the commit option), invoke the `commit` skill via the `Skill` tool rather than running `git commit -m "<self-chosen subject>"` directly. The skill drafts numbered subject options for the user to pick; auto-picking bypasses that choice. Same rule for any other phrasing where the offered action was "commit" (e.g. "want me to commit?"). To commit without the skill, the user has to opt in explicitly.
-- When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment (any subset, not always all of them), each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**). Whenever two or more appear together, list them top-to-bottom in this fixed order: iterate → commit → fold → promote → land. The slot order tracks least-to-most committal (don't-commit first, then commit-and-stay, then rewrite-and-stay, then promote, then the teardown); land is the only one that tears the worktree down, so it's always last, never floated into the middle or reordered.
+- When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment (any subset the tree allows; ⬆️ promote and 🏁 land always apply), each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**). Whenever two or more appear together, list them top-to-bottom in this fixed order: iterate → commit → fold → promote → land. The slot order tracks least-to-most committal (don't-commit first, then commit-and-stay, then rewrite-and-stay, then promote, then the teardown); land is the only one that tears the worktree down, so it's always last, never floated into the middle or reordered.
 
   **Pre-send check**, run on every worktree menu:
 
     1. Does every row wrap its option as `**` + `` ` `` + `[x]remainder` + `` ` `` + `**`? A bare `🧹 [cl]ean` is a fail; the bold inline-code span is as mandatory here as anywhere else.
-    2. Is 🛠️ **`[i]terate`** the top row? Only ⚡ **`[n]ow`** and 📋 **`[a]dd`** may sit above it, in that order.
-    3. Is 🏁 **`[L]and`** the bottom row? If any option (even a lone keep/iterate slot) renders beneath it, reorder before sending.
-    4. Is there exactly one space between each emoji and its bracket span? The column padding goes after the closing `**`, before the `(`, never between the emoji and the bracket.
+    2. Are ⬆️ **`[p]romote`** and 🏁 **`[L]and`** both on the menu? Neither is ever conditional: each commits whatever is pending first, so no tree state rules it out. A menu missing one of them is an omission, not a narrowed menu; the rows that drop are 💾 **`[c]ommit`**, 📦 **`[f]old`** and 🛠️ **`[i]terate`**.
+    3. Is 🛠️ **`[i]terate`** the top row? Only ⚡ **`[n]ow`** and 📋 **`[a]dd`** may sit above it, in that order.
+    4. Is 🏁 **`[L]and`** the bottom row? If any option (even a lone keep/iterate slot) renders beneath it, reorder before sending.
+    5. Is there exactly one space between each emoji and its bracket span? The column padding goes after the closing `**`, before the `(`, never between the emoji and the bracket.
 
   **Applicability is a fact about the tree, not a guess.** Before sending, run `git status --porcelain` and branch on the result:
 
@@ -298,10 +299,11 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   >   ⬆️ **`[p]romote`** (commit + ✅ promote to master)
   >   🏁 **`[L]and`**    (commit + 🪓 tear down worktree)
 
-  Subset (iterate + land, e.g. work is done but might still want a tweak; land stays at the bottom):
+  Subset (clean tree, so no commit or fold slot; iterate reframed to keep tuning):
 
   > 👉 How do you want to wrap up?
-  >   🛠️ **`[i]terate`** (no commit + keep iterating)
+  >   🛠️ **`[i]terate`** (keep tuning in the worktree)
+  >   ⬆️ **`[p]romote`** (commit + ✅ promote to master)
   >   🏁 **`[L]and`**    (commit + 🪓 tear down worktree)
 
   Subset (a follow-up edit that finishes the unpublished HEAD commit, so fold joins commit):
@@ -310,6 +312,8 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   >   🛠️ **`[i]terate`** (no commit + keep iterating)
   >   💾 **`[c]ommit`**  (commit + keep iterating)
   >   📦 **`[f]old`**    (amend into HEAD + keep iterating)
+  >   ⬆️ **`[p]romote`** (commit + ✅ promote to master)
+  >   🏁 **`[L]and`**    (commit + 🪓 tear down worktree)
 
   Bundling forces actions when the user often wants just to keep iterating; commit and fold are the two ways to bank the same pending change, so they sit adjacent; promote and land share the fast-forward but only land removes the worktree. **`[L]and`** leads with 🏁 (not the 🛬 land marker) to flag that picking Land completes the objective; the 🏁 goes at the front of the Land line, not trailing after the `?`.
 - Whenever a message names loose ends (work this session surfaced but didn't do: a figure still unsourced, a file still to write, a decision the user has to make), offer 📋 **`[a]dd`** to bank them in a TODO section. Fires anywhere loose ends get named, not just at wrap-up: the 🏁 completion recap, a worktree follow-up, or a plain answer trailing off in "still needs". A loose end left in chat scrollback dies with the session; a TODO entry outlives it.
