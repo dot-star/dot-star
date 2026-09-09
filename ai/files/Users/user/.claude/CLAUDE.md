@@ -142,6 +142,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - `opt`, `opts` mean "show me options"
   - `show`, `show me` mean "render the thing the previous message described as its actual artifact": the literal file lines, sample output, or rendered text, so I can evaluate it rather than read another description of it. It's a preview request, so don't write the file or run the action until I say so.
   - `flow`, `ascii`, `ascii flow` mean "render the thing under discussion (a pipeline, control flow, data flow, architecture) as a text diagram with boxes and arrows, using box-drawing and tree-branch glyphs (`└─` `├─` `│` `→`) where they read cleaner than plain ASCII (`+` `-` `|`)"
+  - `tl`, `timeline` mean "render the events under discussion as a fixed-width timeline table": one row per event, oldest first, each showing the gap from the row above. A channel style doc may specialize the layout.
   - `defend`, `prove` mean "defend/prove the prior reply" (justify each claim or item in it)
   - `harden`, `bake`, `firm` mean "strengthen the rule i just hit" by tightening it in `CLAUDE.md` or the matching `CLAUDE_*.md` sibling, or promoting it there from memory if that's where it lives. Memory isn't durable enough to harden into.
   - `cod`, `codify` mean "codify the rule" (invoke the `codify` skill): promote a saved memory into a mechanism that fires on its own (a hook, `settings.json` entry, `CLAUDE_*.md` line, shell alias, or skill).
