@@ -36,6 +36,11 @@ reset=$'\033[0m'
 OBJECTIVE_MAX_CHARS=60
 OBJECTIVE_MAX_WORDS=6
 
+# Cap the title tighter than the objective. Both share one bracket, so a
+# sentence-length /rename title otherwise pushes the bar past the terminal edge.
+TITLE_MAX_CHARS=40
+TITLE_MAX_WORDS=5
+
 # Warn (⚠️) on the context segment past this many tokens, then escalate to an
 # alert (🚨) and a critical (‼️) past the higher marks. Track the bands where
 # model quality falls off:
@@ -158,7 +163,7 @@ if [ -n "${transcript}" ] && [ -f "${transcript}" ]; then
     fi
 fi
 
-title=$(flatten "${title}")
+title=$(shrink "${title}" "${TITLE_MAX_CHARS}" "${TITLE_MAX_WORDS}")
 objective=$(shrink "${objective}" "${OBJECTIVE_MAX_CHARS}" "${OBJECTIVE_MAX_WORDS}")
 if [ -n "${title}" ] && [ "${title}" = "${objective}" ]; then
     objective=""
