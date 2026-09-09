@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 #
 # statusLine hook: prints adjacent bracketed segments of the form
-#   [<context-size>][<supplemental-size>][<worktree-name>][<title> - <objective>]
+#   [<context-size>][<supplemental-size>][<worktree-name>][<title> • <objective>]
 # Each bracket is optional. The title/objective bracket renders whichever of
-# title / objective is present; both together are joined with " - ".
+# title / objective is present; both together are joined with " • ". The bullet
+# never appears in a title or summary, so it can't be misread as their content
+# the way a hyphen can.
 #
 # Sources:
 #   - context:   prompt tokens of the last main-chain assistant turn in the
@@ -279,7 +281,7 @@ if [ -n "${worktree_name}" ]; then
 fi
 
 if [ -n "${title}" ] && [ -n "${objective}" ]; then
-    out+="[${title} - ${objective}]"
+    out+="[${title} • ${objective}]"
 elif [ -n "${title}" ]; then
     out+="[${title}]"
 elif [ -n "${objective}" ]; then
