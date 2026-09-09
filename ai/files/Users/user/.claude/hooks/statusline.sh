@@ -33,6 +33,14 @@ bold_red=$'\033[1;31m'
 bold_magenta=$'\033[1;35m'
 reset=$'\033[0m'
 
+# Drop these words from a summary before capping it: articles, pronouns and
+# auxiliary verbs spend characters without adding signal at a glance. Mirrors the
+# caveman style the objective marker is written in.
+FILLER_WORDS="a am an are be been being can could did do does had has have he"
+FILLER_WORDS+=" her hers him his i is it its may me might mine must my our ours"
+FILLER_WORDS+=" shall she should that the their theirs them these they this"
+FILLER_WORDS+=" those us was we were will would you your yours"
+
 OBJECTIVE_MAX_CHARS=60
 OBJECTIVE_MAX_WORDS=6
 
@@ -63,9 +71,43 @@ flatten() {
     printf '%s' "${s}"
 }
 
+drop_filler_words() {
+    local s="$1"
+
+    # Return early on an empty summary; expanding an empty array trips set -u on
+    # the bash 3.2 that ships with macOS.
+    if [ -z "${s}" ]; then
+        printf '%s' "${s}"
+        return
+    fi
+
+    local words
+    read -r -a words <<<"${s}"
+
+    local kept=""
+    local word
+    shopt -s nocasematch
+    for word in "${words[@]}"; do
+        if [[ " ${FILLER_WORDS} " == *" ${word} "* ]]; then
+            continue
+        fi
+        kept="${kept:+${kept} }${word}"
+    done
+    shopt -u nocasematch
+
+    # Keep the original when every word was filler, so an all-filler summary
+    # still renders something.
+    if [ -z "${kept}" ]; then
+        printf '%s' "${s}"
+    else
+        printf '%s' "${kept}"
+    fi
+}
+
 shrink() {
     local s
     s="$(flatten "$1")"
+    s="$(drop_filler_words "${s}")"
     local max_chars="$2"
     local max_words="$3"
 
