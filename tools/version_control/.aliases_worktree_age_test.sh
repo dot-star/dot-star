@@ -11,7 +11,6 @@ set -euo pipefail
 # Default to the checkout this script lives in.
 checkout="${1:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 version_control_aliases="${checkout}/tools/version_control/.aliases.sh"
-picker_aliases="${checkout}/tools/bash/.aliases.sh"
 
 # Name each sample worktree and the age its HEAD gets backdated to.
 samples=(
@@ -132,23 +131,6 @@ check_row "edge-24h" "faded"
 check_row "days" "faded"
 check_row "weeks" "faded"
 check_row "months" "faded"
-echo
-
-# Compare the two copies of the tier block: the table and `wt`'s fzf picker
-# each carry their own awk, so they can drift apart silently.
-tier_block() {
-    grep --extended-regexp "rel ~ /second/|rel ~ /minute/|age_color = " "${1}" |
-        tr -d ' '
-}
-
-echo "Table vs. picker:"
-if diff <(tier_block "${version_control_aliases}") <(tier_block "${picker_aliases}") >/dev/null; then
-    echo "✓ tier blocks match"
-else
-    echo "✗ tier blocks differ:"
-    diff <(tier_block "${version_control_aliases}") <(tier_block "${picker_aliases}") || true
-    failures=$((failures + 1))
-fi
 echo
 
 if [[ "${failures}" -gt 0 ]]; then

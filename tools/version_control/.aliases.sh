@@ -1398,6 +1398,30 @@ git_worktree_list_sorted() {
         sort -t $'\t' -k1,1 -rn
 }
 
+relative_age_color_awk() {
+    # Emit the awk source for `age_color`, mapping a relative age like
+    # "47 seconds ago" to the ANSI escape its recency tier prints in.
+    # Concatenate it ahead of an awk program so every listing that shows an age
+    # agrees on what recent looks like:
+    #   awk "$(relative_age_color_awk)"'{ print age_color($1) }'
+
+    cat <<'AWK'
+        # Paint a seconds-old age white on a dark green background so
+        # something touched moments ago pops out of its column. Tint an age
+        # still measured in minutes or hours green so it reads as coming from
+        # the current session. Leave anything older to the caller's own
+        # resting color.
+        function age_color(rel) {
+            if (rel ~ /second/) {
+                return "\033[38;5;231;48;5;22m"
+            } else if (rel ~ /minute/ || rel ~ /hour/) {
+                return "\033[38;5;78m"
+            }
+            return ""
+        }
+AWK
+}
+
 git_worktree_list_render() {
     # Render `git_worktree_list_sorted`'s TSV rows, read from stdin, as an
     # indented table under a "<count> worktrees:" header. Show at most the given
@@ -1441,7 +1465,7 @@ git_worktree_list_render() {
     fi
 
     echo "${rows}" |
-        awk -F'\t' -v max_rows="${max_rows}" '
+        awk -F'\t' -v max_rows="${max_rows}" "$(relative_age_color_awk)"'
             {
                 lines[NR] = $0
                 if (length($5) > max_name) {
@@ -1466,29 +1490,23 @@ git_worktree_list_render() {
                         code = 255 - int((i - 1) * 16 / (total - 1))
                     }
 
-                    # Paint a seconds-old age white on a dark green
-                    # background so a worktree touched moments ago
-                    # pops out of the faded column. Tint an age still
-                    # measured in minutes or hours green so a worktree
-                    # from the current session reads as live.
-                    if (rel ~ /second/) {
-                        age_color = "\033[38;5;231;48;5;22m"
-                    } else if (rel ~ /minute/ || rel ~ /hour/) {
-                        age_color = "\033[38;5;78m"
-                    } else {
-                        age_color = sprintf("\033[38;5;%dm", code)
+                    # Fall back to the rank fade for an age too old to
+                    # carry a recency tint of its own.
+                    color = age_color(rel)
+                    if (color == "") {
+                        color = sprintf("\033[38;5;%dm", code)
                     }
 
                     # Brackets hint that the number is a live
                     # `cd` alias bound by `s`/`wta` for this row.
                     idx_str = sprintf("[%*d]", digits, i)
                     if (branch_kept == "") {
-                        printf "\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m %s(%s)\033[0m\n", idx_str, max_name, name, sha, age_color, rel
+                        printf "\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m %s(%s)\033[0m\n", idx_str, max_name, name, sha, color, rel
                     } else {
                         # Right-pad the parenthetical to its widest so
                         # the branch column lines up across rows.
                         rel_pad = sprintf("%*s", max_rel - length(rel), "")
-                        printf "\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m %s(%s)\033[0m%s  \033[38;5;177m%s\033[0m\n", idx_str, max_name, name, sha, age_color, rel, rel_pad, branch_kept
+                        printf "\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m %s(%s)\033[0m%s  \033[38;5;177m%s\033[0m\n", idx_str, max_name, name, sha, color, rel, rel_pad, branch_kept
                     }
                 }
             }
