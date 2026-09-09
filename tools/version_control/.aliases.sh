@@ -1641,9 +1641,29 @@ rc_status() {
                     # Cap matches the highest `dN` diff alias (`d9` = `git diff HEAD~9`).
                     local listing_cap=9
                     # Prefix each line with `[dN]` so the user knows which diff alias shows that commit (d1=HEAD~1, d2=HEAD~2, ...).
-                    # `--color=always` keeps `%C(auto)`/`%C(dim)` codes when piping into awk (git drops them when stdout isn't a TTY).
-                    git log --color=always -n "${listing_cap}" --pretty=tformat:"%C(auto)%h%C(reset) %s %C(dim)(%cr)%C(reset)" HEAD --not "${exclude_refs[@]}" |
-                        awk '{printf "    \033[2m[d%d]\033[0m %s\n", NR, $0}'
+                    # `--color=always` keeps `%C(auto)` codes when piping into awk (git drops them when stdout isn't a TTY).
+                    # Give the relative date its own tab-delimited column so awk can tint it by recency, the way `wt`'s worktree table does.
+                    git log \
+                        --color=always \
+                        --max-count="${listing_cap}" \
+                        --pretty=tformat:"%C(auto)%h%C(reset) %s%x09%cr" \
+                        HEAD \
+                        --not "${exclude_refs[@]}" |
+                        awk -F'\t' "$(relative_age_color_awk)"'
+                            {
+                                rel = $NF
+                                commit = $0
+                                sub(/\t[^\t]*$/, "", commit)
+
+                                # Rest at the dim the whole parenthetical used to carry, for an age too old for a recency tint.
+                                color = age_color(rel)
+                                if (color == "") {
+                                    color = "\033[2m"
+                                }
+
+                                printf "    \033[2m[d%d]\033[0m %s %s(%s)\033[0m\n", NR, commit, color, rel
+                            }
+                        '
                     if [[ "${unpushed}" -gt "${listing_cap}" ]]; then
                         echo -e "    \033[2m... and \033[0m\033[1;36m$((unpushed - listing_cap))\033[0m\033[2m more\033[0m"
                     fi
