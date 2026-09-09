@@ -1,0 +1,97 @@
+[
+  {
+    "cmd": "gh api repos/example-org/example-repo/contents/deploy.yml --jq '.content' | base64 --decode",
+    "expected": "deny",
+    "name": "gh api piped into base64 --decode"
+  },
+  {
+    "cmd": "gh api repos/example-org/example-repo/contents/deploy.yml --jq '.content' | base64 -d",
+    "expected": "deny",
+    "name": "gh api piped into the short base64 -d"
+  },
+  {
+    "cmd": "gh api repos/example-org/example-repo/contents/deploy.yml --jq '.content' | tr -d '\\n' | base64 --decode",
+    "expected": "deny",
+    "name": "gh api piped into base64 through an intervening stage"
+  },
+  {
+    "cmd": "gh api repos/example-org/example-repo/contents/deploy.yml | jq -r '.content'",
+    "expected": "deny",
+    "name": "gh api piped into jq"
+  },
+  {
+    "cmd": "gh api user | jq '.login'",
+    "expected": "deny",
+    "name": "gh api piped into jq with no flags of its own"
+  },
+  {
+    "cmd": "git log --oneline | head -20",
+    "expected": "deny",
+    "name": "git log --oneline piped into head"
+  },
+  {
+    "cmd": "git log --oneline | head -n 20",
+    "expected": "deny",
+    "name": "git log --oneline piped into the -n form of head"
+  },
+  {
+    "cmd": "git log --oneline --author=someone | head --lines=5",
+    "expected": "deny",
+    "name": "git log --oneline piped into the long-flag form of head"
+  },
+  {
+    "cmd": "gh api repos/example-org/example-repo/contents/deploy.yml --jq '.content | @base64d'",
+    "expected": "fall-through",
+    "name": "the folded form keeps its pipe inside the jq expression"
+  },
+  {
+    "cmd": "gh api repos/example-org/example-repo/contents/deploy.yml --jq '.content'",
+    "expected": "fall-through",
+    "name": "gh api with --jq and no pipe"
+  },
+  {
+    "cmd": "gh api user",
+    "expected": "fall-through",
+    "name": "a bare gh api fetch"
+  },
+  {
+    "cmd": "gh api repos/example-org/example-repo/contents/base64.yml",
+    "expected": "fall-through",
+    "name": "an endpoint path naming base64 is not a pipe stage"
+  },
+  {
+    "cmd": "cat payload.txt | base64 --decode",
+    "expected": "fall-through",
+    "name": "base64 downstream of a command other than gh api"
+  },
+  {
+    "cmd": "curl --silent https://example.com/data.json | jq '.name'",
+    "expected": "fall-through",
+    "name": "jq downstream of curl, which has no --jq of its own"
+  },
+  {
+    "cmd": "gh pr view 1 --json files | jq '.files'",
+    "expected": "fall-through",
+    "name": "gh pr view is outside the gh api scope"
+  },
+  {
+    "cmd": "git log --oneline --max-count=20",
+    "expected": "fall-through",
+    "name": "git log already capped by --max-count"
+  },
+  {
+    "cmd": "git log | head -20",
+    "expected": "fall-through",
+    "name": "git log without --oneline prints several lines per commit"
+  },
+  {
+    "cmd": "git log --oneline --graph | head -20",
+    "expected": "fall-through",
+    "name": "the graph decoration breaks one line per commit"
+  },
+  {
+    "cmd": "git log --oneline | grep --invert-match Merge | head -20",
+    "expected": "fall-through",
+    "name": "head truncating a downstream stage is not the same cap"
+  }
+]

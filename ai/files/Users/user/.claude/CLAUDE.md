@@ -72,6 +72,11 @@
 ## Shell commands
 
 - Dot-star manages the user's dotfiles at `~/.dot-star/`; aliases and short commands referenced in chat are defined in `*/.aliases.sh` files fanned out across per-tool dirs. Grep `~/.dot-star/` before asking.
+- Fold a transform into the upstream command's own flag rather than piping into a second command that redoes it. One command reads as a single intent and `validate_bash_command.sh` can auto-allow it, where a pipeline falls through to a permission prompt.
+  - `gh api <endpoint> --jq '.content | @base64d'`, not `gh api <endpoint> --jq '.content' | base64 --decode`. jq's `@base64d` swallows the newlines GitHub wraps the payload in, so no un-wrapping stage is needed either.
+  - `gh api <endpoint> --jq '<filter>'`, not `gh api <endpoint> | jq '<filter>'`. gh runs the same jq over the response.
+  - `git log --oneline --max-count=20`, not `git log --oneline | head -20`. Only `--oneline` makes the two equivalent: `head` counts lines where `--max-count` counts commits.
+  - `block_pipe_over_native_flag.sh` denies the `gh api` and `git log` cases as a backstop. The preference is broader than what that hook checks, so apply it wherever a command already carries the flag.
 - Prefer long `--flag` forms over short `-f` forms, but only where the command actually supports them; long flags are self-describing (e.g. `grep --recursive --files-with-matches`, not `grep -rl`). Several BSD tools on macOS have none at all and abort with `illegal option -- -`, `sed` being the one that bites most often. When unsure, check `<cmd> --version` first.
 - Split a command's flags one per line, `\`-continued and indented one level under the command, once it carries two or more flags and lands in a committed file (shell script, CI `run:` block, Makefile, doc example). Each flag then diffs on its own line, and retuning one touches one line. Ad-hoc Bash tool calls stay on one line; nothing reviews or diffs them. Worked example in `~/.claude/styles/shell-style.md`.
 

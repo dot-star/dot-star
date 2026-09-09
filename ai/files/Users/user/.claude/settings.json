@@ -82,6 +82,10 @@
           {
             "command": "${HOME}/.claude/hooks/block_wrong_build_flags.sh",
             "type": "command"
+          },
+          {
+            "command": "${HOME}/.claude/hooks/block_pipe_over_native_flag.sh",
+            "type": "command"
           }
         ],
         "matcher": "Bash"
