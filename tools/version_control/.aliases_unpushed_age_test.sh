@@ -16,6 +16,9 @@ version_control_aliases="${checkout}/tools/version_control/.aliases.sh"
 # Name each sample commit and the age its committer date gets backdated to,
 # oldest first so the listing's newest-first order falls out of the loop. Stay
 # under the listing's nine-row cap so every sample gets a row.
+# Back a below-the-boundary age off by ten seconds rather than one: the age is
+# measured again at render, so the commits and the render itself have to fit in
+# the gap or the sample ages out of the tier it is asserting.
 samples=(
     "months:10368000"
     "days:172800"
@@ -23,7 +26,7 @@ samples=(
     "edge-35h:126000"
     "minutes:960"
     "edge-90s:90"
-    "edge-89s:89"
+    "edge-80s:80"
     "seconds:30"
 )
 
@@ -113,7 +116,7 @@ failures=0
 
 echo "Color tiers:"
 check_row "seconds" "${seconds_color}"
-check_row "edge-89s" "${seconds_color}"
+check_row "edge-80s" "${seconds_color}"
 check_row "edge-90s" "${recent_color}"
 check_row "minutes" "${recent_color}"
 check_row "edge-35h" "${recent_color}"
