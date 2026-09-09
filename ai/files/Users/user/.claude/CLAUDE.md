@@ -149,7 +149,14 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - `cont` means "continue"
   - `re` means "retry"
   - `refix`, `confix` mean "rebase onto the default branch and fix conflicts"
-  - `s`, `st`, `sta` mean "give me a status": recap what's done, what we're working on, what's pending, and current worktree/branch and dirty state. Don't start new work.
+  - `s`, `st`, `sta` mean "give me a status, written for someone with no context": open with one line naming what we're trying to get done, then bullet what's done, what's in flight, and what's pending, one short line each. Cut detail before cutting the orientation; keep the whole thing scannable at a glance. Don't start new work. Close on where the work sits, one label per line, omitting any that don't apply:
+
+    ```
+    worktree: <name>
+    branch:   <name>
+    dirty:    <file count, or "clean">
+    ```
+
   - `eg`, `egs`, `examples` mean "show me examples"
   - `opt`, `opts` mean "show me options"
   - `show`, `show me` mean "render the thing the previous message described as its actual artifact": the literal file lines, sample output, or rendered text, so I can evaluate it rather than read another description of it. It's a preview request, so don't write the file or run the action until I say so.
