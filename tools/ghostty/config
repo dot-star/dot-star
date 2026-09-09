@@ -60,6 +60,16 @@ keybind = chain=equalize_splits
 # Python prompt) proves more annoying than the uneven row it fixes.
 keybind = unconsumed:ctrl+d=equalize_splits
 
+# Move between splits from the home row. The stock directional bindings sit on
+# cmd+opt plus the arrow cluster, a reach on every pane hop.
+#
+# Give up three defaults to do it: cmd+h hides the app (macOS), cmd+j scrolls
+# to the selection, and cmd+k clears the screen.
+keybind = super+h=goto_split:left
+keybind = super+j=goto_split:down
+keybind = super+k=goto_split:up
+keybind = super+l=goto_split:right
+
 # Pad the grid off the window edges so text does not run into the frame.
 window-padding-x = 8
 window-padding-y = 8
