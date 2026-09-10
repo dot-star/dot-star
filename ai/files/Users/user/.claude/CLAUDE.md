@@ -144,6 +144,8 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
   **A bracket-prefix offer outranks this table.** When the previous message offered `[x]`-prefixed options, a bare reply matching one of those letters (case-insensitive) picks that option, whatever the token means below. So `n` answering a **`[n]ow`** offer means "now", not "no"; `t` answering a **`[t]ear`** offer means "tear", not "trim". Fall back to the table only when no offered option claims the letter.
 
+  **A bare number indexes rendered content, never an option's position.** Bracket options are picked by their letter alone, so a number never selects one no matter where it sits in the menu. It names one of the numbered items the previous message actually rendered: a finding, a list entry, a drafted variant. A number paired with a destination or a verb (`2 to cb`, `2 as a comment`) is always content, since a destination takes a thing rather than an action.
+
   - `y`, `ya` mean "yes" (treat as a `y/n?` style answer)
   - `n`, `no`, `nope` mean "no"
   - `res` means "resume"
