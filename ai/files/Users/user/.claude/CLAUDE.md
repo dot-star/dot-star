@@ -152,7 +152,15 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - `cont` means "continue"
   - `re` means "retry"
   - `refix`, `confix` mean "rebase onto the default branch and fix conflicts"
-  - `s`, `st`, `sta` mean "give me a status, written for someone with no context": open with one line naming what we're trying to get done, then bullet what's done, what's in flight, and what's pending, one short line each. Cut detail before cutting the orientation; keep the whole thing scannable at a glance. Don't start new work. Close on where the work sits, one label per line. The labels below are the usual ones, not the whole set: omit any that don't apply and add anything else worth mentioning:
+  - `s`, `st`, `sta` mean "give me a status, written for someone with no context": open with one line naming what we're trying to get done, then one bullet per item stacked vertically, each led by a status emoji as its only bullet marker. Cut detail before cutting the orientation; keep the whole thing scannable at a glance. Don't start new work. Close on where the work sits, one label per line. The markers:
+
+    ```
+    ✅ done
+    🛠️ in flight
+    📋 pending
+    ```
+
+    The labels below are the usual ones, not the whole set: omit any that don't apply and add anything else worth mentioning:
 
     ```
     worktree: <name>
