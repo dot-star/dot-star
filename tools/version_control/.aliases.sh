@@ -474,7 +474,7 @@ EOF
 }
 
 git_delete_branch() {
-    branch_name="$(branches | fzf --ansi --ignore-case)"
+    branch_name="$(rc_branches always | fzf --ansi --ignore-case)"
     branch_name="${branch_name#"${branch_name%%[![:space:]]*}"}"
     branch_name="$(echo "${branch_name}" | perl -pe 's/(.*) \(.*\)/\1/')"
     if [[ ! -z "${branch_name}" ]]; then
@@ -956,16 +956,29 @@ rc_add() {
 }
 
 rc_branch() {
-    git branch
+    # Print the current branch alone when piped, not the whole list.
+    # Give `branch | c' a pasteable name, free of markers and indentation.
+    if [[ -t 1 ]]; then
+        git branch
+    else
+        git branch --show-current
+    fi
 }
 
 rc_branches() {
     # Display a list of local branches.
     # An improvement on `git branch --all'.
+    # Pass "always" to keep the colors through a pipe, as the fzf pickers do.
+    local color_mode="${1:-auto}"
+
     local_branches="refs/heads/"
+
+    # Name the colors as placeholders so `--color' can drop them when piped,
+    # letting `branches | c' copy text instead of escape codes.
     git for-each-ref \
+        --color="${color_mode}" \
         --sort="committerdate" \
-        --format=$'\e[33m%(refname:short)\e[0m \e[32m(%(committerdate:relative))\e[0m' \
+        --format='%(color:yellow)%(refname:short)%(color:reset) %(color:green)(%(committerdate:relative))%(color:reset)' \
         "${local_branches}"
 }
 
@@ -973,7 +986,7 @@ rc_checkout() {
     if [[ "${#}" -eq 0 ]]; then
         # Display list of branches to checkout when no parameters have been
         # passed.
-        branch_name="$(branches | fzf --ansi --ignore-case)"
+        branch_name="$(rc_branches always | fzf --ansi --ignore-case)"
         branch_name="${branch_name#"${branch_name%%[![:space:]]*}"}"
         branch_name="$(echo "${branch_name}" | perl -pe 's/(.*) \(.*\)/\1/')"
         if [[ ! -z "${branch_name}" ]]; then
@@ -1010,7 +1023,7 @@ rc_checkout() {
 
         # Attempt to checkout the branch filtering by keyword.
         branch_name="$(
-            branches |
+            rc_branches always |
                 \grep "${branch_name}" |
                 trim |
                 fzf --ansi --ignore-case --select-1
