@@ -16,7 +16,7 @@ font-size = 18
 #                              working, but animates into and out of its own
 #                              Space on every hide and show.
 #   false                   -- Open windows at Ghostty's default size.
-fullscreen = non-native
+fullscreen = false
 
 # Hide the titlebar so a fullscreen window is one uninterrupted text grid with
 # no chrome band above it. Switch back to "transparent" if windowed mode gets
