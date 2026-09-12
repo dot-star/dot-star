@@ -18,10 +18,34 @@ font-size = 18
 #   false                   -- Open windows at Ghostty's default size.
 fullscreen = false
 
-# Hide the titlebar so a fullscreen window is one uninterrupted text grid with
-# no chrome band above it. Switch back to "transparent" if windowed mode gets
-# use: a hidden titlebar leaves no strip to drag the window by.
-macos-titlebar-style = hidden
+# Keep a real titlebar so macOS native tabs work. Tabs hang off the titlebar,
+# so hiding it removes them outright and leaves no strip to drag a window by.
+# Measured by sending cmd+t to a throwaway instance per style: only "hidden"
+# opened a second window instead of a tab. Values:
+#   hidden      -- Drop the titlebar, and native tabs along with it.
+#   tabs        -- Fold the tab bar into the titlebar, so the window buttons
+#                  sit inline with the tabs. Custom widget, not the native one.
+#   transparent -- Tint the native titlebar so the background shows through.
+#                  Tabs get a strip of their own below it.
+#
+# The two that keep tabs, each drawn with a second tab open:
+#
+#   transparent ("two-band")
+#   ┌────────────────────────────────────┐
+#   │ ● ● ●              ~/Projects      │  titlebar
+#   ├─────────────┬──────────────────────┤
+#   │    zsh      │    vim               │  tab bar, its own strip
+#   ├─────────────┴──────────────────────┤
+#   │ $                                  │
+#   └────────────────────────────────────┘
+#
+#   tabs ("one-band")
+#   ┌─────────────┬──────────────────────┐
+#   │ ● ● ●  zsh  │    vim               │  tab bar doubles as the titlebar
+#   ├─────────────┴──────────────────────┤
+#   │ $                                  │
+#   └────────────────────────────────────┘
+macos-titlebar-style = tabs
 
 # Suppress the pane-size overlay that appears while resizing a split. It is a
 # transient box surfacing in the periphery, the exact interruption a fullscreen
