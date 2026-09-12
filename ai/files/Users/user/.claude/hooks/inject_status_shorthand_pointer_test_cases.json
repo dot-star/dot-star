@@ -1,0 +1,52 @@
+[
+  {
+    "expected": "fires",
+    "name": "the bare token is the classic shorthand reply",
+    "prompt": "sta"
+  },
+  {
+    "expected": "fires",
+    "name": "a mid-sentence mention is the whole point of the hook",
+    "prompt": "ok sta please"
+  },
+  {
+    "expected": "fires",
+    "name": "matching ignores case",
+    "prompt": "STA"
+  },
+  {
+    "expected": "fires",
+    "name": "punctuation on either side still bounds the word",
+    "prompt": "where are we, sta?"
+  },
+  {
+    "expected": "fires",
+    "name": "a trailing period ends the word",
+    "prompt": "give me the rundown, sta."
+  },
+  {
+    "expected": "silent",
+    "name": "a longer word starting with the token is not the token",
+    "prompt": "what is the status here"
+  },
+  {
+    "expected": "silent",
+    "name": "the token buried mid-word is not the token",
+    "prompt": "that was instant"
+  },
+  {
+    "expected": "silent",
+    "name": "the token split across two words is not the token",
+    "prompt": "install stack"
+  },
+  {
+    "expected": "silent",
+    "name": "a word ending in the token is not the token",
+    "prompt": "the vista from here"
+  },
+  {
+    "expected": "silent",
+    "name": "an empty prompt has nothing to match",
+    "prompt": ""
+  }
+]
