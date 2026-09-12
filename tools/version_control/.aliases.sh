@@ -960,8 +960,16 @@ rc_branch() {
     # Give `branch | c' a pasteable name, free of markers and indentation.
     if [[ -t 1 ]]; then
         git branch
+        return
+    fi
+
+    # Name the commit on a detached HEAD, where there is no branch to print.
+    local current_branch
+    current_branch="$(git branch --show-current)"
+    if [[ -z "${current_branch}" ]]; then
+        git rev-parse --short HEAD
     else
-        git branch --show-current
+        echo "${current_branch}"
     fi
 }
 
