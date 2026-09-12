@@ -1739,13 +1739,30 @@ rc_status() {
 
 grep_checkout() {
     find="${@}"
-    branch_list=$(branches | sed 's/^[ *]*//g' | \grep "${find}")
-    for branch in ${branch_list}; do
+
+    # List names alone; `branches' appends a relative date that splits into
+    # junk entries below.
+    local_branches="refs/heads/"
+    branch_list="$(
+        git for-each-ref \
+            --format="%(refname:short)" \
+            --sort="committerdate" \
+            "${local_branches}" |
+            \grep "${find}"
+    )"
+
+    if [[ -z "${branch_list}" ]]; then
+        return 1
+    fi
+
+    # Read one name per line; a bare `for' splits each name on whitespace.
+    while IFS= read -r branch; do
         replace="\033[38;5;160m${find}\033[39m"
         line=${branch//$find/$replace}
         echo -e "${line}"
-    done
-    for branch in ${branch_list}; do
+    done <<<"${branch_list}"
+
+    while IFS= read -r branch; do
         colorful_branch=$(echo -e "\033[38;5;141m${branch}\033[39m")
         response="$(display_confirm_prompt_info "Checkout ${colorful_branch}?")"
         echo # Move to a new line.
@@ -1754,18 +1771,35 @@ grep_checkout() {
             checkout "${branch}"
             break
         fi
-    done
+    done <<<"${branch_list}"
 }
 
 grep_merge() {
     find="${@}"
-    branch_list=$(branches | sed 's/^[ *]*//g' | \grep "${find}")
-    for branch in ${branch_list}; do
+
+    # List names alone; `branches' appends a relative date that splits into
+    # junk entries below.
+    local_branches="refs/heads/"
+    branch_list="$(
+        git for-each-ref \
+            --format="%(refname:short)" \
+            --sort="committerdate" \
+            "${local_branches}" |
+            \grep "${find}"
+    )"
+
+    if [[ -z "${branch_list}" ]]; then
+        return 1
+    fi
+
+    # Read one name per line; a bare `for' splits each name on whitespace.
+    while IFS= read -r branch; do
         replace="\033[38;5;160m${find}\033[39m"
         line=${branch//$find/$replace}
         echo -e "${line}"
-    done
-    for branch in ${branch_list}; do
+    done <<<"${branch_list}"
+
+    while IFS= read -r branch; do
         colorful_branch=$(echo -e "\033[38;5;141m${branch}\033[39m")
         response="$(display_confirm_prompt_caution "Merge ${colorful_branch}?")"
         echo # Move to a new line.
@@ -1774,7 +1808,7 @@ grep_merge() {
             merge "${branch}"
             break
         fi
-    done
+    done <<<"${branch_list}"
 }
 
 diff_highlight() {
