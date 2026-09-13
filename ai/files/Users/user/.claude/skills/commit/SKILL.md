@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Draft single-line commit-message options for the currently staged changes (best first), have the user pick one via AskUserQuestion, then run `git commit -m "<selection>"`. TRIGGER when the user asks for "options"/"choices" for a commit, for "numbered"/"one-liner" commit messages for staged changes, or otherwise asks Claude to draft and commit staged changes in one shot. ALSO TRIGGER when the user accepts a `[c]ommit` follow-up that Claude offered (replies `c`, `cm`, `commit`, or 🚢 mapped to such an option); the accepted offer counts as a request for options, never auto-pick a subject and `git commit -m` directly. SKIP when nothing is staged, when the user is asking only for drafts without committing, or when the user wants a multi-line body (this skill is subject-only).
+description: Draft single-line commit-message options for the currently staged changes (best first), have the user pick one by number from a numbered chat list, then run `git commit -m "<selection>"`. TRIGGER when the user asks for "options"/"choices" for a commit, for "numbered"/"one-liner" commit messages for staged changes, or otherwise asks Claude to draft and commit staged changes in one shot. ALSO TRIGGER when the user accepts a `[c]ommit` follow-up that Claude offered (replies `c`, `cm`, `commit`, or 🚢 mapped to such an option); the accepted offer counts as a request for options, never auto-pick a subject and `git commit -m` directly. SKIP when nothing is staged, when the user is asking only for drafts without committing, or when the user wants a multi-line body (this skill is subject-only).
 ---
 
 # Commit
@@ -37,7 +37,7 @@ Collapse "draft a subject, pick one, commit" into one action for the currently s
 
 ## Draft
 
-Produce 6 distinct single-line subjects (over-generate so the true best is in the pool, not just the first thing drafted), then score and rank them with the weighted sheet below, and keep only the top 3 to present.
+Produce 6 distinct single-line subjects (over-generate so the true best is in the pool, not just the first thing drafted), then score and rank them with the weighted sheet below, and keep only the top 5 to present.
 
 Score each draft 0, 1, or 2 on every criterion, multiply by the criterion's weight, sum to a total, then sort best-first by total descending. The descending weights keep the earlier criteria dominant (a self-contained subject almost always outranks a merely-tight one), but the continuous total lets a draft that's slightly weaker on one criterion still win when it's far stronger on the rest, which a strict lexicographic tiebreak can't express.
 
@@ -63,7 +63,7 @@ Each subject must:
 
 ## Pick
 
-Call `AskUserQuestion` with a single question (`"Pick a commit message:"`, header `"Commit msg"`) and the top 3 drafts as options, in best-first order. Put the full message in `label`, leave `description` empty or use it for a short rationale only when the framing isn't self-explanatory. `multiSelect` is false.
+Render the top 5 drafts as a numbered list in chat, best-first, one full subject per line, then stop and wait for the user's reply. Don't route them through `AskUserQuestion`: it caps a question at 4 options, so 5 don't fit. The user picks by number (`3`), or with `<N> iter` to refine draft N before committing.
 
 ## Commit
 
