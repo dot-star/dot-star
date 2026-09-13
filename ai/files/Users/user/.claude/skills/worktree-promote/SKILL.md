@@ -1,11 +1,13 @@
 ---
 name: worktree-promote
-description: Promote a worktree's commits onto the default branch in the main checkout, leaving the worktree and branch in place to keep working. TRIGGER when cwd is inside `*/worktrees/*` and the user signals they want their commits on the default branch without wrapping up (e.g. "promote", "promote to master", "push these up but keep the worktree"), or accepts a `[p]romote` follow-up. SKIP when not in a worktree, when there are uncommitted changes the user has not addressed, or when the user wants to tear the worktree down (that is `worktree-done`).
+description: Promote a worktree's commits onto the default branch in the main checkout, leaving the worktree and branch in place to keep working. TRIGGER when cwd is inside `*/worktrees/*` and the user signals they want their commits on the default branch without wrapping up (e.g. "promote", "promote to master", "get these onto master but keep the worktree"), or accepts a `[p]romote` follow-up. SKIP when not in a worktree, when there are uncommitted changes the user has not addressed, or when the user wants to tear the worktree down (that is `worktree-done`).
 ---
 
 # Worktree promote
 
 Goal: fast-forward the default branch to the current worktree's branch tip in the main checkout, then stop. The worktree and its branch stay on disk so the user can keep committing. This is `worktree-done` minus the teardown: no `git worktree remove`, no branch delete, no `ExitWorktree`.
+
+Local only, same as `promote`: never `git push`. The promote is complete when the default branch in the main checkout points at the worktree's tip; whether that reaches a remote is a separate ask the user makes in words, and an upstream being configured is not that ask.
 
 After a promote, the default branch and the worktree's branch point at the same commit. New commits in the worktree advance the branch ahead of the default again; the next promote rebases (a no-op when the default has not moved) and fast-forwards once more.
 

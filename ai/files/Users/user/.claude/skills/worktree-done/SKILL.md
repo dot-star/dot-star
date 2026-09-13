@@ -7,6 +7,8 @@ description: Land a worktree's commits back into the default branch in the main 
 
 Goal: collapse "merge worktree branch back, remove worktree, delete branch" into one action, run from inside the worktree.
 
+Local only, same as `wtd`: never `git push`. The land is complete when the default branch in the main checkout points at the worktree's tip; whether that reaches a remote is a separate ask the user makes in words, and an upstream being configured is not that ask.
+
 ## Preflight
 
 1. Confirm cwd is under `*/worktrees/*`.

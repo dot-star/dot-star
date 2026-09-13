@@ -450,7 +450,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 　　 ├─ `<newer commit subject>`
 　　 └─ `<older commit subject>`
     - ✅ Fast-forwarded master
-    - ✅ Pushed to `<remote>` (omit this line entirely when the branch has no upstream; push never fired, so there's nothing to report, not even a ⏸️)
+    - ✅ Pushed to `<remote>` (only when the user asked for the push in words; land and promote are local, so this line is absent by default and is never a step to run, and a configured upstream doesn't earn it or a ⏸️)
     - 🪓 Worktree removed (land) or ⏸️ Worktree kept (promote)
 
     List only the steps that fired; for other objectives use whatever steps composed the work.
