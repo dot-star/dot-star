@@ -162,16 +162,14 @@ claude_ask() {
 alias ask="claude_ask"
 
 claude_git_with_json_hunk_headers() {
-    # Run git with the JSON diff driver bound, so each hunk header names the
-    # enclosing key (`@@ ... @@ "deny": [`).
+    # Run git so each hunk header names the enclosing key (`@@ ... @@ "deny": [`).
+    # The gitattributes file install.sh symlinks binds the JSON driver and
+    # post_install.sh sets its funcname pattern, so a plain git call gets both.
     #
     # Feed that key to the model: git's default three lines of context stop
     # short of it, so the model guesses which key an added entry lands under
     # and drafts an addition to "deny" as "Allow ...".
-    git \
-        -c core.attributesFile="${HOME}/.dot-star/tools/version_control/gitattributes" \
-        -c 'diff.json.xfuncname=^[[:space:]]*"[^"]*"[[:space:]]*:[[:space:]]*[[{]' \
-        "$@"
+    git "$@"
 }
 
 claude_draft_commit_message_options() {
