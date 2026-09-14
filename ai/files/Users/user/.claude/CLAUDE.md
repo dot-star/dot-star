@@ -183,6 +183,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - `gen`, `generalize`, `neu`, `neutral` mean "generalize the examples": when an example carries my real pasted content (a commit message, path, value), swap it for a neutral placeholder showing the same pattern.
   - `u` means "you run it" / "you do it" (carry out the just-suggested command, script, or action yourself instead of expecting the user to)
   - `c`, `cm`, `commit` mean "commit" (invoke the `commit` skill).
+  - `c<N>` (e.g. `c2`) means "commit with subject draft N": the worktree menu lists its drafted subjects under the commit row as `[c1]`, `[c2]`, `[c3]` (see the worktree menu rule in Output), and the number names one. The pick is already made, so the commit runs with that subject verbatim and skips the skill's draft-and-pick step. `p<N>` and `L<N>` do the same then promote or land. `c<N> iter` is the `<N> iter` form: refine draft N, no commit yet.
   - `cs` means "commit only the already-staged changes": like `c` (the `commit` skill), but never auto-stage; if nothing is staged, stop.
   - `🚢` means "ship it" (land the work)
 - `<N> iter` means "option N is the front-runner, but iterate on it": treat N as the starting point and propose refinements rather than committing it as-is. E.g. `2 iter` → improve on option 2.
@@ -279,6 +280,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - **Reply:** accept the bracketed prefix (case-insensitive) as a complete reply and map it back to the full option. The offered letter outranks the `Input` shorthand table, so a bare `n` after a **`[n]ow`** offer picks that option rather than answering "no".
   - **On letter collisions:** prefer the single-letter prefix; extend to multi-character (rendered **`[am]end`** vs **`[ad]d`**) only when two options would otherwise share the same letter. Case never disambiguates, since matching is case-insensitive: **`[d]iff`** vs **`[D]iff+args`** both map to `d` and the second is unpickable, so go multi-character instead (e.g. **`[de]xact`** vs **`[da]rgs`**). The collision test is the first character, not the whole prefix: **`[cl]ean`** vs **`[c]ommit`** still collides on `c`, so both sides extend to **`[cl]ean`** vs **`[co]mmit`**. Extending only the newcomer is the common miss; it leaves the incumbent's bare letter reading as a truncation of the longer one.
   - **Reserved letters track their shorthand:** never assign `[c]` to a non-commit action and reserve `[f]` for fold. `[c]` always means commit (matching the global `c` shorthand); handing it to a fold (e.g. **`[c]ommit-only fold`**) collides with that meaning, so a reflexive `c` lands on the wrong option. When two variants of the same action both need a slot, branch off the action's own letter with a distinguishing second char (e.g. **`[fr]eply fold`** vs **`[fs]ilent fold`**), leaving `[c]` free. The reservation keeps `[c]` away from other actions; it does not exempt commit from extending when a `c`-initial option joins the list. Render commit as **`[co]mmit`** then; a bare `c` reply still lands on commit via the global `c` shorthand.
+  - **A digit suffix is a sub-option, not a collision:** `[c1]`, `[c2]`, `[c3]` beneath `[c]ommit` are the same action with a specific subject, so the parent keeps its bare letter and the children extend it with a digit. The collision rule below is about two different actions sharing a letter; a row and its own numbered variants share one.
   - **On casing:** purely a readability choice on the letter itself. Uppercase only when the letter is visually ambiguous in lowercase (`l` looks like `1`, `I` looks like `l`, `o` looks like `0`); unambiguous letters stay lowercase. So **`[c]ommit`** and **`[L]and`** in the same prompt is correct (mixed casing on purpose), not **`[C]ommit`** + **`[L]and`**.
   - **No competing label scheme:** the bracket letter is the option's *only* label. Don't also enumerate options with `A.`/`B.` or `1.`/`2.` (e.g. `A. ... [s]pine-only` + `B. ... [a]bsorb`): the `A.` label reads as the accept token for the `[a]`-prefixed option even when that's the *second* entry. For block-layout options (directory trees, diagrams, code), lead each block with its bracketed name on its own line, no enumeration.
   - **Pre-send checklist**, run on every message before sending, not only on ones shaped as a question:
@@ -287,7 +289,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
        - **Repeat the nit's option in the how-to-proceed list, under the same letter and the same emoji.** An option offered only inline is invisible at the moment of choosing, since the reader scans the list and picks from what's there. Carry the emoji on both, since it's what pulls the eye from the prose mention down to its row; an inline **`[d]rop`** with no ✂️ leaves the reader matching on the bracket letter alone. Slot the row per the one-off rule (edit-and-defer sits under 🛠️ **`[i]terate`**) and word it as the concrete fix rather than restating the nit.
     3. Count the alternatives, including an implicit "neither/no" if the outer frame is a yes/no with embedded options.
     4. Verify each alternative is wrapped as `**` + `` ` `` + `[x]remainder` + `` ` `` + `**`.
-    5. Scan the bracketed letters across all options, case-insensitively (matching is case-insensitive, so `[d]` and `[D]` are the same letter and still collide); if any two share the same first letter, extend both to multi-character per the `[am]end` vs `[ad]d` rule (e.g. `[sp]lit` vs `[sk]ip`, not `[s]plit` vs `[s]kip`, and not `[d]iff` vs `[D]iff+args`). Extend the incumbent too, reserved letters included: `[cl]ean` vs `[co]mmit`, never `[cl]ean` vs `[c]ommit`.
+    5. Scan the bracketed letters across all options, case-insensitively (matching is case-insensitive, so `[d]` and `[D]` are the same letter and still collide); if any two share the same first letter, extend both to multi-character per the `[am]end` vs `[ad]d` rule (e.g. `[sp]lit` vs `[sk]ip`, not `[s]plit` vs `[s]kip`, and not `[d]iff` vs `[D]iff+args`). Extend the incumbent too, reserved letters included: `[cl]ean` vs `[co]mmit`, never `[cl]ean` vs `[c]ommit`. A digit suffix on a row's own letter (`[c1]` under `[c]ommit`) is that row's sub-option and never counts as a collision.
     6. An alternative that names a command, tool, slash-command, or keyword (e.g. "land with `worktree-done`") still needs its own bracketed letter; the keyword does not double as the accept token.
     7. If any alternative lacks `[` ... `]`, fix before sending.
     8. Does any option carry a second label (`A.`/`B.`, `1.`/`2.`) beside its bracket prefix? Strip it, the bracket letter is the only label.
@@ -302,6 +304,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - **Hand back the paths**, one absolute path per line with a one-phrase gloss of what that candidate changes (`(update existing entry: 13+, 9-)`), then re-offer the pick as bracket options and a 📎 **`[cb]`** for the `cd` into the first one.
 - When an own `[c]ommit` follow-up offer is accepted (reply `c`/`cm`/`commit`/🚢 mapped to the commit option), invoke the `commit` skill via the `Skill` tool rather than running `git commit -m "<self-chosen subject>"` directly. The skill drafts numbered subject options for the user to pick; auto-picking bypasses that choice. Same rule for any other phrasing where the offered action was "commit" (e.g. "want me to commit?"). To commit without the skill, the user has to opt in explicitly.
   - The subject stays the user's pick even when the accepted option bundles the commit into a larger action: ⬆️ **`[p]romote`** and 🏁 **`[L]and`** both read "commit + <action>", which authorizes the commit's timing and never its wording. Route their commit through the skill too, then carry on with the promote or land.
+  - A numbered reply (`c2`, `p2`, `L2`) is the pick already made: the number names one of the `[cN]` drafts rendered under the menu's commit row, so skip the skill's draft-and-pick step and commit with that subject verbatim, then carry on with the promote or land when the letter asks for one.
 - When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment (any subset the tree allows; ⬆️ promote and 🏁 land always apply), each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**). Whenever two or more appear together, list them top-to-bottom in this fixed order: iterate → commit → fold → promote → land. The slot order tracks least-to-most committal (don't-commit first, then commit-and-stay, then rewrite-and-stay, then promote, then the teardown); land is the only one that tears the worktree down, so it's always last, never floated into the middle or reordered.
 
   **Pre-send check**, run on every worktree menu:
@@ -312,6 +315,9 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     4. Is 🏁 **`[L]and`** the bottom row? If any option (even a lone keep/iterate slot) renders beneath it, reorder before sending.
     5. Is there exactly one space between each emoji and its bracket span? The column padding goes after the closing `**`, before the `(`, never between the emoji and the bracket.
     6. Does every decision the message body left open have a row here? Re-read the prose above for nits, 💅 polish notes, 🔄 heads-ups, and 🔴 blockers; each one the user could accept needs its own row under the same letter and emoji, per the bracket-prefix checklist. A menu that omits one sends the reader back to typing a sentence.
+    7. Does the 💾 commit row carry its subject drafts beneath it? A commit row with none costs the user a round trip through the skill's pick step.
+
+  **Subject drafts ride under the commit row.** Whenever 💾 **`[c]ommit`** is on the menu, draft subjects for the pending change the way the `commit` skill does (over-generate, score, rank) and render the top three beneath the commit row, indented one level further, each as its own bracket token: `**` + `` ` `` + `[cN]` + `` ` `` + `**` then a space and the subject in plain text. The subject stays plain because it's text to compare, not an option name. The drafts render once; `p<N>` and `L<N>` reuse the same numbering since promote and land commit first. Fold takes no number, since it keeps HEAD's subject. Bare `c` still runs the skill and shows the full list of five.
 
   **Applicability is a fact about the tree, not a guess.** Before sending, run `git status --porcelain` and branch on the result:
 
@@ -326,20 +332,23 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
   The common options:
   - 🛠️ **`[i]terate`**: no commit yet, keep iterating in the worktree (the do-nothing default, named for the action rather than a passive "keep").
-  - 💾 **`[c]ommit`**: commit, keep iterating in the worktree (commits what's there; `[i]terate` defers the commit).
+  - 💾 **`[c]ommit`**: commit, keep iterating in the worktree (commits what's there; `[i]terate` defers the commit). Carries its three `[cN]` subject drafts beneath it.
   - 📦 **`[f]old`**: amend the pending change into HEAD with `git commit --amend --no-edit`, keep iterating in the worktree. Read the combined diff afterward and offer a reworded subject when the old one no longer covers it.
   - ⬆️ **`[p]romote`**: commit + fast-forward the default branch to here, keep the worktree (via `worktree-promote`).
   - 🏁 **`[L]and`**: commit + `worktree-done`, which also tears the worktree down.
 
   **A one-off option outside these five** (e.g. 🧹 **`[cl]ean`** to delete dead code before committing) slots by how committal it is, next to the standard row it most resembles: edit-and-defer sits with 🛠️ **`[i]terate`**, edit-then-commit sits with the 💾 commit row. It never takes the top row from 🛠️ **`[i]terate`** or the bottom row from 🏁 **`[L]and`**. It may fold its own commit in (as promote and land do), but never a second menu action's git state change. When its natural letter collides with a standard row's, both sides extend: a clean row turns the commit row into 💾 **`[co]mmit`**, so the menu reads 🧹 **`[cl]ean`** vs 💾 **`[co]mmit`**.
 
-  Rendered examples (show only the options that apply, always in this order; pad the bracket-name column with trailing spaces so the open-parens line up):
+  Rendered examples (show only the options that apply, always in this order; pad the bracket-name column with trailing spaces so the open-parens line up). The commit row carries its subject drafts wherever it appears; the later examples leave them out to keep the shapes short:
 
   Full set:
 
   > 👉 How do you want to proceed?
   >   🛠️ **`[i]terate`** (no commit + keep iterating)
   >   💾 **`[c]ommit`**  (commit + keep iterating)
+  >        **`[c1]`** Keep the search input usable under a long title
+  >        **`[c2]`** Give the open search box room when the title is long
+  >        **`[c3]`** Stop a long title squeezing the search input to nothing
   >   📦 **`[f]old`**    (amend into HEAD + keep iterating)
   >   ⬆️ **`[p]romote`** (commit + ✅ promote to master)
   >   🏁 **`[L]and`**    (commit + 🪓 tear down worktree)

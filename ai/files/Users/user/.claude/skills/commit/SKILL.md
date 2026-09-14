@@ -63,6 +63,8 @@ Each subject must:
 
 ## Pick
 
+Skip Draft and Pick when the user's reply already names a draft: a `c<N>`, `p<N>`, or `L<N>` reply to a worktree menu picks the `[cN]` subject rendered under that menu's commit row. Take that subject verbatim and go straight to Commit; re-listing would ask a question they've answered. Only a bare `c` (or any other unnumbered commit request) gets the list below.
+
 Render the top 5 drafts as a numbered list in chat, best-first, one full subject per line, then stop and wait for the user's reply. Don't route them through `AskUserQuestion`: it caps a question at 4 options, so 5 don't fit. The user picks by number (`3`), or with `<N> iter` to refine draft N before committing.
 
 ## Commit
