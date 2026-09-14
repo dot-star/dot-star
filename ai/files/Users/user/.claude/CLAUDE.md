@@ -311,7 +311,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     3. Is 🛠️ **`[i]terate`** the top row? Only ⚡ **`[n]ow`** and 📋 **`[a]dd`** may sit above it, in that order.
     4. Is 🏁 **`[L]and`** the bottom row? If any option (even a lone keep/iterate slot) renders beneath it, reorder before sending.
     5. Is there exactly one space between each emoji and its bracket span? The column padding goes after the closing `**`, before the `(`, never between the emoji and the bracket.
-    6. Does every decision the message body left open have a row here? Re-read the prose above for nits, 💅 polish notes, and 🔴 caveats; each one the user could accept needs its own row under the same letter and emoji, per the bracket-prefix checklist. A menu that omits one sends the reader back to typing a sentence.
+    6. Does every decision the message body left open have a row here? Re-read the prose above for nits, 💅 polish notes, 🔄 heads-ups, and 🔴 blockers; each one the user could accept needs its own row under the same letter and emoji, per the bracket-prefix checklist. A menu that omits one sends the reader back to typing a sentence.
 
   **Applicability is a fact about the tree, not a guess.** Before sending, run `git status --porcelain` and branch on the result:
 
@@ -371,7 +371,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
   **Pre-send check**, run on every message that names a loose end, not only on ones already shaped as a menu:
 
-    1. Does the message name a loose end? A 🔴 caveat or a trailing note in any wording (left alone, still needs, untouched code) names one; flagging it as deliberately-not-done doesn't make it less of a loose end.
+    1. Does the message name a loose end? A 🔄 heads-up, a 🔴 blocker, or a trailing note in any wording (left alone, still needs, untouched code) names one; flagging it as deliberately-not-done doesn't make it less of a loose end.
     2. Is there a 📋 **`[a]dd`** row? Add one if not.
     3. Could you close the loose end yourself? Then ⚡ **`[n]ow`** goes above the 📋 row. Drop it only per the not-yours-to-close exception below; choosing not to touch the code isn't that exception.
     4. Does the ⚡ row's parenthetical name the concrete job rather than generic filler?
@@ -428,7 +428,8 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - 💡 acknowledging a user's good idea or suggestion: `💡 Good idea, that's a cleaner phrasing.`
   - 🧠 user is right / good catch / smart call: `🧠 Good catch, that's the actual bug.`
   - 💅 cosmetic nit / optional polish (harmless, fine either way, not 🔴): `💅 Two spaces before the `\`; a single one is tidier.`
-  - 🔴 warning / blocker / caveat (defensive, not yet broken): `🔴 Lockfile changed; skipping auto-stash.`
+  - 🔄 apply step / neutral heads-up (nothing wrong; names the reload, restart, or next session that makes the edit live, or a fact the reader should know that changes nothing about whether the work is done): `🔄 Read at session start, so this lands in the next claude session.`
+  - 🔴 warning / blocker (something costs the reader now: a step skipped, a state that bites if ignored; a harmless heads-up is 🔄, never 🔴): `🔴 Lockfile changed; skipping auto-stash.`
   - 💥 hard failure / error (something broke): `💥 Tests failed: 3 of 47 assertions did not pass.`
   - 🟢 step succeeded (intermediate success): `🟢 Tests pass, ready to land.`
   - ✅ success: the overall task or work verified and succeeded, not the session-done signal: `✅ All tests green, change works end to end.`
