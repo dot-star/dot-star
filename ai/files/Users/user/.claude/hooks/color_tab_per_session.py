@@ -14,14 +14,14 @@ mechanisms, comma-separated:
 
   tint    -> repaint the tab's background with a dark wash of the session's hue
   profile -> switch the tab to one of `PROFILES`, picked by the same hash
-  stripe  -> write the color file only; `statusline.sh` paints the status bar
+  stripe  -> write the color file only; `render_statusline.sh` paints the status bar
 
 Set it to "off" for no color at all; unset behaves like `DEFAULT_MODES`. With
 both "profile" and "tint" on, the profile lands first and the tint overrides its
 background.
 
 The derived color and the saved look go to /tmp/claude/<short-session-id>/color.json,
-which `statusline.sh` reads for the stripe.
+which `render_statusline.sh` reads for the stripe.
 
 A crash skips SessionEnd and strands the color on the tab. Reset a stray tab by
 picking any profile from Terminal > Settings, or run:

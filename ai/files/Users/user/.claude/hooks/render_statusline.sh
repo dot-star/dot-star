@@ -14,14 +14,14 @@
 #   - supplemental: byte size of the always-on ~/.claude/CLAUDE_*.md payload,
 #                shown only past the loader's warn threshold (⚠️md<kb>k/<cap>k,
 #                🚨 once the harness cap silently truncates it)
-#   - worktree:  session-scoped marker (worktree_marker.sh), else cwd inspection
+#   - worktree:  session-scoped marker (record_worktree_for_statusline.sh), else cwd inspection
 #   - title:     most recent {"type":"custom-title", ...} in the transcript
 #                (written by /rename)
 #   - objective: session-scoped marker /tmp/claude/<sid>/objective when present
 #                (caveman summary written by the assistant on the first user
 #                message), else the first plain user prompt in the transcript
 #
-# The whole bar sits on the session's own background color when session_color.py
+# The whole bar sits on the session's own background color when color_tab_per_session.py
 # ran in "stripe" mode; without that file the bar renders on the terminal's.
 
 set -euo pipefail
@@ -162,7 +162,7 @@ if [ -z "${worktree_name}" ]; then
     fi
 fi
 
-# Pick up the session's stripe color, written by session_color.py at SessionStart.
+# Pick up the session's stripe color, written by color_tab_per_session.py at SessionStart.
 session_bg=""
 color_marker="${sid_dir}/color.json"
 if [ -n "${sid_dir}" ] && [ -f "${color_marker}" ]; then

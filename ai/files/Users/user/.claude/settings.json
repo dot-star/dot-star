@@ -52,7 +52,7 @@
       {
         "hooks": [
           {
-            "command": "${HOME}/.claude/hooks/worktree_marker.sh",
+            "command": "${HOME}/.claude/hooks/record_worktree_for_statusline.sh",
             "type": "command"
           }
         ],
@@ -121,7 +121,7 @@
       {
         "hooks": [
           {
-            "command": "${HOME}/.claude/hooks/session_color.py SessionEnd",
+            "command": "${HOME}/.claude/hooks/color_tab_per_session.py SessionEnd",
             "type": "command"
           }
         ]
@@ -131,7 +131,7 @@
       {
         "hooks": [
           {
-            "command": "${HOME}/.claude/hooks/session_tmp_dir.sh",
+            "command": "${HOME}/.claude/hooks/create_session_tmp_dir.sh",
             "type": "command"
           },
           {
@@ -139,7 +139,7 @@
             "type": "command"
           },
           {
-            "command": "${HOME}/.claude/hooks/worktree_marker.sh",
+            "command": "${HOME}/.claude/hooks/record_worktree_for_statusline.sh",
             "type": "command"
           },
           {
@@ -147,7 +147,7 @@
             "type": "command"
           },
           {
-            "command": "${HOME}/.claude/hooks/session_color.py SessionStart",
+            "command": "${HOME}/.claude/hooks/color_tab_per_session.py SessionStart",
             "type": "command"
           }
         ]
@@ -336,7 +336,7 @@
     ]
   },
   "statusLine": {
-    "command": "${HOME}/.claude/hooks/statusline.sh",
+    "command": "${HOME}/.claude/hooks/render_statusline.sh",
     "type": "command"
   },
   "theme": "dark",

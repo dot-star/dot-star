@@ -2,7 +2,7 @@
 #
 # Hook for EnterWorktree / ExitWorktree (PostToolUse) and SessionStart:
 # maintain a session-scoped marker file recording the worktree the session is
-# currently working in. statusline.sh reads this file to render
+# currently working in. render_statusline.sh reads this file to render
 # "[<worktree-name>]".
 #
 # Also emits an OSC 7 escape to the parent claude's TTY so Terminal.app's
@@ -162,7 +162,7 @@ SessionStart)
     fi
 
     # Detect a worktree the session launched inside (created outside the
-    # EnterWorktree tool, so no marker) the way statusline.sh does: a worktree's
+    # EnterWorktree tool, so no marker) the way render_statusline.sh does: a worktree's
     # git dir lives under <repo>/.git/worktrees/<name>.
     worktree_root=""
     if [ -n "${cwd}" ]; then
