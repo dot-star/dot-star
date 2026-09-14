@@ -186,8 +186,7 @@ def main():
         "Your last message uses unexplained acronym(s) in prose "
         "(per ~/.claude/CLAUDE.md Output > spell out niche acronyms): " + ", ".join(offenders) + "\n"
         "\n┌─ 🤖 for Claude ───────────────────────────────────────────────────────"
-        "\n│ Spell out on first use or add to WHITELIST in check_acronyms.py if"
-        "\n│ skim-without-expansion. Send the fix only, not the whole message."
+        "\n│ Reply with only the CLAUDE.md acronym table or whitelist them."
         "\n└───────────────────────────────────────────────────────────────────────"
     )
     print(json.dumps({"decision": "block", "reason": reason}))

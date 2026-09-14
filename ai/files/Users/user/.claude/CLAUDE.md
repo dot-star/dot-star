@@ -208,6 +208,12 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 - Run the pre-send scans below before ending any message. A Stop hook block is expensive: the rejected draft stays on screen and the fix costs another turn.
   - Send only the correction when a block fires, never the whole message again. The rejected draft is still on screen; repeating it makes the reader scan the same ground twice for a one-character fix.
   - Shape the correction as a one-line lead naming what it replaces, then the corrected text, then the rejected message's trailing ask re-rendered so the user still has something to reply to.
+  - Shape an acronym correction as a markdown table, one row per flagged acronym in the order flagged, columns `Acronym | Meaning | In`, where In quotes the phrase the acronym sat in. Wrap the acronym in inline code in both the Acronym and In cells: the reader's eye lands on it, and the hook strips code spans, so the table never re-trips it. The reader maps each row onto the message still on screen; a per-sentence rewrite makes them re-read prose they already have. Rendered example:
+
+    | Acronym | Meaning | In |
+    |---|---|---|
+    | `FOO` | first-order optimizer | the `FOO` pass runs after lint |
+    | `BAR` | build artifact registry | pushed to the `BAR` on merge |
 - Never use em dashes (—) in any output, code, comments, commit messages, or PR descriptions. Use a comma, parentheses, semicolon, or two sentences instead.
 - Never use the ellipsis character (…) in any output, code, comments, commit messages, or PR descriptions. Type three plain periods (`...`) instead.
 - Never use enclosed/circled alphanumeric glyphs (`①②③`, etc.) in any output, code, comments, commit messages, or PR descriptions. They render as unreadable rings/boxes in the terminal. Use plain ASCII digits and letters (`1`, `2`, `3`) instead.
