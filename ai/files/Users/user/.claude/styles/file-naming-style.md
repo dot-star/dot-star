@@ -4,7 +4,8 @@ When creating a file, the name should be both **hierarchical** (shared prefix so
 
 ## Shapes by extension
 
-- `.sh`: name says what running it accomplishes (verb/outcome, not category). E.g. `install.sh`, `post_install.sh`, `update.sh`, `safer_rm_test.sh`.
+- Executable scripts (`.sh`, `.py`, anything run rather than sourced): name says what running it accomplishes, verb-first. E.g. `install.sh`, `post_install.sh`, `update.sh`, `safer_rm_test.sh`. Read the first token alone: if it can open a noun phrase (`session_color`, `statusline`, `worktree_marker`), it names a thing, not an action; rename until it reads as an instruction (`color_tab_per_session`, `render_statusline`, `record_worktree_for_statusline`).
+- Hook scripts (anything fired by an event, not invoked by hand): name the trigger and the outcome, not just the verb, since the reader has to work out when it fires and what it wants from them. E.g. `chime_when_reply_ready_to_review.sh`, `chime_when_waiting_on_user_to_answer.sh`. Shape: `<verb>_when_<trigger>_to_<outcome>`, with `when_` and `to_` dropped only when the verb's object already carries them (`enforce_executable_bit.sh`, `block_hidden_characters.py`).
 - `.txt`: name says the topic of the notes inside.
 - `CLAUDE_<slug>.md`: slug says what aspect of `CLAUDE.md` it supplements. E.g. `CLAUDE_slack-style.md`.
 - Style files: `styles/<topic>-style.md` for on-demand style guides. E.g. `commit-message-style.md`, `shell-style.md`, `file-naming-style.md` (this file).
