@@ -317,7 +317,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     6. Does every decision the message body left open have a row here? Re-read the prose above for nits, 💅 polish notes, 🔄 heads-ups, and 🔴 blockers; each one the user could accept needs its own row under the same letter and emoji, per the bracket-prefix checklist. A menu that omits one sends the reader back to typing a sentence.
     7. Does the 💾 commit row carry its subject drafts beneath it? A commit row with none costs the user a round trip through the skill's pick step.
 
-  **Subject drafts ride under the commit row.** Whenever 💾 **`[c]ommit`** is on the menu, draft subjects for the pending change the way the `commit` skill does (over-generate, score, rank) and render the top three beneath the commit row, indented one level further, each as its own bracket token: `**` + `` ` `` + `[cN]` + `` ` `` + `**` then a space and the subject in plain text. The subject stays plain because it's text to compare, not an option name. The drafts render once; `p<N>` and `L<N>` reuse the same numbering since promote and land commit first. Fold takes no number, since it keeps HEAD's subject. Bare `c` still runs the skill and shows the full list of five.
+  **Subject drafts ride under the commit row.** Whenever 💾 **`[c]ommit`** is on the menu, draft subjects for the pending change the way the `commit` skill does (over-generate, score, rank) and render the top three beneath the commit row as a tree sub-list, the same shape as the 🏁 checklist's commit list: each row indented with 2 ideographic full-width spaces (U+3000) + 1 regular space so the glyph lands under the `[` of `[c]ommit`, a `├─` on each row and `└─` on the last, then the bracket token `**` + `` ` `` + `[cN]` + `` ` `` + `**`, a space, and the subject in plain text. The subject stays plain because it's text to compare, not an option name. The drafts render once; `p<N>` and `L<N>` reuse the same numbering since promote and land commit first. Fold takes no number, since it keeps HEAD's subject. Bare `c` still runs the skill and shows the full list of five.
 
   **Applicability is a fact about the tree, not a guess.** Before sending, run `git status --porcelain` and branch on the result:
 
@@ -346,9 +346,9 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   > 👉 How do you want to proceed?
   >   🛠️ **`[i]terate`** (no commit + keep iterating)
   >   💾 **`[c]ommit`**  (commit + keep iterating)
-  >        **`[c1]`** Keep the search input usable under a long title
-  >        **`[c2]`** Give the open search box room when the title is long
-  >        **`[c3]`** Stop a long title squeezing the search input to nothing
+  > 　　 ├─ **`[c1]`** Keep the search input usable under a long title
+  > 　　 ├─ **`[c2]`** Give the open search box room when the title is long
+  > 　　 └─ **`[c3]`** Stop a long title squeezing the search input to nothing
   >   📦 **`[f]old`**    (amend into HEAD + keep iterating)
   >   ⬆️ **`[p]romote`** (commit + ✅ promote to master)
   >   🏁 **`[L]and`**    (commit + 🪓 tear down worktree)
