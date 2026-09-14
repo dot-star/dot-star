@@ -276,6 +276,11 @@ git config --global delta.minus-style "syntax #800000"
 git config --global delta.plus-style "syntax #008000"
 bt_pop
 
+bt_push "git diff drivers"
+# Name the enclosing key in each JSON hunk header (`@@ ... @@ "Stop": [`). The gitattributes file install.sh symlinks binds `*.json` to this driver; without a pattern the header stays empty, since git's default funcname regex never matches an indented key. Match only the top two nesting levels so a hook edit names its event (`"Stop"`) rather than the inner `"hooks"`; git reports the last matching line above the hunk.
+git config --global diff.json.xfuncname '^[[:space:]]{0,4}"[^"]*"[[:space:]]*:[[:space:]]*[[{]'
+bt_pop
+
 bt_push "vim setup"
 # Create backup and swap directories specified in vimrc.
 mkdir -p "$HOME/.vim/backup/"
