@@ -205,11 +205,13 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 - Never use em dashes (—) in any output, code, comments, commit messages, or PR descriptions. Use a comma, parentheses, semicolon, or two sentences instead.
 - Never use the ellipsis character (…) in any output, code, comments, commit messages, or PR descriptions. Type three plain periods (`...`) instead.
 - Never use enclosed/circled alphanumeric glyphs (`①②③`, etc.) in any output, code, comments, commit messages, or PR descriptions. They render as unreadable rings/boxes in the terminal. Use plain ASCII digits and letters (`1`, `2`, `3`) instead.
-- Drop the comma before `and` when it joins just two things; keep it only when it closes a list of three or more items.
+- Never write `, and` joining two things; the comma belongs there only when it closes a list of three or more items. Binds every surface: chat prose, commit subjects, PR text, drafted messages, code comments, and each option in a numbered or bracketed list.
   - `Do X, and do Y` → `Do X and do Y`
   - `A does X, and B does Y` → `A does X and B does Y`
   - `Do X, and with Y do Z` → `Do X and with Y do Z` (a second clause opening with a modifier phrase, not a bare subject, still gets no comma)
+  - `Do X once, and do Y` → `Do X once and do Y` (a trailing adverb before the comma makes it read as a breath pause, which is the common miss)
   - `X, Y, and Z` keeps its commas
+  - Pre-send check: search the draft for the literal characters `, and`. Every hit is a fail unless the word before the comma is the second-or-later member of a three-plus list; a pause that "sounds right" is never a pass.
 - Write a negative imperative as the contraction `don't`/`DON'T`, not the spelled-out `do not`/`Do NOT`; preserve any emphasis casing (so `Do NOT repoint at prod` → `DON'T repoint at prod`).
 - Write for the human who'll read it, not for yourself or an AI: PR titles/descriptions/comments, commit messages, and person-to-person comms all reach someone who may not share your context. Prefer the term that lands fastest for that reader (the common everyday word) over the technically-precise, formal, or insider one.
 - Write a date so the weekday is visible: `Wed, Sep 2`. Abbreviated weekday and month, day with no leading zero, year appended only when the date falls outside the current year. The weekday is usually the load-bearing part of a date, since which day of the week something landed on is what the reader is checking it against, so a bare `Aug 15` or `08-30` makes them go compute it.
