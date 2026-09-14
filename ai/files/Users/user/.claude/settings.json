@@ -19,6 +19,14 @@
             "type": "command"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "command": "${HOME}/.claude/hooks/chime_when_waiting_on_user_to_answer.sh",
+            "type": "command"
+          }
+        ]
       }
     ],
     "PermissionRequest": [
@@ -168,6 +176,15 @@
         "hooks": [
           {
             "command": "${HOME}/.claude/hooks/check_acronyms.py",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      },
+      {
+        "hooks": [
+          {
+            "command": "${HOME}/.claude/hooks/chime_when_reply_ready_to_review.sh",
             "type": "command"
           }
         ],
