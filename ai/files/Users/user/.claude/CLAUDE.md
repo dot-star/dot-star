@@ -348,7 +348,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - 📦 **`[f]old`**: amend the pending change into HEAD with `git commit --amend --no-edit`, keep iterating in the worktree. Read the combined diff afterward and offer a reworded subject when the old one no longer covers it.
   - ⬆️ **`[p]romote`**: commit + fast-forward the default branch to here, keep the worktree (via `worktree-promote`). Carries the commit row's numbering as `[pN]` rows with `...` when the tree is dirty.
   - 🏁 **`[L]and`**: commit + promote + tear down the worktree (via `worktree-done`). Carries the commit row's numbering as `[LN]` rows with `...` when the tree is dirty.
-  - 🧨 **`[x]`**: land + mark the session for prune + `/exit`, per the `x` rule in Workflow. Carries the commit row's numbering as `[xN]` rows with `...` when the tree is dirty.
+  - 🧨 **`[x]`**: commit + promote + tear down the worktree + mark the session for prune + `/exit`, per the `x` rule in Workflow. The parenthetical spells out the land row's steps rather than saying `land +`, since every option is self-contained. Carries the commit row's numbering as `[xN]` rows with `...` when the tree is dirty.
 
   **A one-off option outside the standard rows** (e.g. 🧹 **`[cl]ean`** to delete dead code before committing) slots by how committal it is, next to the standard row it most resembles: edit-and-defer sits with 🛠️ **`[i]terate`**, edit-then-commit sits with the 💾 commit row. It never takes the top row from 🛠️ **`[i]terate`** or the bottom rows from 🏁 **`[L]and`** and 🧨 **`[x]`**. It may fold its own commit in (as promote and land do), but never a second menu action's git state change. When its natural letter collides with a standard row's, both sides extend: a clean row turns the commit row into 💾 **`[co]mmit`**, so the menu reads 🧹 **`[cl]ean`** vs 💾 **`[co]mmit`**.
 
@@ -371,7 +371,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   > 　　 ├─ **`[L1]`** ...
   > 　　 ├─ **`[L2]`** ...
   > 　　 └─ **`[L3]`** ...
-  >   🧨 **`[x]`**       (land + 🧨 close session)
+  >   🧨 **`[x]`**       (commit + ✅ promote to master + 🪓 tear down worktree + 🧨 close session)
   > 　　 ├─ **`[x1]`** ...
   > 　　 ├─ **`[x2]`** ...
   > 　　 └─ **`[x3]`** ...
@@ -381,7 +381,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   > 👉 How do you want to proceed?
   >   ⬆️ **`[p]romote`** (commit + ✅ promote to master)
   >   🏁 **`[L]and`**    (commit + ✅ promote to master + 🪓 tear down worktree)
-  >   🧨 **`[x]`**       (land + 🧨 close session)
+  >   🧨 **`[x]`**       (commit + ✅ promote to master + 🪓 tear down worktree + 🧨 close session)
 
   Subset (clean tree, so no commit or fold slot; iterate reframed to keep tuning):
 
@@ -389,7 +389,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   >   🛠️ **`[i]terate`** (keep tuning in the worktree)
   >   ⬆️ **`[p]romote`** (✅ promote to master)
   >   🏁 **`[L]and`**    (✅ promote to master + 🪓 tear down worktree)
-  >   🧨 **`[x]`**       (land + 🧨 close session)
+  >   🧨 **`[x]`**       (✅ promote to master + 🪓 tear down worktree + 🧨 close session)
 
   Subset (a follow-up edit that finishes the unpublished HEAD commit, so fold joins commit):
 
@@ -399,7 +399,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   >   📦 **`[f]old`**    (amend into HEAD + keep iterating)
   >   ⬆️ **`[p]romote`** (commit + ✅ promote to master)
   >   🏁 **`[L]and`**    (commit + ✅ promote to master + 🪓 tear down worktree)
-  >   🧨 **`[x]`**       (land + 🧨 close session)
+  >   🧨 **`[x]`**       (commit + ✅ promote to master + 🪓 tear down worktree + 🧨 close session)
 
   Bundling forces actions when the user often wants just to keep iterating; commit and fold are the two ways to bank the same pending change, so they sit adjacent; promote and land share the fast-forward but only land removes the worktree; close is a land plus the session's end, the one step more committal than a land, so it sits beneath it. **`[L]and`** leads with 🏁 (not the 🛬 land marker) to flag that picking Land completes the objective; the 🏁 goes at the front of the Land line, not trailing after the `?`.
 - Whenever a message names loose ends (work this session surfaced but didn't do: a figure still unsourced, a file still to write, a decision the user has to make), offer 📋 **`[a]dd`** to bank them in a TODO section. Fires anywhere loose ends get named, not just at wrap-up: the 🏁 completion recap, a worktree follow-up, or a plain answer trailing off in "still needs". A loose end left in chat scrollback dies with the session; a TODO entry outlives it.
@@ -443,7 +443,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   >   📋 **`[a]dd`**     (bank 2 loose ends as todos)
   >   🛠️ **`[i]terate`** (no commit + keep iterating)
   >   🏁 **`[L]and`**    (commit + ✅ promote to master + 🪓 tear down worktree)
-  >   🧨 **`[x]`**       (land + 🧨 close session)
+  >   🧨 **`[x]`**       (commit + ✅ promote to master + 🪓 tear down worktree + 🧨 close session)
 
   Rendered example, standing alone after an answer:
 
