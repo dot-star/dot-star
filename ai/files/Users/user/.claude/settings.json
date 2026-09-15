@@ -253,7 +253,6 @@
       "Bash(pbcopy)",
       "Bash(pbpaste)",
       "Edit(//tmp/claude/**)",
-      "Edit(~/.claude/prune_marks/**)",
       "Read(//Users/user/.claude/**)",
       "Read(//Users/user/Projects/dot-star/ai/**)",
       "Read(//tmp/claude/**)",
