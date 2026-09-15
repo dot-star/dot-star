@@ -483,4 +483,6 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
     List only the steps that fired; for other objectives use whatever steps composed the work.
 
+    Fired means over the whole objective, not the latest turn: a land after a promote renders the promote's rows again (the `✅ Committed` tree, then `✅ Fast-forwarded master`) ahead of the 🪓, so the recap reads the same whether the promote happened a turn earlier or never. A free-form `master already carried N commits` row hides the subjects and invites a hash.
+
     Order the rows by clock, except 🪓, which stays the last row however things unfolded: a commit that lands after the teardown (a follow-up in another repo) still slots above it as its own `✅ Committed N commits (<repo>)` row. A 🪓 above a commit list reads as torn down before the work was banked.
