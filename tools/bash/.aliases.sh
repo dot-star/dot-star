@@ -463,6 +463,44 @@ should_collect_more_files() {
     return 1
 }
 
+first_diff_line() {
+    # Print the line number of a file's first changed line, so "edit" can open
+    # there instead of at the top. Fall back to the first line when the file
+    # has no diff to jump to (untracked, or unchanged).
+    local file_path="${1}"
+    local hunk_header
+    local first_changed_line
+
+    hunk_header="$(
+        git diff --unified=0 -- "${file_path}" |
+            \grep --max-count=1 "^@@"
+    )"
+
+    if [[ -z "${hunk_header}" ]]; then
+        hunk_header="$(
+            git diff --unified=0 --cached -- "${file_path}" |
+                \grep --max-count=1 "^@@"
+        )"
+    fi
+
+    if [[ -z "${hunk_header}" ]]; then
+        echo 1
+        return
+    fi
+
+    # Pull "c" out of the "@@ -a,b +c,d @@" header: the hunk's start line in
+    # the working copy. A deletion-only hunk reports the line above the cut,
+    # which is 0 when the cut starts at the top of the file.
+    first_changed_line="$(echo "${hunk_header}" | sed 's/^@@ -[0-9,]* +\([0-9]*\).*/\1/')"
+
+    if [[ "${first_changed_line}" -lt 1 ]]; then
+        echo 1
+        return
+    fi
+
+    echo "${first_changed_line}"
+}
+
 edit() {
     # Display an interface for selecting from a list of files to edit when no
     # file has been specified. Automatically select file when there's only one
@@ -590,8 +628,19 @@ edit() {
             pushed_dir=true
         fi
 
-        editor_args="$(echo "${result}" | tr '\n' ' ')"
-        open -a "${MY_OPEN_EDITOR}" $(echo "${editor_args}")
+        # Open each file at its first changed line through the editor's own
+        # command line tool. "open -a" takes no line number, so it lands at the
+        # top of the file and leaves the diff to be hunted down by hand.
+        editor_cli="/Applications/${MY_OPEN_EDITOR}/Contents/Resources/app/bin/code"
+
+        if [[ ! -z "${result}" ]] && [[ -x "${editor_cli}" ]]; then
+            echo "${result}" | while read -r file_to_edit; do
+                "${editor_cli}" --goto "${file_to_edit}:$(first_diff_line "${file_to_edit}")"
+            done
+        else
+            editor_args="$(echo "${result}" | tr '\n' ' ')"
+            open -a "${MY_OPEN_EDITOR}" $(echo "${editor_args}")
+        fi
 
         if $pushed_dir; then
             popd
