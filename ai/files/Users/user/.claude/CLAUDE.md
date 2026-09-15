@@ -486,6 +486,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     - ✅ a step that completed.
     - ⏸️ a step intentionally left ongoing, with the reason it's still open, so the reader never has to ask why (e.g. `⏸️ Worktree kept (fix-foo); promote keeps it, land tears it down` on a promote).
     - 🪓 the worktree teardown, always the fixed `🪓 Worktree removed` (no worktree name; it's always this session's own and the branch deletion is bundled into the removal, so don't list it separately).
+    - 🧨 the prune mark, always the fixed `🧨 Session marked for prune`. A distinctive irreversible step carries the menu's own glyph rather than the generic ✅, the same way the teardown carries 🪓, so the row reads as "this session is gone" at a glance.
 
     For a worktree land/promote, the steps in lifecycle order:
     - ✅ Committed N commits, then list each subject beneath as a tree sub-list (newest-first); a lone commit is a single `└─`. Wrap each subject in inline-code backticks so it renders in the inline-code accent and indent each glyph with 2 ideographic full-width spaces (U+3000) + 1 regular space, landing the `├`/`└` under the first letter of the step text (the `C` of `Committed`), not under the `✅` (plain leading spaces collapse in rendered markdown, so the wide U+3000s hold the indent):
@@ -494,9 +495,10 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     - ✅ Promoted to master (on land too: a land is a promote plus a teardown, and the row matches the ⬆️ menu wording rather than naming the fast-forward underneath)
     - ✅ Pushed to `<remote>` (only when the user asked for the push in words; land and promote are local, so this line is absent by default and is never a step to run, and a configured upstream doesn't earn it or a ⏸️)
     - 🪓 Worktree removed (land) or `⏸️ Worktree kept (<name>); promote keeps it, land tears it down` (promote). The kept line always names why it survived, since a bare "kept" reads as an oversight and prompts a "why not tear down?" round trip.
+    - 🧨 Session marked for prune (close only)
 
     List only the steps that fired; for other objectives use whatever steps composed the work.
 
     Fired means over the whole objective, not the latest turn: a land after a promote renders the promote's rows again (the `✅ Committed` tree, then `✅ Promoted to master`) ahead of the 🪓, so the recap reads the same whether the promote happened a turn earlier or never. A free-form `master already carried N commits` row hides the subjects and invites a hash.
 
-    Order the rows by clock, except 🪓, which stays the last row however things unfolded: a commit that lands after the teardown (a follow-up in another repo) still slots above it as its own `✅ Committed N commits (<repo>)` row. A 🪓 above a commit list reads as torn down before the work was banked.
+    Order the rows by clock, except 🪓, which stays the last git row however things unfolded: a commit that lands after the teardown (a follow-up in another repo) still slots above it as its own `✅ Committed N commits (<repo>)` row. A 🪓 above a commit list reads as torn down before the work was banked. 🧨 is the one row allowed beneath it, mirroring the menu, where 🧨 **`[x]`** is the only row beneath 🏁 **`[L]and`**.
