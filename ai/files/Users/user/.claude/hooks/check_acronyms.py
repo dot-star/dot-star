@@ -48,6 +48,7 @@ WHITELIST = {
     "EDT",
     "EST",
     "ET",
+    "FAQ",
     "FINRA",
     "GNU",
     "GPU",
