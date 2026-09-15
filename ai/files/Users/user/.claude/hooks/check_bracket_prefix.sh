@@ -20,8 +20,10 @@ if [ -z "${msg}" ]; then
 fi
 
 # Strip fenced code blocks so `or` and quoted bad examples don't trigger.
+# Allow indentation on the fence: a block nested under a list item is
+# indented, and an anchor at column 0 lets its contents leak into the scan.
 prose=$(printf '%s\n' "${msg}" |
-    sed -E '/^```/,/^```/d')
+    sed -E '/^[[:space:]]*```/,/^[[:space:]]*```/d')
 
 # Emit the Stop-hook payload that hands the feedback back to Claude.
 block() {

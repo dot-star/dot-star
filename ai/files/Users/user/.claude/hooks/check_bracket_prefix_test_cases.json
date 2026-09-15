@@ -112,5 +112,17 @@
     "msg": "Here is some code:\n```bash\nif foo or bar; then echo done; fi\n```\nDid you mean that one?",
     "stop": false,
     "expected": "pass"
+  },
+  {
+    "name": "indented fenced code block under a list item is stripped",
+    "msg": "1. Sample:\n\n   ```\n   Want me to commit or stop?\n   ```\n\nDid you mean that one?",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "broken span inside an indented fenced code block is stripped",
+    "msg": "1. Wrong shape:\n\n   ```\n   **`[d]`**rier tone\n   ```\n\nDid you mean that one?",
+    "stop": false,
+    "expected": "pass"
   }
 ]
