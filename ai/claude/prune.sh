@@ -2,10 +2,13 @@
 
 # Prune Claude sessions.
 #
-# Scans ~/.claude/projects/*/*.jsonl and removes any session that is either:
+# Scans ~/.claude/projects/*/*.jsonl and removes any session that is one of:
+#   - marked done by the model: ~/.claude/prune_marks/<session-id> exists
+#     (written when the user picks the `[d]one` wrap-up option), or
 #   - tagged with a customTitle in the target list (set via /rename), or
 #   - a print-mode transcript (one-shot `claude --print` run, e.g. from `cmc`
 #     or `ask`), identified by a queue-operation first event.
+# A mark is removed along with its session.
 
 set -euo pipefail
 
@@ -13,6 +16,7 @@ printf '🟡 Pruning Claude sessions...'
 
 target_titles=("delete" "del" "d" "tmp")
 projects_dir="${HOME}/.claude/projects"
+marks_dir="${HOME}/.claude/prune_marks"
 
 if [[ ! -d "${projects_dir}" ]]; then
     printf '\r\033[K'
@@ -29,6 +33,20 @@ is_target_title() {
         fi
     done
     return 1
+}
+
+# Echo the mark path for a transcript: the session id is the file's basename.
+mark_for() {
+    local file="${1}"
+    local session_id
+    session_id="$(basename "${file}" .jsonl)"
+    printf '%s/%s' "${marks_dir}" "${session_id}"
+}
+
+# True if the model marked the session done via the `[d]one` wrap-up option.
+is_marked_done() {
+    local file="${1}"
+    [[ -f "$(mark_for "${file}")" ]]
 }
 
 # True if the file is a `claude --print` transcript (not a resumable session).
@@ -63,7 +81,10 @@ while IFS= read -r -d '' file; do
             tail -n 1 |
             \jq -r '.customTitle // empty'
     )"
-    if is_target_title "${title}"; then
+    if is_marked_done "${file}"; then
+        rm "${file}" "$(mark_for "${file}")"
+        pruned=$((pruned + 1))
+    elif is_target_title "${title}"; then
         rm "${file}"
         pruned=$((pruned + 1))
     elif is_print_mode_transcript "${file}"; then

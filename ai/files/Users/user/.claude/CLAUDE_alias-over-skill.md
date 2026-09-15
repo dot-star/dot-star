@@ -14,5 +14,5 @@ The skill is correct only when its body does something the alias doesn't. For th
 ## Apply
 
 - Default to the alias for user-created worktrees (`git worktree add ...`).
-- After the alias returns, still apply any end-of-session prompts the skill would have triggered (e.g. 🏁 + `/rename del` + `/exit` from `CLAUDE.md`).
+- After the alias returns, still apply any end-of-session prompts the skill would have triggered (e.g. the 🏁 recap with its 🧹 `[d]one` offer from `CLAUDE.md`).
 - When unsure whether an alias exists for a skill's flow, `grep -nE "^alias |^[a-z_][a-z_0-9]*\(\) \{$" tools/bash/.*.sh tools/*/.aliases.sh` before reaching for `Skill`. Many aliases live in topical `tools/bash/.<name>.sh` files (cd, data_*, safer_rm, pomodoro, conditionals), not only `*.aliases.sh`.
