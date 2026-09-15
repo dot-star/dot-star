@@ -460,7 +460,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
   **🏁 checklist convention:** always follow the 🏁 line with a checklist, one bullet per step that happened, so the completion is self-verifying. Each bullet is an ultra-brief fragment: marker, then the bare fact, no trailing punctuation. Any parenthetical is one count or flag word (`(fix-foo)`), never a clause. Leave out hashes, ref ranges, and process narration (lint reflows, retries, re-stages); they're noise nobody checks. If narration matters, put it in a prose line above the 🏁. Markers:
     - ✅ a step that completed.
-    - ⏸️ a step intentionally left ongoing (e.g. `⏸️ Worktree kept (fix-foo) for continued work` on a promote).
+    - ⏸️ a step intentionally left ongoing, with the reason it's still open, so the reader never has to ask why (e.g. `⏸️ Worktree kept (fix-foo); promote keeps it, land tears it down` on a promote).
     - 🪓 the worktree teardown, always the fixed `🪓 Worktree removed` (no worktree name; it's always this session's own and the branch deletion is bundled into the removal, so don't list it separately).
 
     For a worktree land/promote, the steps in lifecycle order:
@@ -469,6 +469,6 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 　　 └─ `<older commit subject>`
     - ✅ Fast-forwarded master
     - ✅ Pushed to `<remote>` (only when the user asked for the push in words; land and promote are local, so this line is absent by default and is never a step to run, and a configured upstream doesn't earn it or a ⏸️)
-    - 🪓 Worktree removed (land) or ⏸️ Worktree kept (promote)
+    - 🪓 Worktree removed (land) or `⏸️ Worktree kept (<name>); promote keeps it, land tears it down` (promote). The kept line always names why it survived, since a bare "kept" reads as an oversight and prompts a "why not tear down?" round trip.
 
     List only the steps that fired; for other objectives use whatever steps composed the work.
