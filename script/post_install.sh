@@ -71,6 +71,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
         wget
     )
     casks=(
+        ghostty
         google-cloud-sdk
         hammerspoon
     )
