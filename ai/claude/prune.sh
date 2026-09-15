@@ -11,7 +11,7 @@ set -euo pipefail
 
 printf '🟡 Pruning Claude sessions...'
 
-target_titles=("ok-to-delete" "ok-to-del" "delete" "del" "d" "tmp")
+target_titles=("delete" "del" "d" "tmp")
 projects_dir="${HOME}/.claude/projects"
 
 if [[ ! -d "${projects_dir}" ]]; then
