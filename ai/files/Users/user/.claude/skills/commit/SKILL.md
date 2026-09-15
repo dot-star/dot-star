@@ -75,5 +75,5 @@ Run `git commit -m "<selection>"` with the user's pick verbatim. Don't amend, do
 
 After the commit lands, branch on cwd (worktree when `git rev-parse --git-common-dir` differs from `git rev-parse --git-dir`, otherwise root):
 
-- **Worktree:** offer the next step as an inline bracket-prefix choice: **`[p]romote`** (fast-forward the default branch to this branch tip and keep the worktree to keep working, via the `worktree-promote` skill), **`[L]and`** (promote and tear down, via `worktree-done`), or keep iterating. The two share a first step; `[p]romote` keeps the worktree, `[L]and` removes it. Don't auto-run either; wait for the user's pick.
+- **Worktree:** offer the next step as an inline bracket-prefix choice: **`[p]romote`** (fast-forward the default branch to this branch tip and keep the worktree to keep working, via the `worktree-promote` skill), **`[L]and`** (promote and tear down, via `worktree-done`), **`[x]`** (land, then mark the session for prune and `/exit`, per the `x` rule in `~/.claude/CLAUDE.md`), or keep iterating. The three share a first step; `[p]romote` keeps the worktree, `[L]and` removes it, `[x]` removes it and closes the session. Don't auto-run any of them; wait for the user's pick.
 - **Root:** no promote/land follow-up; the commit is already on the working branch.
