@@ -201,16 +201,20 @@ ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/styles" "${HOME}/.claude
 bt_pop
 
 bt_push "bootstrap snippets"
-dotstar_header="# Begin dot-star bootstrap."
-dotstar_footer="# End dot-star bootstrap."
+dotstar_header="Begin dot-star bootstrap."
+dotstar_footer="End dot-star bootstrap."
 
 setup_bootstrap() {
     filename="${1}"
     script="${2}"
+    # Lead the marker lines with the file's own comment syntax, so a Lua config gets `--` where the rc files get `#`.
+    comment_leader="${3:-#}"
+    header="${comment_leader} ${dotstar_header}"
+    footer="${comment_leader} ${dotstar_footer}"
 
-    block="${dotstar_header}
+    block="${header}
 ${script}
-${dotstar_footer}"
+${footer}"
 
     # Rewrite the block where it already sits, dropping any duplicate block or
     # stray footer, and append it only when the file carries no block yet.
@@ -222,8 +226,8 @@ ${dotstar_footer}"
     if [ -e "${filename}" ]; then
         tmp="${filename}.dotstar.tmp"
         dotstar_block="${block}" awk \
-            -v header="${dotstar_header}" \
-            -v footer="${dotstar_footer}" \
+            -v header="${header}" \
+            -v footer="${footer}" \
             '
             function print_block() {
                 print ENVIRON["dotstar_block"]

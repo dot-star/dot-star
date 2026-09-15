@@ -52,7 +52,7 @@ Consequences for changes:
 
 ### Bootstrap markers in user rc files
 
-`setup_bootstrap` in `script/install.sh` writes a block bracketed by `# Begin dot-star bootstrap.` / `# End dot-star bootstrap.` into `~/.bash_profile` and `~/.bashrc`, removing any prior block first. If you change the bootstrap snippet, an existing user only picks it up by re-running `./install.sh`. Don't hand-edit those files in CI or scripts; round-trip through `setup_bootstrap`.
+`setup_bootstrap` in `script/install.sh` writes a block bracketed by `# Begin dot-star bootstrap.` / `# End dot-star bootstrap.` into `~/.bash_profile`, `~/.bashrc` and `~/.zshrc`, and the same block with `--` markers into `~/.hammerspoon/init.lua` (from `script/post_install.sh`), removing any prior block first. If you change the bootstrap snippet, an existing user only picks it up by re-running `./install.sh`. Don't hand-edit those files in CI or scripts; round-trip through `setup_bootstrap`.
 
 ## Project conventions
 

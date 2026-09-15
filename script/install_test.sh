@@ -121,6 +121,16 @@ check "writes through the symlink" "$(cat "${target}")" "export EDITOR=vim
 ${SNIPPET}
 # End dot-star bootstrap."
 
+# Lead the markers with the given comment syntax and rewrite through them on a second run.
+lua="${work}/init.lua"
+printf "require('functions')\n" >"${lua}"
+setup_bootstrap "${lua}" "require('stale')" '--'
+setup_bootstrap "${lua}" "require('fresh')" '--'
+check "takes a comment leader for the markers" "$(cat "${lua}")" "require('functions')
+-- Begin dot-star bootstrap.
+require('fresh')
+-- End dot-star bootstrap."
+
 echo ""
 echo "${passes} passed, ${fails} failed"
 
