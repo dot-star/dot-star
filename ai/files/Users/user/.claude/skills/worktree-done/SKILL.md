@@ -33,4 +33,4 @@ Two paths, depending on how the worktree was created:
 
 If any step errors, surface the message verbatim and stop. Don't bypass the gates without asking (e.g. don't stash uncommitted changes to satisfy the clean-tree gate).
 
-Once the worktree is gone, the session's objective is complete: apply the end-of-session prompt from `~/.claude/CLAUDE.md` (the 🏁 recap with its 🧹 `[d]one` offer).
+Once the worktree is gone, the session's objective is complete: apply the end-of-session prompt from `~/.claude/CLAUDE.md` (the 🏁 recap with its 🧨 `[x]` offer).
