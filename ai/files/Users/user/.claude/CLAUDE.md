@@ -482,3 +482,5 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     - 🪓 Worktree removed (land) or `⏸️ Worktree kept (<name>); promote keeps it, land tears it down` (promote). The kept line always names why it survived, since a bare "kept" reads as an oversight and prompts a "why not tear down?" round trip.
 
     List only the steps that fired; for other objectives use whatever steps composed the work.
+
+    Order the rows by clock, except 🪓, which stays the last row however things unfolded: a commit that lands after the teardown (a follow-up in another repo) still slots above it as its own `✅ Committed N commits (<repo>)` row. A 🪓 above a commit list reads as torn down before the work was banked.
