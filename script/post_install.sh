@@ -33,6 +33,25 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
         /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     fi
 
+    bt_push "xcode license"
+    # Accept the Xcode license before brew installs anything. An unaccepted
+    # license fails every formula that shells out to `xcodebuild` (macvim --HEAD,
+    # in practice) with "You have not agreed to the Xcode license."
+    # Probe a tool that does real work, not `xcodebuild -version`: the version
+    # query answers whatever the license state, so it can't see the pending
+    # agreement. `xcrun --find clang` is what Homebrew's own
+    # `check_xcode_license_approved` probes.
+    xcrun_status="$(/usr/bin/xcrun --find clang 2>&1)"
+    # Escalate to sudo only on the license message, so a machine where `xcrun`
+    # fails for its own reasons (no Xcode, command line tools only) gets no
+    # password prompt.
+    if [[ "${xcrun_status}" == *license* ]]; then
+        if ! sudo xcodebuild -license accept; then
+            warn "Xcode license is still unaccepted; formulae that build with xcodebuild will fail." "sudo xcodebuild -license accept"
+        fi
+    fi
+    bt_pop
+
     # Update: Removed setting bash as the default shell in favor of zsh.
     # Upgrade bash.
     # Fixes "-bash: shopt: autocd: invalid shell option name".
