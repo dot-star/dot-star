@@ -338,7 +338,11 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     - Skip the skill's draft-and-pick step and commit with that subject verbatim.
     - Commit only the commit whose tree carried `[cN]`. A subject floated in prose for another pending commit has no accept token, so silence never picks it: leave that commit uncommitted and re-offer its tree.
     - Carry on with the promote or land when the letter asks for one.
-- When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment (any subset the tree allows; ⬆️ promote, 🏁 land and 🧨 close always apply), each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**). 🧨 **`[x]`** is the one designed bundle: `x` means close the session and closing a worktree session means landing it first, so the row reads land + close rather than two actions glued together. Whenever two or more appear together, list them top-to-bottom in this fixed order: iterate → commit → fold → promote → land → close. The slot order tracks least-to-most committal (don't-commit first, then commit-and-stay, then rewrite-and-stay, then promote, then the teardown, then the teardown plus the session's end); land is the only git action that tears the worktree down, so it's always the last git row, never floated into the middle or reordered; 🧨 **`[x]`** is the only row allowed beneath it.
+- When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment (any subset the tree allows; ⬆️ promote, 🏁 land and 🧨 close always apply), each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**).
+  - 🧨 **`[x]`** is the one designed bundle: `x` means close the session and closing a worktree session means landing it first, so the row reads land + close rather than two actions glued together.
+  - Whenever two or more appear together, list them top-to-bottom in this fixed order: iterate → commit → fold → promote → land → close.
+  - The slot order tracks least-to-most committal (don't-commit first, then commit-and-stay, then rewrite-and-stay, then promote, then the teardown, then the teardown plus the session's end).
+  - Land is the only git action that tears the worktree down, so it's always the last git row, never floated into the middle or reordered; 🧨 **`[x]`** is the only row allowed beneath it.
 
   **Pre-send check**, run on every worktree menu:
 
@@ -428,7 +432,12 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   >   🏁 **`[L]and`**    (commit + ✅ promote to master + 🪓 tear down worktree)
   >   🧨 **`[x]`**       (commit + ✅ promote to master + 🪓 tear down worktree + 🧨 close session)
 
-  Bundling forces actions when the user often wants just to keep iterating; commit and fold are the two ways to bank the same pending change, so they sit adjacent; promote and land share the fast-forward but only land removes the worktree; close is a land plus the session's end, the one step more committal than a land, so it sits beneath it. **`[L]and`** leads with 🏁 (not the 🛬 land marker) to flag that picking Land completes the objective; the 🏁 goes at the front of the Land line, not trailing after the `?`.
+  Why the rows sit where they do:
+  - Bundling forces actions when the user often wants just to keep iterating.
+  - Commit and fold are the two ways to bank the same pending change, so they sit adjacent.
+  - Promote and land share the fast-forward but only land removes the worktree.
+  - Close is a land plus the session's end, the one step more committal than a land, so it sits beneath it.
+  - **`[L]and`** leads with 🏁 (not the 🛬 land marker) to flag that picking Land completes the objective; the 🏁 goes at the front of the Land line, not trailing after the `?`.
 - Whenever a message names loose ends (work this session surfaced but didn't do: a figure still unsourced, a file still to write, a decision the user has to make), offer 📋 **`[a]dd`** to bank them in a TODO section. Fires anywhere loose ends get named, not just at wrap-up: the 🏁 completion recap, a worktree follow-up, or a plain answer trailing off in "still needs". A loose end left in chat scrollback dies with the session; a TODO entry outlives it.
 
   **Asking to bank a todo runs this flow directly.** Any wording that banks (bank a todo, bank these as todos, bank that) names the entries itself, so skip the menu: resolve where they land, write them shaped as below, report the file and the entries as written.
