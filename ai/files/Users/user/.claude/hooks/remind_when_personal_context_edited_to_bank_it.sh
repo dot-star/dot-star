@@ -5,7 +5,7 @@
 # and Edit/Write refuse symlinks, so the edit lands at the target and never
 # shows in dot-star's `git status`. Fire once per file per session;
 # warn_when_personal_context_untracked.sh catches anything still unbanked at
-# SessionStart and post-commit.
+# SessionStart.
 
 set -euo pipefail
 
