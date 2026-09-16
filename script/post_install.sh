@@ -329,5 +329,6 @@ bt_push "hammerspoon setup"
 # Splice the shipped Hammerspoon modules into whatever init.lua the machine already has, the way the rc files get their bootstrap block, rather than linking the whole dir over it: a machine with modules of its own keeps them.
 mkdir -p "${HOME}/.hammerspoon"
 setup_bootstrap "${HOME}/.hammerspoon/init.lua" "package.path = os.getenv('HOME') .. '/.dot-star/tools/hammerspoon/?.lua;' .. package.path
+require('add_application_open_hotkeys')
 require('add_toggle_terminal_hotkey')" '--'
 bt_pop # hammerspoon setup
