@@ -57,6 +57,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from claude_session_dir import claude_session_dir
 from terminal_tty import IN_TERMINAL_APP, STATE_DIR, append_log, controlling_tty, write_to_terminal
 
 LOG_FILE = STATE_DIR / "session_color.log"
@@ -141,13 +142,12 @@ def read_tab(tty: str, expression: str) -> str | None:
 
 def state_file(session_id: str) -> Path | None:
     """Return the session-scoped path holding the derived color and saved look."""
-    # Abbreviate the session id git-short style, matching claude_session_dir.inc.sh.
-    short = "".join(character for character in session_id if character.isalnum() or character == "-")[:7]
+    session_dir = claude_session_dir(session_id)
 
-    if not short:
+    if session_dir is None:
         return None
 
-    return Path("/tmp/claude") / short / "color.json"
+    return session_dir / "color.json"
 
 
 def selected_modes() -> set[str]:
