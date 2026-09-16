@@ -38,12 +38,12 @@ from terminal_tty import IN_TERMINAL_APP, STATE_DIR, append_log, controlling_tty
 LOG_FILE = STATE_DIR / "report_cwd.log"
 
 
-def log(message):
+def log(message: str) -> None:
     """Append a timestamped diagnostic line so soft failures stay visible."""
     append_log(LOG_FILE, message)
 
 
-def cwd_url(cwd):
+def cwd_url(cwd: str) -> str:
     """
     Build the OSC 7 payload URL for a directory.
 
@@ -58,7 +58,7 @@ def cwd_url(cwd):
     return "kitty-shell-cwd://{}{}".format(host, cwd)
 
 
-def report_cwd(tty, cwd):
+def report_cwd(tty: str, cwd: str) -> None:
     """
     Write the OSC 7 sequence for `cwd` straight to the session's tty, logging any failure.
 
@@ -71,7 +71,7 @@ def report_cwd(tty, cwd):
         log("report {} failed (write to {}): {}".format(cwd, tty, error))
 
 
-def main():
+def main() -> None:
     try:
         event = json.load(sys.stdin)
     except (json.JSONDecodeError, ValueError):

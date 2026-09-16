@@ -40,6 +40,7 @@ import json
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 from terminal_tty import IN_TERMINAL_APP, STATE_DIR, append_log, controlling_tty, write_to_terminal
 
@@ -51,17 +52,17 @@ OBJECTIVE = os.environ.get("CLAUDE_OBJECTIVE", "Claude Code")
 HAMMERSPOON_CLI = "/Applications/Hammerspoon.app/Contents/Frameworks/hs/hs"
 
 
-def log(message):
+def log(message: str) -> None:
     """Append a timestamped diagnostic line so soft failures stay visible."""
     append_log(LOG_FILE, message)
 
 
-def applescript_quote(text):
+def applescript_quote(text: str) -> str:
     """Escape a string for safe interpolation into an AppleScript literal."""
     return text.replace("\\", "\\\\").replace('"', '\\"')
 
 
-def run_osascript(script, action):
+def run_osascript(script: str, action: str) -> subprocess.CompletedProcess[str]:
     """Run an AppleScript snippet, logging any failure with a permission hint."""
     result = subprocess.run(
         ["osascript", "-e", script],
@@ -79,7 +80,7 @@ def run_osascript(script, action):
     return result
 
 
-def run_hammerspoon(lua, action):
+def run_hammerspoon(lua: str, action: str) -> str | None:
     """
     Run a Lua snippet inside Hammerspoon, returning its printed result or None on failure.
 
@@ -106,7 +107,7 @@ def run_hammerspoon(lua, action):
     return result.stdout.strip()
 
 
-def write_to_own_tab(payload):
+def write_to_own_tab(payload: str) -> None:
     """
     Send raw bytes straight to the session's tab, bypassing the hook pipe.
 
@@ -124,16 +125,16 @@ def write_to_own_tab(payload):
         log("write to {} failed: {}".format(dev, error))
 
 
-def set_title(state):
+def set_title(state: str) -> None:
     """Set the tab/window title to `[STATE] <Objective>` via an OSC escape."""
     write_to_own_tab("\033]0;[{}] {}\007".format(state, OBJECTIVE))
 
 
-def state_file(session_id):
+def state_file(session_id: str) -> Path:
     return STATE_DIR / "{}.window".format(session_id)
 
 
-def capture_window_id(session_id):
+def capture_window_id(session_id: str) -> None:
     """
     Record the frontmost window at session launch.
 
@@ -173,7 +174,7 @@ def capture_window_id(session_id):
     log("captured window {} for session {}".format(record, session_id))
 
 
-def focus_window(session_id):
+def focus_window(session_id: str) -> None:
     """
     Force the recorded window to the frontmost layer.
 
@@ -237,7 +238,7 @@ def focus_window(session_id):
         log(outcome)
 
 
-def notify(message):
+def notify(message: str) -> None:
     """Fire a native desktop notification with the Glass sound."""
     script = 'display notification "{body}" with title "{title}" sound name "Glass"'.format(
         body=applescript_quote(message),
@@ -250,7 +251,7 @@ def notify(message):
         log("notification dispatched; if invisible, allow Script Editor in System Settings > Notifications")
 
 
-def on_waiting(event):
+def on_waiting(event: dict) -> None:
     """React to a wait-state: title, Dock bounce, notification, focus."""
     set_title("WAITING")
 
@@ -262,7 +263,7 @@ def on_waiting(event):
     focus_window(event.get("session_id", ""))
 
 
-def main():
+def main() -> None:
     event_name = sys.argv[1] if len(sys.argv) > 1 else ""
 
     try:

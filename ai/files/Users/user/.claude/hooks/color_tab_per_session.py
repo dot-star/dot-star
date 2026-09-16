@@ -100,12 +100,12 @@ end tell
 """
 
 
-def log(message):
+def log(message: str) -> None:
     """Append a timestamped diagnostic line so soft failures stay visible."""
     append_log(LOG_FILE, message)
 
 
-def run_osascript(script, action):
+def run_osascript(script: str, action: str) -> subprocess.CompletedProcess[str]:
     """Run an AppleScript snippet, logging any failure with a permission hint."""
     result = subprocess.run(
         ["osascript", "-e", script],
@@ -123,12 +123,12 @@ def run_osascript(script, action):
     return result
 
 
-def tell_tab(tty, body, action):
+def tell_tab(tty: str, body: str, action: str) -> subprocess.CompletedProcess[str]:
     """Run an AppleScript body against the Terminal tab that owns `tty`."""
     return run_osascript(TAB_SCRIPT.format(tty=tty, body=body), action)
 
 
-def read_tab(tty, expression):
+def read_tab(tty: str, expression: str) -> str | None:
     """Return an AppleScript property of the session's tab, or None if unreadable."""
     result = tell_tab(tty, "return {}".format(expression), "read {}".format(expression))
 
@@ -138,7 +138,7 @@ def read_tab(tty, expression):
     return result.stdout.strip() or None
 
 
-def state_file(session_id):
+def state_file(session_id: str) -> Path | None:
     """Return the session-scoped path holding the derived color and saved look."""
     # Abbreviate the session id git-short style, matching claude_session_dir.inc.sh.
     short = "".join(character for character in session_id if character.isalnum() or character == "-")[:7]
@@ -149,7 +149,7 @@ def state_file(session_id):
     return Path("/tmp/claude") / short / "color.json"
 
 
-def selected_modes():
+def selected_modes() -> set[str]:
     """Return the mechanisms named by CLAUDE_SESSION_COLOR, as a set."""
     raw = os.environ.get("CLAUDE_SESSION_COLOR", DEFAULT_MODES)
     modes = set()
@@ -164,14 +164,14 @@ def selected_modes():
     return modes
 
 
-def hsv_to_rgb(hue, saturation, value, depth):
+def hsv_to_rgb(hue: float, saturation: float, value: float, depth: int) -> list[int]:
     """Convert an HSV color to an integer RGB triple scaled to `depth` (e.g. 255)."""
     channels = colorsys.hsv_to_rgb(hue / 360.0, saturation, value)
 
     return [round(channel * depth) for channel in channels]
 
 
-def apply_profile(tty, profile):
+def apply_profile(tty: str, profile: str) -> None:
     """Switch the session's tab to a named Terminal profile."""
     tell_tab(
         tty,
@@ -180,7 +180,7 @@ def apply_profile(tty, profile):
     )
 
 
-def apply_background(tty, rgb):
+def apply_background(tty: str, rgb: list[int] | list[str]) -> None:
     """Repaint the session's tab background with a 16-bit-per-channel RGB triple."""
     tell_tab(
         tty,
@@ -189,7 +189,7 @@ def apply_background(tty, rgb):
     )
 
 
-def write_osc(tty, payload, action):
+def write_osc(tty: str, payload: str, action: str) -> None:
     """
     Write an escape sequence straight to the session's tty, logging any failure.
 
@@ -203,7 +203,7 @@ def write_osc(tty, payload, action):
         log("{} failed (write to {}): {}".format(action, tty, error))
 
 
-def apply_background_osc(tty, rgb):
+def apply_background_osc(tty: str, rgb: list[int]) -> None:
     """
     Repaint the session's pane background through OSC 11.
 
@@ -214,7 +214,7 @@ def apply_background_osc(tty, rgb):
     write_osc(tty, "\033]11;{}\a".format(color), "set background {}".format(color))
 
 
-def reset_background_osc(tty):
+def reset_background_osc(tty: str) -> None:
     """
     Put the pane background back to the emulator's configured color through OSC 111.
 
@@ -223,7 +223,7 @@ def reset_background_osc(tty):
     write_osc(tty, "\033]111\a", "reset background")
 
 
-def on_session_start(event):
+def on_session_start(event: dict) -> None:
     """Derive this session's color, save the tab's current look, and apply it."""
     modes = selected_modes()
 
@@ -277,7 +277,7 @@ def on_session_start(event):
     log("SessionStart: {}".format(state))
 
 
-def on_session_end(event):
+def on_session_end(event: dict) -> None:
     """Put back the tab's look saved at SessionStart."""
     path = state_file(event.get("session_id", ""))
 
@@ -304,7 +304,7 @@ def on_session_end(event):
     log("SessionEnd ({}): restored {}".format(event.get("reason", "?"), tty))
 
 
-def main():
+def main() -> None:
     event_name = sys.argv[1] if len(sys.argv) > 1 else ""
 
     try:

@@ -23,7 +23,7 @@ STATE_DIR = Path("/tmp/claude-state-hook")
 IN_TERMINAL_APP = os.environ.get("TERM_PROGRAM") == "Apple_Terminal"
 
 
-def append_log(log_file, message):
+def append_log(log_file: Path, message: str) -> None:
     """
     Append a timestamped diagnostic line so soft failures stay visible.
 
@@ -37,7 +37,7 @@ def append_log(log_file, message):
         handle.write("{} {}\n".format(stamp, message))
 
 
-def controlling_tty():
+def controlling_tty() -> str | None:
     """Return the /dev path of the terminal tab that owns the claude process, or None."""
     # The hook's parent ($PPID) shares claude's controlling terminal, inherited
     # across fork and unaffected by the hook's piped stdio. ps reports it
@@ -56,7 +56,7 @@ def controlling_tty():
     return "/dev/" + name
 
 
-def write_to_terminal(tty, payload):
+def write_to_terminal(tty: str, payload: str) -> OSError | None:
     """
     Write raw bytes straight to the session's tty.
 
