@@ -40,6 +40,18 @@ update_readme_methods.sh
 
 The position is only visible once a second file exists. `private-todo.md` reads fine alone, but a second repo's list can only be `private-todo-<repo>.md`, burying the axis at the end. Naming it `private-dot-star-todo.md` up front leaves `private-<repo>-todo.md` free and keeps the kind as the trailing token.
 
+**A bare name means the same thing in every family.** The unsuffixed file holds the behavior; each suffixed sibling holds a supporting piece (`_models` for the shapes the behavior works on, `_table` for the data it reads, `_test` for its tests). A family that hands the bare name to its shapes instead teaches a convention the next family breaks, so a reader who learns one family guesses wrong on the other. Example:
+
+```
+billing.py          behavior
+billing_models.py   shapes
+pricing.py          behavior
+pricing_models.py   shapes
+pricing_table.py    data
+```
+
+`pricing_models.py` reads no better than `pricing.py` would in isolation. It earns the suffix by keeping `billing.py`'s promise that a bare name is where the work happens, which is what lets a reader open the right file without listing the directory first.
+
 More patterns from `php-curl-class/examples/` and `tests/`:
 
 - **Sibling prefixes mirror parent families.** When a parallel set of functionality exists, the new family's filenames mirror the first's vocabulary token-for-token: `curl_after_send.php` ↔ `multi_curl_after_send.php`, `curl_before_send_retry.php` ↔ `multi_curl_before_send_retry.php`. Pick the matching suffix instead of inventing a new one.
@@ -53,4 +65,5 @@ More patterns from `php-curl-class/examples/` and `tests/`:
 1. Is there an existing group it belongs in? If yes, match the prefix.
 2. Name the second file before settling on the first. If the next sibling can't slot in without renaming this one, the variable part sits in the wrong position: `private-todo.md` forces a second repo's list to become `private-todo-<repo>.md`, while `private-dot-star-todo.md` leaves `private-<repo>-todo.md` free.
 3. Does the remainder of the name tell a reader what the file does/contains/supplements? If no, rename until it does.
-4. Avoid generic names like `utils.sh`, `notes.txt`, `helper.md`, `misc.md`.
+4. Does it hold shapes, data, or tests rather than behavior? Then it carries the matching suffix (`_models`, `_table`, `_test`); the bare name is reserved for the behavior.
+5. Avoid generic names like `utils.sh`, `notes.txt`, `helper.md`, `misc.md`.
