@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Color the macOS Terminal tab per Claude Code session so sessions stay tellable apart.
+Color the terminal tab per Claude Code session so sessions stay tellable apart.
 
 Wired in settings.json so each event runs this script with the event name as
 argv[1] and the event's JSON payload on stdin:
@@ -19,6 +19,12 @@ mechanisms, comma-separated:
 Set it to "off" for no color at all; unset behaves like `DEFAULT_MODES`. With
 both "profile" and "tint" on, the profile lands first and the tint overrides its
 background.
+
+"tint" and "profile" drive the tab through Terminal.app's AppleScript
+dictionary, so they run only when TERM_PROGRAM says the session is in
+Terminal.app: under another emulator (e.g. Ghostty) the `tell application
+"Terminal"` would launch Terminal.app just to answer, popping up an empty
+window. "stripe" works anywhere.
 
 The derived color and the saved look go to /tmp/claude/<short-session-id>/color.json,
 which `render_statusline.sh` reads for the stripe.
@@ -49,6 +55,11 @@ LOG_FILE = STATE_DIR / "session_color.log"
 
 MODES = ("profile", "stripe", "tint")
 DEFAULT_MODES = "tint,stripe"
+
+# Gate the AppleScript path on the emulator claude runs in. Hooks inherit
+# claude's environment, and Terminal.app stamps this value on every shell it
+# opens.
+IN_TERMINAL_APP = os.environ.get("TERM_PROGRAM") == "Apple_Terminal"
 
 # Wash the tab background at this saturation and value: dark enough to keep
 # light text readable, saturated enough to read as a color rather than as gray.
@@ -226,7 +237,7 @@ def on_session_start(event):
         tty = controlling_tty()
         if tty is None:
             log("no controlling tty for ppid {}; tab left alone".format(os.getppid()))
-        else:
+        elif IN_TERMINAL_APP:
             state["tty"] = tty
             state["saved_profile"] = read_tab(tty, "name of current settings of candidate_tab")
             state["saved_background"] = read_tab(tty, "background color of candidate_tab")
@@ -238,6 +249,8 @@ def on_session_start(event):
 
             if "tint" in modes:
                 apply_background(tty, hsv_to_rgb(hue, TINT_SATURATION, TINT_VALUE, 65535))
+        else:
+            log("not in Terminal.app (TERM_PROGRAM={!r}); tab left alone".format(os.environ.get("TERM_PROGRAM")))
 
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(state, indent=2, sort_keys=True))
