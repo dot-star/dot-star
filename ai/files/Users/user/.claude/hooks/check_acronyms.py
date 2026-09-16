@@ -84,6 +84,7 @@ WHITELIST = {
     "TBD",
     "TDD",
     "TODO",
+    "TOML",
     "UI",
     "URI",
     "URL",
