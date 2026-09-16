@@ -15,6 +15,12 @@ writing OSC/bell bytes straight to the claude process's controlling tty, and
 focuses the window via the id captured at launch. The per-window objective comes
 from CLAUDE_OBJECTIVE (set by `cl --obj "..."`, aliased `clo`).
 
+The title, bell, and notification work in any terminal. The window capture and
+raise go through Terminal.app's AppleScript dictionary, so they run only when
+TERM_PROGRAM says the session is in Terminal.app: under another emulator (e.g.
+Ghostty) the `tell application "Terminal"` would launch Terminal.app just to
+answer, popping up an empty window.
+
 A missing macOS permission must never break Claude, so every skipped step and
 osascript failure fails soft and is recorded to a log instead. Tail it while
 debugging "nothing happened":
@@ -32,6 +38,11 @@ from pathlib import Path
 STATE_DIR = Path("/tmp/claude-state-hook")
 LOG_FILE = STATE_DIR / "announce_window_state.log"
 OBJECTIVE = os.environ.get("CLAUDE_OBJECTIVE", "Claude Code")
+
+# Gate the AppleScript steps on the emulator claude runs in. Hooks inherit
+# claude's environment, and Terminal.app stamps this value on every shell it
+# opens.
+IN_TERMINAL_APP = os.environ.get("TERM_PROGRAM") == "Apple_Terminal"
 
 
 def log(message):
@@ -111,6 +122,10 @@ def state_file(session_id):
 
 def capture_window_id(session_id):
     """Record the frontmost Terminal window id at session launch."""
+    if not IN_TERMINAL_APP:
+        log("not in Terminal.app (TERM_PROGRAM={!r}); window capture skipped".format(os.environ.get("TERM_PROGRAM")))
+        return
+
     result = run_osascript(
         'tell application "Terminal" to id of front window',
         "capture window id",
@@ -126,6 +141,10 @@ def capture_window_id(session_id):
 
 def focus_window(session_id):
     """Force the recorded Terminal window to the frontmost layer."""
+    if not IN_TERMINAL_APP:
+        log("not in Terminal.app (TERM_PROGRAM={!r}); raise skipped".format(os.environ.get("TERM_PROGRAM")))
+        return
+
     path = state_file(session_id)
 
     if not path.exists():
