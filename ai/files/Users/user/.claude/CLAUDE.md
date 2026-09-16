@@ -74,8 +74,9 @@
 - `x` always means "close this session": offer 🧨 **`[x]`** as a bracket-prefix option wherever closing is a sensible next step and spell out what closing entails at that spot. The bare letter is on purpose: `x` reads as "close this" from window chrome to vim and no other menu row claims it, so it never needs extending.
   - **On the 🏁 recap** (objective complete: worktree landed, task done, question answered): `x` marks the session for prune, then `/exit`. Prefix the offer with 🏁 followed by a one-line recap of the completed objective, so it's visually distinct from the surrounding work and confirms what was finished. Don't start fresh work in the same session unless the user signals otherwise.
   - **On a worktree menu** (objective not yet complete): `x` lands first, then marks and exits. The land runs exactly as 🏁 **`[L]and`** would (the commit goes through the `commit` skill on a dirty tree; `x2` picks draft 2 the way `L2` does), the 🏁 recap renders as usual, then the `/exit` nudge follows. The worktree menu rule in Output places the row.
-  - On `x`, `Write` an empty file at `/tmp/claude/prune_marks/<session_id>` (the full id, as in the scratchpad path; `Edit(//tmp/claude/**)` is allowlisted so it needs no prompt, where anything under `~/.claude/` is a protected path that prompts whatever the allow rules say), then tell the user to `/exit`. `ai/claude/prune.sh` sweeps every marked session and its mark on its next run. The mark replaces `/rename d`: the built-in appends a collision suffix (`d2`) when another session already carries the title, and that suffixed session never matches.
-  - Delete the mark (`rm /tmp/claude/prune_marks/<session_id>`) when the user starts new work after picking `x`, so the session survives.
+  - **`xx` on a worktree menu** is the close without the land: mark the session for prune, then `/exit`, touching nothing in git. No commit, no promote, no teardown; the worktree and its pending change stay on disk for a later session or `wts` to pick up. Never make it destructive: the prune mark already discards the conversation, so after it the worktree is the only record of the work; a stale worktree costs one `rm -r` where deleted edits are gone. A discard wants its own row with a destructive verb in its name, never a close key that happens to delete. Offer it as 🧨🧨 **`[xx]`** directly beneath 🧨 **`[x]`**; the doubled letter is `[x]`'s own sub-option the way `[xN]` is, so `[x]` keeps its bare letter and `x2` still picks draft 2. It carries no subject drafts, since nothing gets committed. Its recap is ⏸️, not 🏁, since the objective isn't complete: `⏸️ Session closed, worktree left as-is`, then the checklist rows `⏸️ Worktree kept (<name>); N files uncommitted` and `🧨 Session marked for prune`.
+  - On `x` or `xx`, `Write` an empty file at `/tmp/claude/prune_marks/<session_id>` (the full id, as in the scratchpad path; `Edit(//tmp/claude/**)` is allowlisted so it needs no prompt, where anything under `~/.claude/` is a protected path that prompts whatever the allow rules say), then tell the user to `/exit`. `ai/claude/prune.sh` sweeps every marked session and its mark on its next run. The mark replaces `/rename d`: the built-in appends a collision suffix (`d2`) when another session already carries the title, and that suffixed session never matches.
+  - Delete the mark (`rm /tmp/claude/prune_marks/<session_id>`) when the user starts new work after picking `x` or `xx`, so the session survives.
   - `prune.sh` still honors titles too: any session whose custom title is one of `d`, `del`, `delete`, `tmp` (mirrors its `target_titles`; update both together).
 
 ## Shell commands
@@ -338,18 +339,20 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     - Skip the skill's draft-and-pick step and commit with that subject verbatim.
     - Commit only the commit whose tree carried `[cN]`. A subject floated in prose for another pending commit has no accept token, so silence never picks it: leave that commit uncommitted and re-offer its tree.
     - Carry on with the promote or land when the letter asks for one.
-- When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment (any subset the tree allows; ⬆️ promote, 🏁 land and 🧨 close always apply), each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**).
+- When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment (any subset the tree allows; ⬆️ promote, 🏁 land, 🧨 close and 🧨🧨 close-as-is always apply), each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**).
   - 🧨 **`[x]`** is the one designed bundle: `x` means close the session and closing a worktree session means landing it first, so the row reads land + close rather than two actions glued together.
-  - Whenever two or more appear together, list them top-to-bottom in this fixed order: iterate → commit → fold → promote → land → close.
+  - 🧨🧨 **`[xx]`** is the same close without the land, per the `xx` rule in Workflow.
+  - Whenever two or more appear together, list them top-to-bottom in this fixed order: iterate → commit → fold → promote → land → close → close-as-is.
   - The slot order tracks least-to-most committal (don't-commit first, then commit-and-stay, then rewrite-and-stay, then promote, then the teardown, then the teardown plus the session's end).
-  - Land is the only git action that tears the worktree down, so it's always the last git row, never floated into the middle or reordered; 🧨 **`[x]`** is the only row allowed beneath it.
+  - Land is the only git action that tears the worktree down, so it's always the last git row, never floated into the middle or reordered; 🧨 **`[x]`** and 🧨🧨 **`[xx]`** are the only rows allowed beneath it.
+  - Close-as-is sits under close rather than up with iterate, its committal peer, because it's `[x]`'s sub-option and reads as "the other close" only next to its parent.
 
   **Pre-send check**, run on every worktree menu:
 
     1. Does every row wrap its option as `**` + `` ` `` + `[x]remainder` + `` ` `` + `**`? A bare `🧹 [cl]ean` is a fail; the bold inline-code span is as mandatory here as anywhere else.
-    2. Are ⬆️ **`[p]romote`**, 🏁 **`[L]and`** and 🧨 **`[x]`** all on the menu? None is ever conditional: each commits whatever is pending first, so no tree state rules it out. A menu missing one of them is an omission, not a narrowed menu; the rows that drop are 💾 **`[c]ommit`**, 📦 **`[f]old`** and 🛠️ **`[i]terate`**.
+    2. Are ⬆️ **`[p]romote`**, 🏁 **`[L]and`**, 🧨 **`[x]`** and 🧨🧨 **`[xx]`** all on the menu? None is ever conditional: the first three commit whatever is pending first and the last touches nothing, so no tree state rules any of them out. A menu missing one of them is an omission, not a narrowed menu; the rows that drop are 💾 **`[c]ommit`**, 📦 **`[f]old`** and 🛠️ **`[i]terate`**.
     3. Is 🛠️ **`[i]terate`** the top row? Only ⚡ **`[n]ow`** and 📋 **`[a]dd`** may sit above it, in that order.
-    4. Is 🧨 **`[x]`** the bottom row, with 🏁 **`[L]and`** directly above it? If any other option (even a lone keep/iterate slot) renders beneath 🏁 **`[L]and`**, reorder before sending.
+    4. Is 🧨🧨 **`[xx]`** the bottom row, with 🧨 **`[x]`** directly above it and 🏁 **`[L]and`** above that? If any other option (even a lone keep/iterate slot) renders beneath 🏁 **`[L]and`**, reorder before sending.
     5. Is there exactly one space between each emoji and its bracket span? The column padding goes after the closing `**`, before the `(`, never between the emoji and the bracket.
     6. Does every decision the message body left open have a row here? Re-read the prose above for nits, 💅 polish notes, 🔄 heads-ups, and 🔴 blockers; each one the user could accept needs its own row under the same letter and emoji, per the bracket-prefix checklist. A menu that omits one sends the reader back to typing a sentence.
     7. Does the 💾 commit row carry the subject drafts beneath it, and do the ⬆️ promote, 🏁 land and 🧨 close rows each carry their `[pN] ...` stand-in? A committing row with none costs the user a round trip through the skill's pick step.
@@ -375,7 +378,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     - **HEAD is unpublished.** Run the check, don't assume: `git status --short --branch` prints `[ahead N]`, `git log --oneline @{upstream}..HEAD` lists HEAD, or (no upstream configured, the usual case on a worktree branch) `git branch --remotes --contains HEAD` prints nothing. A published HEAD gets no fold slot, since amending it breaks the golden rule of rebasing: don't rewrite published history.
     - **The pending change belongs to HEAD's commit**, finishing or fixing that one intent rather than standing on its own (atomic commits). A change that deserves its own subject gets `[c]ommit`, not `[f]old`.
 
-  - **Empty** (clean tree): drop `[c]ommit` and `[f]old`, reframe `[i]terate` from "defer the commit" to "keep tuning", and narrow the menu to `[i]terate`/`[p]romote`/`[L]and`/`[x]` (they act on the already-committed work).
+  - **Empty** (clean tree): drop `[c]ommit` and `[f]old`, reframe `[i]terate` from "defer the commit" to "keep tuning", and narrow the menu to `[i]terate`/`[p]romote`/`[L]and`/`[x]`/`[xx]` (they act on the already-committed work, or leave it where it is).
 
   Never offer `[c]ommit` off a stale mental model of the tree (e.g. after edits that net back to the committed value) without re-checking.
 
@@ -386,8 +389,9 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - ⬆️ **`[p]romote`**: commit + fast-forward the default branch to here, keep the worktree (via `worktree-promote`). Carries a single `[pN] ...` stand-in for the commit row's numbering when the tree is dirty.
   - 🏁 **`[L]and`**: commit + promote + tear down the worktree (via `worktree-done`). Carries a single `[LN] ...` stand-in for the commit row's numbering when the tree is dirty.
   - 🧨 **`[x]`**: commit + promote + tear down the worktree + mark the session for prune + `/exit`, per the `x` rule in Workflow. The parenthetical spells out the land row's steps rather than saying `land +`, since every option is self-contained. Carries a single `[xN] ...` stand-in for the commit row's numbering when the tree is dirty.
+  - 🧨🧨 **`[xx]`**: mark the session for prune + `/exit`, touching nothing in git (no commit, no promote, no teardown), per the `xx` rule in Workflow. The worktree and its pending change stay on disk for a later session. Carries no drafts, since nothing gets committed.
 
-  **A one-off option outside the standard rows** (e.g. 🧹 **`[cl]ean`** to delete dead code before committing) slots by how committal it is, next to the standard row it most resembles: edit-and-defer sits with 🛠️ **`[i]terate`**, edit-then-commit sits with the 💾 commit row. It never takes the top row from 🛠️ **`[i]terate`** or the bottom rows from 🏁 **`[L]and`** and 🧨 **`[x]`**. It may fold its own commit in (as promote and land do), but never a second menu action's git state change. When its natural letter collides with a standard row's, both sides extend: a clean row turns the commit row into 💾 **`[co]mmit`**, so the menu reads 🧹 **`[cl]ean`** vs 💾 **`[co]mmit`**.
+  **A one-off option outside the standard rows** (e.g. 🧹 **`[cl]ean`** to delete dead code before committing) slots by how committal it is, next to the standard row it most resembles: edit-and-defer sits with 🛠️ **`[i]terate`**, edit-then-commit sits with the 💾 commit row. It never takes the top row from 🛠️ **`[i]terate`** or the bottom rows from 🏁 **`[L]and`**, 🧨 **`[x]`** and 🧨🧨 **`[xx]`**. It may fold its own commit in (as promote and land do), but never a second menu action's git state change. When its natural letter collides with a standard row's, both sides extend: a clean row turns the commit row into 💾 **`[co]mmit`**, so the menu reads 🧹 **`[cl]ean`** vs 💾 **`[co]mmit`**.
 
   Rendered examples (show only the options that apply, always in this order; pad the bracket-name column with trailing spaces so the open-parens line up). On a dirty tree the commit, promote and land rows each carry the subject drafts; the later examples leave them out to keep the shapes short:
 
@@ -406,6 +410,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   > 　　 └─ **`[LN]`** ...
   >   🧨 **`[x]`**       (commit + ✅ promote to master + 🪓 tear down worktree + 🧨 close session)
   > 　　 └─ **`[xN]`** ...
+  >   🧨🧨 **`[xx]`**    (no commit + worktree left as-is + 🧨🧨 close session)
 
   Subset (e.g. nothing worth keeping uncommitted, so no iterate slot):
 
@@ -413,6 +418,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   >   ⬆️ **`[p]romote`** (commit + ✅ promote to master)
   >   🏁 **`[L]and`**    (commit + ✅ promote to master + 🪓 tear down worktree)
   >   🧨 **`[x]`**       (commit + ✅ promote to master + 🪓 tear down worktree + 🧨 close session)
+  >   🧨🧨 **`[xx]`**    (no commit + worktree left as-is + 🧨🧨 close session)
 
   Subset (clean tree, so no commit or fold slot; iterate reframed to keep tuning):
 
@@ -421,6 +427,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   >   ⬆️ **`[p]romote`** (✅ promote to master)
   >   🏁 **`[L]and`**    (✅ promote to master + 🪓 tear down worktree)
   >   🧨 **`[x]`**       (✅ promote to master + 🪓 tear down worktree + 🧨 close session)
+  >   🧨🧨 **`[xx]`**    (no promote + worktree left as-is + 🧨🧨 close session)
 
   Subset (a follow-up edit that finishes the unpublished HEAD commit, so fold joins commit):
 
@@ -431,12 +438,16 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   >   ⬆️ **`[p]romote`** (commit + ✅ promote to master)
   >   🏁 **`[L]and`**    (commit + ✅ promote to master + 🪓 tear down worktree)
   >   🧨 **`[x]`**       (commit + ✅ promote to master + 🪓 tear down worktree + 🧨 close session)
+  >   🧨🧨 **`[xx]`**    (no commit + worktree left as-is + 🧨🧨 close session)
+
+  The doubled emoji pushes the 🧨🧨 row's open-paren two cells right of the column; leave it, since widening every other row's padding costs more than the offset, which also marks the row as the odd one out.
 
   Why the rows sit where they do:
   - Bundling forces actions when the user often wants just to keep iterating.
   - Commit and fold are the two ways to bank the same pending change, so they sit adjacent.
   - Promote and land share the fast-forward but only land removes the worktree.
   - Close is a land plus the session's end, the one step more committal than a land, so it sits beneath it.
+  - Close-as-is is the close with the land taken out, so it sits beneath close as its variant.
   - **`[L]and`** leads with 🏁 (not the 🛬 land marker) to flag that picking Land completes the objective; the 🏁 goes at the front of the Land line, not trailing after the `?`.
 - Whenever a message names loose ends (work this session surfaced but didn't do: a figure still unsourced, a file still to write, a decision the user has to make), offer 📋 **`[a]dd`** to bank them in a TODO section. Fires anywhere loose ends get named, not just at wrap-up: the 🏁 completion recap, a worktree follow-up, or a plain answer trailing off in "still needs". A loose end left in chat scrollback dies with the session; a TODO entry outlives it.
 
@@ -489,7 +500,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
   A file whose entries don't yet carry labels gets both tables added above its entries in the same edit, so a bare `P2` reads to the next person; its existing entries stay unlabeled until a backfill of their own.
 
-  **Slot order:** ⚡ **`[n]ow`** leads, then 📋 **`[a]dd`**, then the rest. Joining a worktree menu, both sit above 🛠️ **`[i]terate`** and 🧨 **`[x]`** still ends the list.
+  **Slot order:** ⚡ **`[n]ow`** leads, then 📋 **`[a]dd`**, then the rest. Joining a worktree menu, both sit above 🛠️ **`[i]terate`** and 🧨🧨 **`[xx]`** still ends the list.
 
   The loose-end slots front the action rather than tracking least-to-most committal like the worktree rows do: closing the loose end is what the user usually wants, so it reads first and the deferring slots follow.
 
@@ -511,6 +522,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   >   🛠️ **`[i]terate`** (no commit + keep iterating)
   >   🏁 **`[L]and`**    (commit + ✅ promote to master + 🪓 tear down worktree)
   >   🧨 **`[x]`**       (commit + ✅ promote to master + 🪓 tear down worktree + 🧨 close session)
+  >   🧨🧨 **`[xx]`**    (no commit + worktree left as-is + 🧨🧨 close session)
 
   Rendered example, standing alone after an answer:
 
@@ -561,8 +573,8 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     - 🪓 Worktree removed (land) or `⏸️ Worktree kept (<name>); promote keeps it, land tears it down` (promote). The kept line always names why it survived, since a bare "kept" reads as an oversight and prompts a "why not tear down?" round trip.
     - 🧨 Session marked for prune (close only)
 
-    List only the steps that fired; for other objectives use whatever steps composed the work.
+    List only the steps that fired; for other objectives use whatever steps composed the work. A close-as-is (`xx`) leads with ⏸️ instead of 🏁, since nothing completed; its rows are spelled out in the `xx` rule in Workflow.
 
     Fired means over the whole objective, not the latest turn: a land after a promote renders the promote's rows again (the `✅ Committed` tree, then `✅ Promoted to master`) ahead of the 🪓, so the recap reads the same whether the promote happened a turn earlier or never. A free-form `master already carried N commits` row hides the subjects and invites a hash.
 
-    Order the rows by clock, except 🪓, which stays the last git row however things unfolded: a commit that lands after the teardown (a follow-up in another repo) still slots above it as its own `✅ Committed N commits (<repo>)` row. A 🪓 above a commit list reads as torn down before the work was banked. 🧨 is the one row allowed beneath it, mirroring the menu, where 🧨 **`[x]`** is the only row beneath 🏁 **`[L]and`**.
+    Order the rows by clock, except 🪓, which stays the last git row however things unfolded: a commit that lands after the teardown (a follow-up in another repo) still slots above it as its own `✅ Committed N commits (<repo>)` row. A 🪓 above a commit list reads as torn down before the work was banked. 🧨 is the one row allowed beneath it, mirroring the menu, where the close rows are the only ones beneath 🏁 **`[L]and`**.
