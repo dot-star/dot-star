@@ -279,11 +279,24 @@ gitk_strip_geometry() {
     sed -i "" '/set geometry(/d' "$(readlink -f "${config}")"
 }
 
+# Put the gitk config back under dot-star. gitk saves on exit by renaming a temp file over the config path (savestuff), which swaps the symlink for a regular file holding the latest settings.
+gitk_restore_symlink() {
+    local config="${HOME}/.config/git/gitk"
+    local tracked="${HOME}/.dot-star/tools/version_control/gitk"
+
+    if [[ -f "${config}" ]] && [[ ! -L "${config}" ]]; then
+        mv "${config}" "${tracked}"
+        ln -s "${tracked}" "${config}"
+    fi
+}
+
 git_browser() {
-    # Drop any geometry left by direct `gitk` invocations that bypassed this wrapper.
+    # Reclaim the config after direct `gitk` invocations that bypassed this wrapper.
+    gitk_restore_symlink
     gitk_strip_geometry
     gitk "${@}"
-    # Clear geometry lines gitk just wrote on exit.
+    # Reclaim the config gitk just wrote on exit.
+    gitk_restore_symlink
     gitk_strip_geometry
 }
 
