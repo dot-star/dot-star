@@ -53,9 +53,9 @@ def cwd_url(cwd: str) -> str:
     host = socket.gethostname()
 
     if IN_TERMINAL_APP:
-        return "file://{}{}".format(host, quote(cwd))
+        return f"file://{host}{quote(cwd)}"
 
-    return "kitty-shell-cwd://{}{}".format(host, cwd)
+    return f"kitty-shell-cwd://{host}{cwd}"
 
 
 def report_cwd(tty: str, cwd: str) -> None:
@@ -65,10 +65,10 @@ def report_cwd(tty: str, cwd: str) -> None:
     :param tty: /dev path of the tab to update (e.g. "/dev/ttys003").
     :param cwd: Absolute path to report (e.g. "/Users/me/Projects/foo").
     """
-    error = write_to_terminal(tty, "\033]7;{}\a".format(cwd_url(cwd)))
+    error = write_to_terminal(tty, f"\033]7;{cwd_url(cwd)}\a")
 
     if error is not None:
-        log("report {} failed (write to {}): {}".format(cwd, tty, error))
+        log(f"report {cwd} failed (write to {tty}): {error}")
 
 
 def main() -> None:
@@ -86,7 +86,7 @@ def main() -> None:
     tty = controlling_tty()
 
     if tty is None:
-        log("no controlling tty for ppid {}; skipping".format(os.getppid()))
+        log(f"no controlling tty for ppid {os.getppid()}; skipping")
         return
 
     report_cwd(tty, cwd)

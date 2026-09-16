@@ -49,13 +49,13 @@ class FindHiddenCharacterTest(unittest.TestCase):
 
     def test_returns_the_zero_width_character(self) -> None:
         """Ensure find_hidden_character returns a zero-width character embedded in a command."""
-        for character in ("​", "‍", "⁦"):
+        for character in ("\u200b", "\u200d", "\u2066"):
             with self.subTest(character=ascii(character)):
                 self.assertEqual(find_hidden_character(f"git{character}log"), (3, character))
 
     def test_returns_the_separator(self) -> None:
         """Ensure find_hidden_character returns a line or paragraph separator, which renders as nothing."""
-        for character in (" ", " "):
+        for character in ("\u2028", "\u2029"):
             with self.subTest(character=ascii(character)):
                 self.assertEqual(find_hidden_character(f"git{character}log"), (3, character))
 
@@ -69,13 +69,13 @@ class BuildDenyTest(unittest.TestCase):
 
     def test_names_the_offending_character(self) -> None:
         """Ensure build_deny reports the character's escape and Unicode name in the reason."""
-        reason = build_deny(0, "‮")["hookSpecificOutput"]["permissionDecisionReason"]
+        reason = build_deny(0, "\u202e")["hookSpecificOutput"]["permissionDecisionReason"]
         self.assertIn("'\\u202e'", reason)
         self.assertIn("RIGHT-TO-LEFT OVERRIDE", reason)
 
     def test_reports_where_the_character_sits(self) -> None:
         """Ensure build_deny reports the character's index so a long command stays searchable."""
-        reason = build_deny(42, "​")["hookSpecificOutput"]["permissionDecisionReason"]
+        reason = build_deny(42, "\u200b")["hookSpecificOutput"]["permissionDecisionReason"]
         self.assertIn("index 42", reason)
 
     def test_falls_back_for_an_unnamed_character(self) -> None:
@@ -127,6 +127,7 @@ class MainDecisionTest(unittest.TestCase):
             input="not json",
             capture_output=True,
             text=True,
+            check=False,
         )
         self.assertEqual(result.stdout.strip(), "")
 
@@ -144,6 +145,7 @@ def run_hook(payload: dict[str, Any] | list[Any]) -> subprocess.CompletedProcess
         input=json.dumps(payload),
         capture_output=True,
         text=True,
+        check=False,
     )
 
 

@@ -29,7 +29,7 @@ import os
 import re
 import sys
 from collections.abc import Iterable, Mapping, Sequence
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 from typing import Any
 
@@ -51,7 +51,7 @@ SECTIONS = ("deny", "ask", "allow")
 type Result = tuple[str, str, str]
 
 
-@lru_cache(maxsize=None)
+@cache
 def glob_to_regex(pattern: str) -> re.Pattern[str]:
     """
     Compiles a permission-rule pattern into an anchored regex.

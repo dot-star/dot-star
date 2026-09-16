@@ -141,6 +141,6 @@ def main() -> None:
 if __name__ == "__main__":
     try:
         main()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         # Prevent runtime telemetry failures from breaking Claude UI, but log to stderr for diagnostics
         print(f"Logging hook exception: {e}", file=sys.stderr)

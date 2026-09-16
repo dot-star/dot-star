@@ -111,11 +111,12 @@ def run_osascript(script: str, action: str) -> subprocess.CompletedProcess[str]:
         ["osascript", "-e", script],
         capture_output=True,
         text=True,
+        check=False,
     )
 
     if result.returncode != 0:
         stderr = result.stderr.strip()
-        log("{} failed (osascript exit {}): {}".format(action, result.returncode, stderr))
+        log(f"{action} failed (osascript exit {result.returncode}): {stderr}")
         # -1743 is macOS's "not authorized to send Apple events": Automation is off.
         if "-1743" in stderr or "Not authorized" in stderr:
             log("  fix: System Settings > Privacy & Security > Automation > Terminal > enable Terminal")
@@ -130,7 +131,7 @@ def tell_tab(tty: str, body: str, action: str) -> subprocess.CompletedProcess[st
 
 def read_tab(tty: str, expression: str) -> str | None:
     """Return an AppleScript property of the session's tab, or None if unreadable."""
-    result = tell_tab(tty, "return {}".format(expression), "read {}".format(expression))
+    result = tell_tab(tty, f"return {expression}", f"read {expression}")
 
     if result.returncode != 0:
         return None
@@ -159,7 +160,7 @@ def selected_modes() -> set[str]:
         if name in MODES:
             modes.add(name)
         elif name and name != "off":
-            log("ignoring unknown CLAUDE_SESSION_COLOR mode {!r}".format(name))
+            log(f"ignoring unknown CLAUDE_SESSION_COLOR mode {name!r}")
 
     return modes
 
@@ -175,8 +176,8 @@ def apply_profile(tty: str, profile: str) -> None:
     """Switch the session's tab to a named Terminal profile."""
     tell_tab(
         tty,
-        'set current settings of candidate_tab to settings set "{}"'.format(profile),
-        "set profile {}".format(profile),
+        f'set current settings of candidate_tab to settings set "{profile}"',
+        f"set profile {profile}",
     )
 
 
@@ -185,7 +186,7 @@ def apply_background(tty: str, rgb: list[int] | list[str]) -> None:
     tell_tab(
         tty,
         "set background color of candidate_tab to {{{}}}".format(", ".join(str(channel) for channel in rgb)),
-        "set background {}".format(rgb),
+        f"set background {rgb}",
     )
 
 
@@ -200,7 +201,7 @@ def write_osc(tty: str, payload: str, action: str) -> None:
     error = write_to_terminal(tty, payload)
 
     if error is not None:
-        log("{} failed (write to {}): {}".format(action, tty, error))
+        log(f"{action} failed (write to {tty}): {error}")
 
 
 def apply_background_osc(tty: str, rgb: list[int]) -> None:
@@ -211,7 +212,7 @@ def apply_background_osc(tty: str, rgb: list[int]) -> None:
     :param rgb: 8-bit-per-channel RGB triple (e.g. `[36, 16, 16]`).
     """
     color = "#{:02x}{:02x}{:02x}".format(*rgb)
-    write_osc(tty, "\033]11;{}\a".format(color), "set background {}".format(color))
+    write_osc(tty, f"\033]11;{color}\a", f"set background {color}")
 
 
 def reset_background_osc(tty: str) -> None:
@@ -250,7 +251,7 @@ def on_session_start(event: dict) -> None:
     if "profile" in modes or "tint" in modes:
         tty = controlling_tty()
         if tty is None:
-            log("no controlling tty for ppid {}; tab left alone".format(os.getppid()))
+            log(f"no controlling tty for ppid {os.getppid()}; tab left alone")
         elif IN_TERMINAL_APP:
             state["tty"] = tty
             state["saved_profile"] = read_tab(tty, "name of current settings of candidate_tab")
@@ -274,7 +275,7 @@ def on_session_start(event: dict) -> None:
 
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(state, indent=2, sort_keys=True))
-    log("SessionStart: {}".format(state))
+    log(f"SessionStart: {state}")
 
 
 def on_session_end(event: dict) -> None:

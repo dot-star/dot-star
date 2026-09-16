@@ -82,7 +82,7 @@ def build_deny(index: int, character: str) -> dict:
     :return: Hook output object ready to serialize to stdout.
     """
     name = unicodedata.name(character, "unnamed character")
-    reason = f"Command contains a hidden character at index {index}: {ascii(character)} ({name})."
+    reason = f"Command contains a hidden character at index {index}: {character!a} ({name})."
     return {
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",

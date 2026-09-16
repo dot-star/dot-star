@@ -68,11 +68,12 @@ def run_osascript(script: str, action: str) -> subprocess.CompletedProcess[str]:
         ["osascript", "-e", script],
         capture_output=True,
         text=True,
+        check=False,
     )
 
     if result.returncode != 0:
         stderr = result.stderr.strip()
-        log("{} failed (osascript exit {}): {}".format(action, result.returncode, stderr))
+        log(f"{action} failed (osascript exit {result.returncode}): {stderr}")
         # -1743 is macOS's "not authorized to send Apple events": Automation is off.
         if "-1743" in stderr or "Not authorized" in stderr:
             log("  fix: System Settings > Privacy & Security > Automation > Terminal > enable Terminal")
@@ -94,13 +95,14 @@ def run_hammerspoon(lua: str, action: str) -> str | None:
             [HAMMERSPOON_CLI, "-c", lua],
             capture_output=True,
             text=True,
+            check=False,
         )
     except OSError as error:
-        log("{} failed (no Hammerspoon client at {}): {}".format(action, HAMMERSPOON_CLI, error))
+        log(f"{action} failed (no Hammerspoon client at {HAMMERSPOON_CLI}): {error}")
         return None
 
     if result.returncode != 0:
-        log("{} failed (hs exit {}): {}".format(action, result.returncode, result.stderr.strip()))
+        log(f"{action} failed (hs exit {result.returncode}): {result.stderr.strip()}")
         log("  fix: Hammerspoon must be running with `require('hs.ipc')` in its init.lua")
         return None
 
@@ -116,22 +118,22 @@ def write_to_own_tab(payload: str) -> None:
     dev = controlling_tty()
 
     if dev is None:
-        log("no controlling tty for ppid {}; title/bell skipped".format(os.getppid()))
+        log(f"no controlling tty for ppid {os.getppid()}; title/bell skipped")
         return
 
     error = write_to_terminal(dev, payload)
 
     if error is not None:
-        log("write to {} failed: {}".format(dev, error))
+        log(f"write to {dev} failed: {error}")
 
 
 def set_title(state: str) -> None:
     """Set the tab/window title to `[STATE] <Objective>` via an OSC escape."""
-    write_to_own_tab("\033]0;[{}] {}\007".format(state, OBJECTIVE))
+    write_to_own_tab(f"\033]0;[{state}] {OBJECTIVE}\007")
 
 
 def state_file(session_id: str) -> Path:
-    return STATE_DIR / "{}.window".format(session_id)
+    return STATE_DIR / f"{session_id}.window"
 
 
 def capture_window_id(session_id: str) -> None:
@@ -167,11 +169,11 @@ def capture_window_id(session_id: str) -> None:
         )
 
         if not record:
-            log("no focused window at launch; cannot record one for session {}".format(session_id))
+            log(f"no focused window at launch; cannot record one for session {session_id}")
             return
 
     state_file(session_id).write_text(record)
-    log("captured window {} for session {}".format(record, session_id))
+    log(f"captured window {record} for session {session_id}")
 
 
 def focus_window(session_id: str) -> None:
@@ -183,7 +185,7 @@ def focus_window(session_id: str) -> None:
     path = state_file(session_id)
 
     if not path.exists():
-        log("no window id on file for session {}; cannot raise (was SessionStart blocked?)".format(session_id))
+        log(f"no window id on file for session {session_id}; cannot raise (was SessionStart blocked?)")
         return
 
     record = path.read_text().strip().split()
@@ -203,18 +205,18 @@ def focus_window(session_id: str) -> None:
         )
 
         if result.returncode == 0 and result.stdout.strip() == "true":
-            log("Terminal is frontmost (typing?); window {} left alone".format(window_id))
+            log(f"Terminal is frontmost (typing?); window {window_id} left alone")
             return
 
         run_osascript(
-            'tell application "Terminal" to set frontmost of window id {} to true'.format(window_id),
-            "raise window {}".format(window_id),
+            f'tell application "Terminal" to set frontmost of window id {window_id} to true',
+            f"raise window {window_id}",
         )
         return
 
     bundle_id = record[1] if len(record) > 1 else ""
     outcome = run_hammerspoon(
-        """
+        f"""
         local focused = hs.window.focusedWindow()
         if focused ~= nil and focused:application():bundleID() == "{bundle_id}" then
             return "{bundle_id} is frontmost (typing?); window {window_id} left alone"
@@ -230,8 +232,8 @@ def focus_window(session_id: str) -> None:
         end
         app:activate()
         return "window {window_id} not visible (background tab?); activated {bundle_id} instead"
-        """.format(window_id=window_id, bundle_id=bundle_id),
-        "raise window {}".format(window_id),
+        """,
+        f"raise window {window_id}",
     )
 
     if outcome:
@@ -240,10 +242,7 @@ def focus_window(session_id: str) -> None:
 
 def notify(message: str) -> None:
     """Fire a native desktop notification with the Glass sound."""
-    script = 'display notification "{body}" with title "{title}" sound name "Glass"'.format(
-        body=applescript_quote(message),
-        title=applescript_quote(OBJECTIVE),
-    )
+    script = f'display notification "{applescript_quote(message)}" with title "{applescript_quote(OBJECTIVE)}" sound name "Glass"'
 
     result = run_osascript(script, "post notification")
 
@@ -272,7 +271,7 @@ def main() -> None:
         event = {}
 
     if event_name == "SessionStart":
-        log("SessionStart: objective={!r}".format(OBJECTIVE))
+        log(f"SessionStart: objective={OBJECTIVE!r}")
         capture_window_id(event.get("session_id", ""))
         set_title("RUNNING")
     elif event_name == "Notification":

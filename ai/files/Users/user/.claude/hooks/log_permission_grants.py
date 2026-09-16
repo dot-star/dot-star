@@ -63,6 +63,7 @@ def worktree_branch(worktree: str) -> str:
             capture_output=True,
             text=True,
             timeout=5,
+            check=False,
         )
     except (OSError, subprocess.SubprocessError):
         return ""
@@ -177,6 +178,6 @@ def main(argv: list) -> None:
 if __name__ == "__main__":
     try:
         main(sys.argv[1:])
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         # Prevent runtime telemetry failures from breaking Claude UI, but log to stderr for diagnostics
         print(f"Archive hook exception: {e}", file=sys.stderr)

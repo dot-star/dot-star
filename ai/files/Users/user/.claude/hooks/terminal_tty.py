@@ -31,10 +31,10 @@ def append_log(log_file: Path, message: str) -> None:
     :param message: Line to record, without a timestamp or newline.
     """
     STATE_DIR.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    stamp = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S")
 
     with open(log_file, "a") as handle:
-        handle.write("{} {}\n".format(stamp, message))
+        handle.write(f"{stamp} {message}\n")
 
 
 def controlling_tty() -> str | None:
