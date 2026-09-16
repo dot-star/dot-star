@@ -70,6 +70,15 @@
       {
         "hooks": [
           {
+            "command": "${HOME}/.claude/hooks/report_cwd_for_new_tabs.py",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash|EnterWorktree|ExitWorktree"
+      },
+      {
+        "hooks": [
+          {
             "command": "${HOME}/.claude/hooks/announce_window_state.py PostToolUse",
             "type": "command"
           }
@@ -139,15 +148,15 @@
             "type": "command"
           },
           {
-            "command": "${HOME}/.claude/hooks/record_worktree_for_statusline.sh",
-            "type": "command"
-          },
-          {
             "command": "${HOME}/.claude/hooks/announce_window_state.py SessionStart",
             "type": "command"
           },
           {
             "command": "${HOME}/.claude/hooks/color_tab_per_session.py SessionStart",
+            "type": "command"
+          },
+          {
+            "command": "${HOME}/.claude/hooks/report_cwd_for_new_tabs.py",
             "type": "command"
           }
         ]
