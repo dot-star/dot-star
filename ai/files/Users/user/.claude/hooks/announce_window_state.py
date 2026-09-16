@@ -6,7 +6,8 @@ argv[1] and the event's JSON payload on stdin:
 
   SessionStart -> record the front window id, label the tab `[RUNNING]`.
   Notification -> Claude is waiting on you: `[WAITING]` title, Dock bounce,
-                  desktop notification, and pull the window frontmost.
+                  desktop notification, and pull the window frontmost unless
+                  the terminal app is already frontmost (you may be typing).
   PostToolUse  -> a tool finished (including one you just approved): reset to
                   `[RUNNING]`.
 
@@ -217,7 +218,19 @@ def focus_window(session_id):
 
     window_id = record[0]
 
+    # Leave focus alone while a window of the session's own terminal app is
+    # frontmost: the user may be mid-keystroke in another session, and a raise
+    # would redirect their typing. The title, bell and notification still fire.
     if IN_TERMINAL_APP:
+        result = run_osascript(
+            'tell application "Terminal" to get frontmost',
+            "check Terminal focus",
+        )
+
+        if result.returncode == 0 and result.stdout.strip() == "true":
+            log("Terminal is frontmost (typing?); window {} left alone".format(window_id))
+            return
+
         run_osascript(
             'tell application "Terminal" to set frontmost of window id {} to true'.format(window_id),
             "raise window {}".format(window_id),
@@ -227,6 +240,10 @@ def focus_window(session_id):
     bundle_id = record[1] if len(record) > 1 else ""
     outcome = run_hammerspoon(
         """
+        local focused = hs.window.focusedWindow()
+        if focused ~= nil and focused:application():bundleID() == "{bundle_id}" then
+            return "{bundle_id} is frontmost (typing?); window {window_id} left alone"
+        end
         local window = hs.window.get({window_id})
         if window ~= nil then
             window:focus()
