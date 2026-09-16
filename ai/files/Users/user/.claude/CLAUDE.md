@@ -349,6 +349,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     5. Is there exactly one space between each emoji and its bracket span? The column padding goes after the closing `**`, before the `(`, never between the emoji and the bracket.
     6. Does every decision the message body left open have a row here? Re-read the prose above for nits, 💅 polish notes, 🔄 heads-ups, and 🔴 blockers; each one the user could accept needs its own row under the same letter and emoji, per the bracket-prefix checklist. A menu that omits one sends the reader back to typing a sentence.
     7. Does the 💾 commit row carry the subject drafts beneath it, and do the ⬆️ promote, 🏁 land and 🧨 close rows each carry their `[pN] ...` stand-in? A committing row with none costs the user a round trip through the skill's pick step.
+    8. Is the change the drafts describe staged? Every `[cN]` tree needs its paths in the index before the menu renders, per the staging rule below; a menu with drafts over an unstaged change sends the user back to asking for the staging before they can judge the subjects.
 
   **Subject drafts ride under every row that commits.** Whenever the tree is dirty, draft subjects for the pending change the way the `commit` skill does (over-generate, score, rank) and render the top three beneath each of 💾 **`[c]ommit`**, ⬆️ **`[p]romote`**, 🏁 **`[L]and`** and 🧨 **`[x]`** as a tree sub-list, the same shape as the 🏁 checklist's commit list:
 
@@ -357,6 +358,11 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - **One tree per pending commit:** a menu covering two or more commits (one per repo, say) renders a draft tree under each, numbered globally unique across the message (`[c1]`-`[c3]` for the first commit, `[c4]`-`[c6]` for the second), so a single `c<N>` names one draft of one commit. Never float a commit's subject in prose beside another commit's tree; a subject with no token can't be picked, so it reads as decided when it isn't.
   - **Fold takes no tree**, since it keeps HEAD's subject.
   - **Bare `c` still runs the skill** and shows the full list of five.
+
+  **Stage the change before rendering its drafts.** A subject is judged against the diff it describes, so the diff has to be one command away while the drafts are on screen: once the paths are in the index, a bare `d` in another terminal shows `git diff --cached` (`rc_diff` prefers the staged diff when one exists) and `s` lists the staged files, which is exactly what the picked draft would commit. Whenever a menu carries a `[cN]` tree, run `git add -- <path> [<path> ...]` over the paths this session edited first, under the same explicit-path and `git status --porcelain` checks the staging rule in Shell commands sets, and say so in a line above the menu (`🟢 Staged 2 files`) so the user knows `d` is live. Re-run it on every menu, since edits made after an earlier staging land unstaged.
+
+  - **One commit's paths at a time:** the index holds one commit, so a menu with two trees in one repo stages only the first commit's paths and names which tree is staged; the second tree waits for the first commit to land.
+  - **Fold gets the same staging**, since `git commit --amend --no-edit` commits the index too.
 
   **Applicability is a fact about the tree, not a guess.** Before sending, run `git status --porcelain` and branch on the result:
 
