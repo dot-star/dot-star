@@ -20,19 +20,27 @@ Set it to "off" for no color at all; unset behaves like `DEFAULT_MODES`. With
 both "profile" and "tint" on, the profile lands first and the tint overrides its
 background.
 
-"tint" and "profile" drive the tab through Terminal.app's AppleScript
-dictionary, so they run only when TERM_PROGRAM says the session is in
-Terminal.app: under another emulator (e.g. Ghostty) the `tell application
-"Terminal"` would launch Terminal.app just to answer, popping up an empty
-window. "stripe" works anywhere.
+Pick the paint mechanism by the emulator claude runs in, read off TERM_PROGRAM:
+
+  Terminal.app -> drive the tab through Terminal's AppleScript dictionary. Under
+                  any other emulator that `tell application "Terminal"` would
+                  launch Terminal.app just to answer, popping up an empty window.
+  anything else -> write OSC 11 (set background) and OSC 111 (reset it) straight
+                  to the session's tty, which Ghostty and most modern emulators
+                  honor. Only "tint" ports; "profile" has no equivalent outside
+                  Terminal.app and is skipped there.
 
 The derived color and the saved look go to /tmp/claude/<short-session-id>/color.json,
 which `render_statusline.sh` reads for the stripe.
 
-A crash skips SessionEnd and strands the color on the tab. Reset a stray tab by
-picking any profile from Terminal > Settings, or run:
+A crash skips SessionEnd and strands the color on the tab. Reset a stray
+Terminal.app tab by picking any profile from Terminal > Settings, or run:
 
   osascript -e 'tell application "Terminal" to set current settings of selected tab of front window to settings set "Basic"'
+
+Reset a stray tab in any other emulator from its own shell:
+
+  printf '\\e]111\\a'
 
 A missing macOS permission must never break Claude, so every skipped step and
 osascript failure fails soft and is recorded to a log instead. Tail it while
@@ -209,6 +217,41 @@ def apply_background(tty, rgb):
     )
 
 
+def write_to_terminal(tty, payload, action):
+    """
+    Write raw bytes straight to the session's tty, logging any failure.
+
+    :param tty: /dev path of the tab to paint (e.g. "/dev/ttys003").
+    :param payload: Escape sequence to emit, terminator included.
+    :param action: Short label for the log line (e.g. "set background").
+    """
+    try:
+        with open(tty, "w") as terminal:
+            terminal.write(payload)
+    except OSError as error:
+        log("{} failed (write to {}): {}".format(action, tty, error))
+
+
+def apply_background_osc(tty, rgb):
+    """
+    Repaint the session's pane background through OSC 11.
+
+    :param tty: /dev path of the tab to paint (e.g. "/dev/ttys003").
+    :param rgb: 8-bit-per-channel RGB triple (e.g. `[36, 16, 16]`).
+    """
+    color = "#{:02x}{:02x}{:02x}".format(*rgb)
+    write_to_terminal(tty, "\033]11;{}\a".format(color), "set background {}".format(color))
+
+
+def reset_background_osc(tty):
+    """
+    Put the pane background back to the emulator's configured color through OSC 111.
+
+    :param tty: /dev path of the tab to reset (e.g. "/dev/ttys003").
+    """
+    write_to_terminal(tty, "\033]111\a", "reset background")
+
+
 def on_session_start(event):
     """Derive this session's color, save the tab's current look, and apply it."""
     modes = selected_modes()
@@ -250,7 +293,13 @@ def on_session_start(event):
             if "tint" in modes:
                 apply_background(tty, hsv_to_rgb(hue, TINT_SATURATION, TINT_VALUE, 65535))
         else:
-            log("not in Terminal.app (TERM_PROGRAM={!r}); tab left alone".format(os.environ.get("TERM_PROGRAM")))
+            state["tty"] = tty
+
+            if "profile" in modes:
+                log("not in Terminal.app (TERM_PROGRAM={!r}); profile skipped".format(os.environ.get("TERM_PROGRAM")))
+
+            if "tint" in modes:
+                apply_background_osc(tty, hsv_to_rgb(hue, TINT_SATURATION, TINT_VALUE, 255))
 
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(state, indent=2, sort_keys=True))
@@ -270,13 +319,16 @@ def on_session_end(event):
     if tty is None:
         return
 
-    # Restore in the same order the colors were applied, so a saved background
-    # overrides whatever background the saved profile carries.
-    if state.get("saved_profile"):
-        apply_profile(tty, state["saved_profile"])
+    if IN_TERMINAL_APP:
+        # Restore in the same order the colors were applied, so a saved background
+        # overrides whatever background the saved profile carries.
+        if state.get("saved_profile"):
+            apply_profile(tty, state["saved_profile"])
 
-    if state.get("saved_background"):
-        apply_background(tty, state["saved_background"].split(", "))
+        if state.get("saved_background"):
+            apply_background(tty, state["saved_background"].split(", "))
+    elif "tint" in state.get("modes", []):
+        reset_background_osc(tty)
 
     log("SessionEnd ({}): restored {}".format(event.get("reason", "?"), tty))
 
