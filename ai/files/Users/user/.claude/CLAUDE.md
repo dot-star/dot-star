@@ -127,6 +127,14 @@
   - **TODOs specifically:** give every entry its own `TODO: `, never one comment governing several sibling entries. Entries get deleted one at a time, so a shared TODO strands the survivors' rationale when the first one goes.
 - Match the file's existing line-wrapping convention; don't hard-wrap prose or markdown to a column. If the surrounding bullets/paragraphs each run one line, keep yours on one line too. Only wrap where the existing lines already wrap. For a new file with no convention to match, default to no wrapping: one line per paragraph and per bullet.
 - Build multi-line strings so the source mirrors the rendered output: one statement per output line, each carrying a literal newline, not several `\n` escapes packed into one long line. The split makes the rendered shape visible in the source and keeps diffs line-addressable. A `\n` mid-string is still fine (a header's trailing `\n\n` stays inline). Per-language idioms live in the matching style guide.
+- Write a config-file list (TOML, YAML) one item per line, even a single item: the opening bracket ends the key's line, each item takes its own line with a trailing comma where the format allows one, and the closing bracket sits alone. Each item then diffs on its own line and adding one touches one line, the same reason a command's flags split one per line. A comment explaining an item goes inside the list, flush above that item, never above the key, so a second item can't strand it. Rendered example:
+
+  ```
+  extend-select = [
+      # Require type annotations on every function; ty checks only what is annotated.
+      "ANN",
+  ]
+  ```
 - Instruction docs (`CLAUDE.md`, `CLAUDE_*.md`, READMEs) are read by humans too, not just the AI; whenever a rule is best served by structure (a long clause-dense line is the common trigger, not the only one), spend whatever improves readability: whitespace, nested sub-bullets, a table, even an ASCII diagram. These aids serve the human reader and don't count as the column-wrapping the previous rule forbids.
 - Name the principle before the mechanism, in any rule you write (instruction docs, comments, commit bodies). A rule that only describes how something works, or lists the cases it covers, reads as a pile of examples and leaves the reader to infer the one idea behind it. Lead with the sentence stating that idea, then let the mechanism and the examples support it. Test it by reading the first sentence alone: if it doesn't say what the rule is, the rule isn't stated. Bad (mechanism first, idea never stated): `A worker that dies mid-batch replays the whole batch, so the handler writes each row twice.` Good (idea first, mechanism supporting it): `Make every handler idempotent: a worker that dies mid-batch replays the whole batch.`
 - Keep a quoted example literal: don't embed annotation markers (`[1]`), labels, or commentary inside the quotes; put any mapping outside, beneath it. Bad (marker leaked in): `"the example text [2]"`.
