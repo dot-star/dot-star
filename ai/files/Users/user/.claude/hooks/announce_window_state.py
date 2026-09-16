@@ -5,7 +5,7 @@ Wired in settings.json so each event runs this script with the event name as
 argv[1] and the event's JSON payload on stdin:
 
   SessionStart -> record the front window id, label the tab `[RUNNING]`.
-  Notification -> Claude is waiting on you: `[WAITING]` title, Dock bounce,
+  Notification -> Claude is waiting on you: `[READY]` title, Dock bounce,
                   desktop notification, and pull the window frontmost unless
                   the terminal app is already frontmost (you may be typing).
   PostToolUse  -> a tool finished (including one you just approved): reset to
@@ -13,8 +13,10 @@ argv[1] and the event's JSON payload on stdin:
 
 No wrapper process sits in the I/O path. The script reaches the Terminal tab by
 writing OSC/bell bytes straight to the claude process's controlling tty, and
-focuses the window via the id captured at launch. The per-window objective comes
-from CLAUDE_OBJECTIVE (set by `cl --obj "..."`, aliased `clo`).
+focuses the window via the id captured at launch. The objective in the title is
+the session's caveman summary at /tmp/claude/<short-session-id>/objective (the
+assistant writes it on the first user message, and the statusline shows the
+same line), else CLAUDE_OBJECTIVE (set by `cl --obj "..."`, aliased `clo`).
 
 The title, bell, and notification work in any terminal. The window capture and
 raise pick their mechanism by the emulator claude runs in, read off TERM_PROGRAM:
@@ -42,10 +44,11 @@ import subprocess
 import sys
 from pathlib import Path
 
+from claude_session_dir import claude_session_dir
 from terminal_tty import IN_TERMINAL_APP, STATE_DIR, append_log, controlling_tty, write_to_terminal
 
 LOG_FILE = STATE_DIR / "announce_window_state.log"
-OBJECTIVE = os.environ.get("CLAUDE_OBJECTIVE", "Claude Code")
+WINDOW_OBJECTIVE = os.environ.get("CLAUDE_OBJECTIVE", "Claude Code")
 
 # Reach Hammerspoon through the client shipped inside its bundle rather than a
 # PATH lookup, since hooks run with claude's environment, not the login shell's.
@@ -127,9 +130,39 @@ def write_to_own_tab(payload: str) -> None:
         log(f"write to {dev} failed: {error}")
 
 
-def set_title(state: str) -> None:
-    """Set the tab/window title to `[STATE] <Objective>` via an OSC escape."""
-    write_to_own_tab(f"\033]0;[{state}] {OBJECTIVE}\007")
+def objective(session_id: str) -> str:
+    """
+    Returns the objective to label this session's window with.
+
+    Prefers the session's caveman summary marker, which the statusline renders
+    too, so the title and the bar name the work the same way. Falls back to the
+    window-scoped `WINDOW_OBJECTIVE` before the marker exists (SessionStart, the
+    first prompt) or when the session id is missing.
+
+    :param session_id: Claude session id whose marker to read.
+    :return: First line of the objective marker, else `WINDOW_OBJECTIVE`.
+    """
+    session_dir = claude_session_dir(session_id)
+
+    if session_dir is None:
+        return WINDOW_OBJECTIVE
+
+    try:
+        first_line = (session_dir / "objective").read_text().partition("\n")[0].strip()
+    except OSError:
+        return WINDOW_OBJECTIVE
+
+    return first_line or WINDOW_OBJECTIVE
+
+
+def set_title(state: str, session_id: str) -> None:
+    """
+    Set the tab/window title to `[STATE] <Objective>` via an OSC escape.
+
+    :param state: Label for the bracket (e.g. "RUNNING", "READY").
+    :param session_id: Claude session id whose objective fills the title.
+    """
+    write_to_own_tab(f"\033]0;[{state}] {objective(session_id)}\007")
 
 
 def state_file(session_id: str) -> Path:
@@ -240,9 +273,14 @@ def focus_window(session_id: str) -> None:
         log(outcome)
 
 
-def notify(message: str) -> None:
-    """Fire a native desktop notification with the Glass sound."""
-    script = f'display notification "{applescript_quote(message)}" with title "{applescript_quote(OBJECTIVE)}" sound name "Glass"'
+def notify(message: str, session_id: str) -> None:
+    """
+    Fire a native desktop notification with the Glass sound.
+
+    :param message: Notification body (e.g. the hook payload's message).
+    :param session_id: Claude session id whose objective titles the notification.
+    """
+    script = f'display notification "{applescript_quote(message)}" with title "{applescript_quote(objective(session_id))}" sound name "Glass"'
 
     result = run_osascript(script, "post notification")
 
@@ -252,14 +290,15 @@ def notify(message: str) -> None:
 
 def on_waiting(event: dict) -> None:
     """React to a wait-state: title, Dock bounce, notification, focus."""
-    set_title("WAITING")
+    session_id = event.get("session_id", "")
+    set_title("READY", session_id)
 
     # Emit the bell straight to the terminal to bounce the Dock icon.
     write_to_own_tab("\a")
 
     message = event.get("message") or "Awaiting your approval"
-    notify(message)
-    focus_window(event.get("session_id", ""))
+    notify(message, session_id)
+    focus_window(session_id)
 
 
 def main() -> None:
@@ -270,15 +309,17 @@ def main() -> None:
     except (json.JSONDecodeError, ValueError):
         event = {}
 
+    session_id = event.get("session_id", "")
+
     if event_name == "SessionStart":
-        log(f"SessionStart: objective={OBJECTIVE!r}")
-        capture_window_id(event.get("session_id", ""))
-        set_title("RUNNING")
+        log(f"SessionStart: objective={objective(session_id)!r}")
+        capture_window_id(session_id)
+        set_title("RUNNING", session_id)
     elif event_name == "Notification":
-        log("Notification: objective={!r} message={!r}".format(OBJECTIVE, event.get("message")))
+        log("Notification: objective={!r} message={!r}".format(objective(session_id), event.get("message")))
         on_waiting(event)
     elif event_name == "PostToolUse":
-        set_title("RUNNING")
+        set_title("RUNNING", session_id)
 
 
 if __name__ == "__main__":
