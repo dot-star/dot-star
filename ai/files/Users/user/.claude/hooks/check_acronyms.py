@@ -113,7 +113,7 @@ MIXED_CASE_FLAG = {
 DICT_PATH = "/usr/share/dict/words"
 
 
-def load_dictionary():
+def load_dictionary() -> set[str]:
     """Returns the lowercased system word list, or an empty set if unavailable."""
     try:
         with open(DICT_PATH, encoding="utf-8", errors="ignore") as words:
@@ -122,7 +122,7 @@ def load_dictionary():
         return set()
 
 
-def strip_exempt(text):
+def strip_exempt(text: str) -> str:
     """Drops regions where acronyms are allowed: code and quoted material."""
 
     # Strip fenced code blocks first so their contents don't survive as prose.
@@ -141,7 +141,7 @@ def strip_exempt(text):
     return text
 
 
-def find_offenders(prose, dictionary):
+def find_offenders(prose: str, dictionary: set[str]) -> list[str]:
     """Returns unexplained acronyms in order, deduped."""
     offenders = []
     seen = set()
@@ -167,7 +167,7 @@ def find_offenders(prose, dictionary):
     return offenders
 
 
-def main():
+def main() -> int:
     try:
         data = json.load(sys.stdin)
     except (json.JSONDecodeError, ValueError):

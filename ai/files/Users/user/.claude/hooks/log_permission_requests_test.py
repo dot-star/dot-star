@@ -18,7 +18,7 @@ TIMESTAMP = "2026-06-09T14:03:21.512-07:00"
 
 
 class ExtractRulesTest(unittest.TestCase):
-    def test_reads_rule_from_suggestion_objects(self):
+    def test_reads_rule_from_suggestion_objects(self) -> None:
         payload = {
             "permission_suggestions": [
                 {"rule": "Bash(npm *)", "description": "Allow npm commands"},
@@ -26,19 +26,19 @@ class ExtractRulesTest(unittest.TestCase):
         }
         self.assertEqual(extract_rules(payload), ["Bash(npm *)"])
 
-    def test_sanitizes_sensitive_data_in_rules(self):
+    def test_sanitizes_sensitive_data_in_rules(self) -> None:
         payload = {"permission_suggestions": ["Bash(git clone https://user:secretpassword@github.com/repo.git)"]}
         self.assertEqual(extract_rules(payload), ["Bash(git clone https://<REDACTED_CREDENTIALS>@github.com/repo.git)"])
 
 
 class SynthesizeRuleTest(unittest.TestCase):
-    def test_wraps_bash_command(self):
+    def test_wraps_bash_command(self) -> None:
         payload = {"tool_name": "Bash", "tool_input": {"command": "git check-ignore foo"}}
         self.assertEqual(synthesize_rule(payload), "Bash(git check-ignore foo)")
 
 
 class AppendEntryTest(unittest.TestCase):
-    def test_appends_every_occurrence_as_jsonl(self):
+    def test_appends_every_occurrence_as_jsonl(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = os.path.join(directory, "permission-requests.jsonl")
             entry = {"permissions": {"allow": ["Bash(a)"]}}

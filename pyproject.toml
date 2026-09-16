@@ -4,6 +4,12 @@ line-length = 120
 [tool.ruff]
 line-length = 120
 
+[tool.ruff.lint]
+extend-select = [
+    # Require type annotations on every function; ty checks only what is annotated.
+    "ANN",
+]
+
 [tool.ty.src]
 # Skip the worktree checkouts, which each hold a full copy of the tree.
 exclude = [".claude"]

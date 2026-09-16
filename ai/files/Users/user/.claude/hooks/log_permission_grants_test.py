@@ -19,7 +19,7 @@ TIMESTAMP = "2026-06-09T14:03:21.512-07:00"
 
 
 class SanitizePermissionsTest(unittest.TestCase):
-    def test_masks_credentials_across_allow_deny_ask(self):
+    def test_masks_credentials_across_allow_deny_ask(self) -> None:
         settings = {
             "permissions": {
                 "allow": ["Bash(git clone https://user:secretpassword@github.com/repo.git)"],
@@ -38,31 +38,31 @@ class SanitizePermissionsTest(unittest.TestCase):
         )
         self.assertEqual(sanitized["permissions"]["ask"], ["Read(/etc/passwd)"])
 
-    def test_leaves_settings_without_permissions_untouched(self):
+    def test_leaves_settings_without_permissions_untouched(self) -> None:
         settings = {"model": "opus"}
         self.assertEqual(sanitize_permissions(settings), {"model": "opus"})
 
 
 class HookWorktreeTest(unittest.TestCase):
-    def test_returns_cwd_for_remove_action(self):
+    def test_returns_cwd_for_remove_action(self) -> None:
         payload = {"tool_name": "ExitWorktree", "tool_input": {"action": "remove"}, "cwd": "/wt"}
         self.assertEqual(hook_worktree(payload), "/wt")
 
-    def test_skips_keep_action(self):
+    def test_skips_keep_action(self) -> None:
         payload = {"tool_name": "ExitWorktree", "tool_input": {"action": "keep"}, "cwd": "/wt"}
         self.assertIsNone(hook_worktree(payload))
 
-    def test_skips_other_tools(self):
+    def test_skips_other_tools(self) -> None:
         payload = {"tool_name": "Edit", "tool_input": {"action": "remove"}, "cwd": "/wt"}
         self.assertIsNone(hook_worktree(payload))
 
 
 class BuildEntryTest(unittest.TestCase):
-    def test_returns_none_when_settings_absent(self):
+    def test_returns_none_when_settings_absent(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             self.assertIsNone(build_entry(directory, "wtd", TIMESTAMP))
 
-    def test_snapshots_settings_with_metadata(self):
+    def test_snapshots_settings_with_metadata(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             claude_dir = os.path.join(directory, ".claude")
             os.makedirs(claude_dir)
@@ -71,6 +71,8 @@ class BuildEntryTest(unittest.TestCase):
                 json.dump(settings, handle)
 
             entry = build_entry(directory, "wtd", TIMESTAMP)
+            # Narrow away the None branch; `assertIsNotNone` doesn't narrow for ty.
+            assert entry is not None
             self.assertEqual(entry["settings"], settings)
             self.assertEqual(entry["metadata"]["worktree"], directory)
             self.assertEqual(entry["metadata"]["reason"], "wtd")
@@ -78,7 +80,7 @@ class BuildEntryTest(unittest.TestCase):
 
 
 class AppendEntryTest(unittest.TestCase):
-    def test_appends_every_occurrence_as_jsonl(self):
+    def test_appends_every_occurrence_as_jsonl(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = os.path.join(directory, "permission-grants.jsonl")
             entry = {"settings": {"permissions": {"allow": ["Bash(a)"]}}}

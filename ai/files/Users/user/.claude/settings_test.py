@@ -28,8 +28,10 @@ import json
 import os
 import re
 import sys
+from collections.abc import Iterable, Mapping, Sequence
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
 # Map the installed ~/.claude/ prefix back to this repository.
 # Cover every spelling a hook command uses for the home directory.
@@ -45,9 +47,12 @@ SEPARATOR_PATTERN = re.compile(r"\|\||&&|\|&|;|\||&|\n")
 
 SECTIONS = ("deny", "ask", "allow")
 
+# Record each check as its PASS/FAIL status, its label and a detail string.
+type Result = tuple[str, str, str]
+
 
 @lru_cache(maxsize=None)
-def glob_to_regex(pattern):
+def glob_to_regex(pattern: str) -> re.Pattern[str]:
     """
     Compiles a permission-rule pattern into an anchored regex.
 
@@ -68,7 +73,7 @@ def glob_to_regex(pattern):
     return re.compile(body + tail)
 
 
-def bash_patterns(rules):
+def bash_patterns(rules: Iterable[str]) -> list[str]:
     """
     Returns the pattern bodies of the `Bash(...)` rules in one section.
 
@@ -82,7 +87,7 @@ def bash_patterns(rules):
     return patterns
 
 
-def split_subcommands(command):
+def split_subcommands(command: str) -> list[str]:
     """
     Splits a command line into the parts matched independently.
 
@@ -97,7 +102,7 @@ def split_subcommands(command):
     return subcommands
 
 
-def matches_section(subcommand, rules):
+def matches_section(subcommand: str, rules: Iterable[str]) -> bool:
     """
     Reports whether a subcommand matches any Bash rule in one section.
 
@@ -111,7 +116,7 @@ def matches_section(subcommand, rules):
     return False
 
 
-def evaluate(command, permissions):
+def evaluate(command: str, permissions: Mapping[str, list[str]]) -> str:
     """
     Returns the outcome a rule set gives a command.
 
@@ -139,7 +144,7 @@ def evaluate(command, permissions):
     return "allow"
 
 
-def wildcard_reaches_options(pattern):
+def wildcard_reaches_options(pattern: str) -> bool:
     """
     Reports whether a `*` sits early enough to swallow inserted options.
 
@@ -157,11 +162,11 @@ def wildcard_reaches_options(pattern):
     return False
 
 
-def hook_commands(settings):
+def hook_commands(settings: Mapping[str, Any]) -> list[str]:
     """
     Returns every configured hook command in a settings file.
 
-    :param settings: Parsed settings file.
+    :param settings: Parsed settings file, `Any`-valued since it is raw JSON.
     :return: Command strings from the `hooks` blocks and the status line.
     """
     commands = []
@@ -177,7 +182,7 @@ def hook_commands(settings):
     return commands
 
 
-def resolve_hook_script(command, settings_dir):
+def resolve_hook_script(command: str, settings_dir: Path) -> Path | None:
     """
     Returns the repository path a hook command runs, when it names one.
 
@@ -196,7 +201,7 @@ def resolve_hook_script(command, settings_dir):
     return None
 
 
-def check_key_order(node, label, results):
+def check_key_order(node: object, label: str, results: list[Result]) -> None:
     """
     Records whether every object in a settings file has code-point-sorted keys.
 
@@ -218,11 +223,11 @@ def check_key_order(node, label, results):
             check_key_order(value, f"{label}[{index}]", results)
 
 
-def check_shape(settings, settings_dir, results):
+def check_shape(settings: Mapping[str, Any], settings_dir: Path, results: list[Result]) -> None:
     """
     Records the shape invariants for one settings file.
 
-    :param settings: Parsed settings file.
+    :param settings: Parsed settings file, `Any`-valued since it is raw JSON.
     :param settings_dir: Directory holding that settings file.
     :param results: Result list to append to.
     :return: None.
@@ -267,7 +272,11 @@ def check_shape(settings, settings_dir, results):
             results.append(("PASS", f"hook installed: {script.name}", ""))
 
 
-def check_behavior(cases, permissions, results):
+def check_behavior(
+    cases: Iterable[Mapping[str, str]],
+    permissions: Mapping[str, list[str]],
+    results: list[Result],
+) -> None:
     """
     Records the outcome each table case lands on under one rule set.
 
@@ -285,7 +294,7 @@ def check_behavior(cases, permissions, results):
             results.append(("FAIL", case["name"], f"expected={expected} got={actual}"))
 
 
-def run(settings_path, results):
+def run(settings_path: Path, results: list[Result]) -> None:
     """
     Runs both layers over one settings file.
 
@@ -302,7 +311,7 @@ def run(settings_path, results):
         check_behavior(cases, settings.get("permissions", {}), results)
 
 
-def main(argv):
+def main(argv: Sequence[str]) -> int:
     """
     Checks each settings file named on the command line.
 
@@ -315,7 +324,7 @@ def main(argv):
 
     failures = 0
     for path in paths:
-        results = []
+        results: list[Result] = []
         run(path, results)
         counts = {"PASS": 0, "FAIL": 0}
         print(f"== {path} ==")

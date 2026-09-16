@@ -24,6 +24,7 @@ import os
 import re
 import subprocess
 import sys
+from typing import Any
 
 LOG_PATH = os.path.expanduser("~/.claude/permission-grants.jsonl")
 
@@ -71,7 +72,7 @@ def worktree_branch(worktree: str) -> str:
     return result.stdout.strip()
 
 
-def load_settings(settings_path: str):
+def load_settings(settings_path: str) -> dict[str, Any] | None:
     """Returns the parsed settings.local.json, or None when absent/empty/invalid."""
     try:
         with open(settings_path, encoding="utf-8") as handle:
@@ -88,7 +89,7 @@ def load_settings(settings_path: str):
         return None
 
 
-def build_entry(worktree: str, reason: str, timestamp: str, session_id: str = ""):
+def build_entry(worktree: str, reason: str, timestamp: str, session_id: str = "") -> dict[str, dict[str, Any]] | None:
     """Pairs the worktree's settings snapshot with teardown metadata, or None."""
     settings_path = os.path.join(worktree, ".claude", "settings.local.json")
     settings = load_settings(settings_path)
@@ -121,7 +122,7 @@ def append_entry(entry: dict, path: str = LOG_PATH) -> None:
             fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
 
-def hook_worktree(payload: dict):
+def hook_worktree(payload: dict[str, Any]) -> str | None:
     """Returns the worktree to archive for a remove-action ExitWorktree, else None."""
     if payload.get("tool_name") != "ExitWorktree":
         return None
