@@ -4,6 +4,7 @@
 
 - Explicit is better than implicit.
 - Atomic commits: one logical change per commit; a change is one intent, so everything that serves it lands together (e.g. the edit with its docs and tests).
+  - Land a behavior-preserving refactor as its own commit ahead of the change it serves, whenever restructuring first (splitting a dense paragraph into bullets, extracting a helper) shrinks the change's diff. Folded together, the change reads as a rewrite of every touched line; split, the refactor is verifiably a no-op and the change shows only its intent. Check for the split before drafting subjects and offer it as a row rather than doing it silently.
 - Optimize for readability and reviewer happiness.
 - Pursue correctness across the task; accept more churn when minimalist diffs and correctness conflict.
 - A refactor preserves behavior exactly. Any observable change (return value, status code, error path, output) means it is not a refactor: flag it and get sign-off, never fold it in silently.
