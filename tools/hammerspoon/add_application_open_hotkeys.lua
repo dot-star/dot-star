@@ -13,6 +13,7 @@ end
 hs.hotkey.bind({'option'}, 'c', open('Google Chrome.app'))
 hs.hotkey.bind({'option'}, 'f', open('Firefox Developer Edition.app'))
 hs.hotkey.bind({'option'}, 'g', open('wish'))
+hs.hotkey.bind({'option'}, 'k', open('Slack'))
 hs.hotkey.bind({'option'}, 'm', open('VLC.app'))
 hs.hotkey.bind({'option'}, 'o', open('Finder.app'))
 hs.hotkey.bind({'option'}, 'p', open('Preview.app'))
