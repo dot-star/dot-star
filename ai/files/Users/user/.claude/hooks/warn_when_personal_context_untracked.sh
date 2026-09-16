@@ -3,9 +3,11 @@
 # SessionStart hook: warn when a personal context doc isn't banked in its own
 # repo. ai/contexts/private-* are gitignored symlinks, so a dangling link, an
 # untracked target, or an edited target never shows in this repo's
-# `git status` and is easy to lose. Print the report on stdout and exit 0, so
+# `git status` and is easy to lose. Check the other direction too: a
+# private-*.md sitting beside the linked targets with no link of its own is
+# banked but never reaches dot-star. Print the report on stdout and exit 0, so
 # it lands in the session's context and Claude raises it; stay silent when
-# every link resolves to a tracked, clean file.
+# every link resolves to a tracked, clean file and every source doc is linked.
 
 set -euo pipefail
 
@@ -40,7 +42,37 @@ personal_context_problem() {
     fi
 }
 
+# Echo "unlinked: <doc>" for each private-*.md beside a linked target that no
+# link in the contexts dir resolves to. Take the newline-separated targets as
+# the one argument.
+unlinked_source_docs() {
+    local linked_targets="$1"
+    local source_dir
+    local doc
+
+    while IFS= read -r source_dir; do
+        if [ -z "${source_dir}" ]; then
+            continue
+        fi
+
+        for doc in "${source_dir}"/private-*.md; do
+            if [ ! -e "${doc}" ]; then
+                # Skip the literal glob when the directory holds no private-*.md.
+                continue
+            elif ! grep --quiet --fixed-strings --line-regexp -- "${doc}" <<<"${linked_targets}"; then
+                echo "unlinked: ${doc} (ln -s '${doc}' '${contexts_dir}/${doc##*/}')"
+            fi
+        done
+    done < <(
+        while IFS= read -r target; do
+            dirname -- "${target}"
+        done <<<"${linked_targets}" |
+            sort --unique
+    )
+}
+
 report=""
+linked_targets=""
 for link in "${contexts_dir}"/private-*; do
     if [ ! -e "${link}" ] && [ ! -L "${link}" ]; then
         # Skip the literal glob when the directory holds no private-* entries.
@@ -51,10 +83,24 @@ for link in "${contexts_dir}"/private-*; do
     if [ -n "${problem}" ]; then
         report+="${problem}"$'\n'
     fi
+
+    # Remember where the resolving links point, so the reverse check knows
+    # which directories hold the source docs.
+    target="$(readlink -- "${link}" || true)"
+    if [ -n "${target}" ] && [ -e "${target}" ]; then
+        linked_targets+="${target}"$'\n'
+    fi
 done
+
+if [ -n "${linked_targets}" ]; then
+    unlinked="$(unlinked_source_docs "${linked_targets}")"
+    if [ -n "${unlinked}" ]; then
+        report+="${unlinked}"$'\n'
+    fi
+fi
 
 if [ -z "${report}" ]; then
     exit 0
 fi
 
-printf '🔴 Personal context docs not banked in their repo (dot-star ignores the symlinks, so only that repo shows them):\n%s' "${report}"
+printf '🔴 Personal context docs not banked in their repo or not linked into dot-star (it ignores the symlinks, so only that repo shows them):\n%s' "${report}"
