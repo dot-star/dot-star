@@ -321,12 +321,18 @@ alias master="rc_checkout_default_branch"
 alias merge="rc_merge"
 alias n="rc_commit_no_verify"
 alias nv="rc_commit_no_verify"
-patch_changes() {
+git_patch_changes() {
     file_name="patch_$(uuidgen).patch"
-    git diff >"${file_name}"
+
+    # Diff against HEAD so staged changes land in the patch too; a bare git diff sees only the unstaged ones.
+    if git diff HEAD --quiet; then
+        echo "No changes to patch."
+        return 1
+    fi
+    git diff HEAD >"${file_name}"
     echo "Created patch file: ${file_name}"
 }
-alias patch_changes="patch_changes"
+alias patch_changes="git_patch_changes"
 alias patch_last="git format-patch -n HEAD^"
 alias pop="git_stash_pop"
 alias pt="rc_fetch_tags"
