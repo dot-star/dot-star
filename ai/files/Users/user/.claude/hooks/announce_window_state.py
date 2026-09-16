@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Drive macOS Terminal window state from Claude Code hook events.
+"""Drive terminal window state from Claude Code hook events.
 
 Wired in settings.json so each event runs this script with the event name as
 argv[1] and the event's JSON payload on stdin:
@@ -16,14 +16,21 @@ focuses the window via the id captured at launch. The per-window objective comes
 from CLAUDE_OBJECTIVE (set by `cl --obj "..."`, aliased `clo`).
 
 The title, bell, and notification work in any terminal. The window capture and
-raise go through Terminal.app's AppleScript dictionary, so they run only when
-TERM_PROGRAM says the session is in Terminal.app: under another emulator (e.g.
-Ghostty) the `tell application "Terminal"` would launch Terminal.app just to
-answer, popping up an empty window.
+raise pick their mechanism by the emulator claude runs in, read off TERM_PROGRAM:
 
-A missing macOS permission must never break Claude, so every skipped step and
-osascript failure fails soft and is recorded to a log instead. Tail it while
-debugging "nothing happened":
+  Terminal.app  -> Terminal's AppleScript dictionary. Under any other emulator
+                   that `tell application "Terminal"` would launch Terminal.app
+                   just to answer, popping up an empty window.
+  anything else -> Hammerspoon's command-line client (`hs -c`, needs `hs.ipc`
+                   loaded in its config), since emulators like Ghostty have no
+                   scripting dictionary and Hammerspoon already holds the
+                   accessibility grant. Hammerspoon only sees each window's
+                   visible tab, so a session sitting in a background tab gets
+                   its app activated rather than its tab switched to.
+
+A missing macOS permission or client must never break Claude, so every skipped
+step and osascript or Hammerspoon failure fails soft and is recorded to a log
+instead. Tail it while debugging "nothing happened":
 
   tail -f /tmp/claude-state-hook/announce_window_state.log
 """
@@ -39,10 +46,14 @@ STATE_DIR = Path("/tmp/claude-state-hook")
 LOG_FILE = STATE_DIR / "announce_window_state.log"
 OBJECTIVE = os.environ.get("CLAUDE_OBJECTIVE", "Claude Code")
 
-# Gate the AppleScript steps on the emulator claude runs in. Hooks inherit
+# Pick the window mechanism by the emulator claude runs in. Hooks inherit
 # claude's environment, and Terminal.app stamps this value on every shell it
 # opens.
 IN_TERMINAL_APP = os.environ.get("TERM_PROGRAM") == "Apple_Terminal"
+
+# Reach Hammerspoon through the client shipped inside its bundle rather than a
+# PATH lookup, since hooks run with claude's environment, not the login shell's.
+HAMMERSPOON_CLI = "/Applications/Hammerspoon.app/Contents/Frameworks/hs/hs"
 
 
 def log(message):
@@ -75,6 +86,33 @@ def run_osascript(script, action):
             log("  fix: System Settings > Privacy & Security > Automation > Terminal > enable Terminal")
 
     return result
+
+
+def run_hammerspoon(lua, action):
+    """
+    Run a Lua snippet inside Hammerspoon, returning its printed result or None on failure.
+
+    :param lua: Lua source for `hs -c`; its `return` value comes back as text.
+    :param action: Short label for the log line (e.g. "capture window id").
+    :return: The snippet's return value, stripped, or None when the client is
+        missing or the snippet errored.
+    """
+    try:
+        result = subprocess.run(
+            [HAMMERSPOON_CLI, "-c", lua],
+            capture_output=True,
+            text=True,
+        )
+    except OSError as error:
+        log("{} failed (no Hammerspoon client at {}): {}".format(action, HAMMERSPOON_CLI, error))
+        return None
+
+    if result.returncode != 0:
+        log("{} failed (hs exit {}): {}".format(action, result.returncode, result.stderr.strip()))
+        log("  fix: Hammerspoon must be running with `require('hs.ipc')` in its init.lua")
+        return None
+
+    return result.stdout.strip()
 
 
 def controlling_tty():
@@ -121,45 +159,91 @@ def state_file(session_id):
 
 
 def capture_window_id(session_id):
-    """Record the frontmost Terminal window id at session launch."""
-    if not IN_TERMINAL_APP:
-        log("not in Terminal.app (TERM_PROGRAM={!r}); window capture skipped".format(os.environ.get("TERM_PROGRAM")))
-        return
+    """
+    Record the frontmost window at session launch.
 
-    result = run_osascript(
-        'tell application "Terminal" to id of front window',
-        "capture window id",
-    )
+    Terminal.app yields a bare window id. Hammerspoon yields the window id and
+    the owning app's bundle id, space-separated, so the raise can fall back to
+    activating the app when the window has slipped behind another tab.
 
-    if result.returncode != 0:
-        return
+    :param session_id: Claude session id the record is filed under.
+    """
+    if IN_TERMINAL_APP:
+        result = run_osascript(
+            'tell application "Terminal" to id of front window',
+            "capture window id",
+        )
 
-    window_id = result.stdout.strip()
-    state_file(session_id).write_text(window_id)
-    log("captured window id {} for session {}".format(window_id, session_id))
+        if result.returncode != 0:
+            return
+
+        record = result.stdout.strip()
+    else:
+        record = run_hammerspoon(
+            """
+            local window = hs.window.focusedWindow()
+            if window == nil or window:id() == nil then
+                return ""
+            end
+            return string.format("%d %s", window:id(), window:application():bundleID() or "")
+            """,
+            "capture window id",
+        )
+
+        if not record:
+            log("no focused window at launch; cannot record one for session {}".format(session_id))
+            return
+
+    state_file(session_id).write_text(record)
+    log("captured window {} for session {}".format(record, session_id))
 
 
 def focus_window(session_id):
-    """Force the recorded Terminal window to the frontmost layer."""
-    if not IN_TERMINAL_APP:
-        log("not in Terminal.app (TERM_PROGRAM={!r}); raise skipped".format(os.environ.get("TERM_PROGRAM")))
-        return
+    """
+    Force the recorded window to the frontmost layer.
 
+    :param session_id: Claude session id whose window record to raise.
+    """
     path = state_file(session_id)
 
     if not path.exists():
         log("no window id on file for session {}; cannot raise (was SessionStart blocked?)".format(session_id))
         return
 
-    window_id = path.read_text().strip()
+    record = path.read_text().strip().split()
 
-    if not window_id:
+    if not record:
         return
 
-    run_osascript(
-        'tell application "Terminal" to set frontmost of window id {} to true'.format(window_id),
+    window_id = record[0]
+
+    if IN_TERMINAL_APP:
+        run_osascript(
+            'tell application "Terminal" to set frontmost of window id {} to true'.format(window_id),
+            "raise window {}".format(window_id),
+        )
+        return
+
+    bundle_id = record[1] if len(record) > 1 else ""
+    outcome = run_hammerspoon(
+        """
+        local window = hs.window.get({window_id})
+        if window ~= nil then
+            window:focus()
+            return "raised window {window_id}"
+        end
+        local app = hs.application.get("{bundle_id}")
+        if app == nil then
+            return "window {window_id} gone and app {bundle_id} not running; nothing raised"
+        end
+        app:activate()
+        return "window {window_id} not visible (background tab?); activated {bundle_id} instead"
+        """.format(window_id=window_id, bundle_id=bundle_id),
         "raise window {}".format(window_id),
     )
+
+    if outcome:
+        log(outcome)
 
 
 def notify(message):
