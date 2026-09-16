@@ -1,3 +1,15 @@
+[project]
+name = "dot-star"
+version = "0"
+requires-python = ">=3.12"
+
+[dependency-groups]
+# Give ty (run as `uv check`, which syncs this group into its env) the packages `scripts/` imports.
+dev = [
+    "packaging",
+    "pre-commit",
+]
+
 [tool.black]
 line-length = 120
 

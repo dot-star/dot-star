@@ -1,0 +1,72 @@
+name: Pre-commit auto-update
+on:
+  schedule:
+    - cron: '0 18 * * 1-4'
+  workflow_dispatch:
+
+jobs:
+  update-pre-commit:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_COLOR: 1
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: 'master'
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v10.1.0
+
+      - name: Update dependencies
+        run: |
+          set -x
+          uv pip install --system pre-commit packaging
+          python scripts/pre_commit_stable.py autoupdate
+
+      - name: Run pre-commit
+        run: |
+          # Let a bumped formatter rewrite files, then confirm a second pass is clean.
+          if ! pre-commit run --all-files; then
+              pre-commit run --all-files
+          fi
+
+      - name: Gather changes
+        id: gather-changes
+        run: |
+          git diff --color
+          changes="$(git diff)"
+          delimiter="$(openssl rand -hex 8)"
+          echo "changes<<${delimiter}" >> "${GITHUB_OUTPUT}"
+          echo "${changes}" >> "${GITHUB_OUTPUT}"
+          echo "${delimiter}" >> "${GITHUB_OUTPUT}"
+
+      - name: Create or update pull request
+        id: cpr
+        uses: peter-evans/create-pull-request@v8
+        with:
+          commit-message: Update pre-commit dependencies
+          title: ⬆ Update pre-commit dependencies
+          body: |
+            ```diff
+            ${{ steps.gather-changes.outputs.changes }}
+            ```
+          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          branch: create-pull-request/pre-commit
+          committer: GitHub <noreply@github.com>
+          delete-branch: true
+
+      - name: Pull request created or updated
+        if: ${{ steps.cpr.outputs.pull-request-number }}
+        run: |
+          echo "Pull request: ${{ steps.cpr.outputs.pull-request-url }}"
