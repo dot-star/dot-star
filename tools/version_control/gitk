@@ -28,7 +28,7 @@ set linehoverbgcolor #ffff80
 set linehoverfgcolor black
 set linehoveroutlinecolor black
 set linkfgcolor blue
-set mainfont {{Lucida Grande} 13}
+set mainfont {{Lucida Grande} 15}
 set mainheadcirclecolor yellow
 set markbgcolor #e0e0ff
 set maxgraphpct 50
@@ -47,7 +47,7 @@ set tabstop 8
 set tagbgcolor yellow
 set tagfgcolor black
 set tagoutlinecolor black
-set textfont {Monaco 10}
+set textfont {Monaco 12}
 set theme aqua
 set themeloader {}
 set uicolor grey85
