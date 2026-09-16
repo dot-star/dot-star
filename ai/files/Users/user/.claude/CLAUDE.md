@@ -201,6 +201,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - `c`, `cm`, `commit` mean "commit" (invoke the `commit` skill).
   - `c<N>` (e.g. `c2`) means "commit with subject draft N": the worktree menu lists its drafted subjects under the commit row as `[c1]`, `[c2]`, `[c3]` (see the worktree menu rule in Output), and the number names one.
     - The pick is already made, so the commit runs with that subject verbatim and skips the skill's draft-and-pick step.
+    - One `c<N>` picks one commit: the number names a draft under exactly one commit's tree, so with two or more commits pending (one per repo, say) the reply names one per commit (`c2 c5`). A reply that covers only some of them commits those alone; the rest stay unpicked and get their trees re-offered.
     - `p<N>` and `L<N>` pick the same draft N from the commit row's list (the promote and land rows carry only a `[pN] ...` stand-in), then promote or land.
     - `c<N> iter` is the `<N> iter` form: refine draft N, no commit yet.
   - `cs` means "commit only the already-staged changes": like `c` (the `commit` skill), but never auto-stage; if nothing is staged, stop.
@@ -334,6 +335,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - The subject stays the user's pick even when the accepted option bundles the commit into a larger action: ⬆️ **`[p]romote`** and 🏁 **`[L]and`** both read "commit + <action>", which authorizes the commit's timing and never its wording. Route their commit through the skill too, then carry on with the promote or land.
   - A numbered reply (`c2`, `p2`, `L2`) is the pick already made: the number names one of the `[cN]` drafts rendered under the menu's commit row.
     - Skip the skill's draft-and-pick step and commit with that subject verbatim.
+    - Commit only the commit whose tree carried `[cN]`. A subject floated in prose for another pending commit has no accept token, so silence never picks it: leave that commit uncommitted and re-offer its tree.
     - Carry on with the promote or land when the letter asks for one.
 - When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment (any subset the tree allows; ⬆️ promote, 🏁 land and 🧨 close always apply), each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**). 🧨 **`[x]`** is the one designed bundle: `x` means close the session and closing a worktree session means landing it first, so the row reads land + close rather than two actions glued together. Whenever two or more appear together, list them top-to-bottom in this fixed order: iterate → commit → fold → promote → land → close. The slot order tracks least-to-most committal (don't-commit first, then commit-and-stay, then rewrite-and-stay, then promote, then the teardown, then the teardown plus the session's end); land is the only git action that tears the worktree down, so it's always the last git row, never floated into the middle or reordered; 🧨 **`[x]`** is the only row allowed beneath it.
 
@@ -351,6 +353,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
   - **Row shape:** each row indented with 2 ideographic full-width spaces (U+3000) + 1 regular space so the glyph lands under the `[` of the parent row, a `├─` on each row and `└─` on the last, then the bracket token `**` + `` ` `` + `[cN]` + `` ` `` + `**` (or `[pN]`, `[LN]`, `[xN]`, the parent's letter plus the draft number), a space, and the subject in plain text. The subject stays plain because it's text to compare, not an option name.
   - **Spelled out once:** the subjects sit under the commit row; the promote, land and close rows each carry a single stand-in row instead of a tree, `[pN] ...`, `[LN] ...`, `[xN] ...` with a literal `N`, so the accept-token shape is on screen without three rows of `...` repeating three times. The stand-in takes a `└─`, since it's the last row under its parent, the same way `└─` closes the commit row's list.
+  - **One tree per pending commit:** a menu covering two or more commits (one per repo, say) renders a draft tree under each, numbered globally unique across the message (`[c1]`-`[c3]` for the first commit, `[c4]`-`[c6]` for the second), so a single `c<N>` names one draft of one commit. Never float a commit's subject in prose beside another commit's tree; a subject with no token can't be picked, so it reads as decided when it isn't.
   - **Fold takes no tree**, since it keeps HEAD's subject.
   - **Bare `c` still runs the skill** and shows the full list of five.
 
