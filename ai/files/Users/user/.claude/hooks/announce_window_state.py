@@ -40,17 +40,11 @@ import json
 import os
 import subprocess
 import sys
-from datetime import datetime
-from pathlib import Path
 
-STATE_DIR = Path("/tmp/claude-state-hook")
+from terminal_tty import IN_TERMINAL_APP, STATE_DIR, append_log, controlling_tty, write_to_terminal
+
 LOG_FILE = STATE_DIR / "announce_window_state.log"
 OBJECTIVE = os.environ.get("CLAUDE_OBJECTIVE", "Claude Code")
-
-# Pick the window mechanism by the emulator claude runs in. Hooks inherit
-# claude's environment, and Terminal.app stamps this value on every shell it
-# opens.
-IN_TERMINAL_APP = os.environ.get("TERM_PROGRAM") == "Apple_Terminal"
 
 # Reach Hammerspoon through the client shipped inside its bundle rather than a
 # PATH lookup, since hooks run with claude's environment, not the login shell's.
@@ -59,11 +53,7 @@ HAMMERSPOON_CLI = "/Applications/Hammerspoon.app/Contents/Frameworks/hs/hs"
 
 def log(message):
     """Append a timestamped diagnostic line so soft failures stay visible."""
-    STATE_DIR.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    with open(LOG_FILE, "a") as handle:
-        handle.write("{} {}\n".format(stamp, message))
+    append_log(LOG_FILE, message)
 
 
 def applescript_quote(text):
@@ -116,43 +106,27 @@ def run_hammerspoon(lua, action):
     return result.stdout.strip()
 
 
-def controlling_tty():
-    """Return the /dev path of the Terminal tab that owns the claude process."""
-    # The hook's parent ($PPID) shares claude's controlling terminal, inherited
-    # across fork and unaffected by the hook's piped stdio. ps reports it
-    # abbreviated (e.g. "s003"), so re-expand to a /dev path.
-    name = subprocess.check_output(
-        ["ps", "-o", "tty=", "-p", str(os.getppid())],
-        text=True,
-    ).strip()
+def write_to_own_tab(payload):
+    """
+    Send raw bytes straight to the session's tab, bypassing the hook pipe.
 
-    if not name or name.startswith("?"):
-        return None
-
-    if not name.startswith("tty"):
-        name = "tty" + name
-
-    return "/dev/" + name
-
-
-def write_to_terminal(payload):
-    """Send raw bytes straight to the Terminal tab, bypassing the hook pipe."""
+    :param payload: Escape sequence or bell to emit, terminator included.
+    """
     dev = controlling_tty()
 
     if dev is None:
         log("no controlling tty for ppid {}; title/bell skipped".format(os.getppid()))
         return
 
-    try:
-        with open(dev, "w") as terminal:
-            terminal.write(payload)
-    except OSError as error:
+    error = write_to_terminal(dev, payload)
+
+    if error is not None:
         log("write to {} failed: {}".format(dev, error))
 
 
 def set_title(state):
     """Set the tab/window title to `[STATE] <Objective>` via an OSC escape."""
-    write_to_terminal("\033]0;[{}] {}\007".format(state, OBJECTIVE))
+    write_to_own_tab("\033]0;[{}] {}\007".format(state, OBJECTIVE))
 
 
 def state_file(session_id):
@@ -281,7 +255,7 @@ def on_waiting(event):
     set_title("WAITING")
 
     # Emit the bell straight to the terminal to bounce the Dock icon.
-    write_to_terminal("\a")
+    write_to_own_tab("\a")
 
     message = event.get("message") or "Awaiting your approval"
     notify(message)

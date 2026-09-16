@@ -30,46 +30,17 @@ log instead. Tail it while debugging "the tab still opens in the old place":
 import json
 import os
 import socket
-import subprocess
 import sys
-from datetime import datetime
-from pathlib import Path
 from urllib.parse import quote
 
-STATE_DIR = Path("/tmp/claude-state-hook")
-LOG_FILE = STATE_DIR / "report_cwd.log"
+from terminal_tty import IN_TERMINAL_APP, STATE_DIR, append_log, controlling_tty, write_to_terminal
 
-# Pick the OSC 7 form by the emulator claude runs in. Hooks inherit claude's
-# environment, and Terminal.app stamps this value on every shell it opens.
-IN_TERMINAL_APP = os.environ.get("TERM_PROGRAM") == "Apple_Terminal"
+LOG_FILE = STATE_DIR / "report_cwd.log"
 
 
 def log(message):
     """Append a timestamped diagnostic line so soft failures stay visible."""
-    STATE_DIR.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    with open(LOG_FILE, "a") as handle:
-        handle.write("{} {}\n".format(stamp, message))
-
-
-def controlling_tty():
-    """Return the /dev path of the terminal tab that owns the claude process."""
-    # The hook's parent ($PPID) shares claude's controlling terminal, inherited
-    # across fork and unaffected by the hook's piped stdio. ps reports it
-    # abbreviated (e.g. "s003"), so re-expand to a /dev path.
-    name = subprocess.check_output(
-        ["ps", "-o", "tty=", "-p", str(os.getppid())],
-        text=True,
-    ).strip()
-
-    if not name or name.startswith("?"):
-        return None
-
-    if not name.startswith("tty"):
-        name = "tty" + name
-
-    return "/dev/" + name
+    append_log(LOG_FILE, message)
 
 
 def cwd_url(cwd):
@@ -94,10 +65,9 @@ def report_cwd(tty, cwd):
     :param tty: /dev path of the tab to update (e.g. "/dev/ttys003").
     :param cwd: Absolute path to report (e.g. "/Users/me/Projects/foo").
     """
-    try:
-        with open(tty, "w") as terminal:
-            terminal.write("\033]7;{}\a".format(cwd_url(cwd)))
-    except OSError as error:
+    error = write_to_terminal(tty, "\033]7;{}\a".format(cwd_url(cwd)))
+
+    if error is not None:
         log("report {} failed (write to {}): {}".format(cwd, tty, error))
 
 

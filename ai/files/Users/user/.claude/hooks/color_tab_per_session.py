@@ -55,19 +55,14 @@ import json
 import os
 import subprocess
 import sys
-from datetime import datetime
 from pathlib import Path
 
-STATE_DIR = Path("/tmp/claude-state-hook")
+from terminal_tty import IN_TERMINAL_APP, STATE_DIR, append_log, controlling_tty, write_to_terminal
+
 LOG_FILE = STATE_DIR / "session_color.log"
 
 MODES = ("profile", "stripe", "tint")
 DEFAULT_MODES = "tint,stripe"
-
-# Gate the AppleScript path on the emulator claude runs in. Hooks inherit
-# claude's environment, and Terminal.app stamps this value on every shell it
-# opens.
-IN_TERMINAL_APP = os.environ.get("TERM_PROGRAM") == "Apple_Terminal"
 
 # Wash the tab background at this saturation and value: dark enough to keep
 # light text readable, saturated enough to read as a color rather than as gray.
@@ -107,11 +102,7 @@ end tell
 
 def log(message):
     """Append a timestamped diagnostic line so soft failures stay visible."""
-    STATE_DIR.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    with open(LOG_FILE, "a") as handle:
-        handle.write("{} {}\n".format(stamp, message))
+    append_log(LOG_FILE, message)
 
 
 def run_osascript(script, action):
@@ -130,25 +121,6 @@ def run_osascript(script, action):
             log("  fix: System Settings > Privacy & Security > Automation > Terminal > enable Terminal")
 
     return result
-
-
-def controlling_tty():
-    """Return the /dev path of the Terminal tab that owns the claude process."""
-    # The hook's parent ($PPID) shares claude's controlling terminal, inherited
-    # across fork and unaffected by the hook's piped stdio. ps reports it
-    # abbreviated (e.g. "s003"), so re-expand to a /dev path.
-    name = subprocess.check_output(
-        ["ps", "-o", "tty=", "-p", str(os.getppid())],
-        text=True,
-    ).strip()
-
-    if not name or name.startswith("?"):
-        return None
-
-    if not name.startswith("tty"):
-        name = "tty" + name
-
-    return "/dev/" + name
 
 
 def tell_tab(tty, body, action):
@@ -217,18 +189,17 @@ def apply_background(tty, rgb):
     )
 
 
-def write_to_terminal(tty, payload, action):
+def write_osc(tty, payload, action):
     """
-    Write raw bytes straight to the session's tty, logging any failure.
+    Write an escape sequence straight to the session's tty, logging any failure.
 
     :param tty: /dev path of the tab to paint (e.g. "/dev/ttys003").
     :param payload: Escape sequence to emit, terminator included.
     :param action: Short label for the log line (e.g. "set background").
     """
-    try:
-        with open(tty, "w") as terminal:
-            terminal.write(payload)
-    except OSError as error:
+    error = write_to_terminal(tty, payload)
+
+    if error is not None:
         log("{} failed (write to {}): {}".format(action, tty, error))
 
 
@@ -240,7 +211,7 @@ def apply_background_osc(tty, rgb):
     :param rgb: 8-bit-per-channel RGB triple (e.g. `[36, 16, 16]`).
     """
     color = "#{:02x}{:02x}{:02x}".format(*rgb)
-    write_to_terminal(tty, "\033]11;{}\a".format(color), "set background {}".format(color))
+    write_osc(tty, "\033]11;{}\a".format(color), "set background {}".format(color))
 
 
 def reset_background_osc(tty):
@@ -249,7 +220,7 @@ def reset_background_osc(tty):
 
     :param tty: /dev path of the tab to reset (e.g. "/dev/ttys003").
     """
-    write_to_terminal(tty, "\033]111\a", "reset background")
+    write_osc(tty, "\033]111\a", "reset background")
 
 
 def on_session_start(event):
