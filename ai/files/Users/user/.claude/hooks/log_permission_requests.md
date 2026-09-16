@@ -32,7 +32,10 @@ here for readability):
 
 - `permissions.allow`: the rules Claude Code suggested for the call (its
   `permission_suggestions`). When the payload carries none, one rule is
-  synthesized: `Bash(<command>)` for Bash, else the bare tool name.
+  synthesized: `Bash(<command>)` for Bash, `<Tool>(<file_path>)` for a tool
+  whose input names a file (Edit, Write, Read, NotebookEdit; an absolute path
+  gets the `//` prefix Claude Code's own rules use, as in
+  `Edit(//Users/user/Projects/foo/bar.py)`), else the bare tool name.
 - `metadata.settings_path`: the project-local settings file the request would be
   recorded in (`<cwd>/.claude/settings.local.json`), so the reviewer can see
   which project asked.

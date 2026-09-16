@@ -38,13 +38,30 @@ def sanitize_rules(rules: list) -> list:
 
 
 def synthesize_rule(payload: dict) -> str:
-    """Builds a fallback permission rule when the payload carries no suggestions."""
+    """
+    Builds a fallback permission rule when the payload carries no suggestions.
+
+    A file tool (Edit, Write, Read, NotebookEdit) gets its path in the rule so
+    the log shows which directories keep prompting. An absolute path is spelled
+    the way Claude Code's own rules spell it (`Edit(//Users/...)`, a leading
+    double slash), so a mined rule pastes into the allowlist as-is.
+
+    :param payload: Hook event JSON (e.g. `{"tool_name": "Edit", "tool_input": {"file_path": "/tmp/x"}}`).
+    :return: A rule string, falling back to the bare tool name.
+    """
     tool_name = payload.get("tool_name") or "UnknownTool"
     tool_input = payload.get("tool_input") or {}
     if tool_name == "Bash":
         command = (tool_input.get("command") or "").strip()
         if command:
             return f"Bash({command})"
+        return tool_name
+
+    file_path = (tool_input.get("file_path") or "").strip()
+    if file_path.startswith("/"):
+        return f"{tool_name}(/{file_path})"
+    elif file_path:
+        return f"{tool_name}({file_path})"
     return tool_name
 
 

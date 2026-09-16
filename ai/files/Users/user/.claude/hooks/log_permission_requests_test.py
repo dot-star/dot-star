@@ -36,6 +36,21 @@ class SynthesizeRuleTest(unittest.TestCase):
         payload = {"tool_name": "Bash", "tool_input": {"command": "git check-ignore foo"}}
         self.assertEqual(synthesize_rule(payload), "Bash(git check-ignore foo)")
 
+    def test_wraps_file_tool_path_in_rule_syntax(self) -> None:
+        """Ensure synthesize_rule spells an absolute file_path with the double-slash rule prefix."""
+        payload = {"tool_name": "Edit", "tool_input": {"file_path": "/Users/user/Projects/foo/bar.py"}}
+        self.assertEqual(synthesize_rule(payload), "Edit(//Users/user/Projects/foo/bar.py)")
+
+    def test_keeps_relative_file_path_bare(self) -> None:
+        """Ensure synthesize_rule leaves a relative file_path unprefixed."""
+        payload = {"tool_name": "Write", "tool_input": {"file_path": "notes/todo.md"}}
+        self.assertEqual(synthesize_rule(payload), "Write(notes/todo.md)")
+
+    def test_falls_back_to_tool_name_without_a_path(self) -> None:
+        """Ensure synthesize_rule returns the bare tool name when tool_input carries no file_path."""
+        payload = {"tool_name": "AskUserQuestion", "tool_input": {"questions": []}}
+        self.assertEqual(synthesize_rule(payload), "AskUserQuestion")
+
 
 class AppendEntryTest(unittest.TestCase):
     def test_appends_every_occurrence_as_jsonl(self) -> None:
