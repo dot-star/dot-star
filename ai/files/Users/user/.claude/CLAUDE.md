@@ -143,6 +143,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 - For new file names, follow `~/.claude/styles/file-naming-style.md`. Apply when creating any file: hierarchical prefix groups related files, self-describing remainder says what the file does.
 - For Python docstrings (tests, functions, classes, modules), follow `~/.claude/styles/python-docstring-style.md`. One-line default; multi-line only when contract, contrast, non-obvious WHY, or setup demands it.
 - For Python test bodies, follow `~/.claude/styles/python-test-style.md`. Real instances for anything flowing through the code under test; `MagicMock` only for genuine boundaries.
+- For Python type annotations, follow `~/.claude/styles/python-typing-style.md`. Every parameter and return type on every `def`, builtin generics (`list[str]`, `str | None`), no `typing` aliases.
 - For shell scripts (bash, zsh), follow `~/.claude/styles/shell-style.md`.
 
 ## Input

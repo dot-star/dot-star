@@ -24,6 +24,7 @@ guides=()
 case "${file_path}" in
 *.py)
     guides+=("python-docstring-style.md")
+    guides+=("python-typing-style.md")
     ;;
 *.sh | *.bash | *.zsh | *.bashrc | *.zshrc | *.bash_profile | *.zprofile)
     guides+=("shell-style.md")
