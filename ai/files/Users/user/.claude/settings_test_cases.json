@@ -4,6 +4,9 @@
     {"cmd": "git log --oneline | head -20", "expected": "allow", "name": "pipe of two allowed commands"},
     {"cmd": "head -50 notes.txt", "expected": "allow", "name": "head reads a file"},
     {"cmd": "gh repo clone owner/name", "expected": "allow", "name": "gh repo clone"},
+    {"cmd": "php -l script.php", "expected": "allow", "name": "php lint"},
+    {"cmd": "shfmt --indent=4 --diff tools/bash/.aliases.sh", "expected": "allow", "name": "shfmt diff check"},
+    {"cmd": "which -a jq", "expected": "allow", "name": "which"},
 
     {"cmd": "gh api repos/owner/name -X DELETE", "expected": "ask", "name": "gh api -X outranks the blanket allow"},
     {"cmd": "gh api repos/owner/name --method POST", "expected": "ask", "name": "gh api --method"},
@@ -19,6 +22,7 @@
 
     {"cmd": "git push origin master", "expected": "unmatched", "name": "git push prompts"},
     {"cmd": "git status --short && rm -rf /tmp/scratch", "expected": "unmatched", "name": "one unmatched subcommand sinks the chain"},
+    {"cmd": "shfmt --indent=4 --write tools/bash/.aliases.sh", "expected": "unmatched", "name": "shfmt write prompts"},
 
     {"cmd": "gh api repos/owner/name/pulls/1", "expected": "unmatched", "name": "gh api read is the hook's call, not a rule's"},
     {"cmd": "gh api repos/owner/name --brand-new-write-flag body=x", "expected": "unmatched", "name": "unknown gh api write flag"},
