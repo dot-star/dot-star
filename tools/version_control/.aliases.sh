@@ -271,15 +271,20 @@ conditional_g() {
 }
 alias g="conditional_g"
 
-git_browser() {
-    # Strip geometry lines around each gitk run; the file is symlinked into the dot-star repo and gitk rewrites them on exit.
-    local strip_geometry=(sed -i "" '/set geometry(/d' "${HOME}/.config/git/gitk")
+# Strip the geometry lines gitk writes on exit so the config file tracked in dot-star stays clean.
+gitk_strip_geometry() {
+    local config="${HOME}/.config/git/gitk"
 
+    # Edit the symlink's target; BSD sed -i refuses to edit through a symlink.
+    sed -i "" '/set geometry(/d' "$(readlink -f "${config}")"
+}
+
+git_browser() {
     # Drop any geometry left by direct `gitk` invocations that bypassed this wrapper.
-    "${strip_geometry[@]}"
+    gitk_strip_geometry
     gitk "${@}"
-    # Clear geometry lines gitk just wrote on exit so the symlinked dot-star file stays clean.
-    "${strip_geometry[@]}"
+    # Clear geometry lines gitk just wrote on exit.
+    gitk_strip_geometry
 }
 
 alias g.="git_browser ."
