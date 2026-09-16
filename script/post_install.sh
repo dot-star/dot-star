@@ -85,6 +85,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
         pyenv
         pyenv-virtualenv
         rsync
+        ruff
         tig
         tree
         wget
