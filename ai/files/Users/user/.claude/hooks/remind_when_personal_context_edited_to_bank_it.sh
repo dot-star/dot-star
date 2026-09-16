@@ -20,7 +20,7 @@ fi
 contexts_dir="${CLAUDE_CONTEXTS_DIR:-${HOME}/.dot-star/ai/contexts}"
 
 # Echo the private-* link that resolves to <file>, or nothing when none does.
-private_context_link_for() {
+personal_context_link_for() {
     local file="$1"
     local link
 
@@ -36,14 +36,14 @@ private_context_link_for() {
     return 0
 }
 
-link="$(private_context_link_for "${file}")"
+link="$(personal_context_link_for "${file}")"
 if [ -z "${link}" ]; then
     exit 0
 fi
 
 sentinel_dir=$(claude_session_dir "$(command jq --raw-output '.session_id // empty' <<<"${input}")")
 if [ -n "${sentinel_dir}" ]; then
-    sentinel="${sentinel_dir}/reminded-private-${file##*/}"
+    sentinel="${sentinel_dir}/reminded-personal-${file##*/}"
     if [ -e "${sentinel}" ]; then
         exit 0
     fi

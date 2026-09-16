@@ -12,7 +12,7 @@ set -euo pipefail
 contexts_dir="${CLAUDE_CONTEXTS_DIR:-${HOME}/.dot-star/ai/contexts}"
 
 # Describe one link's problem, or print nothing when it is banked and clean.
-private_context_problem() {
+personal_context_problem() {
     local link="$1"
     local target
     local target_dir
@@ -47,7 +47,7 @@ for link in "${contexts_dir}"/private-*; do
         continue
     fi
 
-    problem="$(private_context_problem "${link}")"
+    problem="$(personal_context_problem "${link}")"
     if [ -n "${problem}" ]; then
         report+="${problem}"$'\n'
     fi
