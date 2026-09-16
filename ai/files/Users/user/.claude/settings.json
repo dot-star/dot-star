@@ -45,6 +45,10 @@
           {
             "command": "${HOME}/.claude/hooks/enforce_executable_bit.sh",
             "type": "command"
+          },
+          {
+            "command": "${HOME}/.claude/hooks/remind_when_personal_context_edited_to_bank_it.sh",
+            "type": "command"
           }
         ],
         "matcher": "Write|Edit"
@@ -145,6 +149,10 @@
           },
           {
             "command": "${HOME}/.claude/hooks/load_claude_md_supplementals.sh",
+            "type": "command"
+          },
+          {
+            "command": "${HOME}/.claude/hooks/warn_when_personal_context_untracked.sh",
             "type": "command"
           },
           {
