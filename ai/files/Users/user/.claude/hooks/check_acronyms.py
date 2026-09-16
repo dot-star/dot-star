@@ -44,6 +44,7 @@ WHITELIST = {
     "CORS",
     "CPU",
     "CSS",
+    "CSV",
     "CWS",
     "EDT",
     "EST",
