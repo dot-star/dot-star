@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
-# PreToolUse hook: auto-allow `git log` (with or without args) and a read-only
-# `gh api` fetch. Anything else falls through to the normal permission flow.
+# PreToolUse hook: decide the prompt for the commands a permission rule cannot
+# describe. Auto-allow `git log` (with or without args), a read-only `gh api`
+# fetch, and the one fold that needs no confirmation; force a prompt on every
+# other `git commit`. Anything else falls through to the normal permission
+# flow.
+#
+# The `git commit` gate lives here rather than in an `ask` rule because the
+# rule language has no negation and an ask rule outranks both allow rules and
+# this hook, so a single `Bash(git commit:*)` entry would prompt for the fold
+# too.
 
 set -u
 
@@ -151,31 +159,55 @@ is_gh_api_read() {
     return 0
 }
 
+# Report whether `git commit` runs as a command here: at the start of the text
+# or after a character that opens a new one. Ignore the phrase inside an
+# argument (`grep "git commit"`), which commits nothing and needs no prompt.
+runs_git_commit() {
+    local opener=$'(^|[;&|(`\n])'
+
+    [[ "${1}" =~ ${opener}[[:space:]]*git[[:space:]]+commit([[:space:]]|$) ]]
+}
+
+# Emit a permission decision and leave. Staying silent instead hands the
+# command to the normal permission flow.
+emit_decision() {
+    command jq \
+        --null-input \
+        --compact-output \
+        --arg decision "${1}" \
+        --arg reason "${2}" \
+        '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:$decision,permissionDecisionReason:$reason}}'
+
+    exit 0
+}
+
 cmd=$(command jq --raw-output '.tool_input.command')
 
+# Wave the fold through: `--no-edit` writes no new subject and opens no editor,
+# so the amend leaves nothing to confirm. Match the exact text, since any extra
+# flag or pipeline stage is a different command.
+if [[ "${cmd}" == "git commit --amend --no-edit" ]]; then
+    emit_decision allow "fold the staged change into HEAD, subject untouched"
+elif runs_git_commit "${cmd}"; then
+    emit_decision ask "git commit writes history; confirm the command first"
+fi
+
 # Safe-list: each entry covers the bare form and the args form; nothing else.
-reason=""
 case "${cmd}" in
 "git log" | \
     "git log "*)
     if ! is_metacharacter_free "${cmd}"; then
         exit 0
     fi
-    reason="read-only git log"
+    emit_decision allow "read-only git log"
     ;;
 "gh api "*)
     if ! is_gh_api_read "${cmd}"; then
         exit 0
     fi
-    reason="read-only gh api endpoint fetch"
+    emit_decision allow "read-only gh api endpoint fetch"
     ;;
 *)
     exit 0
     ;;
 esac
-
-command jq \
-    --null-input \
-    --compact-output \
-    --arg reason "${reason}" \
-    '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"allow",permissionDecisionReason:$reason}}'

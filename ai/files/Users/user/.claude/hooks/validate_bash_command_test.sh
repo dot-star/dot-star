@@ -2,9 +2,9 @@
 # Tests for validate_bash_command.sh.
 # Reads cases from validate_bash_command_test_cases.json (each entry is
 # {name, cmd, expected}). For each case, feeds a synthetic Claude Code
-# PreToolUse payload to the hook and asserts whether it emits an allow
-# decision (auto-allow) or stays silent (fall-through to the normal
-# permission flow).
+# PreToolUse payload to the hook and asserts which decision it emits:
+# `allow` (skip the prompt), `ask` (force one), or silence (fall-through to
+# the normal permission flow).
 #
 # Run: bash ai/files/Users/user/.claude/hooks/validate_bash_command_test.sh
 
@@ -25,7 +25,7 @@ run_test() {
     local out actual
     out=$(printf '%s' "${cmd}" | command jq --raw-input '{tool_input:{command:.}}' | "${HOOK}")
     if [ -n "${out}" ]; then
-        actual=allow
+        actual=$(printf '%s' "${out}" | command jq --raw-output '.hookSpecificOutput.permissionDecision')
     else
         actual=fall-through
     fi
@@ -45,11 +45,17 @@ while IFS=$'\t' read -r name cmd expected; do
         if [ -n "${last_section}" ]; then
             echo ""
         fi
-        if [ "${expected}" = "allow" ]; then
-            echo "== Should ALLOW (safe-listed read-only commands) =="
-        else
+        case "${expected}" in
+        allow)
+            echo "== Should ALLOW (safe-listed commands that need no prompt) =="
+            ;;
+        ask)
+            echo "== Should ASK (gated here, where a rule cannot say 'except') =="
+            ;;
+        *)
             echo "== Should FALL THROUGH (everything else -> normal prompt) =="
-        fi
+            ;;
+        esac
         last_section="${expected}"
     fi
     run_test "${name}" "${cmd}" "${expected}"

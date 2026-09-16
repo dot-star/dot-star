@@ -345,8 +345,7 @@
       "Bash(gh api* -f*)",
       "Bash(gh pr checkout:*)",
       "Bash(gh pr create:*)",
-      "Bash(gh pr edit:*)",
-      "Bash(git commit:*)"
+      "Bash(gh pr edit:*)"
     ],
     "deny": [
       "Bash(gh pr close:*)",

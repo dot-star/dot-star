@@ -17,8 +17,6 @@
     {"cmd": "gh api repos/owner/name -f title=x", "expected": "ask", "name": "gh api -f"},
     {"cmd": "gh api graphql -F query=@mutation.graphql", "expected": "ask", "name": "gh api -F from a file"},
     {"cmd": "gh api repos/owner/name --input body.json", "expected": "ask", "name": "gh api --input"},
-    {"cmd": "git commit -m subject", "expected": "ask", "name": "git commit"},
-    {"cmd": "git log --oneline && git commit -m subject", "expected": "ask", "name": "chain takes the stricter outcome"},
 
     {"cmd": "gh pr merge 1", "expected": "deny", "name": "gh pr merge"},
     {"cmd": "git log --oneline && gh pr close 1", "expected": "deny", "name": "deny wins anywhere in a chain"},
@@ -30,5 +28,7 @@
 
     {"cmd": "gh api repos/owner/name/pulls/1", "expected": "unmatched", "name": "gh api read is the hook's call, not a rule's"},
     {"cmd": "gh api repos/owner/name --brand-new-write-flag body=x", "expected": "unmatched", "name": "unknown gh api write flag"},
-    {"cmd": "git -C /repo -c core.pager=pager checkout master", "expected": "unmatched", "name": "git -C option smuggling"}
+    {"cmd": "git -C /repo -c core.pager=pager checkout master", "expected": "unmatched", "name": "git -C option smuggling"},
+    {"cmd": "git commit -m subject", "expected": "unmatched", "name": "git commit is the hook's call, not a rule's"},
+    {"cmd": "git log --oneline && git commit -m subject", "expected": "unmatched", "name": "one unruled subcommand sinks the chain"}
 ]
