@@ -271,6 +271,7 @@
       "Bash(pbpaste)",
       "Bash(php -l *)",
       "Bash(promote)",
+      "Bash(shfmt --diff *)",
       "Bash(shfmt --indent=4 --diff *)",
       "Bash(which *)",
       "Bash(wtd)",

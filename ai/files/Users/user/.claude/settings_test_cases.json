@@ -6,6 +6,7 @@
     {"cmd": "gh repo clone owner/name", "expected": "allow", "name": "gh repo clone"},
     {"cmd": "php -l script.php", "expected": "allow", "name": "php lint"},
     {"cmd": "promote", "expected": "allow", "name": "promote alias"},
+    {"cmd": "shfmt --diff tools/bash/.aliases.sh", "expected": "allow", "name": "shfmt diff check without indent"},
     {"cmd": "shfmt --indent=4 --diff tools/bash/.aliases.sh", "expected": "allow", "name": "shfmt diff check"},
     {"cmd": "which -a jq", "expected": "allow", "name": "which"},
     {"cmd": "wtd", "expected": "allow", "name": "wtd alias"},
