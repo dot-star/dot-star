@@ -15,8 +15,8 @@ SNIPPET='[[ -r ~/.dot-star/bootstrap/.bash_profile ]] && source ~/.dot-star/boot
 work="$(mktemp -d)"
 trap 'rm -rf "${work}"' EXIT
 
-# Pull the header/footer assignments and the function body out of install.sh.
-awk '/^dotstar_header=/,/^}$/' "${INSTALL}" >"${work}/setup_bootstrap.sh"
+# Pull the function body out of install.sh.
+awk '/^setup_bootstrap\(\) \{$/,/^}$/' "${INSTALL}" >"${work}/setup_bootstrap.sh"
 source "${work}/setup_bootstrap.sh"
 
 passes=0
@@ -130,6 +130,50 @@ check "takes a comment leader for the markers" "$(cat "${lua}")" "require('funct
 -- Begin dot-star bootstrap.
 require('fresh')
 -- End dot-star bootstrap."
+
+# Insert a first-time block above the anchor rather than at the end of the file.
+ANCHOR='^[[:space:]]*(source|\.)[[:space:]]+.*oh-my-zsh\.sh'
+ZSTYLE="zstyle ':omz:alpha:lib:git' async-prompt no"
+anchored="${work}/anchored_rc"
+cat >"${anchored}" <<EOF
+ZSH_THEME="kennethreitz"
+source \$ZSH/oh-my-zsh.sh
+export EDITOR=vim
+EOF
+setup_bootstrap "${anchored}" "${ZSTYLE}" '#' 'zsh prompt' "${ANCHOR}"
+check "inserts above the anchor" "$(cat "${anchored}")" "ZSH_THEME=\"kennethreitz\"
+# Begin dot-star zsh prompt.
+${ZSTYLE}
+# End dot-star zsh prompt.
+
+source \$ZSH/oh-my-zsh.sh
+export EDITOR=vim"
+
+anchored_before="$(cat "${anchored}")"
+setup_bootstrap "${anchored}" "${ZSTYLE}" '#' 'zsh prompt' "${ANCHOR}"
+check "leaves an anchored block where it sits" "$(cat "${anchored}")" "${anchored_before}"
+
+# Keep a named block clear of the default one in the same file.
+setup_bootstrap "${anchored}" "${SNIPPET}"
+check "keeps two named blocks apart" "$(cat "${anchored}")" "ZSH_THEME=\"kennethreitz\"
+# Begin dot-star zsh prompt.
+${ZSTYLE}
+# End dot-star zsh prompt.
+
+source \$ZSH/oh-my-zsh.sh
+export EDITOR=vim
+# Begin dot-star bootstrap.
+${SNIPPET}
+# End dot-star bootstrap."
+
+# Fall back to appending when no line matches the anchor.
+anchorless="${work}/anchorless_rc"
+printf 'export EDITOR=vim\n' >"${anchorless}"
+setup_bootstrap "${anchorless}" "${ZSTYLE}" '#' 'zsh prompt' "${ANCHOR}"
+check "appends when the anchor is missing" "$(cat "${anchorless}")" "export EDITOR=vim
+# Begin dot-star zsh prompt.
+${ZSTYLE}
+# End dot-star zsh prompt."
 
 echo ""
 echo "${passes} passed, ${fails} failed"

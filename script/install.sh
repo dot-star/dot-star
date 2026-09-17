@@ -201,16 +201,18 @@ ensure_symlink "${DOT_STAR}/ai/files/Users/user/.claude/styles" "${HOME}/.claude
 bt_pop
 
 bt_push "bootstrap snippets"
-dotstar_header="Begin dot-star bootstrap."
-dotstar_footer="End dot-star bootstrap."
-
 setup_bootstrap() {
     filename="${1}"
     script="${2}"
     # Lead the marker lines with the file's own comment syntax, so a Lua config gets `--` where the rc files get `#`.
     comment_leader="${3:-#}"
-    header="${comment_leader} ${dotstar_header}"
-    footer="${comment_leader} ${dotstar_footer}"
+    # Name the block so one file can carry several, each bracketed by its own pair of markers.
+    block_name="${4:-bootstrap}"
+    # Insert a first-time block above the first line matching this extended regex. Without an anchor the block lands at the end of the file, too late for anything the rest of the file reads.
+    anchor="${5:-}"
+
+    header="${comment_leader} Begin dot-star ${block_name}."
+    footer="${comment_leader} End dot-star ${block_name}."
 
     block="${header}
 ${script}
@@ -224,10 +226,22 @@ ${footer}"
     # not `sed -i`/`mv`: both break a symlinked rc file (e.g. a ~/.zshrc linked
     # into another repo) and `sed -i` errors on symlinks outright.
     if [ -e "${filename}" ]; then
+        # Anchor a first-time block only; a block already in the file keeps its spot.
+        # Pass the header through --regexp, never as a positional: a `--` comment leader reads as a flag.
+        if grep \
+            --quiet \
+            --fixed-strings \
+            --line-regexp \
+            --regexp="${header}" \
+            "${filename}"; then
+            anchor=""
+        fi
+
         tmp="${filename}.dotstar.tmp"
         dotstar_block="${block}" awk \
             -v header="${header}" \
             -v footer="${footer}" \
+            -v anchor="${anchor}" \
             '
             function print_block() {
                 print ENVIRON["dotstar_block"]
@@ -250,6 +264,11 @@ ${footer}"
                 next
             }
             {
+                if (!seen && anchor != "" && $0 ~ anchor) {
+                    print_block()
+                    print ""
+                    seen = 1
+                }
                 print
             }
             END {
@@ -275,6 +294,18 @@ fi'
 
 # zsh reads ~/.zshrc directly for interactive shells, so source the spine inline (no login-shell dance like bash).
 setup_bootstrap "${HOME}/.zshrc" '[[ -r ~/.dot-star/bootstrap/.bash_profile ]] && source ~/.dot-star/bootstrap/.bash_profile'
+
+# Paint the git branch synchronously. oh-my-zsh's async git prompt serves the
+# previous directory's branch on the first paint after a cd and repaints once
+# the real one lands, so a wrapped prompt keeps both copies on screen.
+# Anchor the block above the oh-my-zsh source line: lib/git.zsh reads the zstyle
+# while oh-my-zsh loads, so the spine's own block at the end of the file is too late.
+setup_bootstrap \
+    "${HOME}/.zshrc" \
+    "zstyle ':omz:alpha:lib:git' async-prompt no" \
+    '#' \
+    'zsh prompt' \
+    '^[[:space:]]*(source|\.)[[:space:]]+.*oh-my-zsh\.sh'
 bt_pop
 
 bt_push "rc file symlinks"
