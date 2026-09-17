@@ -248,6 +248,23 @@ elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
     bt_pop # linux section
 fi
 
+bt_push "pip upgrade"
+# Skip an externally managed interpreter: its package manager ships pip and
+# overwrites anything installed over it.
+externally_managed_marker="$(python3 -c 'import sysconfig; print(sysconfig.get_path("stdlib"))')/EXTERNALLY-MANAGED"
+
+if [[ ! -e "${externally_managed_marker}" ]]; then
+    # Upgrade in place, not into the per-user site used below: a `--user` pip
+    # shadows the pyenv shim with a copy pinned to one interpreter.
+    if ! python3 -m pip install \
+        --quiet \
+        --upgrade \
+        pip; then
+        warn "Failed to upgrade pip" "python3 -m pip install --upgrade pip"
+    fi
+fi
+bt_pop
+
 bt_push "pip packages"
 # Install Python packages for the shell's `python3`, on every platform. Take
 # pandas with its `excel` extra: pandas ships no spreadsheet reader of its own,
