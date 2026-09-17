@@ -187,6 +187,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     dirty:    <file count, or "clean">
     ```
 
+  - `ses`, `sesid`, `sess`, `sessid`, `sid` mean "print this session's full id (as in the scratchpad path) and put it on the clipboard"
   - `eg`, `egs`, `examples` mean "show me examples"
   - `opt`, `opts` mean "show me options"
   - `show`, `show me` mean "render the thing the previous message described as its actual artifact": the literal file lines, sample output, or rendered text, so I can evaluate it rather than read another description of it. It's a preview request, so don't write the file or run the action until I say so.
