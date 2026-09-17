@@ -213,6 +213,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     - The pick is already made, so the commit runs with that subject verbatim and skips the skill's draft-and-pick step.
     - One `c<N>` picks one commit: the number names a draft under exactly one commit's tree, so with two or more commits pending (one per repo, say) the reply names one per commit (`c2 c5`). A reply that covers only some of them commits those alone; the rest stay unpicked and get their trees re-offered.
     - `p<N>` and `L<N>` pick the same draft N from the commit row's list (the promote and land rows carry only a `[pN] ...` stand-in), then promote or land.
+    - `f<N>` picks from the fold row's own list instead, since a fold's subjects describe the combined diff rather than the pending change alone, then amends HEAD with that subject. A bare `f` folds under HEAD's existing subject.
     - `c<N> iter` is the `<N> iter` form: refine draft N, no commit yet.
   - `cs` means "commit only the already-staged changes": like `c` (the `commit` skill), but never auto-stage; if nothing is staged, stop.
   - `🚢` means "ship it" (land the work)
@@ -363,16 +364,16 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     4. Does 🧨🧨 **`[xx]`** render only over a dirty tree, and on a dirty tree is it the bottom row, with 🧨 **`[x]`** directly above it and 🏁 **`[L]and`** above that? A clean tree ends on 🧨 **`[x]`** instead. If any other option (even a lone keep/iterate slot) renders beneath 🏁 **`[L]and`**, reorder before sending.
     5. Is there exactly one space between each emoji and its bracket span? The column padding goes after the closing `**`, before the `(`, never between the emoji and the bracket.
     6. Does every decision the message body left open have a row here? Re-read the prose above for nits, 💅 polish notes, 🔄 heads-ups, and 🔴 blockers; each one the user could accept needs its own row under the same letter and emoji, per the bracket-prefix checklist. A menu that omits one sends the reader back to typing a sentence.
-    7. Does the 💾 commit row carry the subject drafts beneath it, and do the ⬆️ promote, 🏁 land and 🧨 close rows each carry their `[pN] ...` stand-in? A committing row with none costs the user a round trip through the skill's pick step.
+    7. Does the 💾 commit row carry the subject drafts beneath it, does the 📦 fold row carry its own `[fN]` drafts against the combined diff, and do the ⬆️ promote, 🏁 land and 🧨 close rows each carry their `[pN] ...` stand-in? A committing row with none costs the user a round trip through the skill's pick step.
     8. Is the change the drafts describe staged? Every `[cN]` tree needs its paths in the index before the menu renders, per the staging rule below; a menu with drafts over an unstaged change sends the user back to asking for the staging before they can judge the subjects.
     9. Would a behavior-preserving restructure of a touched line shrink this diff? Read the staged diff's deleted lines: a long paragraph replaced by a copy of itself with one clause changed is the tell, since the reviewer sees a rewrite where the intent is one sentence. Split it into bullets (or extract the helper) as its own commit first, offered as a 🪚 **`[sp]lit`** row above the commit row, before drafting any subject. The refactor principle at the top of this file already asks for the split; this item is the one that fires, since only the list gets run against the menu in hand.
 
-  **Subject drafts ride under every row that commits.** Whenever the tree is dirty, draft subjects for the pending change the way the `commit` skill does (over-generate, score, rank) and render the top three beneath each of 💾 **`[c]ommit`**, ⬆️ **`[p]romote`**, 🏁 **`[L]and`** and 🧨 **`[x]`** as a tree sub-list, the same shape as the 🏁 checklist's commit list:
+  **Subject drafts ride under every row that commits.** Whenever the tree is dirty, draft subjects the way the `commit` skill does (over-generate, score, rank) and render the top three beneath each of 💾 **`[c]ommit`**, 📦 **`[f]old`**, ⬆️ **`[p]romote`**, 🏁 **`[L]and`** and 🧨 **`[x]`** as a tree sub-list, the same shape as the 🏁 checklist's commit list:
 
-  - **Row shape:** each row indented with 2 ideographic full-width spaces (U+3000) + 1 regular space so the glyph lands under the `[` of the parent row, a `├─` on each row and `└─` on the last, then the bracket token `**` + `` ` `` + `[cN]` + `` ` `` + `**` (or `[pN]`, `[LN]`, `[xN]`, the parent's letter plus the draft number), a space, and the subject in plain text. The subject stays plain because it's text to compare, not an option name.
+  - **Row shape:** each row indented with 2 ideographic full-width spaces (U+3000) + 1 regular space so the glyph lands under the `[` of the parent row, a `├─` on each row and `└─` on the last, then the bracket token `**` + `` ` `` + `[cN]` + `` ` `` + `**` (or `[fN]`, `[pN]`, `[LN]`, `[xN]`, the parent's letter plus the draft number), a space, and the subject in plain text. The subject stays plain because it's text to compare, not an option name.
   - **Spelled out once:** the subjects sit under the commit row; the promote, land and close rows each carry a single stand-in row instead of a tree, `[pN] ...`, `[LN] ...`, `[xN] ...` with a literal `N`, so the accept-token shape is on screen without three rows of `...` repeating three times. The stand-in takes a `└─`, since it's the last row under its parent, the same way `└─` closes the commit row's list.
   - **One tree per pending commit:** a menu covering two or more commits (one per repo, say) renders a draft tree under each, numbered globally unique across the message (`[c1]`-`[c3]` for the first commit, `[c4]`-`[c6]` for the second), so a single `c<N>` names one draft of one commit. Never float a commit's subject in prose beside another commit's tree; a subject with no token can't be picked, so it reads as decided when it isn't.
-  - **Fold takes no tree**, since it keeps HEAD's subject.
+  - **Fold unstales the subject it amends**, so its row carries a tree too: draft it against the combined diff (HEAD's change plus the pending one), which is what the amended commit will hold, and number it after the commit row's drafts, `[f4]`-`[f6]` under a `[c1]`-`[c3]` commit row, so one number names one draft. A bare `f` keeps HEAD's subject, the right pick whenever that subject already covers the combined diff; `f<N>` amends with draft N instead. The tree renders on every fold, since whether the old subject still covers the folded-in change is the question the drafts answer, so leaving them off when it looks fine is the guess they replace.
   - **Bare `c` still runs the skill** and shows the full list of five.
 
   **Stage the change before rendering its drafts.** A subject is judged against the diff it describes, so the diff has to be one command away while the drafts are on screen: once the paths are in the index, a bare `d` in another terminal shows `git diff --cached` (`rc_diff` prefers the staged diff when one exists) and `s` lists the staged files, which is exactly what the picked draft would commit. Whenever a menu carries a `[cN]` tree, run `git add -- <path> [<path> ...]` over the paths this session edited first, under the same explicit-path and `git status --porcelain` checks the staging rule in Shell commands sets, and say so in a line above the menu (`🟢 Staged 2 files`) so the user knows `d` is live. Re-run it on every menu, since edits made after an earlier staging land unstaged.
@@ -394,7 +395,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   The common options:
   - 🛠️ **`[i]terate`**: no commit yet, keep iterating in the worktree (the do-nothing default, named for the action rather than a passive "keep").
   - 💾 **`[c]ommit`**: commit, keep iterating in the worktree (commits what's there; `[i]terate` defers the commit). Carries its three `[cN]` subject drafts beneath it.
-  - 📦 **`[f]old`**: amend the pending change into HEAD with `git commit --amend --no-edit`, keep iterating in the worktree. Read the combined diff afterward and offer a reworded subject when the old one no longer covers it.
+  - 📦 **`[f]old`**: amend the pending change into HEAD with `git commit --amend --no-edit`, keep iterating in the worktree. Carries its three `[fN]` subject drafts beneath it, scored against the combined diff; picking one swaps the `--no-edit` for `--message "<subject>"`, so the amended commit carries the new subject.
   - ⬆️ **`[p]romote`**: commit + fast-forward the default branch to here, keep the worktree (via `worktree-promote`). Carries a single `[pN] ...` stand-in for the commit row's numbering when the tree is dirty.
   - 🏁 **`[L]and`**: commit + promote + tear down the worktree (via `worktree-done`). Carries a single `[LN] ...` stand-in for the commit row's numbering when the tree is dirty.
   - 🧨 **`[x]`**: commit + promote + tear down the worktree + mark the session for prune + `/exit`, per the `x` rule in Workflow. The parenthetical spells out the land row's steps rather than saying `land +`, since every option is self-contained. Carries a single `[xN] ...` stand-in for the commit row's numbering when the tree is dirty.
@@ -402,7 +403,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
   **A one-off option outside the standard rows** (e.g. 🧹 **`[cl]ean`** to delete dead code before committing) slots by how committal it is, next to the standard row it most resembles: edit-and-defer sits with 🛠️ **`[i]terate`**, edit-then-commit sits with the 💾 commit row. It never takes the top row from 🛠️ **`[i]terate`** or the bottom rows from 🏁 **`[L]and`**, 🧨 **`[x]`** and 🧨🧨 **`[xx]`**. It may fold its own commit in (as promote and land do), but never a second menu action's git state change. When its natural letter collides with a standard row's, both sides extend: a clean row turns the commit row into 💾 **`[co]mmit`**, so the menu reads 🧹 **`[cl]ean`** vs 💾 **`[co]mmit`**.
 
-  Rendered examples (show only the options that apply, always in this order; pad the bracket-name column with trailing spaces so the open-parens line up). On a dirty tree the commit, promote and land rows each carry the subject drafts; the later examples leave them out to keep the shapes short:
+  Rendered examples (show only the options that apply, always in this order; pad the bracket-name column with trailing spaces so the open-parens line up). On a dirty tree the commit, fold, promote and land rows each carry the subject drafts; the later examples leave them out to keep the shapes short:
 
   Full set:
 
@@ -413,6 +414,9 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   > 　　 ├─ **`[c2]`** Give the open search box room when the title is long
   > 　　 └─ **`[c3]`** Stop a long title squeezing the search input to nothing
   >   📦 **`[f]old`**    (amend into HEAD + keep iterating)
+  > 　　 ├─ **`[f4]`** Add a search box that stays usable under a long title
+  > 　　 ├─ **`[f5]`** Add a search box to the toolbar
+  > 　　 └─ **`[f6]`** Add a search box that yields to the title
   >   ⬆️ **`[p]romote`** (commit + ✅ promote to master)
   > 　　 └─ **`[pN]`** ...
   >   🏁 **`[L]and`**    (commit + ✅ promote to master + 🪓 tear down worktree)
