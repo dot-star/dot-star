@@ -72,6 +72,7 @@ WHITELIST = {
     "PHP",
     "PM",
     "PR",
+    "PRD",
     "PTAL",
     "QA",
     "QR",
