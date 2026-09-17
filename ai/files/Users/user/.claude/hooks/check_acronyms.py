@@ -46,6 +46,7 @@ WHITELIST = {
     "CSS",
     "CSV",
     "CWS",
+    "DM",
     "EDT",
     "EST",
     "ET",
