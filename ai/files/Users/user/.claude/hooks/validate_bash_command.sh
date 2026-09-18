@@ -159,6 +159,23 @@ is_gh_api_read() {
     return 0
 }
 
+# Report whether one command only reads, so the prompt it would raise carries
+# no decision to make. Each entry covers the bare form and the args form.
+is_read_only_command() {
+    case "${1}" in
+    "git log" | \
+        "git log "*)
+        is_metacharacter_free "${1}"
+        ;;
+    "gh api "*)
+        is_gh_api_read "${1}"
+        ;;
+    *)
+        return 1
+        ;;
+    esac
+}
+
 # Report whether `git commit` runs as a command here: at the start of the text
 # or after a character that opens a new one. Ignore the phrase inside an
 # argument (`grep "git commit"`), which commits nothing and needs no prompt.
@@ -192,22 +209,10 @@ elif runs_git_commit "${cmd}"; then
     emit_decision ask "git commit writes history; confirm the command first"
 fi
 
-# Safe-list: each entry covers the bare form and the args form; nothing else.
-case "${cmd}" in
-"git log" | \
-    "git log "*)
-    if ! is_metacharacter_free "${cmd}"; then
-        exit 0
-    fi
-    emit_decision allow "read-only git log"
-    ;;
-"gh api "*)
-    if ! is_gh_api_read "${cmd}"; then
-        exit 0
-    fi
-    emit_decision allow "read-only gh api endpoint fetch"
-    ;;
-*)
+# Wave a read through; anything off the safe-list falls through to the normal
+# permission flow.
+if ! is_read_only_command "${cmd}"; then
     exit 0
-    ;;
-esac
+fi
+
+emit_decision allow "the command only reads"
