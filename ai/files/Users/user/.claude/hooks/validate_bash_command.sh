@@ -5,6 +5,11 @@
 # confirmation; force a prompt on every other `git commit`. Anything else
 # falls through to the normal permission flow.
 #
+# Allow a chained line only when every command in it reads. Claude Code
+# matches a permission rule per command, so a chain of two rule-covered reads
+# already skips the prompt; what it cannot express is the flag-dependent
+# `gh api` half, which drags the whole chain into a prompt.
+#
 # The `git commit` gate lives here rather than in an `ask` rule because the
 # rule language has no negation and an ask rule outranks both allow rules and
 # this hook, so a single `Bash(git commit:*)` entry would prompt for the fold
@@ -14,6 +19,9 @@ set -u
 
 # Hold the tokens the last `tokenize` call produced.
 tokens=()
+
+# Hold the commands the last `split_commands` call produced.
+segments=()
 
 # Fail on any shell metacharacter that breaks the literal-string assumption:
 # command chaining (; & | newline), redirection (< >), substitution ($ `),
@@ -111,6 +119,65 @@ tokenize() {
     fi
 
     return 0
+}
+
+# Push a segment onto `segments` with its edge spaces stripped, dropping the
+# empty one a `&&` pair or a trailing separator leaves.
+add_segment() {
+    local text="${1}"
+
+    while [[ "${text}" == " "* ]]; do
+        text="${text# }"
+    done
+
+    while [[ "${text}" == *" " ]]; do
+        text="${text% }"
+    done
+
+    if [[ -n "${text}" ]]; then
+        segments+=("${text}")
+    fi
+}
+
+# Split a command line into `segments`, one per command it runs, treating a
+# separator inside quotes as argument text. Leave every other metacharacter
+# in place for the per-command checks to reject.
+split_commands() {
+    local text="${1}"
+    local quote=""
+    local current=""
+    local index=0
+    local char
+
+    segments=()
+    while [[ "${index}" -lt "${#text}" ]]; do
+        char="${text:index:1}"
+        index=$((index + 1))
+
+        if [[ -n "${quote}" ]]; then
+            if [[ "${char}" == "${quote}" ]]; then
+                quote=""
+            fi
+            current+="${char}"
+            continue
+        fi
+
+        case "${char}" in
+        '"' | "'")
+            quote="${char}"
+            current+="${char}"
+            ;;
+        ';' | '&' | '|' | $'\n')
+            add_segment "${current}"
+            current=""
+            ;;
+        *)
+            current+="${char}"
+            ;;
+        esac
+    done
+
+    add_segment "${current}"
 }
 
 # Accept one `gh api <endpoint>` carrying no flag beyond --paginate and --jq,
@@ -262,10 +329,19 @@ elif runs_git_commit "${cmd}"; then
     emit_decision ask "git commit writes history; confirm the command first"
 fi
 
-# Wave a read through; anything off the safe-list falls through to the normal
-# permission flow.
-if ! is_read_only_command "${cmd}"; then
+# Wave the line through only when every command in it reads. One command that
+# writes, or one the safe-list does not cover, hands the whole line back to the
+# normal permission flow rather than allowing the reads around it.
+split_commands "${cmd}"
+
+if [[ "${#segments[@]}" -eq 0 ]]; then
     exit 0
 fi
 
-emit_decision allow "the command only reads"
+for segment in "${segments[@]}"; do
+    if ! is_read_only_command "${segment}"; then
+        exit 0
+    fi
+done
+
+emit_decision allow "every command in the line only reads"
