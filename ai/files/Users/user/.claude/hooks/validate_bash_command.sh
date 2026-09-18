@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # PreToolUse hook: decide the prompt for the commands a permission rule cannot
 # describe. Auto-allow `git log` (with or without args), a read-only `gh api`
-# fetch, and the one fold that needs no confirmation; force a prompt on every
-# other `git commit`. Anything else falls through to the normal permission
-# flow.
+# fetch, a `gh` view/list/diff read, and the one fold that needs no
+# confirmation; force a prompt on every other `git commit`. Anything else
+# falls through to the normal permission flow.
 #
 # The `git commit` gate lives here rather than in an `ask` rule because the
 # rule language has no negation and an ask rule outranks both allow rules and
@@ -159,6 +159,56 @@ is_gh_api_read() {
     return 0
 }
 
+# Accept a `gh` subcommand that only reads GitHub, vetted by verb pair; every
+# `gh search` verb reads. Reject the flags that reach past the terminal:
+# `--web` opens a browser and `--watch` blocks until the checks settle.
+is_gh_read_subcommand() {
+    local pair
+    local token
+
+    if ! tokenize "${1}"; then
+        return 1
+    fi
+
+    for token in "${tokens[@]}"; do
+        case "${token}" in
+        "-w" | "--web" | "--web="* | "--watch" | "--watch="*)
+            return 1
+            ;;
+        esac
+    done
+
+    if [[ "${#tokens[@]}" -ge 2 && "${tokens[1]}" == "search" ]]; then
+        return 0
+    elif [[ "${#tokens[@]}" -lt 3 ]]; then
+        return 1
+    fi
+
+    pair="${tokens[1]} ${tokens[2]}"
+    case "${pair}" in
+    "issue list" | \
+        "issue status" | \
+        "issue view" | \
+        "pr checks" | \
+        "pr diff" | \
+        "pr list" | \
+        "pr status" | \
+        "pr view" | \
+        "release list" | \
+        "release view" | \
+        "repo list" | \
+        "repo view" | \
+        "run list" | \
+        "run view" | \
+        "workflow list" | \
+        "workflow view")
+        return 0
+        ;;
+    esac
+
+    return 1
+}
+
 # Report whether one command only reads, so the prompt it would raise carries
 # no decision to make. Each entry covers the bare form and the args form.
 is_read_only_command() {
@@ -169,6 +219,9 @@ is_read_only_command() {
         ;;
     "gh api "*)
         is_gh_api_read "${1}"
+        ;;
+    "gh "*)
+        is_gh_read_subcommand "${1}"
         ;;
     *)
         return 1
