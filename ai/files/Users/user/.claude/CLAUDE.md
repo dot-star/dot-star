@@ -194,6 +194,8 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     dirty:    <file count, or "clean">
     ```
 
+    A status is a place to act from, so end it on the bracket-prefix menu that applies (worktree menu, loose-end rows, an open pick), rendered in full per the Output rules; with nothing to offer, end on the labels.
+
   - `ses`, `sesid`, `sess`, `sessid`, `sid` mean "print this session's full id (as in the scratchpad path) and put it on the clipboard"
   - `eg`, `egs`, `examples` mean "show me examples"
   - `opt`, `opts` mean "show me options"
