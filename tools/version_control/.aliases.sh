@@ -1229,9 +1229,13 @@ git_diff_announced() {
     local full_diff="${1}"
     shift
 
-    if ! "${full_diff}" && git_diff_hiding_whitespace "${@}"; then
-        echo
+    # Route the banner and the echoed command through the pager with the
+    # diff, so they stay on screen while paging.
+    local banner
+    if ! "${full_diff}" && banner="$(git_diff_hiding_whitespace "${@}")"; then
         set -- "${1}" --ignore-all-space "${@:2}"
+        git_diff_paged_with_banner "${banner}"$'\n\n'"git $*" "${@}"
+        return
     fi
 
     echo "git $*"
