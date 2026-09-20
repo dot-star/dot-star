@@ -642,8 +642,9 @@ git_sum_numstat_lines() {
 
 git_diff_hiding_whitespace() {
     # Print a banner and succeed when a diff is mostly whitespace-only lines (a
-    # reindent), so the caller renders it with --ignore-all-space. Takes the
-    # diff's git subcommand and arguments, e.g. `diff --cached`.
+    # reindent), so the caller renders it with --ignore-all-space and shows the
+    # banner above the diff. Takes the diff's git subcommand and arguments,
+    # e.g. `diff --cached`.
     local subcommand="${1}"
     shift
 
@@ -663,12 +664,72 @@ git_diff_hiding_whitespace() {
     fi
 
     echo "whitespace-heavy diff: hiding ${whitespace_lines} of ${changed_lines} changed lines that differ only in whitespace (rerun with --full to see them)"
-    echo
+}
+
+git_diff_paged_with_banner() {
+    # Show a banner above a diff inside git's pager, so the banner stays on
+    # screen while paging instead of hiding behind the pager's alternate screen
+    # until quit. Takes the banner text, then the git subcommand and arguments
+    # that produce the diff. Force color, since git sees a pipe rather than the
+    # terminal.
+    local banner="${1}"
+    local subcommand="${2}"
+    local pager
+    shift 2
+
+    pager="$(git var GIT_PAGER)"
+    {
+        echo "${banner}"
+        echo
+        git --no-pager "${subcommand}" --color=always "${@}"
+    } |
+        eval "${pager}"
+}
+
+git_diff_changed_bytes() {
+    # Count the bytes on the removed and added lines of a diff read from stdin,
+    # skipping the ---/+++ file headers.
+    grep --extended-regexp '^[-+]' |
+        grep --extended-regexp --invert-match '^(\+\+\+|---) ' |
+        wc -c |
+        tr -d ' '
+}
+
+git_diff_words_percent() {
+    # Print how much of the text a diff rewrites actually changed, as a
+    # percentage, given the `git` arguments that produce the diff (e.g. `log
+    # --max-count=1 --patch`). A line diff paints a whole line as removed and
+    # re-added when one token changes, so a file kept one paragraph per line
+    # shows a renumbered list as a rewrite of every paragraph. Measure the
+    # bytes a word diff marks changed against the bytes the line diff marks
+    # changed; a low percentage means the line diff is mostly unchanged text.
+    # Print nothing for an empty diff.
+    local subcommand="${1}"
+    local line_bytes
+    local word_bytes
+    shift
+
+    # Insert the measuring flags right after the subcommand; git rejects an
+    # option that follows a path argument. Measure both sides without
+    # whitespace-only lines: the word diff already skips them, so counting them
+    # on the line side would make a reindent score as unchanged text.
+    line_bytes="$(git --no-pager "${subcommand}" --color=never --ignore-all-space "${@}" | git_diff_changed_bytes)"
+    if [[ "${line_bytes}" -eq 0 ]]; then
+        return
+    fi
+
+    word_bytes="$(git --no-pager "${subcommand}" --color=never --ignore-all-space --word-diff=porcelain "${@}" | git_diff_changed_bytes)"
+    echo "$((100 * word_bytes / line_bytes))"
 }
 
 git_diff_last() {
     # Display diff of last commit, optionally narrowed by git log flags or a
-    # path.
+    # path. Render two kinds of noisy diff so the real change stays readable:
+    # - Show a renumbering as a word diff, so a changed list number doesn't
+    #   remove and re-add every long line around it.
+    # - Show a reindent with its whitespace-only lines hidden, so the real
+    #   change isn't intermixed with adds and removes that differ only in
+    #   indentation.
     clear
 
     # Show conflict markers when a merge or rebase is in progress; the last
@@ -691,11 +752,31 @@ git_diff_last() {
     done
     set -- "${log_args[@]}"
 
-    if ! "${full_diff}" && git_diff_hiding_whitespace log --max-count=1 "${@}"; then
+    # Collapse a whitespace-heavy diff first, so the word-diff check below
+    # judges a reindent by its real lines rather than its whitespace noise.
+    local banner=""
+    if ! "${full_diff}" && banner="$(git_diff_hiding_whitespace log --max-count=1 "${@}")"; then
         set -- --ignore-all-space "${@}"
     fi
 
-    git log --max-count=1 --patch "${@}"
+    # Switch to a word diff when the line diff would mostly repeat text that
+    # didn't change, so a renumbered list shows the new numbers rather than
+    # every paragraph twice. Set the cutoff where the line diff stops showing
+    # mostly real change; pure additions and rewrites score near 100 and a
+    # renumbering or a comma fix scores under 20.
+    local newline=$'\n'
+    local words_percent
+    words_percent="$(git_diff_words_percent log --max-count=1 --patch "${@}")"
+    if [[ -n "${words_percent}" && "${words_percent}" -lt 50 ]]; then
+        set -- --color-words "${@}"
+        banner+="${banner:+${newline}}(word diff: ${words_percent}% of the rewritten text changed)"
+    fi
+
+    if [[ -n "${banner}" ]]; then
+        git_diff_paged_with_banner "${banner}" log --max-count=1 --patch "${@}"
+    else
+        git log --max-count=1 --patch "${@}"
+    fi
 }
 
 git_diff_last_files() {
@@ -1149,6 +1230,7 @@ git_diff_announced() {
     shift
 
     if ! "${full_diff}" && git_diff_hiding_whitespace "${@}"; then
+        echo
         set -- "${1}" --ignore-all-space "${@:2}"
     fi
 
