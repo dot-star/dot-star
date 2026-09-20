@@ -634,7 +634,8 @@ git_diff_conflicts() {
 }
 
 git_diff_last() {
-    # Display diff of last commit, optionally with a path.
+    # Display diff of last commit, optionally narrowed by git log flags or a
+    # path.
     clear
 
     # Show conflict markers when a merge or rebase is in progress; the last
@@ -643,14 +644,7 @@ git_diff_last() {
         return
     fi
 
-    if [[ -z "${1}" ]]; then
-        # Display last diff of project when path is not specified.
-        git log --max-count=1 --patch
-    else
-        # Display last diff of path when path is specified.
-        file_path="${1}"
-        git log --max-count=1 --patch "${file_path}"
-    fi
+    git log --max-count=1 --patch "${@}"
 }
 
 git_diff_last_files() {
