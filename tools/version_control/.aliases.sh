@@ -633,6 +633,39 @@ git_diff_conflicts() {
     done <<<"${conflicted_files}"
 }
 
+git_sum_numstat_lines() {
+    # Sum added plus deleted lines over the `--numstat` rows on stdin. Count
+    # only `<added>\t<deleted>\t<path>` rows, which skips the commit headers
+    # `git log --numstat` prints and the `-\t-` rows of binary files.
+    awk 'BEGIN { FS = "\t" } $1 ~ /^[0-9]+$/ && $2 ~ /^[0-9]+$/ { sum += $1 + $2 } END { print sum + 0 }'
+}
+
+git_diff_hiding_whitespace() {
+    # Print a banner and succeed when a diff is mostly whitespace-only lines (a
+    # reindent), so the caller renders it with --ignore-all-space. Takes the
+    # diff's git subcommand and arguments, e.g. `diff --cached`.
+    local subcommand="${1}"
+    shift
+
+    # Collapse only past a screenful or so of whitespace-only lines; fewer than
+    # that skim past on their own, and hiding them would cost more than it saves.
+    local whitespace_lines_floor=20
+    local changed_lines
+    local real_lines
+    local whitespace_lines
+    changed_lines="$(git "${subcommand}" --numstat "${@}" 2>/dev/null |
+        git_sum_numstat_lines)"
+    real_lines="$(git "${subcommand}" --numstat --ignore-all-space "${@}" 2>/dev/null |
+        git_sum_numstat_lines)"
+    whitespace_lines=$((changed_lines - real_lines))
+    if ((whitespace_lines <= real_lines)) || ((whitespace_lines < whitespace_lines_floor)); then
+        return 1
+    fi
+
+    echo "whitespace-heavy diff: hiding ${whitespace_lines} of ${changed_lines} changed lines that differ only in whitespace (rerun with --full to see them)"
+    echo
+}
+
 git_diff_last() {
     # Display diff of last commit, optionally narrowed by git log flags or a
     # path.
@@ -642,6 +675,24 @@ git_diff_last() {
     # commit is unrelated to the conflict that needs attention.
     if git_diff_conflicts; then
         return
+    fi
+
+    # Pull the alias-level --full out of the arguments before any reach git; it
+    # keeps a whitespace-heavy diff from being collapsed below.
+    local full_diff=false
+    local -a log_args
+    local arg
+    for arg in "${@}"; do
+        if [[ "${arg}" == "--full" ]]; then
+            full_diff=true
+        else
+            log_args+=("${arg}")
+        fi
+    done
+    set -- "${log_args[@]}"
+
+    if ! "${full_diff}" && git_diff_hiding_whitespace log --max-count=1 "${@}"; then
+        set -- --ignore-all-space "${@}"
     fi
 
     git log --max-count=1 --patch "${@}"
@@ -1092,13 +1143,35 @@ rc_commit_no_verify() {
 
 git_diff_announced() {
     # Echo a git diff command, then run it, so the output names which diff it
-    # shows.
+    # shows. Collapse a whitespace-heavy diff with --ignore-all-space unless
+    # full_diff is true; the echoed line then carries the added flag.
+    local full_diff="${1}"
+    shift
+
+    if ! "${full_diff}" && git_diff_hiding_whitespace "${@}"; then
+        set -- "${1}" --ignore-all-space "${@:2}"
+    fi
+
     echo "git $*"
     git "$@"
 }
 
 rc_diff() {
     clear
+
+    # Pull the alias-level --full out of the arguments before any reach git; it
+    # keeps git_diff_announced from collapsing a whitespace-heavy diff.
+    local full_diff=false
+    local -a diff_args
+    local arg
+    for arg in "${@}"; do
+        if [[ "${arg}" == "--full" ]]; then
+            full_diff=true
+        else
+            diff_args+=("${arg}")
+        fi
+    done
+    set -- "${diff_args[@]}"
 
     if is_git; then
         # No arguments passed to `git diff'.
@@ -1135,9 +1208,9 @@ rc_diff() {
 
                 # Display non-cached diff when available.
                 if [[ ! -z "$(git diff)" ]]; then
-                    git_diff_announced diff
+                    git_diff_announced "${full_diff}" diff
                 else
-                    git_diff_announced diff --cached
+                    git_diff_announced "${full_diff}" diff --cached
                 fi
 
             else
@@ -1151,18 +1224,18 @@ rc_diff() {
                     # unstaged edits. `--diff-filter=d` lists staged changes
                     # excluding deletions; empty means deletions only.
                     if [[ -z "$(git diff --cached --diff-filter=d)" ]]; then
-                        git_diff_announced diff HEAD
+                        git_diff_announced "${full_diff}" diff HEAD
                     else
-                        git_diff_announced diff --cached
+                        git_diff_announced "${full_diff}" diff --cached
                     fi
 
                 # Display current directory diff.
                 elif [[ ! -z "$(git diff .)" ]]; then
-                    git_diff_announced diff .
+                    git_diff_announced "${full_diff}" diff .
 
                 # Display diff.
                 else
-                    git_diff_announced diff
+                    git_diff_announced "${full_diff}" diff
                 fi
             fi
 
@@ -1171,9 +1244,9 @@ rc_diff() {
             # Display staged diff (cached) when available.
             result="$(git diff --cached $@)"
             if [[ ! -z "${result}" ]] && [[ "${result}" != "* Unmerged path"* ]]; then
-                git_diff_announced diff --cached $@
+                git_diff_announced "${full_diff}" diff --cached $@
             else
-                git_diff_announced diff $@
+                git_diff_announced "${full_diff}" diff $@
             fi
         fi
     else
