@@ -663,7 +663,18 @@ git_diff_hiding_whitespace() {
         return 1
     fi
 
-    echo "whitespace-heavy diff: hiding ${whitespace_lines} of ${changed_lines} changed lines that differ only in whitespace (rerun with --full to see them)"
+    git_diff_banner "whitespace-heavy diff" "hiding ${whitespace_lines} of ${changed_lines} changed lines that differ only in whitespace (rerun with --full to see them)"
+}
+
+git_diff_banner() {
+    # Print a banner as a filled blue label badge, a plain colon and its
+    # message, so a note above a diff stands out from the commit header
+    # beneath it instead of reading as one more plain line. Keep the colon and
+    # message in the default color, so the colon reads as a quiet separator
+    # rather than part of the highlight.
+    local label="${1}"
+    local message="${2}"
+    printf '\033[97;48;5;33m %s \033[0m: %s\n' "${label}" "${message}"
 }
 
 git_diff_paged_with_banner() {
@@ -769,7 +780,7 @@ git_diff_last() {
     words_percent="$(git_diff_words_percent log --max-count=1 --patch "${@}")"
     if [[ -n "${words_percent}" && "${words_percent}" -lt 50 ]]; then
         set -- --color-words "${@}"
-        banner+="${banner:+${newline}}(word diff: ${words_percent}% of the rewritten text changed)"
+        banner+="${banner:+${newline}}$(git_diff_banner "word diff" "${words_percent}% of the rewritten text changed")"
     fi
 
     if [[ -n "${banner}" ]]; then
