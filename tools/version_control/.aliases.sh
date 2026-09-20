@@ -1096,6 +1096,13 @@ rc_commit_no_verify() {
     fi
 }
 
+git_diff_announced() {
+    # Echo a git diff command, then run it, so the output names which diff it
+    # shows.
+    echo "git $*"
+    git "$@"
+}
+
 rc_diff() {
     clear
 
@@ -1134,11 +1141,9 @@ rc_diff() {
 
                 # Display non-cached diff when available.
                 if [[ ! -z "$(git diff)" ]]; then
-                    echo "git diff"
-                    git diff
+                    git_diff_announced diff
                 else
-                    echo "git diff --cached"
-                    git diff --cached
+                    git_diff_announced diff --cached
                 fi
 
             else
@@ -1152,22 +1157,18 @@ rc_diff() {
                     # unstaged edits. `--diff-filter=d` lists staged changes
                     # excluding deletions; empty means deletions only.
                     if [[ -z "$(git diff --cached --diff-filter=d)" ]]; then
-                        echo "git diff HEAD"
-                        git diff HEAD
+                        git_diff_announced diff HEAD
                     else
-                        echo "git diff --cached"
-                        git diff --cached
+                        git_diff_announced diff --cached
                     fi
 
                 # Display current directory diff.
                 elif [[ ! -z "$(git diff .)" ]]; then
-                    echo "git diff ."
-                    git diff .
+                    git_diff_announced diff .
 
                 # Display diff.
                 else
-                    echo "git diff"
-                    git diff
+                    git_diff_announced diff
                 fi
             fi
 
@@ -1176,11 +1177,9 @@ rc_diff() {
             # Display staged diff (cached) when available.
             result="$(git diff --cached $@)"
             if [[ ! -z "${result}" ]] && [[ "${result}" != "* Unmerged path"* ]]; then
-                echo "git diff --cached $@"
-                git diff --cached $@
+                git_diff_announced diff --cached $@
             else
-                echo "git diff $@"
-                git diff $@
+                git_diff_announced diff $@
             fi
         fi
     else
