@@ -1,13 +1,9 @@
 -- Keep open() global so a per-machine sibling module can bind its own apps with it.
 function open(name)
    return function()
-      application = hs.application.find(name)
-      if application then
-         application:activate()
-      else
-         hs.application.launchOrFocus(name)
-      end
-    end
+      -- Use launchOrFocus for every case. activate() never opens a window for an app that has none.
+      hs.application.launchOrFocus(name)
+   end
 end
 
 hs.hotkey.bind({'option'}, 'c', open('Google Chrome.app'))
