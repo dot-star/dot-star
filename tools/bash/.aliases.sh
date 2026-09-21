@@ -2323,7 +2323,11 @@ git_worktree_done() {
     if [[ "${ff_status}" -ne 0 && "${ff_output}" == *"would be overwritten by merge"* ]]; then
         echo "${ff_output}"
         echo "main checkout has unrelated dirty files; stashing before FF"
-        if ! git stash push --message "worktree-done auto-stash before FF"; then
+        # Stash untracked files too: an untracked file at a path the branch
+        # adds blocks the FF the same way a tracked edit does.
+        if ! git stash push \
+            --include-untracked \
+            --message "worktree-done auto-stash before FF"; then
             echo "failed to stash unrelated changes in main checkout"
             return 1
         fi
@@ -2332,15 +2336,24 @@ git_worktree_done() {
         ff_status="${?}"
     fi
 
+    local ff_failure=""
     if [[ "${ff_status}" -ne 0 ]]; then
         echo "branch \"${branch}\" has diverged from ${default_branch}; rebasing onto ${default_branch}"
         if ! git -C "${worktree_path}" rebase "${default_branch}"; then
-            echo "rebase of \"${branch}\" onto branch ${default_branch} failed"
-            return 1
+            ff_failure="rebase of \"${branch}\" onto branch ${default_branch} failed"
         elif ! git merge --ff-only "${branch}"; then
-            echo "fast-forward merge of \"${branch}\" into branch ${default_branch} failed after rebase"
-            return 1
+            ff_failure="fast-forward merge of \"${branch}\" into branch ${default_branch} failed after rebase"
         fi
+    fi
+
+    # Restore the auto-stash before bailing, so a failed FF doesn't strand the
+    # main checkout's edits on the stash stack.
+    if [[ -n "${ff_failure}" ]]; then
+        if [[ "${stashed}" -eq 1 ]] && ! git stash pop; then
+            echo "failed to pop the auto-stash; resolve manually with \"git stash pop\""
+        fi
+        echo "${ff_failure}"
+        return 1
     fi
 
     # Snapshot the worktree's accumulated permission rules before removal:
@@ -2461,7 +2474,11 @@ git_worktree_promote() {
     if [[ "${ff_status}" -ne 0 && "${ff_output}" == *"would be overwritten by merge"* ]]; then
         echo "${ff_output}"
         echo "main checkout has unrelated dirty files; stashing before FF"
-        if ! git stash push --message "worktree-promote auto-stash before FF"; then
+        # Stash untracked files too: an untracked file at a path the branch
+        # adds blocks the FF the same way a tracked edit does.
+        if ! git stash push \
+            --include-untracked \
+            --message "worktree-promote auto-stash before FF"; then
             echo "failed to stash unrelated changes in main checkout"
             return 1
         fi
@@ -2470,14 +2487,15 @@ git_worktree_promote() {
         ff_status="${?}"
     fi
 
+    # Hold a failure until the auto-stash is popped, so a failed FF doesn't
+    # strand the main checkout's edits on the stash stack.
+    local ff_failure=""
     if [[ "${ff_status}" -ne 0 ]]; then
         echo "branch \"${branch}\" has diverged from ${default_branch}; rebasing onto ${default_branch}"
         if ! git -C "${worktree_path}" rebase "${default_branch}"; then
-            echo "rebase of \"${branch}\" onto branch ${default_branch} failed"
-            return 1
+            ff_failure="rebase of \"${branch}\" onto branch ${default_branch} failed"
         elif ! git merge --ff-only "${branch}"; then
-            echo "fast-forward merge of \"${branch}\" into branch ${default_branch} failed after rebase"
-            return 1
+            ff_failure="fast-forward merge of \"${branch}\" into branch ${default_branch} failed after rebase"
         fi
     fi
 
@@ -2486,6 +2504,11 @@ git_worktree_promote() {
             echo "failed to pop the auto-stash; resolve manually with \"git stash pop\""
             return 1
         fi
+    fi
+
+    if [[ -n "${ff_failure}" ]]; then
+        echo "${ff_failure}"
+        return 1
     fi
 
     local new_tip
