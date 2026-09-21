@@ -312,6 +312,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   > Got the exact clause (`file.py:42`). The existing rule only offers uppercasing the ambiguous letter.
   > > Uppercase the bracket letter only when it's visually ambiguous in lowercase: `l`, `I`, `o`.
 - When citing a file path, emit the full literal absolute path; never elide middle segments with `...` (e.g. `/tmp/.../foo.md`), which leaves the reader a path they can't `cd` to or copy-paste. Applies especially to subagent outputs reporting where a file was written.
+- Open on a one-line description of any pasted image before acting on it. The terminal renders a paste as `[Image #N]`, so the user can't see which image landed; naming what's in it catches a wrong paste before work builds on it.
 - For bracket-prefix choice asks (a question offering options for a one-token reply, not a full numbered list):
   - **Layout:** stack the question stem on its own line and each option indented on its own line beneath it, even a binary. Rendered example:
     > Want me to commit this as a
