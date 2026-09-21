@@ -35,6 +35,13 @@ CLAUDE_SUPPLEMENTAL_WARN_BYTES=9000
 claude_supplemental_mention_keyword() {
     local file="$1"
 
+    # Skip an unreadable entry (a dangling symlink to a doc not yet created)
+    # so one stale link can't abort the `set -e` prompt hook and block every
+    # prompt.
+    if [ ! -r "${file}" ]; then
+        return 0
+    fi
+
     awk '
         function trim(s) {
             gsub(/^[ \t]+|[ \t]+$/, "", s)
