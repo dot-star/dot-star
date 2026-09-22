@@ -197,6 +197,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     A status is a place to act from, so end it on the bracket-prefix menu that applies (worktree menu, loose-end rows, an open pick), rendered in full per the Output rules; with nothing to offer, end on the labels.
 
   - `ses`, `sesid`, `sess`, `sessid`, `sid` mean "print this session's full id (as in the scratchpad path) and put it on the clipboard"
+  - `2g`, `2nd` mean "summarize this session so far for a second opinion and put the summary on the clipboard": the reader is another model seeing only the pasted text, so write it for someone with none of the session's context. It's a handoff, so don't start new work.
   - `eg`, `egs`, `examples` mean "show me examples"
   - `sample`, `val`, `validate` mean "render a worked example of what we just changed, as it would fire in practice, so I can check it does what I meant": pick a realistic input (this session, where it fits), show the output the change produces, then name what's new against the old behavior. `show` renders the edit itself; `sample` renders what the edit produces. It's a preview, so don't start new work.
   - `opt`, `opts` mean "show me options"
