@@ -284,6 +284,20 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - Pass (repeats the shared part): `2. Queue the job and retry it, capped at three attempts`
 - When a choice is *visual* (colors, ANSI styling, layout, formatting, rendering variants, anything the user judges by appearance), each option MUST include a concretely rendered sample, never just a prose description like "orange background, black text". This applies to numbered chat choices AND to `AskUserQuestion` options. The question tool's option label/description fields can't render ANSI, so when the visual is ANSI-only, emit the rendered samples in a numbered list in chat text (one rendered artifact per line, stacked) BEFORE or INSTEAD OF calling `AskUserQuestion` and let the user reply with the number. Describing the difference in words and expecting the user to mentally render it forces a wasted round-trip.
 - When a numbered choice option ends in `: <rendered example>` (sample line, code snippet, prompt phrasing, anything the user compares visually), break after the `:` so the rendered artifact starts on its own line at the same indent across options. The artifacts then stack vertically and the user can diff them top-to-bottom instead of hunting them out of wrapped prose. Skip when the artifact is a single short token that already fits inline without wrapping, or when the choice is purely semantic with no rendered artifact.
+- Separate numbered choice options with a visible gap whenever an option carries a rendered example beneath it, and keep each sample glued to its option's name line; the gap then falls only where one option ends. Keep a list of one-line options (the fenced `❯`/`→` summary block) tight.
+  - Escape each number in the source (`1\.`, `2\.`) to make every option a plain paragraph: the terminal renderer drops blank lines between list items but keeps the one between paragraphs.
+  - End the name line with a `\` hard break when a prose sample follows, since a bare newline joins the two lines. A sample opening on `- ` or a fence needs no `\`.
+  - Don't reach for a spacer line holding only U+3000; the renderer folds it into the item above.
+
+  Source form:
+
+  ```
+  1\. Drop the retry and fail fast:\
+     Upload failed. Check your connection and try again.
+
+  2\. Retry once, then fail:
+     - Upload failed after 2 attempts.
+  ```
 - When one row in an option list is the live or currently-applied state, prefix it with a thin arrow `→` and indent the rest with two spaces so the numbers line up; render in a fenced code block to hold the alignment. `→` marks "you are here" and stays lighter than a bullet or emoji marker. Rendered example:
 
   ```
