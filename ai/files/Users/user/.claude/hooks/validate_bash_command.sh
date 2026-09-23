@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # PreToolUse hook: decide the prompt for the commands a permission rule cannot
-# describe. Auto-allow `git log` (with or without args), a read-only `gh api`
-# fetch, a `gh` view/list/diff read, and the one fold that needs no
-# confirmation; force a prompt on every other `git commit`. Anything else
-# falls through to the normal permission flow.
+# describe.
+#
+#   - Allow a `gh` view/list/diff read.
+#   - Allow a read-only `gh api` fetch.
+#   - Allow `git commit --amend --no-edit`, the one fold that needs no confirmation.
+#   - Allow `git log`, with or without args.
+#   - Allow `rm` of exactly one session's prune mark.
+#   - Ask on every other `git commit`.
+#
+# Anything else falls through to the normal permission flow.
 #
 # Allow a chained line only when every command in it reads. Claude Code
 # matches a permission rule per command, so a chain of two rule-covered reads
@@ -305,6 +311,15 @@ runs_git_commit() {
     [[ "${1}" =~ ${opener}[[:space:]]*git[[:space:]]+commit([[:space:]]|$) ]]
 }
 
+# Report whether the text removes exactly one session's prune mark. Match a
+# full session id rather than a glob, which would also let `../` or a second
+# path ride along.
+is_prune_mark_removal() {
+    local id='[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+
+    [[ "${1}" =~ ^rm\ /tmp/claude/prune_marks/${id}$ ]]
+}
+
 # Emit a permission decision and leave. Staying silent instead hands the
 # command to the normal permission flow.
 emit_decision() {
@@ -325,6 +340,8 @@ cmd=$(command jq --raw-output '.tool_input.command')
 # flag or pipeline stage is a different command.
 if [[ "${cmd}" == "git commit --amend --no-edit" ]]; then
     emit_decision allow "fold the staged change into HEAD, subject untouched"
+elif is_prune_mark_removal "${cmd}"; then
+    emit_decision allow "keep this session by removing its prune mark"
 elif runs_git_commit "${cmd}"; then
     emit_decision ask "git commit writes history; confirm the command first"
 fi

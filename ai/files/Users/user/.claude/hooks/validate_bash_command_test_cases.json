@@ -33,6 +33,7 @@
     {"cmd": "git log;", "expected": "allow", "name": "trailing separator leaves no second command"},
     {"cmd": "gh pr view 1 &", "expected": "allow", "name": "a read sent to the background"},
     {"cmd": "git commit --amend --no-edit", "expected": "allow", "name": "the fold, exactly"},
+    {"cmd": "rm /tmp/claude/prune_marks/12345678-90ab-cdef-1234-567890abcdef", "expected": "allow", "name": "remove one session's prune mark"},
 
     {"cmd": "git commit", "expected": "ask", "name": "bare git commit"},
     {"cmd": "git commit -m subject", "expected": "ask", "name": "git commit with a subject"},
@@ -46,6 +47,11 @@
     {"cmd": "git   commit -m subject", "expected": "ask", "name": "git commit padded with extra spaces"},
 
     {"cmd": "gh api repos/owner/name -X DELETE", "expected": "fall-through", "name": "gh api write flag"},
+    {"cmd": "rm /tmp/claude/prune_marks/*", "expected": "fall-through", "name": "prune mark removal by glob"},
+    {"cmd": "rm -rf /tmp/claude/prune_marks/12345678-90ab-cdef-1234-567890abcdef", "expected": "fall-through", "name": "prune mark removal with a flag"},
+    {"cmd": "rm /tmp/claude/prune_marks/12345678-90ab-cdef-1234-567890abcdef /etc/hosts", "expected": "fall-through", "name": "prune mark removal with a second path"},
+    {"cmd": "rm /tmp/claude/prune_marks/../../../etc/hosts", "expected": "fall-through", "name": "prune mark path climbing out"},
+    {"cmd": "rm /tmp/claude/prune_marks/12345678-90ab-cdef-1234-567890abcdef && rm -rf /", "expected": "fall-through", "name": "prune mark removal chained"},
     {"cmd": "grep -rn \"git commit\" notes.md", "expected": "fall-through", "name": "the phrase git commit inside an argument"},
     {"cmd": "git commit-tree HEAD^{tree}", "expected": "fall-through", "name": "git commit-tree prefix-collision"},
     {"cmd": "gh api repos/owner/name --input body.json", "expected": "fall-through", "name": "gh api --input"},
