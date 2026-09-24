@@ -785,6 +785,19 @@ git_diff_last() {
         # Page with less instead of delta. A word diff has no +/- column, so delta
         # reads each line opening with "-" as removed and paints over the word colors.
         local -x GIT_PAGER="less --quit-if-one-screen --RAW-CONTROL-CHARS --no-init"
+
+        # Paint changed words with delta's removed and added line backgrounds, so
+        # a subtle word change stands out as much as a changed line. Take each
+        # background from the last word of its delta style.
+        local minus_style
+        local plus_style
+        minus_style="$(git config --get delta.minus-style)"
+        plus_style="$(git config --get delta.plus-style)"
+        local -x GIT_CONFIG_COUNT=2
+        local -x GIT_CONFIG_KEY_0="color.diff.old"
+        local -x GIT_CONFIG_VALUE_0="normal ${minus_style##* }"
+        local -x GIT_CONFIG_KEY_1="color.diff.new"
+        local -x GIT_CONFIG_VALUE_1="normal ${plus_style##* }"
     fi
 
     if [[ -n "${banner}" ]]; then
