@@ -216,6 +216,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - `c`, `cm`, `commit` mean "commit" (invoke the `commit` skill).
   - `c<N>` (e.g. `c2`) means "commit with subject draft N": the worktree menu lists its drafted subjects under the commit row as `[c1]`, `[c2]`, `[c3]` (see the worktree menu rule in Output), and the number names one.
     - The pick is already made, so the commit runs with that subject verbatim and skips the skill's draft-and-pick step.
+    - Accept the number first too: `3c` picks the same draft as `c3`. The reversal holds for every draft token (`3f`, `3p`, `3L`, `3x`), since the letter and number together name one row whichever leads.
     - One `c<N>` picks one commit: the number names a draft under exactly one commit's tree, so with two or more commits pending (one per repo, say) the reply names one per commit (`c2 c5`). A reply that covers only some of them commits those alone; the rest stay unpicked and get their trees re-offered.
     - `p<N>` and `L<N>` pick the same draft N from the commit row's list (the promote and land rows carry only a `[pN] ...` stand-in), then promote or land.
     - `f<N>` picks from the fold row's own list instead, since a fold's subjects describe the combined diff rather than the pending change alone, then amends HEAD with that subject. A bare `f` folds under HEAD's existing subject.
