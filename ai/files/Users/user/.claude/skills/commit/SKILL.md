@@ -51,6 +51,8 @@ Score each draft 0, 1, or 2 on every criterion, multiply by the criterion's weig
 
 On a tie in total, break it toward the higher self-contained score, then the higher concrete-thing score. Score honestly: don't inflate a draft to pad the pool, a 4-way tie at the top means the drafts aren't distinct enough, so revise before ranking.
 
+Lead at least one presented draft with `Fix ` when the diff repairs broken behavior, so a scan of `git log` finds every fix by its first word. Keep it in the list whatever it scores: when no `Fix ` draft ranks into the presented set (the top 5 here, the top 3 on a worktree menu), swap the best one in for the lowest-ranked draft.
+
 Each subject must:
 
 - Use imperative mood, capitalized first word (`Add`, `Fix`, `Update`, `Move`, `Allow`, `Enable`, `Replace`, `Rename`, `Clean up`, etc).
