@@ -781,6 +781,10 @@ git_diff_last() {
     if [[ -n "${words_percent}" && "${words_percent}" -lt 50 ]]; then
         set -- --color-words "${@}"
         banner+="${banner:+${newline}}$(git_diff_banner "word diff" "${words_percent}% of the rewritten text changed")"
+
+        # Page with less instead of delta. A word diff has no +/- column, so delta
+        # reads each line opening with "-" as removed and paints over the word colors.
+        local -x GIT_PAGER="less --quit-if-one-screen --RAW-CONTROL-CHARS --no-init"
     fi
 
     if [[ -n "${banner}" ]]; then
