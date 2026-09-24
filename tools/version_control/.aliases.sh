@@ -784,7 +784,8 @@ git_diff_last() {
 
         # Page with less instead of delta. A word diff has no +/- column, so delta
         # reads each line opening with "-" as removed and paints over the word colors.
-        local -x GIT_PAGER="less --quit-if-one-screen --RAW-CONTROL-CHARS --no-init"
+        # Keep the alternate screen (no --no-init) so the trackpad scrolls less.
+        local -x GIT_PAGER="less --quit-if-one-screen --RAW-CONTROL-CHARS"
 
         # Paint changed words with delta's removed and added line backgrounds, so
         # a subtle word change stands out as much as a changed line. Take each
