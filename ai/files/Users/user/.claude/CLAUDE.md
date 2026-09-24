@@ -224,6 +224,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - `cs` means "commit only the already-staged changes": like `c` (the `commit` skill), but never auto-stage; if nothing is staged, stop.
   - `🚢` means "ship it" (land the work)
 - `<N> iter` means "option N is the front-runner, but iterate on it": treat N as the starting point and propose refinements rather than committing it as-is. E.g. `2 iter` → improve on option 2.
+- `exp <x>` means "explain `<x>`" without acting on it; re-offer any menu it came from.
 - `o <x>` means "omit `<x>`": cut `<x>` from whatever we're working on and leave the rest as it stands.
 - `show me <x>` means "render `<x>` concretely": `<x>` names something the last message described (a rule, an edit, an output line, an option); produce that artifact itself, not a summary of it. Same preview-only semantics as `show`.
 
