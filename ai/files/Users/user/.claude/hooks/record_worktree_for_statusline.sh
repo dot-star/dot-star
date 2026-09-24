@@ -8,16 +8,15 @@
 
 set -euo pipefail
 
+source "$(dirname -- "${BASH_SOURCE[0]}")/claude_session_dir.inc.sh"
+
 data=$(cat)
 
-sid=$(printf '%s' "${data}" |
-    command jq --raw-output '.session_id // empty')
-sid="${sid//[^a-zA-Z0-9-]/}"
-if [ -z "${sid}" ]; then
+dir=$(claude_session_dir "$(printf '%s' "${data}" | command jq --raw-output '.session_id // empty')")
+if [ -z "${dir}" ]; then
     exit 0
 fi
 
-dir="/tmp/claude/${sid}"
 marker="${dir}/worktree"
 
 tool=$(printf '%s' "${data}" |
