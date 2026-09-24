@@ -60,7 +60,7 @@
             "type": "command"
           }
         ],
-        "matcher": "EnterWorktree|ExitWorktree"
+        "matcher": "Bash|Edit|EnterWorktree|ExitWorktree|Write"
       },
       {
         "hooks": [
