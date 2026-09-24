@@ -1,8 +1,14 @@
 -- Keep open() global so a per-machine sibling module can bind its own apps with it.
 function open(name)
    return function()
-      -- Use launchOrFocus for every case. activate() never opens a window for an app that has none.
-      hs.application.launchOrFocus(name)
+      -- Use launchOrFocus first. activate() never opens a window for an app that has none.
+      if not hs.application.launchOrFocus(name) then
+         -- Focus a running process that has no app bundle, which launchOrFocus can't find by name.
+         local app = hs.application.get(name)
+         if app then
+            app:activate()
+         end
+      end
    end
 end
 
