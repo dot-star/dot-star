@@ -47,6 +47,10 @@
             "type": "command"
           },
           {
+            "command": "${HOME}/.claude/hooks/remind_when_edit_thrashes_lines.py",
+            "type": "command"
+          },
+          {
             "command": "${HOME}/.claude/hooks/remind_when_personal_context_edited_to_bank_it.sh",
             "type": "command"
           }
