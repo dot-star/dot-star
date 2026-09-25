@@ -1430,7 +1430,8 @@ rc_push() {
     #    repos where work lands on master and there are no pull requests.
     #    worktree-fix-login-redirect  ->  git push origin HEAD:master
     # DOTSTAR_WORKTREE_PUSH="pr-branch"
-    #    push to the branch's upstream when set, else a derived <slug> branch,
+    #    push to the branch's upstream when set, else an <owner>/<slug> branch
+    #    derived from a worktree-<owner>+<slug> name (refusing any other name),
     #    and track it, for the work WIP pull request.
     #    worktree-asmith+add-login  ->  git push -u origin HEAD:asmith/add-login
     # pr-branch is the default so machines without an override keep the old
@@ -1457,6 +1458,15 @@ rc_push() {
                 remote_branch="${upstream#*/}"
             else
                 remote_branch="${current_branch#worktree-}"
+
+                # Refuse to guess a target from a name lacking the owner+slug
+                # form. A guess forks a stray remote branch beside the PR's.
+                if [[ "${remote_branch}" != *+* ]]; then
+                    echo "no upstream set and '${current_branch}' names no owner+slug target"
+                    echo "push once with: git push --set-upstream origin HEAD:refs/heads/<branch>"
+                    return 1
+                fi
+
                 remote_branch="${remote_branch/+//}"
             fi
             git push -u origin "HEAD:${remote_branch}" "$@"
