@@ -1881,16 +1881,36 @@ real_path() {
 }
 alias rp="real_path"
 
+shell_double_quote() {
+    # Wrap a string in double quotes, escaping the characters a shell still expands inside them.
+    # Escape with sed; bash 3.2, bash 5 and zsh disagree on backslashes in ${var//}.
+    local escaped
+    escaped="$(printf "%s" "${1}" |
+        sed 's/[\\"$`]/\\&/g')"
+    printf '"%s"' "${escaped}"
+}
+
 realpath_copy_to_clipboard() {
     # Copy the real path to the clipboard and echo what was copied.
+    # Double-quote each path so one with spaces pastes into a shell as a single word.
     local resolved_path
     resolved_path="$(real_path "${@}")"
 
-    printf "%s" "${resolved_path}" | c
+    local single_path
+    local quoted_paths=""
+
+    while IFS= read -r single_path; do
+        if [[ -n "${quoted_paths}" ]]; then
+            quoted_paths+=$'\n'
+        fi
+        quoted_paths+="$(shell_double_quote "${single_path}")"
+    done <<<"${resolved_path}"
+
+    printf "%s" "${quoted_paths}" | c
 
     # Report to stderr so stdout stays clean when piped or redirected.
     echo "copied to clipboard:" >&2
-    echo "${resolved_path}" >&2
+    printf "%s\n" "${quoted_paths}" >&2
 }
 alias rpc="realpath_copy_to_clipboard"
 alias rc="realpath_copy_to_clipboard"
