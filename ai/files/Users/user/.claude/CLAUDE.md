@@ -199,6 +199,11 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
   - `ses`, `sesid`, `sess`, `sessid`, `sid` mean "print this session's full id (as in the scratchpad path) and put it on the clipboard"
   - `2g`, `2nd` mean "summarize this session so far for a second opinion and put the summary on the clipboard": the reader is another model seeing only the pasted text, so write it for someone with none of the session's context. It's a handoff, so don't start new work.
+  - `todo`, `todos` mean "list the open todos for the repo we're in": find the file the way 📋 **`[a]dd`** resolves where entries land (personal record first, then the markdown beside the work, then the repository root), then render them for scanning. It's a read, so don't start new work.
+    - Name the file in a lead line above the list.
+    - Order by the file's own pick rule when it states one, else priority then severity.
+    - Render one row per entry in a fenced block: labels first (`P2 S3`), then the entry's first line trimmed to a subject.
+    - Mark the row the pick rule takes next with `❯` (the recommended-pick rule in Output).
   - `eg`, `egs`, `examples` mean "show me examples"
   - `sample`, `val`, `validate` mean "render a worked example of what we just changed, as it would fire in practice, so I can check it does what I meant": pick a realistic input (this session, where it fits), show the output the change produces, then name what's new against the old behavior. `show` renders the edit itself; `sample` renders what the edit produces. It's a preview, so don't start new work.
   - `opt`, `opts` mean "show me options"
