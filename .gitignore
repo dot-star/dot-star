@@ -4,4 +4,7 @@
 # Ignore Claude Code worktrees created at the project root.
 /.claude/worktrees/
 
+# Ignore the lockfile `uv check` writes.
+/uv.lock
+
 tools/bash/extra.sh
