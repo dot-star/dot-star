@@ -202,7 +202,8 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - `todo`, `todos` mean "list the open todos for the repo we're in": find the file the way 📋 **`[a]dd`** resolves where entries land (personal record first, then the markdown beside the work, then the repository root), then render them for scanning. It's a read, so don't start new work.
     - Name the file in a lead line above the list.
     - Order by the file's own pick rule when it states one, else priority then severity.
-    - Render one row per entry in a fenced block: labels first (`P2 S3`), then the entry's first line trimmed to a subject.
+    - Render one row per entry in a fenced block: a row number, then labels (`P2 S3`), then the entry's first line trimmed to a subject.
+    - Number the rows `1`, `2`, `3` in rendered order, so a bare-number reply picks that entry without describing it. Numbers are positional and hold only for this render, since banking or closing an entry shifts them.
     - Mark the row the pick rule takes next with `❯` (the recommended-pick rule in Output).
   - `eg`, `egs`, `examples` mean "show me examples"
   - `sample`, `val`, `validate` mean "render a worked example of what we just changed, as it would fire in practice, so I can check it does what I meant": pick a realistic input (this session, where it fits), show the output the change produces, then name what's new against the old behavior. `show` renders the edit itself; `sample` renders what the edit produces. It's a preview, so don't start new work.
