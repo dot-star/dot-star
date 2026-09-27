@@ -9,6 +9,7 @@ When creating a file, the name should be both **hierarchical** (shared prefix so
 - `.txt`: name says the topic of the notes inside.
 - `CLAUDE_<slug>.md`: slug says what aspect of `CLAUDE.md` it supplements. E.g. `CLAUDE_slack-style.md`.
 - Style files: `styles/<topic>-style.md` for on-demand style guides. E.g. `commit-message-style.md`, `shell-style.md`, `file-naming-style.md` (this file).
+- `private-*.md` context docs: `private-` leads, then the family, then the slug. A doc for keeping something running is `private-maintain-<slug>.md` (e.g. `private-maintain-car.md`), so every maintain doc sorts together in `ls`.
 - Memory files: `<type>_<topic>.md` (e.g. `feedback_pipe_newlines.md`); the type prefix groups by kind, the topic suffix names the rule.
 - Top-level project docs: `<TOPIC>.md` uppercase (`README.md`, `CHANGELOG.md`, `SECURITY.md`, `TESTING.md`, `TROUBLESHOOTING.md`).
 - Tool directories: live under `tools/`, named for the tool (`tools/bash/`, `tools/brew/`, `tools/docker/`, `tools/node/`, `tools/python/`, `tools/vim/`, `tools/zsh/`); when several tools share a category, name the category instead (`tools/version_control/` for git/hg).
