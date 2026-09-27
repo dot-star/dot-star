@@ -729,7 +729,16 @@ git_diff_words_percent() {
         return
     fi
 
-    word_bytes="$(git --no-pager "${subcommand}" --color=never --ignore-all-space --word-diff=porcelain "${@}" | git_diff_changed_bytes)"
+    word_bytes="$(
+        git \
+            --no-pager \
+            "${subcommand}" \
+            --color=never \
+            --ignore-all-space \
+            --word-diff=porcelain \
+            "${@}" |
+            git_diff_changed_bytes
+    )"
     echo "$((100 * word_bytes / line_bytes))"
 }
 
