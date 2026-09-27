@@ -706,6 +706,11 @@ git_diff_changed_bytes() {
         tr -d ' '
 }
 
+# Split punctuation into its own word so a word diff shows `match {+reliably+}.`
+# rather than replacing all of `match.`. Pass it as a flag: a diff driver's own
+# regex (markdown's included) outranks `diff.wordRegex` in git config.
+GIT_DIFF_WORD_REGEX='[[:alnum:]_]+|[^[:space:]]'
+
 git_diff_words_percent() {
     # Print how much of the text a diff rewrites actually changed, as a
     # percentage, given the `git` arguments that produce the diff (e.g. `log
@@ -736,6 +741,7 @@ git_diff_words_percent() {
             --color=never \
             --ignore-all-space \
             --word-diff=porcelain \
+            --word-diff-regex="${GIT_DIFF_WORD_REGEX}" \
             "${@}" |
             git_diff_changed_bytes
     )"
@@ -788,7 +794,7 @@ git_diff_last() {
     local words_percent
     words_percent="$(git_diff_words_percent log --max-count=1 --patch "${@}")"
     if [[ -n "${words_percent}" && "${words_percent}" -lt 50 ]]; then
-        set -- --color-words "${@}"
+        set -- --color-words="${GIT_DIFF_WORD_REGEX}" "${@}"
         banner+="${banner:+${newline}}$(git_diff_banner "word diff" "${words_percent}% of the rewritten text changed")"
 
         # Page with less instead of delta. A word diff has no +/- column, so delta
