@@ -13,8 +13,8 @@
   - Avoid a hardcoded value that must stay in sync with another; derive it or restructure so the coupling disappears.
   - Derive only from what actually drives the value, though. When a number encodes a judgment about the world outside the program (how fast weather moves, how long a person waits before giving up), a commented absolute is its correct form.
   - Deriving that one from a nearby constant that happened to be in scope is worse than a magic number: it reads as principled, so nobody re-examines it.
-- Keep dev and prod on one code path. Branch on the environment only where the two genuinely differ (minifying, a secret, what a label reads) and share everything else, so dev runs the code prod runs and a mismatch can't hide until the deploy.
-  - Rethink an existing environment branch before extending it. A value computed only for prod reads as "dev has none", when moving it out of the branch is often the fix; building a dev fallback on top deepens the split.
+- Keep every environment (dev, staging, nightly, prod) on one code path. Branch on the environment only where environments genuinely differ (minifying, a secret, what a label reads) and share everything else, so each one runs the code prod runs and a mismatch can't hide until the deploy.
+  - Rethink an existing environment branch before extending it. A value computed for one environment reads as "the others have none", when moving it out of the branch is often the fix; building a fallback for the rest deepens the split.
 - Don't nag over nothing. A warning, badge, or alert fires only when the state it reports actually costs the reader something; detectable but harmless stays silent.
   - Set the threshold where the problem starts to bite, never where it first becomes measurable.
   - An indicator that cries wolf over a healthy state doesn't merely fail to inform. It trains the reader to ignore it, so it costs them the one time it is real.
