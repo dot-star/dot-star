@@ -742,8 +742,12 @@ bell() {
 case_sensitive_search() {
     param_count="${#}"
 
+    # Fall back to `s' when no parameters are passed.
+    if [[ "${param_count}" -eq 0 ]]; then
+        conditional_s
+
     # Search by keyword (e.g. `s keyword').
-    if [[ "${param_count}" -eq 1 ]]; then
+    elif [[ "${param_count}" -eq 1 ]]; then
         keyword="${1}"
 
         set -x
