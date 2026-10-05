@@ -17,7 +17,7 @@ repos:
         exclude: version_control/git-completion\.bash
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.9
+    rev: v0.16.10
     hooks:
       - id: ruff-check
         args: ["--fix"]
@@ -29,6 +29,6 @@ repos:
         args: ["--isolated"]
 
   - repo: https://github.com/psf/black
-    rev: 26.5.1
+    rev: 26.10.0
     hooks:
       - id: black
