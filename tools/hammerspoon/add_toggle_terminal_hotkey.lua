@@ -41,6 +41,7 @@ function toggleGhostty()
             if frontmost of process "Ghostty" then
                 set ghosttyFrontMost to true
             end if
+            set ghosttyHidden to not (visible of process "Ghostty")
         end tell
 
         -- Count windows through System Events rather than Ghostty's own
@@ -53,6 +54,11 @@ function toggleGhostty()
             else
                 tell application "System Events" to set visible of process "Ghostty" to false
             end if
+        else if ghosttyHidden then
+            -- Unhide without trusting the count: System Events reports 0
+            -- windows for a hidden process, so Cmd+T would open a stray tab.
+            tell application "System Events" to set visible of process "Ghostty" to true
+            tell targetApplication to activate
         else
             tell targetApplication to reopen -- un-minimize
             tell targetApplication to activate
