@@ -381,7 +381,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     - Skip the skill's draft-and-pick step and commit with that subject verbatim.
     - Commit only the commit whose tree carried `[cN]`. A subject floated in prose for another pending commit has no accept token, so silence never picks it: leave that commit uncommitted and re-offer its tree.
     - Carry on with the promote or land when the letter asks for one.
-- When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment (any subset the tree allows; ⬆️ promote, 🏁 land and 🧨 close always apply), each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**).
+- When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment (any subset the tree allows; 🏁 land and 🧨 close always apply, ⬆️ promote whenever there's something to move), each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**).
   - 🧨 **`[x]`** is the one designed bundle: `x` means close the session and closing a worktree session means landing it first, so the row reads land + close rather than two actions glued together.
   - 🧨🧨 **`[xx]`** is the same close without the land, per the `xx` rule in Workflow.
   - Whenever two or more appear together, list them top-to-bottom in this fixed order: iterate → commit → fold → promote → land → close → close-as-is.
@@ -392,7 +392,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   **Pre-send check**, run on every worktree menu:
 
     1. Does every row wrap its option as `**` + `` ` `` + `[x]remainder` + `` ` `` + `**`? A bare `🧹 [cl]ean` is a fail; the bold inline-code span is as mandatory here as anywhere else.
-    2. Are ⬆️ **`[p]romote`**, 🏁 **`[L]and`** and 🧨 **`[x]`** all on the menu? None of the three is ever conditional: each commits whatever is pending first, so no tree state rules any of them out. A menu missing one of them is an omission, not a narrowed menu; the rows that drop are 💾 **`[c]ommit`**, 📦 **`[f]old`**, 🛠️ **`[i]terate`** and 🧨🧨 **`[xx]`**.
+    2. Are 🏁 **`[L]and`** and 🧨 **`[x]`** both on the menu, plus ⬆️ **`[p]romote`** unless there's nothing to move? Land and close are never conditional: each commits whatever is pending first, so no tree state rules them out. Promote drops only on a clean tree with nothing ahead of the default branch (the state right after a promote), where it would fast-forward by zero commits. A menu missing a row it owes is an omission, not a narrowed menu; the other rows that drop are 💾 **`[c]ommit`**, 📦 **`[f]old`**, 🛠️ **`[i]terate`** and 🧨🧨 **`[xx]`**.
     3. Is 🛠️ **`[i]terate`** the top row? Only ⚡ **`[n]ow`** and 📋 **`[a]dd`** may sit above it, in that order.
     4. Does 🧨🧨 **`[xx]`** render only over a dirty tree, and on a dirty tree is it the bottom row, with 🧨 **`[x]`** directly above it and 🏁 **`[L]and`** above that? A clean tree ends on 🧨 **`[x]`** instead. If any other option (even a lone keep/iterate slot) renders beneath 🏁 **`[L]and`**, reorder before sending.
     5. Is there exactly one space between each emoji and its bracket span? The column padding goes after the closing `**`, before the `(`, never between the emoji and the bracket.
@@ -422,6 +422,8 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     - **The pending change belongs to HEAD's commit**, finishing or fixing that one intent rather than standing on its own (atomic commits). A change that deserves its own subject gets `[c]ommit`, not `[f]old`.
 
   - **Empty** (clean tree): drop `[c]ommit`, `[f]old` and `[xx]`, reframe `[i]terate` from "defer the commit" to "keep tuning", and narrow the menu to `[i]terate`/`[p]romote`/`[L]and`/`[x]` (they act on the already-committed work, or leave it where it is). `[xx]` goes because the work it guards is already in a commit, per the `xx` rule in Workflow.
+
+    - **Nothing ahead of the default branch** (`git rev-list --count master..HEAD` prints `0`): drop `[p]romote` too, since it would fast-forward by zero commits, and cut `✅ promote to master` from the `[L]and` and `[x]` parentheticals, leaving the teardown they still do.
 
   Never offer `[c]ommit` off a stale mental model of the tree (e.g. after edits that net back to the committed value) without re-checking.
 
@@ -473,6 +475,13 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   >   ⬆️ **`[p]romote`** (✅ promote to master)
   >   🏁 **`[L]and`**    (✅ promote to master + 🪓 tear down worktree)
   >   🧨 **`[x]`**       (✅ promote to master + 🪓 tear down worktree + 🧨 close session)
+
+  Subset (clean tree just promoted, so nothing ahead of master and no promote slot):
+
+  > 👉 How do you want to wrap up?
+  >   🛠️ **`[i]terate`** (keep tuning in the worktree)
+  >   🏁 **`[L]and`**    (🪓 tear down worktree)
+  >   🧨 **`[x]`**       (🪓 tear down worktree + 🧨 close session)
 
   Subset (a follow-up edit that finishes the unpublished HEAD commit, so fold joins commit):
 
