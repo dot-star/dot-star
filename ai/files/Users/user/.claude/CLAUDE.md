@@ -279,9 +279,9 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - Pass: `The formatter rewrites the file on exit. That rewrite breaks the symlink.`
 - Trim to the load-bearing words in any terse text (commit subjects, PR titles, TODOs, comments, status lines). Standing default; `t`/`trim` applies it on request.
   - Cut what the context already carries (exact values in the diff/file), quantifiers the verb implies, and trailing qualifiers.
-  - Drop articles where the line still reads clean.
+  - Drop articles where the line still reads clean, and in commit subjects and PR titles by default (keep one only where the line misreads without it).
   - Before → after:
-    - `Darken the date-label outline to chocolate` → `Darken the date-label outline`
+    - `Darken the date-label outline to chocolate` → `Darken date-label outline`
     - `TODO: Add more whitelist entries` → `TODO: Add whitelist entries`
     - `Landing the branch into master after the rebase` → `Landing branch into master`
 - Never emit `c`, `cb`, `r`, `trix`, or `wt` as standalone tokens in own output; always expand to "clipboard" / "root" / "spreadsheet" / "worktree". These are input-only shorthand (see the Shorthand section above) and reading them back as jargon obscures meaning.
@@ -448,13 +448,13 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   > 👉 How do you want to proceed?
   >   🛠️ **`[i]terate`** (no commit + keep iterating)
   >   💾 **`[c]ommit`**  (commit + keep iterating)
-  > 　　 ├─ **`[c1]`** Keep the search input usable under a long title
-  > 　　 ├─ **`[c2]`** Give the open search box room when the title is long
-  > 　　 └─ **`[c3]`** Stop a long title squeezing the search input to nothing
+  > 　　 ├─ **`[c1]`** Keep search input usable under long title
+  > 　　 ├─ **`[c2]`** Give open search box room when title is long
+  > 　　 └─ **`[c3]`** Stop long title squeezing search input to nothing
   >   📦 **`[f]old`**    (amend into HEAD + keep iterating)
-  > 　　 ├─ **`[f4]`** Add a search box that stays usable under a long title
-  > 　　 ├─ **`[f5]`** Add a search box to the toolbar
-  > 　　 └─ **`[f6]`** Add a search box that yields to the title
+  > 　　 ├─ **`[f4]`** Add search box that stays usable under long title
+  > 　　 ├─ **`[f5]`** Add search box to toolbar
+  > 　　 └─ **`[f6]`** Add search box that yields to title
   >   ⬆️ **`[p]romote`** (commit + ✅ promote to master)
   > 　　 └─ **`[pN]`** ...
   >   🏁 **`[L]and`**    (commit + ✅ promote to master + 🪓 tear down worktree)
