@@ -277,7 +277,10 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - Pass: `The cache falls back to the database when the cache goes stale.`
   - Fail: `The formatter rewrites the file on exit. This breaks the symlink.`
   - Pass: `The formatter rewrites the file on exit. That rewrite breaks the symlink.`
-- Trim to the load-bearing words in any terse text (commit subjects, PR titles, TODOs, comments, status lines): cut what the context already carries (exact values in the diff/file), quantifiers the verb implies, and trailing qualifiers; drop articles where the line still reads clean. Standing default; `t`/`trim` applies it on request. Before → after:
+- Trim to the load-bearing words in any terse text (commit subjects, PR titles, TODOs, comments, status lines). Standing default; `t`/`trim` applies it on request.
+  - Cut what the context already carries (exact values in the diff/file), quantifiers the verb implies, and trailing qualifiers.
+  - Drop articles where the line still reads clean.
+  - Before → after:
     - `Darken the date-label outline to chocolate` → `Darken the date-label outline`
     - `TODO: Add more whitelist entries` → `TODO: Add whitelist entries`
     - `Landing the branch into master after the rebase` → `Landing branch into master`
