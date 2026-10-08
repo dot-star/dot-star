@@ -64,6 +64,8 @@
 - For temporary files, write only to the session-scoped directory `/tmp/claude/<session_id>/` (surfaced via SessionStart). Don't write directly under `/tmp/` or `/tmp/claude/`.
 - Before making any code edits in a git repository, work from an isolated worktree to keep the main checkout free for parallel work. Subagents: pass `isolation: "worktree"`. Direct edits: call `EnterWorktree` first, `ExitWorktree` with `action: "remove"` when done.
   - `nw` or `nwt` ("no worktree") anywhere in a user message waives that default: edit in the main checkout. The waiver covers that work and its follow-ups; a later unrelated request re-defaults to a worktree.
+  - Branch from a freshly fetched `origin/<default>`, never the local default branch, which is only as current as its last fetch.
+    - Fetch again before `gh pr create` and rebase if `origin/<default>` moved.
 - When working directly in the main checkout (worktree skipped), commit on the default branch; don't auto-create a feature branch first. Overrides the harness default of branching before committing on the default branch. Branch only when the user asks, or a PR needs one to push.
 - When the working directory is already inside a git repository, prefer plain `git ...` invocations over `git -C <path> ...`. The cwd already has the right scope and `-C` triggers extra permission prompts.
 - Never lead a command with `cd`; run it from the cwd the harness hands you. The cwd already is the checkout (or the worktree), the harness resets it after every call so a `cd` never carries over anyway, and a `cd` prefix drags an otherwise allowlisted chain (`git status`, `git log`, `git add`) into a permission prompt. When one command genuinely needs another directory, hand it an absolute path instead.
