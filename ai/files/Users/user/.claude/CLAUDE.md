@@ -207,6 +207,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     - Render one row per entry in a fenced block: a row number, then labels (`P2 S3`), then the entry's first line trimmed to a subject.
     - Number the rows `1`, `2`, `3` in rendered order, so a bare-number reply picks that entry without describing it. Numbers are positional and hold only for this render, since banking or closing an entry shifts them.
     - Mark the row the pick rule takes next with `❯` (the recommended-pick rule in Output).
+  - `bt` means "bank todo" (or "bank task"): bank the loose ends the conversation just named as todos, per the banking rule in Output.
   - `eg`, `egs`, `examples` mean "show me examples"
   - `sample`, `val`, `validate` mean "render a worked example of what we just changed, as it would fire in practice, so I can check it does what I meant": pick a realistic input (this session, where it fits), show the output the change produces, then name what's new against the old behavior. `show` renders the edit itself; `sample` renders what the edit produces. It's a preview, so don't start new work.
   - `opt`, `opts` mean "show me options"
