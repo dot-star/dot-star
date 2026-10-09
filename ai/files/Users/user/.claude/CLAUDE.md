@@ -6,7 +6,7 @@
 - Atomic commits: one logical change per commit; a change is one intent, so everything that serves it lands together (e.g. the edit with its docs and tests).
   - Land a behavior-preserving refactor as its own commit ahead of the change it serves, whenever restructuring first (splitting a dense paragraph into bullets, extracting a helper) shrinks the change's diff.
     - Folded together, the change reads as a rewrite of every touched line; split, the refactor is verifiably a no-op and the change shows only its intent.
-    - Check for the split before drafting subjects and offer it as a row rather than doing it silently.
+    - Spot the split before making the edit and do the restructure first, so the first commit on offer is the no-op refactor and the change reapplies on top of it; announce the split rather than doing it silently.
 - Optimize for readability and reviewer happiness.
 - Pursue correctness across the task; accept more churn when minimalist diffs and correctness conflict.
 - A refactor preserves behavior exactly. Any observable change (return value, status code, error path, output) means it is not a refactor: flag it and get sign-off, never fold it in silently.
@@ -408,7 +408,8 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     7. Does the 💾 commit row carry the subject drafts beneath it, does the 📦 fold row carry its own `[fN]` drafts against the combined diff, and do the ⬆️ promote, 🏁 land and 🧨 close rows each carry their `[pN] ...` stand-in? A committing row with none costs the user a round trip through the skill's pick step.
     8. Is the change the drafts describe staged? Every `[cN]` tree needs its paths in the index before the menu renders, per the staging rule below; a menu with drafts over an unstaged change sends the user back to asking for the staging before they can judge the subjects.
     9. Would a behavior-preserving restructure of a touched line shrink this diff? Read the staged diff's deleted lines: a long paragraph replaced by a copy of itself with one clause changed is the tell, since the reviewer sees a rewrite where the intent is one sentence.
-       - Split it into bullets (or extract the helper) as its own commit first, offered as a 🪚 **`[sp]lit`** row above the commit row, before drafting any subject.
+       - **Split first, unasked:** catch it before editing when the plan already shows one clause changing inside a dense paragraph. Caught only at the menu, set the change aside, restore the file, apply just the restructure (bullets, or an extracted helper) and stage it. The commit row's drafts then describe the refactor and its parenthetical says the change reapplies on top after it.
+       - **Lead the note with 🪚, never 💅:** the principle requires the split, so it isn't optional polish.
        - The refactor principle at the top of this file already asks for the split; this item is the one that fires, since only the list gets run against the menu in hand.
 
   **Subject drafts ride under every row that commits.** Whenever the tree is dirty, draft subjects the way the `commit` skill does (over-generate, score, rank) and render the top three beneath each of 💾 **`[c]ommit`**, 📦 **`[f]old`**, ⬆️ **`[p]romote`**, 🏁 **`[L]and`** and 🧨 **`[x]`** as a tree sub-list, the same shape as the 🏁 checklist's commit list:
@@ -607,6 +608,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - 💡 acknowledging a user's good idea or suggestion: `💡 Good idea, that's a cleaner phrasing.`
   - 🧠 user is right / good catch / smart call: `🧠 Good catch, that's the actual bug.`
   - 💅 cosmetic nit / optional polish (harmless, fine either way, not 🔴): `💅 Two spaces before the `\`; a single one is tidier.`
+  - 🪚 refactor-first split (a restructure the diff needs ahead of its change; required by the refactor principle, so never 💅): `🪚 Split the scope paragraph into bullets as its own commit; the rule change reapplies on top.`
   - 🔄 apply step / neutral heads-up (nothing wrong; names the reload, restart, or next session that makes the edit live, or a fact the reader should know that changes nothing about whether the work is done): `🔄 Read at session start, so this lands in the next claude session.`
   - 🔴 warning / blocker (something costs the reader now: a step skipped, a state that bites if ignored; a harmless heads-up is 🔄, never 🔴): `🔴 Lockfile changed; skipping auto-stash.`
   - 💥 hard failure / error (something broke): `💥 Tests failed: 3 of 47 assertions did not pass.`
