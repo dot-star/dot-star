@@ -244,8 +244,9 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
 ## Shorthand
 
-- Interpret these tokens as shorthand for the named referent when they appear inside a user message (not as a whole reply). These are **input-only**: expand them when reading user input and always write the full word ("clipboard", "root", "spreadsheet", "worktree") in own output. Never echo the shorthand back in status updates, prose, or commit messages.
+- Interpret these tokens as shorthand for the named referent when they appear inside a user message (not as a whole reply). These are **input-only**: expand them when reading user input and always write the full word ("clipboard", "options", "root", "spreadsheet", "worktree") in own output. Never echo the shorthand back in status updates, prose, or commit messages.
   - `c`, `cb` mean "clipboard" (e.g. "... to c", "... to cb"; a whole-reply `c` means commit)
+  - `opts` means "options": a request for numbered choices, answered per the numbered-choice rules in Output (e.g. "give me opts for the exit flow", "opts on naming"). Bare `opt` stays unmapped mid-message, since "opt in" and "opt out" are real phrases.
   - `r` means "root" (the main checkout, vs. a worktree)
   - `trix` means "spreadsheet"
   - `wt` means "worktree"
