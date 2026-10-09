@@ -11,6 +11,7 @@ claude_run() {
     #
     # Inside a linked worktree, a bare call and a bare --resume both continue
     # that worktree's own last session instead of starting fresh or picking.
+    # A clean quit exits the calling shell too, closing its terminal window.
 
     # Note a bare invocation (no args) before --obj shifts them away. A bare `cl`
     # inside a worktree reopens that worktree's session rather than starting
@@ -89,9 +90,16 @@ claude_run() {
             claude "$@"
         fi
     )
+    local claude_status=$?
 
     ~/.dot-star/ai/claude/prune.sh
     ~/.dot-star/ai/claude/reap_stale_workers.sh
+
+    # Close the shell, and with it the terminal window, once claude quits
+    # cleanly. Keep it open on a failure so the error stays readable.
+    if [[ "${claude_status}" -eq 0 ]]; then
+        exit
+    fi
 }
 alias cl="claude_run"
 
