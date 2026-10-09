@@ -430,7 +430,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
   - **Non-empty** (something is actually uncommitted): offer `[c]ommit`, plus `[f]old` when both of these hold:
 
-    - **HEAD is unpublished.** Run the check, don't assume: `git status --short --branch` prints `[ahead N]`, `git log --oneline @{upstream}..HEAD` lists HEAD, or (no upstream configured, the usual case on a worktree branch) `git branch --remotes --contains HEAD` prints nothing. A published HEAD gets no fold slot, since amending it breaks the golden rule of rebasing: don't rewrite published history.
+    - **HEAD isn't on the default branch.** Run the check, don't assume: `git merge-base --is-ancestor HEAD origin/<default>` exits nonzero. Published history means the default branch's; a HEAD already there gets no fold slot, since amending it rewrites commits everyone else builds on. A pushed PR branch is fair game: keep the fold row and name the cost in its parenthetical (`amend into HEAD + force-with-lease push`, plus any stacked PR that then needs a rebase).
     - **The pending change belongs to HEAD's commit**, finishing or fixing that one intent rather than standing on its own (atomic commits). A change that deserves its own subject gets `[c]ommit`, not `[f]old`.
 
   - **Empty** (clean tree): drop `[c]ommit`, `[f]old` and `[xx]`, reframe `[i]terate` from "defer the commit" to "keep tuning", and narrow the menu to `[i]terate`/`[p]romote`/`[L]and`/`[x]` (they act on the already-committed work, or leave it where it is). `[xx]` goes because the work it guards is already in a commit, per the `xx` rule in Workflow.
@@ -495,7 +495,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   >   🏁 **`[L]and`**    (🪓 tear down worktree)
   >   🧨 **`[x]`**       (🪓 tear down worktree + 🧨 close session)
 
-  Subset (a follow-up edit that finishes the unpublished HEAD commit, so fold joins commit):
+  Subset (a follow-up edit that finishes the HEAD commit, not yet on master, so fold joins commit):
 
   > 👉 How do you want to proceed?
   >   🛠️ **`[i]terate`** (no commit + keep iterating)
