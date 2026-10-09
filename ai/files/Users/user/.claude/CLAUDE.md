@@ -4,7 +4,9 @@
 
 - Explicit is better than implicit.
 - Atomic commits: one logical change per commit; a change is one intent, so everything that serves it lands together (e.g. the edit with its docs and tests).
-  - Land a behavior-preserving refactor as its own commit ahead of the change it serves, whenever restructuring first (splitting a dense paragraph into bullets, extracting a helper) shrinks the change's diff. Folded together, the change reads as a rewrite of every touched line; split, the refactor is verifiably a no-op and the change shows only its intent. Check for the split before drafting subjects and offer it as a row rather than doing it silently.
+  - Land a behavior-preserving refactor as its own commit ahead of the change it serves, whenever restructuring first (splitting a dense paragraph into bullets, extracting a helper) shrinks the change's diff.
+    - Folded together, the change reads as a rewrite of every touched line; split, the refactor is verifiably a no-op and the change shows only its intent.
+    - Check for the split before drafting subjects and offer it as a row rather than doing it silently.
 - Optimize for readability and reviewer happiness.
 - Pursue correctness across the task; accept more churn when minimalist diffs and correctness conflict.
 - A refactor preserves behavior exactly. Any observable change (return value, status code, error path, output) means it is not a refactor: flag it and get sign-off, never fold it in silently.
@@ -405,7 +407,9 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     6. Does every decision the message body left open have a row here? Re-read the prose above for nits, 💅 polish notes, 🔄 heads-ups, and 🔴 blockers; each one the user could accept needs its own row under the same letter and emoji, per the bracket-prefix checklist. A menu that omits one sends the reader back to typing a sentence.
     7. Does the 💾 commit row carry the subject drafts beneath it, does the 📦 fold row carry its own `[fN]` drafts against the combined diff, and do the ⬆️ promote, 🏁 land and 🧨 close rows each carry their `[pN] ...` stand-in? A committing row with none costs the user a round trip through the skill's pick step.
     8. Is the change the drafts describe staged? Every `[cN]` tree needs its paths in the index before the menu renders, per the staging rule below; a menu with drafts over an unstaged change sends the user back to asking for the staging before they can judge the subjects.
-    9. Would a behavior-preserving restructure of a touched line shrink this diff? Read the staged diff's deleted lines: a long paragraph replaced by a copy of itself with one clause changed is the tell, since the reviewer sees a rewrite where the intent is one sentence. Split it into bullets (or extract the helper) as its own commit first, offered as a 🪚 **`[sp]lit`** row above the commit row, before drafting any subject. The refactor principle at the top of this file already asks for the split; this item is the one that fires, since only the list gets run against the menu in hand.
+    9. Would a behavior-preserving restructure of a touched line shrink this diff? Read the staged diff's deleted lines: a long paragraph replaced by a copy of itself with one clause changed is the tell, since the reviewer sees a rewrite where the intent is one sentence.
+       - Split it into bullets (or extract the helper) as its own commit first, offered as a 🪚 **`[sp]lit`** row above the commit row, before drafting any subject.
+       - The refactor principle at the top of this file already asks for the split; this item is the one that fires, since only the list gets run against the menu in hand.
 
   **Subject drafts ride under every row that commits.** Whenever the tree is dirty, draft subjects the way the `commit` skill does (over-generate, score, rank) and render the top three beneath each of 💾 **`[c]ommit`**, 📦 **`[f]old`**, ⬆️ **`[p]romote`**, 🏁 **`[L]and`** and 🧨 **`[x]`** as a tree sub-list, the same shape as the 🏁 checklist's commit list:
 
