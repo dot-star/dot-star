@@ -64,7 +64,9 @@
 ## Workflow
 
 - For temporary files, write only to the session-scoped directory `/tmp/claude/<session_id>/` (surfaced via SessionStart). Don't write directly under `/tmp/` or `/tmp/claude/`.
-- Before making any code edits in a git repository, work from an isolated worktree to keep the main checkout free for parallel work. Subagents: pass `isolation: "worktree"`. Direct edits: call `EnterWorktree` first, `ExitWorktree` with `action: "remove"` when done.
+- Before making any code edits in a git repository, work from an isolated worktree to keep the main checkout free for parallel work.
+  - Subagents: pass `isolation: "worktree"`.
+  - Direct edits: call `EnterWorktree` first, `ExitWorktree` with `action: "remove"` when done.
   - `nw` or `nwt` ("no worktree") anywhere in a user message waives that default: edit in the main checkout. The waiver covers that work and its follow-ups; a later unrelated request re-defaults to a worktree.
   - Branch from a freshly fetched `origin/<default>`, never the local default branch, which is only as current as its last fetch.
     - Fetch again before `gh pr create` and rebase if `origin/<default>` moved.
