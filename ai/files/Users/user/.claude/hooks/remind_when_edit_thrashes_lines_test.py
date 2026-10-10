@@ -13,7 +13,7 @@ import sys
 import tempfile
 import textwrap
 import unittest
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 from typing import Any
 
@@ -205,7 +205,7 @@ def thrashes(before: str, after: str) -> bool:
 
 
 @contextmanager
-def edited_file(content: str) -> Iterator[str]:
+def edited_file(content: str) -> Generator[str]:
     """
     Yields the path of a temporary file holding the post-edit content.
 
