@@ -113,6 +113,10 @@
   - Judge the result by behavior, never by the definition: under zsh `type <function>` prints a one-line origin instead of the body, so grepping that output proves nothing either way.
   - Patch the snapshot's own copy of the function when the aliased form has to work in-session, keeping a backup first. The snapshot is disposable state regenerated per session, so a new session picks up the real fix on its own.
 - To remove a symlink, suggest `unlink <path>`, not `rm <path>`. Keep `rm` / `rm -r` for regular files and directories.
+- Make every command handed to the user safe to paste into an interactive zsh prompt, which expands `!` as history even inside double quotes and fails with `event not found` before the command runs.
+  - Single-quote any string carrying `!` (`echo -e 'Done!'`, not `echo -e "Done!"`).
+  - Split the quoting when the string also needs `$(...)` or a variable: `"${label}"'!'`.
+  - Scripts never history-expand, so a `!` inside a committed script stays as it is; the rule binds what the user pastes, not the line the script runs.
 
 ## Code style
 
