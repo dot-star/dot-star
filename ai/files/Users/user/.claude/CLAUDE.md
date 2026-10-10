@@ -64,7 +64,9 @@
 ## Workflow
 
 - For temporary files, write only to the session-scoped directory `/tmp/claude/<session_id>/` (surfaced via SessionStart). Don't write directly under `/tmp/` or `/tmp/claude/`.
-- Before making any code edits in a git repository, work from an isolated worktree to keep the main checkout free for parallel work.
+- Enter an isolated worktree on the first message in a git repository, before any reading or exploring, so the main checkout stays free for parallel work.
+  - Skip it only when the message is purely a question about the main checkout's own state (its uncommitted edits, its branch, what `git status` shows there), since a worktree starts from `origin/<default>` and would answer from a clean copy. Enter one at the first later message that asks for work.
+  - Name the worktree's path in the reply that creates it.
   - Subagents: pass `isolation: "worktree"`.
   - Direct edits: call `EnterWorktree` first, `ExitWorktree` with `action: "remove"` when done.
   - `nw` or `nwt` ("no worktree") anywhere in a user message waives that default: edit in the main checkout. The waiver covers that work and its follow-ups; a later unrelated request re-defaults to a worktree.
