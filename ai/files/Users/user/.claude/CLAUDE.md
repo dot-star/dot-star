@@ -327,14 +327,23 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   2\. Retry once, then fail:
      - Upload failed after 2 attempts.
   ```
-- When one row in an option list is the live or currently-applied state, prefix it with a thin arrow `→` and indent the rest with two spaces so the numbers line up; render in a fenced code block to hold the alignment. `→` marks "you are here" and stays lighter than a bullet or emoji marker. Rendered example:
+- When one row in an option list is the live or currently-applied state, prefix it with a thin arrow `→` and indent the rest with two spaces so the numbers line up.
+  - Render in a fenced code block to hold the alignment.
+  - `→` marks "you are here" and stays lighter than a bullet or emoji marker.
+
+  Rendered example:
 
   ```
   → 1. Slate gray #666 (applied)
     2. Light gray #999
     3. Silver #ccc
   ```
-- When a numbered suggestion list has a recommended pick, prefix that row with a heavy arrow `❯` and indent the rest with two spaces so the numbers line up; render in a fenced code block to hold the alignment. `❯` marks "my pick" (the option to favor); it's distinct from the lighter `→`, which marks the live/currently-applied state. State the recommendation in the lead-in too (e.g. "my pick first") so the marker reinforces it rather than carrying it alone. Rendered example:
+- When a numbered suggestion list has a recommended pick, prefix that row with a heavy arrow `❯` and indent the rest with two spaces so the numbers line up.
+  - Render in a fenced code block to hold the alignment.
+  - `❯` marks "my pick" (the option to favor); it's distinct from the lighter `→`, which marks the live/currently-applied state.
+  - State the recommendation in the lead-in too (e.g. "my pick first") so the marker reinforces it rather than carrying it alone.
+
+  Rendered example:
 
   ```
   ❯ 1. Recommended approach
