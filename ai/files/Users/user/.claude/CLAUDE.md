@@ -316,18 +316,25 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 - Separate numbered choice options with a visible gap whenever an option carries a rendered example beneath it, and keep each sample glued to its option's name line; the gap then falls only where one option ends. Keep a list of one-line options (the fenced `❯`/`→` block) tight.
   - List each option once. Put the `❯` or `→` marker on the option's own name line (`❯ 1\.`) instead of adding a fenced summary of the names above the details; a summary repeats every option and makes the reader match rows across two lists. A comparison the summary would carry (a value per option) goes in each option's own detail.
   - Escape each number in the source (`1\.`, `2\.`) to make every option a plain paragraph: the terminal renderer drops blank lines between list items but keeps the one between paragraphs.
-  - End the name line with a `\` hard break when a prose sample follows, since a bare newline joins the two lines. A sample opening on `- ` or a fence needs no `\`.
+  - Indent every line beneath the name line (sample, detail bullets) so each option reads as one block hanging off its number. The renderer strips leading spaces from paragraphs and renders a `- ` list flush, so plain spaces never hold the indent:
+    - Inside a fence, indent each content line with three spaces; a code block keeps them.
+    - Outside a fence, lead each line with one U+3000 plus one space, and write a detail bullet as that indent plus `- ` text rather than a real list item.
+  - End each line with a `\` hard break when another unfenced line follows it in the same option (the name line included), since a bare newline joins the two lines. A line followed by a fence needs no `\`.
   - Don't reach for a spacer line holding only U+3000; the renderer folds it into the item above.
 
   Source form:
 
-  ```
+  ````
   ❯ 1\. Drop the retry and fail fast:\
-     Upload failed. Check your connection and try again.
+  　 Upload failed. Check your connection and try again.
 
   2\. Retry once, then fail:
-     - Upload failed after 2 attempts.
   ```
+     Upload failed after 2 attempts.
+  ```
+  　 - Shows the count, so the user knows a retry ran.\
+  　 - Costs one extra round trip.
+  ````
 - When one row in an option list is the live or currently-applied state, prefix it with a thin arrow `→` and indent the rest with two spaces so the numbers line up.
   - Render one-line options in a fenced code block to hold the alignment, and options with samples as the paragraphs above, marker on the name line.
   - `→` marks "you are here" and stays lighter than a bullet or emoji marker.
