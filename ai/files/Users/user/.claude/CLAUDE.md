@@ -68,12 +68,14 @@
   - Set `deviceScaleFactor: 2` on the viewport in Puppeteer (`page.setViewport`) or Playwright (`browser.newPage`/`newContext`); the default of 1 is the blur.
   - Save PNG, never JPEG or a `quality` below 100, and never downscale afterward (`sips --resampleWidth`, `magick -resize`).
 - Enter an isolated worktree on the first message in a git repository, before any reading or exploring, so the main checkout stays free for parallel work.
-  - Skip it only when the message is purely a question about the main checkout's own state (its uncommitted edits, its branch, what `git status` shows there), since a worktree starts from `origin/<default>` and would answer from a clean copy. Enter one at the first later message that asks for work.
+  - Skip it only when the message is purely a question about the main checkout's own state (its uncommitted edits, its branch, what `git status` shows there), since a worktree starts from a committed branch and would answer from a clean copy. Enter one at the first later message that asks for work.
   - Name the worktree's path in the reply that creates it.
   - Subagents: pass `isolation: "worktree"`.
   - Direct edits: call `EnterWorktree` first, `ExitWorktree` with `action: "remove"` when done.
   - `nw` or `nwt` ("no worktree") anywhere in a user message waives that default: edit in the main checkout. The waiver covers that work and its follow-ups; a later unrelated request re-defaults to a worktree.
-  - Branch from a freshly fetched `origin/<default>`, never the local default branch, which is only as current as its last fetch.
+  - Branch from whichever of the local default branch and a freshly fetched `origin/<default>` is newer: lands and promotes stay local, so `origin/<default>` lags until the next push.
+    - `fast_forward_new_worktree_to_local_default.sh` does this for an `EnterWorktree` worktree, moving it onto the local branch when that branch already contains origin's.
+    - A worktree made with `git worktree add` gets the same pick by hand; a subagent's `isolation: "worktree"` still starts from `origin/<default>`.
     - Fetch again before `gh pr create` and rebase if `origin/<default>` moved.
 - When working directly in the main checkout (worktree skipped), commit on the default branch; don't auto-create a feature branch first. Overrides the harness default of branching before committing on the default branch. Branch only when the user asks, or a PR needs one to push.
 - When the working directory is already inside a git repository, prefer plain `git ...` invocations over `git -C <path> ...`. The cwd already has the right scope and `-C` triggers extra permission prompts.

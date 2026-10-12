@@ -69,6 +69,15 @@
       {
         "hooks": [
           {
+            "command": "${HOME}/.claude/hooks/fast_forward_new_worktree_to_local_default.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "EnterWorktree"
+      },
+      {
+        "hooks": [
+          {
             "command": "${HOME}/.claude/hooks/recheck_amended_subject.sh",
             "type": "command"
           }
