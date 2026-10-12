@@ -82,7 +82,7 @@
             "type": "command"
           }
         ],
-        "matcher": "Bash|EnterWorktree|ExitWorktree"
+        "matcher": "Bash|Edit|EnterWorktree|ExitWorktree|Write"
       },
       {
         "hooks": [

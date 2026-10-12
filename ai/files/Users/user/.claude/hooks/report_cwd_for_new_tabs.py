@@ -13,6 +13,12 @@ reporting it on SessionStart and after every tool that can move it (Bash,
 EnterWorktree, ExitWorktree) keeps the tab's copy current. Nothing to undo at
 SessionEnd: once claude exits, the shell's next prompt reports the real pwd.
 
+A worktree the session works in wins over `cwd`. A worktree in another repo
+can't be entered, so claude's cwd stays at launch while every edit lands in the
+worktree; the marker `record_worktree_for_statusline.sh` keeps (from Edit,
+Write and `git worktree add`) names it. That hook runs alongside this one, so a
+freshly recorded worktree reaches the tab one tool call later.
+
 Emit the sequence the emulator's own shell integration emits, read off
 TERM_PROGRAM:
 
@@ -33,6 +39,7 @@ import socket
 import sys
 from urllib.parse import quote
 
+from claude_session_dir import claude_session_dir
 from terminal_tty import IN_TERMINAL_APP, STATE_DIR, append_log, controlling_tty, write_to_terminal
 
 LOG_FILE = STATE_DIR / "report_cwd.log"
@@ -58,6 +65,32 @@ def cwd_url(cwd: str) -> str:
     return f"kitty-shell-cwd://{host}{cwd}"
 
 
+def session_worktree(session_id: str) -> str | None:
+    """
+    Return the worktree the session's marker names, or None when there is none.
+
+    :param session_id: Raw session id from the hook payload (e.g. a uuid).
+    :return: The worktree path, or None when the marker is missing or its
+        worktree has since been torn down.
+    """
+    session_dir = claude_session_dir(session_id)
+
+    if session_dir is None:
+        return None
+
+    marker = session_dir / "worktree"
+
+    if not marker.is_file():
+        return None
+
+    worktree = marker.read_text().strip()
+
+    if not os.path.isdir(worktree):
+        return None
+
+    return worktree
+
+
 def report_cwd(tty: str, cwd: str) -> None:
     """
     Write the OSC 7 sequence for `cwd` straight to the session's tty, logging any failure.
@@ -77,7 +110,7 @@ def main() -> None:
     except (json.JSONDecodeError, ValueError):
         event = {}
 
-    cwd = event.get("cwd")
+    cwd = session_worktree(event.get("session_id", "")) or event.get("cwd")
 
     if not cwd:
         log("no cwd on the payload; skipping")
