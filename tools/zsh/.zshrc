@@ -79,6 +79,10 @@ plugins=(git)
 zstyle ':omz:alpha:lib:git' async-prompt no
 # End dot-star zsh prompt.
 
+# Give login and non-login shells the same fpath; oh-my-zsh rebuilds its completion dump whenever fpath changes.
+typeset -U fpath
+fpath=(/opt/homebrew/share/zsh/site-functions $fpath)
+
 source $ZSH/oh-my-zsh.sh
 
 # User configuration
