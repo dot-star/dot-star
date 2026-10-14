@@ -17,11 +17,17 @@ source "${SCRIPT_DIR}/.aliases.sh"
 
 # Stub claude so nothing launches; report the launch dir, the args it would get,
 # and the objective claude_run exported. Fail `--continue` while STUB_NO_SESSION
-# is set, standing in for a worktree that has hosted no session yet.
+# is set, standing in for a worktree that has hosted no session yet. Touch the
+# start marker as the SessionStart hook would, unless STUB_PICKER_BAIL stands in
+# for a picker that exits 0 without starting a session.
 claude() {
     echo "$(pwd)|$*|${CLAUDE_OBJECTIVE:-}"
     if [[ -n "${STUB_NO_SESSION:-}" && "$1" == "--continue" ]]; then
         return 1
+    fi
+
+    if [[ -z "${STUB_PICKER_BAIL:-}" ]]; then
+        touch -- "${CLAUDE_RUN_STARTED_MARKER}"
     fi
 }
 
@@ -96,6 +102,49 @@ assert_dispatch "main checkout, clr opens the picker" \
     "${MAIN_CHECKOUT}" "${MAIN_CHECKOUT}|--resume|" --resume
 assert_dispatch "main checkout, clo labels the window" \
     "${MAIN_CHECKOUT}" "${MAIN_CHECKOUT}|--resume|ship it" --obj "ship it" --resume
+
+assert_cleanup() {
+    # Run claude_run in the main checkout and compare what its cleanup did
+    # (minimize, exit) against <expected>.
+    local label="$1"
+    local expected="$2"
+
+    rm --force -- "${HOME}/minimized"
+
+    # Print "kept" only when claude_run returns rather than exiting the shell.
+    local shell_state
+    shell_state="$(
+        cd "${MAIN_CHECKOUT}" &&
+            claude_run --resume >/dev/null &&
+            echo "kept"
+    )"
+    shell_state="${shell_state:-exited}"
+
+    local window_state="open"
+    if [[ -e "${HOME}/minimized" ]]; then
+        window_state="minimized"
+    fi
+
+    local actual="window ${window_state}, shell ${shell_state}"
+    if [[ "${actual}" == "${expected}" ]]; then
+        echo "✓ ${label}"
+    else
+        echo "✗ ${label}"
+        echo "    expected: ${expected}"
+        echo "    actual:   ${actual}"
+        failures=$((failures + 1))
+    fi
+}
+
+# Have the minimize stub leave a trace, so assert_cleanup can see whether it ran.
+echo 'touch -- "${HOME}/minimized"' >>"${HOME}/.dot-star/ai/claude/minimize_own_window.sh"
+
+assert_cleanup "session ran, window minimized and shell closed" \
+    "window minimized, shell exited"
+STUB_PICKER_BAIL=1
+assert_cleanup "picker exited without a session, window and shell stay open" \
+    "window open, shell kept"
+unset STUB_PICKER_BAIL
 
 git -C "${MAIN_CHECKOUT}" worktree remove --force "${WORKTREE_DIR}"
 

@@ -181,6 +181,10 @@
             "type": "command"
           },
           {
+            "command": "${HOME}/.claude/hooks/mark_session_start_for_claude_run_cleanup.sh",
+            "type": "command"
+          },
+          {
             "command": "${HOME}/.claude/hooks/report_cwd_for_new_tabs.py",
             "type": "command"
           },

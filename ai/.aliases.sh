@@ -49,6 +49,11 @@ claude_run() {
         inside_worktree=1
     fi
 
+    # Name a marker the SessionStart hook touches, so the cleanup below can tell
+    # a session that ran from a picker that exited 0 without starting one.
+    local started_marker="${TMPDIR:-/tmp}/claude_run_started.$$"
+    rm --force -- "${started_marker}"
+
     local uuid_pattern='^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
     # Confine the cd to a subshell so the caller's directory survives once
     # claude exits.
@@ -56,6 +61,8 @@ claude_run() {
         # Enter the run dir, bailing out of the subshell if the cd fails.
         cd "${run_dir}" ||
             exit
+
+        export CLAUDE_RUN_STARTED_MARKER="${started_marker}"
 
         # Pass an explicit `--resume <uuid>` straight through:
         #   $ cl --resume <uuid>
@@ -92,18 +99,30 @@ claude_run() {
     )
     local claude_status=$?
 
-    # Minimize the window out of the way during the cleanup when claude quit
-    # cleanly, since the shell then closes it anyway. Leave a failure on screen.
-    if [[ "${claude_status}" -eq 0 ]]; then
+    # Count a run as finished only when a session started and claude quit
+    # cleanly. A picker that bails (e.g. on a session from another directory)
+    # exits 0 too, and its message has to stay on screen.
+    local session_finished=""
+    if [[ "${claude_status}" -eq 0 && -e "${started_marker}" ]]; then
+        session_finished=1
+    fi
+
+    rm --force -- "${started_marker}"
+
+    # Minimize the window out of the way during the cleanup when the session
+    # finished, since the shell then closes it anyway. Leave anything else on
+    # screen.
+    if [[ -n "${session_finished}" ]]; then
         ~/.dot-star/ai/claude/minimize_own_window.sh
     fi
 
     ~/.dot-star/ai/claude/prune.sh
     ~/.dot-star/ai/claude/reap_stale_workers.sh
 
-    # Close the shell, and with it the terminal window, once claude quits
-    # cleanly. Keep it open on a failure so the error stays readable.
-    if [[ "${claude_status}" -eq 0 ]]; then
+    # Close the shell, and with it the terminal window, once the session
+    # finished. Keep it open otherwise so a failure or picker message stays
+    # readable.
+    if [[ -n "${session_finished}" ]]; then
         exit
     fi
 }
