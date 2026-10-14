@@ -467,6 +467,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
   - **Draft only what's staged:** the index holds one commit, so a repo with several pending commits stages only the first one's paths and renders only that commit's tree.
     - Name that commit above the menu (`🟢 Staged 1 file for commit 1 of 4`).
+    - Name it again in every row whose parenthetical opens with `commit` (`💾 [c]ommit (commit 1 of 4)`), so the row picked says which commit it banks.
     - Give each later commit its tree on the menu after the one before it lands; a tree over unstaged paths asks the user to judge subjects they can't `d`.
   - **Fold gets the same staging**, since `git commit --amend --no-edit` commits the index too.
 
