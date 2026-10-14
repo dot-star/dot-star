@@ -471,7 +471,10 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
   - **Non-empty** (something is actually uncommitted): offer `[c]ommit`, plus `[f]old` when both of these hold:
 
-    - **HEAD isn't on the default branch.** Run the check, don't assume: `git merge-base --is-ancestor HEAD origin/<default>` exits nonzero. Published history means the default branch's; a HEAD already there gets no fold slot, since amending it rewrites commits everyone else builds on. A pushed PR branch is fair game: keep the fold row and name the cost in its parenthetical (`amend into HEAD + force-with-lease push`, plus any stacked PR that then needs a rebase).
+    - **HEAD isn't on the default branch.**
+      - Run the check, don't assume: `git merge-base --is-ancestor HEAD origin/<default>` exits nonzero.
+      - Published history means the default branch's; a HEAD already there gets no fold slot, since amending it rewrites commits everyone else builds on.
+      - A pushed PR branch is fair game: keep the fold row and name the cost in its parenthetical (`amend into HEAD + force-with-lease push`, plus any stacked PR that then needs a rebase).
     - **The pending change belongs to HEAD's commit**, finishing or fixing that one intent rather than standing on its own (atomic commits). A change that deserves its own subject gets `[c]ommit`, not `[f]old`.
 
   - **Empty** (clean tree): drop `[c]ommit`, `[f]old` and `[xx]`, reframe `[i]terate` from "defer the commit" to "keep tuning", and narrow the menu to `[i]terate`/`[p]romote`/`[L]and`/`[x]` (they act on the already-committed work, or leave it where it is). `[xx]` goes because the work it guards is already in a commit, per the `xx` rule in Workflow.
