@@ -47,6 +47,10 @@ fullscreen = false
 #   └────────────────────────────────────┘
 macos-titlebar-style = tabs
 
+# Quit once the last window closes, so focus falls to the next app. The macOS
+# default keeps a windowless Ghostty frontmost, swallowing every keystroke.
+quit-after-last-window-closed = true
+
 # Suppress the pane-size overlay that appears while resizing a split. It is a
 # transient box surfacing in the periphery, the exact interruption a fullscreen
 # terminal is meant to remove.
