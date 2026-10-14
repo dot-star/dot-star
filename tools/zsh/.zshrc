@@ -83,6 +83,11 @@ zstyle ':omz:alpha:lib:git' async-prompt no
 typeset -U fpath
 fpath=(/opt/homebrew/share/zsh/site-functions $fpath)
 
+# Load this device's pre-oh-my-zsh overrides, so it can change ZSH_THEME and plugins.
+if [[ -r ~/.zshrc.pre.local ]]; then
+    source ~/.zshrc.pre.local
+fi
+
 source $ZSH/oh-my-zsh.sh
 
 # User configuration
@@ -132,3 +137,8 @@ export NVM_DIR="$HOME/.nvm"
 
 # Added by Antigravity CLI installer
 export PATH="/Users/user/.local/bin:$PATH"
+
+# Load this device's overrides last, so its PATH, variables and aliases win.
+if [[ -r ~/.zshrc.post.local ]]; then
+    source ~/.zshrc.post.local
+fi
