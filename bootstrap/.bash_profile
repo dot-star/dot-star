@@ -5,7 +5,7 @@ CWD="${PWD}"
 if [[ -n "${BASH_VERSION}" ]]; then
     DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 elif [[ -n "${ZSH_VERSION}" ]]; then
-    DIR="$(dirname $0)"
+    DIR="${0:h}"
 fi
 
 cd "${DIR}"
