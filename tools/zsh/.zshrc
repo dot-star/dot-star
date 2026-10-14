@@ -197,30 +197,9 @@ export PATH="/Users/user/.local/bin:$PATH"
 # Open a Claude window investigating a slow start, then hand focus back to this window.
 zsh_startup_investigate() {
     local elapsed_ms="$1"
-    local stamp_file="${XDG_CACHE_HOME:-${HOME}/.cache}/dot-star/zsh_startup_investigated"
-    local -a stamp_mtime
     local login_shell="no"
     local parent_process
     local task
-    local command_line
-
-    # Skip inside Claude's own shells and inside an investigation window, which may start slow itself.
-    if [[ "${TERM_PROGRAM}" != "ghostty" ]] || [[ -n "${CLAUDECODE}" ]] || [[ -n "${ZSH_STARTUP_INVESTIGATING}" ]]; then
-        return 1
-    fi
-
-    # Open one window per burst of slow starts; Ghostty restoring several windows at launch would otherwise open one each.
-    zmodload -F zsh/stat b:zstat
-    if zstat -A stamp_mtime +mtime -- "${stamp_file}" 2>/dev/null; then
-        if ((EPOCHSECONDS - stamp_mtime[1] < 600)); then
-            return 1
-        fi
-    fi
-
-    if [[ ! -d "${stamp_file:h}" ]]; then
-        mkdir -p "${stamp_file:h}"
-    fi
-    : >|"${stamp_file}"
 
     # Capture how this shell started; the slowest cause so far only hit shells nested in another shell.
     if [[ -o login ]]; then
@@ -230,18 +209,10 @@ zsh_startup_investigate() {
     task="zsh startup took ${elapsed_ms} ms before the first prompt."
     task+=" SHLVL=${SHLVL}, login shell: ${login_shell}, parent process: ${parent_process}, cwd: ${PWD}."
     task+=" Find what made this start slow and propose a fix."
-    printf -v command_line 'claude_run --obj %q %q' "Investigate slow zsh startup" "${task}"
-
-    # Run in the background so the AppleScript round trip doesn't delay this shell's first prompt.
-    osascript - "${HOME}/.dot-star" "${command_line}"$'\n' >/dev/null 2>&1 <<'APPLESCRIPT' &|
-on run argv
-    tell application "Ghostty"
-        set original_window to front window
-        new window with configuration {initial working directory:item 1 of argv, initial input:item 2 of argv, environment variables:{"ZSH_STARTUP_INVESTIGATING=1"}}
-        activate window original_window
-    end tell
-end run
-APPLESCRIPT
+    ~/.dot-star/ai/claude/open_investigation_window.sh \
+        zsh_startup \
+        "Investigate slow zsh startup" \
+        "${task}"
 }
 
 # Print the gap between shell start and first prompt, once per interactive shell.
