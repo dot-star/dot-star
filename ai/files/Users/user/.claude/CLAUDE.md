@@ -427,6 +427,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     - Skip the skill's draft-and-pick step and commit with that subject verbatim.
     - Commit only the commit whose tree carried `[cN]`. A subject floated in prose for another pending commit has no accept token, so silence never picks it: leave that commit uncommitted and re-offer its tree.
     - Carry on with the promote or land when the letter asks for one.
+- Offer 📦 **`[f]old`** beside every 💾 **`[c]ommit`** offer, worktree or not: a commit offered from the main checkout gets the fold row with its `[fN]` drafts under the same applicability test the worktree menu sets below. Leaving it off makes the user type a sentence for the obvious follow-up fix to HEAD.
 - When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment (any subset the tree allows; 🏁 land and 🧨 close always apply, ⬆️ promote whenever there's something to move), each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**).
   - 🧨 **`[x]`** is the one designed bundle: `x` means close the session and closing a worktree session means landing it first, so the row reads land + close rather than two actions glued together.
   - 🧨🧨 **`[xx]`** is the same close without the land, per the `xx` rule in Workflow.
@@ -471,9 +472,9 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
   - **Non-empty** (something is actually uncommitted): offer `[c]ommit`, plus `[f]old` when both of these hold:
 
-    - **HEAD isn't on the default branch.**
-      - Run the check, don't assume: `git merge-base --is-ancestor HEAD origin/<default>` exits nonzero.
-      - Published history means the default branch's; a HEAD already there gets no fold slot, since amending it rewrites commits everyone else builds on.
+    - **HEAD isn't on the remote default branch.**
+      - Run the check, don't assume: `git merge-base --is-ancestor HEAD <remote>/<default>` exits nonzero, taking `<remote>` from `git remote` rather than assuming `origin`.
+      - Published history means the remote default branch's, so an unpushed commit on local `<default>` (main-checkout work) still folds; a HEAD already there gets no fold slot, since amending it rewrites commits everyone else builds on.
       - A pushed PR branch is fair game: keep the fold row and name the cost in its parenthetical (`amend into HEAD + force-with-lease push`, plus any stacked PR that then needs a rebase).
     - **The pending change belongs to HEAD's commit**, finishing or fixing that one intent rather than standing on its own (atomic commits). A change that deserves its own subject gets `[c]ommit`, not `[f]old`.
 
