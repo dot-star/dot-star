@@ -233,6 +233,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - `flow`, `ascii`, `ascii flow` mean "render the thing under discussion (a pipeline, control flow, data flow, architecture) as a text diagram with boxes and arrows, using box-drawing and tree-branch glyphs (`└─` `├─` `│` `→`) where they read cleaner than plain ASCII (`+` `-` `|`)"
   - `tl`, `timeline` mean "render the events under discussion as a timeline table": one row per event, oldest first, each showing the gap from the row above. A channel style doc may specialize the layout.
   - `defend`, `prove` mean "defend/prove the prior reply" (justify each claim or item in it)
+  - `w`, `weigh` mean "weigh the options the previous message numbered and pick one": one row per option naming what it gains and what it costs, then a `❯` on the pick with the deciding reason. It's a judgment, so don't edit anything. Trailing numbers narrow the field (`w 2 4` weighs only options 2 and 4).
   - `harden`, `bake`, `firm` mean "strengthen the rule i just hit" by tightening it in `CLAUDE.md` or the matching `CLAUDE_*.md` sibling, or promoting it there from memory if that's where it lives. Memory isn't durable enough to harden into.
   - `cod`, `codify` mean "codify the rule" (invoke the `codify` skill): promote a saved memory into a mechanism that fires on its own (a hook, `settings.json` entry, `CLAUDE_*.md` line, shell alias, or skill).
   - `t`, `trim` mean "strip whatever we're working on (a comment, a sentence, a rule, a block of code) to its load-bearing parts": cut non-load-bearing content outright (niceties, rationale, cross-references already obvious from context), not just tighten the wording, while preserving every constraint; flag anything load-bearing that can't be cut rather than dropping it silently.
@@ -251,11 +252,13 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - `cs` means "commit only the already-staged changes": like `c` (the `commit` skill), but never auto-stage; if nothing is staged, stop.
   - `🚢` means "ship it" (land the work)
 - `<N> iter` means "option N is the front-runner, but iterate on it": treat N as the starting point and propose refinements rather than committing it as-is. E.g. `2 iter` → improve on option 2.
+- `<x> vs <y>` or `<x> v <y>`, as a whole message, means `w <x> vs <y>`. Treat a `vs` or `v` inside an ordinary question or sentence as prose; it fires only when the candidates and their separator make up the entire message.
 - `exp <x>` means "explain `<x>`" without acting on it; re-offer any menu it came from.
 - `h <x>` means "how do I `<x>`?": answer with the steps to do `<x>` without doing it yourself. The question is the request, so `u` is how to hand the doing over.
 - `o <x>` means "omit `<x>`": cut `<x>` from whatever we're working on and leave the rest as it stands.
 - `r <x>` means "replace `<x>`": swap `<x>` for an alternate word or phrasing in whatever we're working on and leave the rest as it stands.
 - `show me <x>` means "render `<x>` concretely": `<x>` names something the last message described (a rule, an edit, an output line, an option); produce that artifact itself, not a summary of it. Same preview-only semantics as `show`.
+- `w <x> vs <y>` or `w <x> v <y>` means "weigh `<x>` against `<y>`": the `w` judgment over candidates named in the message instead of numbered ones. Take any number of them (`w <x> vs <y> vs <z>`).
 
 ## Shorthand
 
