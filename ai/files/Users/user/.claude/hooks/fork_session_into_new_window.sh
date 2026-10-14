@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 #
-# UserPromptSubmit hook: fork the session into a new Ghostty tab when the
-# prompt is `fork` or `fork <task>`. The new tab runs a clean `claude` (passed
+# UserPromptSubmit hook: fork the session into a new Ghostty window when the
+# prompt is `fork` or `fork <task>`. The new window runs a clean `claude` (passed
 # the task, when given) with the parent's session id and transcript path in its
 # environment, where announce_fork_parent.sh picks them up at SessionStart. The
 # prompt is then blocked, so the parent session spends no turn on it and stays
 # where it was.
 #
-# The tab opens in the main checkout, even from a worktree, so the fork never
-# shares the parent's worktree; it makes its own.
+# The window opens in the main checkout, even from a worktree, so the fork never
+# shares the parent's worktree; it makes its own. A window rather than a tab
+# keeps the fork's separate objective out of the parent's tab bar.
 
 set -euo pipefail
 
@@ -40,7 +41,7 @@ block() {
 }
 
 if [ "${TERM_PROGRAM:-}" != "ghostty" ]; then
-    block "fork opens its tab through Ghostty's AppleScript, so it only works under Ghostty (TERM_PROGRAM is '${TERM_PROGRAM:-unset}')."
+    block "fork opens its window through Ghostty's AppleScript, so it only works under Ghostty (TERM_PROGRAM is '${TERM_PROGRAM:-unset}')."
 fi
 
 # Resolve the main checkout through the shared git dir, which every worktree points at.
@@ -51,7 +52,7 @@ fi
 
 command_line="CLAUDE_FORKED_FROM=$(printf '%q' "${session_id}")"
 command_line+=" CLAUDE_FORKED_TRANSCRIPT=$(printf '%q' "${transcript_path}")"
-# Launch through `claude_run` rather than `claude`, so the tab minimizes and
+# Launch through `claude_run` rather than `claude`, so the window minimizes and
 # closes once the fork's session ends, the same as `cl`.
 command_line+=" claude_run"
 if [ -n "${task}" ]; then
@@ -63,12 +64,12 @@ if ! error=$(
     osascript - "${start_dir}" "${command_line}"$'\n' 2>&1 <<'APPLESCRIPT'
 on run argv
     tell application "Ghostty"
-        new tab in front window with configuration {initial working directory:item 1 of argv, initial input:item 2 of argv}
+        new window with configuration {initial working directory:item 1 of argv, initial input:item 2 of argv}
     end tell
 end run
 APPLESCRIPT
 ); then
-    block "fork couldn't open a Ghostty tab: ${error}"
+    block "fork couldn't open a Ghostty window: ${error}"
 fi
 
-block "Forked into a new tab (${start_dir})."
+block "Forked into a new window (${start_dir})."

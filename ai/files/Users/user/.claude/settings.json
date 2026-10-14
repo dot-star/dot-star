@@ -249,7 +249,7 @@
             "type": "command"
           },
           {
-            "command": "${HOME}/.claude/hooks/fork_session_into_new_tab.sh",
+            "command": "${HOME}/.claude/hooks/fork_session_into_new_window.sh",
             "type": "command"
           }
         ]

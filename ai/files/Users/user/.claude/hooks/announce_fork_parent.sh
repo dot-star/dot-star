@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# SessionStart hook: tell a session opened by fork_session_into_new_tab.sh
+# SessionStart hook: tell a session opened by fork_session_into_new_window.sh
 # which session it forked from and where that transcript lives. Fires on a
 # fresh start only; a `/clear` or resume inside the fork inherits the same
 # environment and would otherwise announce the parent again.
