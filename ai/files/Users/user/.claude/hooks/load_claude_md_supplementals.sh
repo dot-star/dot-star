@@ -12,6 +12,7 @@ set -euo pipefail
 source "$(dirname -- "${BASH_SOURCE[0]}")/load_claude_md_supplementals.inc.sh"
 
 # Assemble the payload via the shared helper, so the statusline's size check
-# measures the same bytes this loader emits.
-claude_supplemental_assemble
+# measures the same bytes this loader emits. Pass a <name> to load only
+# CLAUDE_<name>.md as its own hook output, under its own size cap.
+claude_supplemental_assemble "${1:-}"
 claude_supplemental_emit "${CLAUDE_SUPPLEMENTAL_CONTEXT}" "SessionStart" "${CLAUDE_SUPPLEMENTAL_FILES}"

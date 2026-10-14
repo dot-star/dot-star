@@ -257,14 +257,24 @@ if [ -n "${context_tokens}" ] && [ "${context_tokens}" -gt 0 ] 2>/dev/null; then
     context_segment="[${context_color}${context_marker}${context_k}k${context_limit}${context_reset}]"
 fi
 
-# Flag the always-on CLAUDE_*.md supplemental payload once it crosses the
-# loader's warn threshold, escalating past the harness cap where content is
-# silently truncated. Healthy sizes stay off the bar.
+# Flag the largest CLAUDE_*.md hook output once it crosses the loader's warn
+# threshold, escalating past the harness cap where content is silently
+# truncated. Measure each output alone, since each has its own cap.
 supplemental_segment=""
-claude_supplemental_assemble
-supplemental_bytes=$(printf '%s' "${CLAUDE_SUPPLEMENTAL_CONTEXT}" |
-    wc -c |
-    awk '{print $1}')
+supplemental_bytes=0
+while IFS= read -r supplemental_name; do
+    claude_supplemental_assemble "${supplemental_name}"
+    payload_bytes=$(printf '%s' "${CLAUDE_SUPPLEMENTAL_CONTEXT}" |
+        wc -c |
+        awk '{print $1}')
+    if [ "${payload_bytes}" -gt "${supplemental_bytes}" ]; then
+        supplemental_bytes="${payload_bytes}"
+    fi
+done < <(
+    echo ""
+    claude_supplemental_solo_names
+)
+
 if [ "${supplemental_bytes}" -gt "${CLAUDE_SUPPLEMENTAL_WARN_BYTES}" ]; then
     supplemental_kb=$(awk "BEGIN { printf \"%.1f\", ${supplemental_bytes} / 1024 }")
     supplemental_cap_kb=$(awk "BEGIN { printf \"%.1f\", ${CLAUDE_SUPPLEMENTAL_CAP_BYTES} / 1024 }")

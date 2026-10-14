@@ -90,23 +90,56 @@ claude_supplemental_mention_keyword() {
     ' "${file}"
 }
 
-# Assemble the always-on ~/.claude/CLAUDE_*.md supplementals in version-sort
-# order into two globals: CLAUDE_SUPPLEMENTAL_CONTEXT (the payload, one
-# provenance header per file) and CLAUDE_SUPPLEMENTAL_FILES (space-separated
-# basenames). Skip an unreadable entry (e.g. a dangling symlink left by a
-# since-moved file) so one stale link can't abort a `set -e` caller. Shared by
-# the SessionStart loader (which emits the payload) and the statusline (which
-# measures it), so the two agree byte-for-byte.
-claude_supplemental_assemble() {
+# Echo the <name> of every SessionStart entry in settings.json that runs this
+# loader as `load_claude_md_supplementals.sh <name>`, one per line. Each such
+# CLAUDE_<name>.md gets its own hook output, and so its own size cap, so
+# settings.json stays the one list of which files load alone.
+claude_supplemental_solo_names() {
     local claude_dir="${CLAUDE_SUPPLEMENTAL_DIR:-${HOME}/.claude}"
-    local file
 
+    # Treat a missing or malformed settings.json as no solo entries, so a
+    # `set -e` caller still loads every file instead of aborting.
+    if ! command jq \
+        --raw-output \
+        '.hooks.SessionStart[]?.hooks[]?.command
+            | capture("load_claude_md_supplementals\\.sh +(?<name>[^ ]+)")?
+            | .name' \
+        "${claude_dir}/settings.json" 2>/dev/null; then
+        return 0
+    fi
+}
+
+# Assemble ~/.claude/CLAUDE_*.md supplementals in version-sort order into two
+# globals: CLAUDE_SUPPLEMENTAL_CONTEXT (the payload, one provenance header per
+# file) and CLAUDE_SUPPLEMENTAL_FILES (space-separated basenames). Given a
+# <name>, take only CLAUDE_<name>.md; given none, take every file except the
+# solo ones, so no file loads twice. Skip an unreadable entry (e.g. a dangling
+# symlink left by a since-moved file) so one stale link can't abort a `set -e`
+# caller. Shared by the SessionStart loader (which emits the payload) and the
+# statusline (which measures it), so the two agree byte-for-byte.
+claude_supplemental_assemble() {
+    local name="${1:-}"
+    local claude_dir="${CLAUDE_SUPPLEMENTAL_DIR:-${HOME}/.claude}"
+    local solo_names
+    local file
+    local file_name
+
+    solo_names=" $(claude_supplemental_solo_names | tr '\n' ' ') "
     CLAUDE_SUPPLEMENTAL_CONTEXT=""
     CLAUDE_SUPPLEMENTAL_FILES=""
     while IFS= read -r file; do
         if [ ! -r "${file}" ]; then
             continue
         fi
+
+        file_name="${file##*/CLAUDE_}"
+        file_name="${file_name%.md}"
+        if [ -n "${name}" ] && [ "${file_name}" != "${name}" ]; then
+            continue
+        elif [ -z "${name}" ] && [[ "${solo_names}" == *" ${file_name} "* ]]; then
+            continue
+        fi
+
         CLAUDE_SUPPLEMENTAL_CONTEXT+="===== ${file} ====="$'\n'
         CLAUDE_SUPPLEMENTAL_CONTEXT+="$(cat "${file}")"$'\n\n'
         CLAUDE_SUPPLEMENTAL_FILES+="${file##*/} "
