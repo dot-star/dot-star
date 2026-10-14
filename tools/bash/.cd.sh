@@ -85,7 +85,7 @@ alias ww="www"
 
 # Add aliases that cd to the project directory and list the files.
 for file in $(find ~/Projects -maxdepth 1 -mindepth 1 -type d -o -type l); do
-    name=$(basename "${file}")
+    name="${file##*/}"
     alias "${name}"="cd ~/Projects/${name} && l"
     nonwwwname="${name/www\./}"
     if [[ "${nonwwwname}" != "${name}" ]]; then
