@@ -88,6 +88,10 @@ zstyle ':omz:alpha:lib:git' async-prompt no
 typeset -U fpath
 fpath=(/opt/homebrew/share/zsh/site-functions $fpath)
 
+# Drop oh-my-zsh's dirs inherited through FPATH (brew shellenv exports it), so oh-my-zsh re-adds them in a fresh tab's order.
+# Keep fpath identical in nested shells; any reorder invalidates the shared completion dump and forces a full rebuild.
+fpath=(${fpath:#${ZSH}/*})
+
 # Load this device's pre-oh-my-zsh overrides, so it can change ZSH_THEME and plugins.
 if [[ -r ~/.zshrc.pre.local ]]; then
     source ~/.zshrc.pre.local
