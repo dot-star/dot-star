@@ -84,11 +84,25 @@ www() {
 alias ww="www"
 
 # Add aliases that cd to the project directory and list the files.
-for file in $(find ~/Projects -maxdepth 1 -mindepth 1 -type d -o -type l); do
-    name="${file##*/}"
-    alias "${name}"="cd ~/Projects/${name} && l"
-    nonwwwname="${name/www\./}"
-    if [[ "${nonwwwname}" != "${name}" ]]; then
-        alias "${nonwwwname}"="cd ~/Projects/${name} && l"
+add_project_aliases() {
+    # Use a glob rather than `find`, saving a fork at startup.
+    # Stop zsh erroring on an empty ~/Projects; bash keeps the literal pattern, which the -d check skips.
+    if [[ -n "${ZSH_VERSION}" ]]; then
+        setopt local_options null_glob
     fi
-done
+
+    for file in ~/Projects/*; do
+        if [[ ! -d "${file}" ]] && [[ ! -L "${file}" ]]; then
+            continue
+        fi
+
+        name="${file##*/}"
+        alias "${name}"="cd ~/Projects/${name} && l"
+        nonwwwname="${name/www\./}"
+        if [[ "${nonwwwname}" != "${name}" ]]; then
+            alias "${nonwwwname}"="cd ~/Projects/${name} && l"
+        fi
+    done
+}
+add_project_aliases
+unset -f add_project_aliases
