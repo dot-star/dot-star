@@ -5,6 +5,7 @@
 # shell startup misses those two.
 dot_star_check_install_stale() {
     local stamp_file="${HOME}/.dot-star-installed-commit"
+    local checked_file="${HOME}/.dot-star-install-checked-commit"
     if [[ ! -f "${stamp_file}" ]]; then
         return 0
     fi
@@ -21,10 +22,21 @@ dot_star_check_install_stale() {
         return 0
     fi
 
+    # Skip the diff for a commit already found clean; each new shell would otherwise re-run it until the next install.
+    local checked_commit=""
+    if [[ -f "${checked_file}" ]]; then
+        checked_commit="$(<"${checked_file}")"
+    fi
+
+    if [[ "${checked_commit}" = "${installed_commit} ${current_commit}" ]]; then
+        return 0
+    fi
+
     # Cheap re-source covers everything except these two; only prompt when one of them changed.
     local changed_installer_files
     changed_installer_files="$(git -C "${HOME}/.dot-star" diff --name-only "${installed_commit}" HEAD -- script/install.sh script/post_install.sh 2>/dev/null)"
     if [[ -z "${changed_installer_files}" ]]; then
+        echo "${installed_commit} ${current_commit}" >"${checked_file}"
         return 0
     fi
 
