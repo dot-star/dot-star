@@ -1,3 +1,4 @@
+#!/usr/bin/env zsh
 zstyle ':omz:update' mode auto
 
 # If you come from bash you might have to change your $PATH.
@@ -123,6 +124,15 @@ source $ZSH/oh-my-zsh.sh
 # End dot-star bootstrap.
 
 export NVM_DIR="$HOME/.nvm"
+
+# Put the default alias's newest install on PATH without loading nvm, so the lazy loader can skip `nvm use`.
+if [[ -r "${NVM_DIR}/alias/default" ]]; then
+    nvm_default_bin=("${NVM_DIR}"/versions/node/v$(<"${NVM_DIR}/alias/default")*/bin(Nn[-1]))
+    if [[ -n "${nvm_default_bin}" ]]; then
+        export PATH="${nvm_default_bin}:${PATH}"
+    fi
+    unset nvm_default_bin
+fi
 
 # Update(Jan 2026): Nvm is now lazy loaded via the alias in "node/.aliases.sh".
 # The following line has been commented out and moved to the alias:
