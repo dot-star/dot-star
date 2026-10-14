@@ -121,7 +121,45 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+# Source a tool's generated init script from a cache, so startup skips running the tool.
+# Key the cache on the binary's resolved path and arguments; a Homebrew upgrade changes the path.
+source_cached_init() {
+    local name="$1"
+    shift
+    local binary="${commands[$1]}"
+    local cache_file="${XDG_CACHE_HOME:-${HOME}/.cache}/dot-star/${name}.zsh"
+    local cache_key
+    local cached_key=""
+
+    if [[ -z "${binary}" ]]; then
+        return 1
+    fi
+
+    cache_key="# ${binary:A} ${*:2}"
+    if [[ -r "${cache_file}" ]]; then
+        read -r cached_key <"${cache_file}"
+    fi
+
+    if [[ "${cached_key}" != "${cache_key}" ]]; then
+        mkdir -p "${cache_file:h}"
+
+        # Write to a per-shell temp file, so tabs opening at once never source a half-written cache.
+        if ! {
+            print -r -- "${cache_key}"
+            "$@"
+        } >"${cache_file}.$$"; then
+            rm -f "${cache_file}.$$"
+            return 1
+        fi
+        mv -f "${cache_file}.$$" "${cache_file}"
+    fi
+    source "${cache_file}"
+}
+
+# Gate on ~/.fzf.zsh, the fzf installer's output; the installer also skips re-adding its source line while this path appears here.
+if [[ -f ~/.fzf.zsh ]]; then
+    source_cached_init fzf fzf --zsh
+fi
 
 # Begin dot-star bootstrap.
 [[ -r ~/.dot-star/bootstrap/.bash_profile ]] && source ~/.dot-star/bootstrap/.bash_profile
