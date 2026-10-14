@@ -51,7 +51,9 @@ fi
 
 command_line="CLAUDE_FORKED_FROM=$(printf '%q' "${session_id}")"
 command_line+=" CLAUDE_FORKED_TRANSCRIPT=$(printf '%q' "${transcript_path}")"
-command_line+=" claude"
+# Launch through `claude_run` rather than `claude`, so the tab minimizes and
+# closes once the fork's session ends, the same as `cl`.
+command_line+=" claude_run"
 if [ -n "${task}" ]; then
     command_line+=" $(printf '%q' "${task}")"
 fi
