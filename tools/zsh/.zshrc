@@ -130,8 +130,5 @@ export NVM_DIR="$HOME/.nvm"
 # eval "$(pyenv init -)"
 # eval "$(pyenv virtualenv-init -)"
 
-# Created by `pipx` on 2025-01-12 22:41:57
-export PATH="$PATH:/Users/user/.local/bin"
-
 # Added by Antigravity CLI installer
 export PATH="/Users/user/.local/bin:$PATH"
