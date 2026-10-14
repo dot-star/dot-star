@@ -26,11 +26,12 @@ claude() {
 }
 
 # Point HOME at a throwaway dir holding no-op cleanup scripts, so the run doesn't
-# sweep the real session store or kill real background workers on the way out.
+# minimize the real window, sweep the real session store or kill real background
+# workers on the way out.
 HOME="$(mktemp -d)"
 export HOME
 mkdir --parents "${HOME}/.dot-star/ai/claude"
-for cleanup_script in prune.sh reap_stale_workers.sh; do
+for cleanup_script in minimize_own_window.sh prune.sh reap_stale_workers.sh; do
     echo '#!/usr/bin/env bash' >"${HOME}/.dot-star/ai/claude/${cleanup_script}"
     chmod +x "${HOME}/.dot-star/ai/claude/${cleanup_script}"
 done

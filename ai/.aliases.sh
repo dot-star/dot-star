@@ -92,6 +92,12 @@ claude_run() {
     )
     local claude_status=$?
 
+    # Minimize the window out of the way during the cleanup when claude quit
+    # cleanly, since the shell then closes it anyway. Leave a failure on screen.
+    if [[ "${claude_status}" -eq 0 ]]; then
+        ~/.dot-star/ai/claude/minimize_own_window.sh
+    fi
+
     ~/.dot-star/ai/claude/prune.sh
     ~/.dot-star/ai/claude/reap_stale_workers.sh
 
