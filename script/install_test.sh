@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Tests for setup_bootstrap in install.sh.
+# Tests for setup_bootstrap and ensure_symlink in install.sh.
 #
-# Sources just the bootstrap block writer out of install.sh (the rest of the
-# script touches the real home directory) and runs it against rc-file fixtures.
+# Sources just those functions out of install.sh (the rest of the
+# script touches the real home directory) and runs them against fixtures.
 #
 # Run: bash script/install_test.sh
 
@@ -174,6 +174,53 @@ check "appends when the anchor is missing" "$(cat "${anchorless}")" "export EDIT
 # Begin dot-star zsh prompt.
 ${ZSTYLE}
 # End dot-star zsh prompt."
+
+# Pull ensure_symlink and the helpers it calls out of install.sh.
+for helper in _resume_xtrace warn is_clean_tracked ensure_symlink; do
+    awk "/^${helper}\\(\\) \\{\$/,/^}\$/" "${INSTALL}" >"${work}/${helper}.sh"
+    source "${work}/${helper}.sh"
+done
+# Keep warn from turning xtrace on, which would flood the test output.
+DOT_STAR_PROFILE=1
+WARNINGS=()
+DOT_STAR="${work}/dot-star"
+DOT_STAR_ROOT="${DOT_STAR}"
+
+git init --quiet "${DOT_STAR}"
+printf 'shared\n' >"${DOT_STAR}/clean_rc"
+printf 'shared\n' >"${DOT_STAR}/edited_rc"
+git -C "${DOT_STAR}" add -- clean_rc edited_rc
+git \
+    -C "${DOT_STAR}" \
+    -c user.name=test \
+    -c user.email=test@example.com \
+    commit \
+    --quiet \
+    --message "Add fixtures"
+printf 'shared\n' >"${DOT_STAR}/untracked_rc"
+
+# Move a differing file over its clean repo copy and link it.
+moved="${work}/home_clean_rc"
+printf 'machine\n' >"${moved}"
+ensure_symlink "${DOT_STAR}/clean_rc" "${moved}" 2>/dev/null
+check "links a moved file to the repo copy" "$(readlink "${moved}")" "${DOT_STAR}/clean_rc"
+check "moves the machine's content into the repo" "$(cat "${DOT_STAR}/clean_rc")" "machine"
+check "warns to review the moved file" "${#WARNINGS[@]}" "1"
+
+# Leave the file alone when the repo copy has uncommitted edits.
+printf 'uncommitted\n' >"${DOT_STAR}/edited_rc"
+kept="${work}/home_edited_rc"
+printf 'machine\n' >"${kept}"
+ensure_symlink "${DOT_STAR}/edited_rc" "${kept}" 2>/dev/null
+check "keeps the file over an edited repo copy" "$(cat "${kept}")" "machine"
+check "keeps the repo copy's edits" "$(cat "${DOT_STAR}/edited_rc")" "uncommitted"
+
+# Leave the file alone when the repo copy is untracked.
+untracked="${work}/home_untracked_rc"
+printf 'machine\n' >"${untracked}"
+ensure_symlink "${DOT_STAR}/untracked_rc" "${untracked}" 2>/dev/null
+check "keeps the file over an untracked repo copy" "$(cat "${untracked}")" "machine"
+check "keeps the untracked repo copy" "$(cat "${DOT_STAR}/untracked_rc")" "shared"
 
 echo ""
 echo "${passes} passed, ${fails} failed"

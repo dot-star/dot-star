@@ -49,7 +49,30 @@ warn() {
     _resume_xtrace
 }
 
-# `ln -s src dest`, but never clobber a foreign dest: self-heal a stale link that already points into our own tree, warn on anything else.
+# Check that a file is tracked with no staged or unstaged edits, so git can restore anything written over it.
+is_clean_tracked() {
+    local file="${1}"
+    local dir
+    dir="$(dirname "${file}")"
+    local base="${file##*/}"
+
+    if ! git \
+        -C "${dir}" \
+        ls-files \
+        --error-unmatch \
+        -- "${base}" >/dev/null 2>&1; then
+        return 1
+    fi
+
+    git \
+        -C "${dir}" \
+        diff \
+        --quiet \
+        HEAD \
+        -- "${base}"
+}
+
+# `ln -s src dest`, but never clobber a foreign dest: self-heal a stale link that already points into our own tree, move a regular file over its clean repo copy, warn on anything else.
 ensure_symlink() {
     local src="${1}"
     local dest="${2}"
@@ -82,6 +105,11 @@ ensure_symlink() {
         if [ -f "${dest}" ] && [ -f "${src}" ] && cmp -s "${dest}" "${src}"; then
             rm "${dest}"
             ln -v -s "${src}" "${dest}"
+        # Move a differing regular file over its clean repo copy, so `git diff` shows what this machine changes.
+        elif [ -f "${dest}" ] && [ -f "${src}" ] && is_clean_tracked "${src}"; then
+            mv "${dest}" "${src}"
+            ln -v -s "${src}" "${dest}"
+            warn "Moved ${dest} into the repo; review what this machine changes, then commit or discard it." "git -C $(dirname "${src}") diff -- ${src##*/}"
         else
             # Don't clobber.
             warn "${dest} exists but is not a symlink, expected symlink to ${src}." "diff ${dest} ${src}"
