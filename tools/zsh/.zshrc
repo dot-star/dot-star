@@ -1,4 +1,8 @@
 #!/usr/bin/env zsh
+# Record when this file started loading; the startup timer near the end prints it with the first prompt's time.
+zmodload zsh/datetime
+typeset -g zsh_startup_start=$EPOCHREALTIME
+
 zstyle ':omz:update' mode auto
 
 # If you come from bash you might have to change your $PATH.
@@ -147,6 +151,28 @@ fi
 
 # Added by Antigravity CLI installer
 export PATH="/Users/user/.local/bin:$PATH"
+
+# Print shell start, first prompt and the gap between them, once per interactive shell.
+zsh_startup_report() {
+    local end=$EPOCHREALTIME
+    local start_clock
+    local end_clock
+    if [[ -n "${zsh_startup_start}" ]]; then
+        strftime -s start_clock '%H:%M:%S' "${zsh_startup_start%.*}"
+        strftime -s end_clock '%H:%M:%S' "${end%.*}"
+        printf '%s.%s -> %s.%s (%d ms)\n' \
+            "${start_clock}" \
+            "${${zsh_startup_start#*.}[1,3]}" \
+            "${end_clock}" \
+            "${${end#*.}[1,3]}" \
+            $(((end - zsh_startup_start) * 1000))
+    fi
+    add-zsh-hook -d precmd zsh_startup_report
+    unfunction zsh_startup_report
+    unset zsh_startup_start
+}
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd zsh_startup_report
 
 # Load this device's overrides last, so its PATH, variables and aliases win.
 if [[ -r ~/.zshrc.post.local ]]; then
