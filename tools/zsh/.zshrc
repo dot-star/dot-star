@@ -1,5 +1,5 @@
 #!/usr/bin/env zsh
-# Record when this file started loading; the startup timer near the end prints it with the first prompt's time.
+# Record when this file started loading; the startup timer near the end measures the gap to the first prompt.
 zmodload zsh/datetime
 typeset -g zsh_startup_start=$EPOCHREALTIME
 
@@ -190,22 +190,18 @@ fi
 # Added by Antigravity CLI installer
 export PATH="/Users/user/.local/bin:$PATH"
 
-# Print shell start, first prompt and the gap between them, once per interactive shell.
+# Print the gap between shell start and first prompt, once per interactive shell.
 zsh_startup_report() {
     # Warn once the wait is noticeable before typing, alert once it feels sluggish.
     local warn_ms=500
     local alert_ms=1000
     local end=$EPOCHREALTIME
-    local start_clock
-    local end_clock
     local -i elapsed_ms
     local color=""
     local marker=""
     local limit=""
     local reset=""
     if [[ -n "${zsh_startup_start}" ]]; then
-        strftime -s start_clock '%H:%M:%S' "${zsh_startup_start%.*}"
-        strftime -s end_clock '%H:%M:%S' "${end%.*}"
         elapsed_ms=$(((end - zsh_startup_start) * 1000))
 
         # Flag the gap the way the statusline flags context size: bare when healthy, budgeted against the alert mark past warn.
@@ -220,11 +216,7 @@ zsh_startup_report() {
             limit="/${alert_ms}"
             reset=$'\e[0m'
         fi
-        printf '%s.%s -> %s.%s (%s%s%d%s ms%s)\n' \
-            "${start_clock}" \
-            "${${zsh_startup_start#*.}[1,3]}" \
-            "${end_clock}" \
-            "${${end#*.}[1,3]}" \
+        printf '%s%s%d%s ms%s\n' \
             "${color}" \
             "${marker}" \
             "${elapsed_ms}" \
