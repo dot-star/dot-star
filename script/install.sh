@@ -292,6 +292,9 @@ setup_bootstrap "${HOME}/.bashrc" 'if shopt -q login_shell; then
     [[ -r ~/.dot-star/bootstrap/.bash_profile ]] && source ~/.dot-star/bootstrap/.bash_profile
 fi'
 
+# Link ~/.zshrc before writing its blocks, so a fresh machine gets the tracked file rather than the bare one setup_bootstrap would create.
+ensure_symlink "${DOT_STAR}/tools/zsh/.zshrc" "${HOME}/.zshrc"
+
 # zsh reads ~/.zshrc directly for interactive shells, so source the spine inline (no login-shell dance like bash).
 setup_bootstrap "${HOME}/.zshrc" '[[ -r ~/.dot-star/bootstrap/.bash_profile ]] && source ~/.dot-star/bootstrap/.bash_profile'
 
