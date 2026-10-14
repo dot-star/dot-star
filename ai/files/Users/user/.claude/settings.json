@@ -165,6 +165,10 @@
             "type": "command"
           },
           {
+            "command": "${HOME}/.claude/hooks/load_claude_md_supplementals.sh device-specific",
+            "type": "command"
+          },
+          {
             "command": "${HOME}/.claude/hooks/warn_when_personal_context_untracked.sh",
             "type": "command"
           },
