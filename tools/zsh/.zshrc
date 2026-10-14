@@ -192,18 +192,44 @@ export PATH="/Users/user/.local/bin:$PATH"
 
 # Print shell start, first prompt and the gap between them, once per interactive shell.
 zsh_startup_report() {
+    # Warn once the wait is noticeable before typing, alert once it feels sluggish.
+    local warn_ms=500
+    local alert_ms=1000
     local end=$EPOCHREALTIME
     local start_clock
     local end_clock
+    local -i elapsed_ms
+    local color=""
+    local marker=""
+    local limit=""
+    local reset=""
     if [[ -n "${zsh_startup_start}" ]]; then
         strftime -s start_clock '%H:%M:%S' "${zsh_startup_start%.*}"
         strftime -s end_clock '%H:%M:%S' "${end%.*}"
-        printf '%s.%s -> %s.%s (%d ms)\n' \
+        elapsed_ms=$(((end - zsh_startup_start) * 1000))
+
+        # Flag the gap the way the statusline flags context size: bare when healthy, budgeted against the alert mark past warn.
+        if ((elapsed_ms >= alert_ms)); then
+            color=$'\e[1;31m'
+            marker="🚨"
+            limit="/${alert_ms}"
+            reset=$'\e[0m'
+        elif ((elapsed_ms >= warn_ms)); then
+            color=$'\e[33m'
+            marker="⚠️"
+            limit="/${alert_ms}"
+            reset=$'\e[0m'
+        fi
+        printf '%s.%s -> %s.%s (%s%s%d%s ms%s)\n' \
             "${start_clock}" \
             "${${zsh_startup_start#*.}[1,3]}" \
             "${end_clock}" \
             "${${end#*.}[1,3]}" \
-            $(((end - zsh_startup_start) * 1000))
+            "${color}" \
+            "${marker}" \
+            "${elapsed_ms}" \
+            "${limit}" \
+            "${reset}"
     fi
     add-zsh-hook -d precmd zsh_startup_report
     unfunction zsh_startup_report
