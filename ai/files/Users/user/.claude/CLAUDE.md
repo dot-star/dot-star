@@ -454,8 +454,8 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
   - **Row shape:** each row indented with 2 ideographic full-width spaces (U+3000) + 1 regular space so the glyph lands under the `[` of the parent row, a `├─` on each row and `└─` on the last, then the bracket token `**` + `` ` `` + `[cN]` + `` ` `` + `**` (or `[fN]`, `[pN]`, `[LN]`, `[xN]`, the parent's letter plus the draft number), a space, and the subject in plain text. The subject stays plain because it's text to compare, not an option name.
   - **Spelled out once:** the subjects sit under the commit row; the promote, land and close rows each carry a single stand-in row instead of a tree, `[pN] ...`, `[LN] ...`, `[xN] ...` with a literal `N`, so the accept-token shape is on screen without three rows of `...` repeating three times. The stand-in takes a `└─`, since it's the last row under its parent, the same way `└─` closes the commit row's list.
-  - **One tree per pending commit:**
-    - A menu covering two or more commits (one per repo, say) renders a draft tree under each.
+  - **One tree per staged commit:**
+    - A menu covering commits in two or more repos renders a draft tree under each repo's staged commit.
     - Number the drafts globally unique across the message (`[c1]`-`[c3]` for the first commit, `[c4]`-`[c6]` for the second), so a single `c<N>` names one draft of one commit.
     - Never float a commit's subject in prose beside another commit's tree; a subject with no token can't be picked, so it reads as decided when it isn't.
   - **Fold unstales the subject it amends**, so its row carries a tree too: draft it against the combined diff (HEAD's change plus the pending one), which is what the amended commit will hold, and number it after the commit row's drafts, `[f4]`-`[f6]` under a `[c1]`-`[c3]` commit row, so one number names one draft. A bare `f` keeps HEAD's subject, the right pick whenever that subject already covers the combined diff; `f<N>` amends with draft N instead. The tree renders on every fold, since whether the old subject still covers the folded-in change is the question the drafts answer, so leaving them off when it looks fine is the guess they replace.
@@ -463,7 +463,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
   **Stage the change before rendering its drafts.** A subject is judged against the diff it describes, so the diff has to be one command away while the drafts are on screen: once the paths are in the index, a bare `d` in another terminal shows `git diff --cached` (`rc_diff` prefers the staged diff when one exists) and `s` lists the staged files, which is exactly what the picked draft would commit. Whenever a menu carries a `[cN]` tree, run `git add -- <path> [<path> ...]` over the paths this session edited first, under the same explicit-path and `git status --porcelain` checks the staging rule in Shell commands sets, and say so in a line above the menu (`🟢 Staged 2 files`) so the user knows `d` is live. Re-run it on every menu, since edits made after an earlier staging land unstaged.
 
-  - **One commit's paths at a time:** the index holds one commit, so a menu with two trees in one repo stages only the first commit's paths and names which tree is staged; the second tree waits for the first commit to land.
+  - **Draft only what's staged:** the index holds one commit, so a repo with several pending commits stages only the first one's paths and renders only that commit's tree, naming it above the menu (`🟢 Staged 1 file for commit 1 of 4`). Each later commit gets its tree on the menu after the one before it lands; a tree over unstaged paths asks the user to judge subjects they can't `d`.
   - **Fold gets the same staging**, since `git commit --amend --no-edit` commits the index too.
 
   **Applicability is a fact about the tree, not a guess.** Before sending, run `git status --porcelain` and branch on the result:
