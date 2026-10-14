@@ -1,5 +1,37 @@
 export DISABLE_TELEMETRY=1
 
+run_claude_cleanup_step() {
+    # Run one post-session cleanup script, opening an investigation window when it fails.
+    # Hand the failure off rather than leave it on screen; claude_run closes the window right after.
+    local script="${1}"
+    local name="${script##*/}"
+    local log_dir
+    local exit_status
+    local task
+
+    log_dir="$(mktemp -d)"
+
+    # Tee the output so it still shows; the status rides a file, since a pipeline reports tee's.
+    {
+        "${script}"
+        echo "$?" >"${log_dir}/status"
+    } 2>&1 |
+        tee "${log_dir}/output"
+    exit_status="$(<"${log_dir}/status")"
+
+    if [[ "${exit_status}" -ne 0 ]]; then
+        task="${script} exited ${exit_status} during claude_run's post-session cleanup."
+        task+=" Its output: $(<"${log_dir}/output")"
+        task+=" Find why it failed and propose a fix."
+        ~/.dot-star/ai/claude/open_investigation_window.sh \
+            "${name%.sh}" \
+            "Investigate ${name} failure" \
+            "${task}"
+    fi
+
+    rm --force --recursive -- "${log_dir}"
+}
+
 claude_run() {
     # Run claude, optionally resuming a session and/or labeling the window.
     # Usage:
@@ -116,8 +148,8 @@ claude_run() {
         ~/.dot-star/ai/claude/minimize_own_window.sh
     fi
 
-    ~/.dot-star/ai/claude/prune.sh
-    ~/.dot-star/ai/claude/reap_stale_workers.sh
+    run_claude_cleanup_step ~/.dot-star/ai/claude/prune.sh
+    run_claude_cleanup_step ~/.dot-star/ai/claude/reap_stale_workers.sh
 
     # Close the shell, and with it the terminal window, once the session
     # finished. Keep it open otherwise so a failure or picker message stays
