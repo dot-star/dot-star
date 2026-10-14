@@ -11,7 +11,7 @@ dot_star_check_install_stale() {
     fi
 
     local installed_commit
-    installed_commit="$(cat "${stamp_file}" 2>/dev/null)"
+    installed_commit="$(<"${stamp_file}")"
     if [[ -z "${installed_commit}" ]]; then
         return 0
     fi
