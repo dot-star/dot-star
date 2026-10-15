@@ -57,6 +57,39 @@ Reach for `MagicMock` when the real object can't be built cheaply or when the as
 
 Prefer a narrow double over a blanket one: patch the single method at the boundary rather than replacing the whole class, so the rest of the type stays real.
 
+### Let the real code raise
+
+Drive a failure through the production code that raises it; never hand-write the exception as a mock's `side_effect`. Patch the boundary underneath (the query, the client call) to return the state that triggers the failure, then let the real function raise its own error.
+
+- A scripted raise proves only that the caller handles an exception the test invented. The real check could stop raising, raise a different type or change its message while the test stays green.
+- A repro test built on a scripted raise passes against the unfixed code just as well as the real one would, so it never shows the bug it claims to reproduce.
+
+Avoid:
+
+```python
+@patch("billing.lookup_plan")
+def test_renew_skips_unknown_plan(
+    self,
+    mock_lookup_plan,
+) -> None:
+    mock_lookup_plan.side_effect = ValueError("no plan named 'gold'")
+```
+
+Prefer:
+
+```python
+@patch.object(Plan, "query")
+def test_renew_skips_unknown_plan(
+    self,
+    mock_Plan_query,
+) -> None:
+    mock_Plan_query.return_value = iter([])
+```
+
+Here `lookup_plan` runs for real against an empty result and raises the error production raises, so any assertion on its message checks the production text.
+
+A scripted `side_effect` exception is still right at a genuine boundary, where no code of ours sits between the test and the raise: a network client timing out, an SDK call rejecting credentials.
+
 ## Patching
 
 Patch with `@patch` / `@patch.object` decorators, not `with patch()` blocks. The decorators name every double in the signature, so the reader sees the whole set of patches before the first line of the body, and the body stays flat instead of gaining an indentation level per patch.
