@@ -129,6 +129,10 @@
 
 - Never write single-line `if` statements; always put the body on its own line inside braces (write `if (cond) {` then `return x;` then `}`, not `if (cond) return x;`).
 - When consecutive `if` statements each end in `return` (or `throw`), chain them as `else if` rather than leaving them as separate `if` blocks; this includes side-effecting actions (e.g. `if ! git rebase master`) where chaining is possible. Plain side-effect `if`s without a terminating return stay separate.
+- Give each case its own branch: unpack a guard that folds several cases into one condition (`and`/`or`, a negated `not in (...)` membership) into an `if`/`elif` chain, one case per branch, each with its own `return`. The packed form makes the reader expand the boolean in their head to learn which inputs reach which outcome; the chain lists them.
+  - Fail: `if record is not None and record.owner not in (None, caller): return None` then `return record`
+  - Pass: `if record is None:` / `return None`, `elif record.owner is None:` / `return record`, `elif record.owner == caller:` / `return record`, then a bare `return None` for the rest
+  - Write the chain on the first draft, never as a follow-up split after review; a condition that needs a comment to say which cases it covers is the tell.
 - Prefer the most explicit form when it reads more plainly: an explicit `for` loop with an inner `if` and early `return` beats a compact `any(... for ...)` / comprehension when the loop makes the intent obvious. Readability over conciseness.
 - Prefer spelling out the cases over a regex group when they're few and known: `deploy`, `deployed`, `deploying`, not `deploy(ed|ing)?`. A group or alternation packs several cases into one expression that's harder to read, diff, and reason about; reach for it only when the alternatives are open-ended or too many to enumerate.
 - Make every concrete subclass state its own answer for a base-class hook; never let one inherit a silent no-op default. A subclass that never addresses the hook otherwise behaves as if it had chosen the default, with nothing marking the omission.
