@@ -1,0 +1,87 @@
+[
+  {
+    "expected": "fork",
+    "name": "fork alone",
+    "prompt": "fork"
+  },
+  {
+    "expected": "fork",
+    "name": "fork followed by a task",
+    "prompt": "fork add a retry to the upload"
+  },
+  {
+    "expected": "fork",
+    "name": "fork in capitals",
+    "prompt": "FORK add a retry to the upload"
+  },
+  {
+    "expected": "fork",
+    "name": "f followed by a task",
+    "prompt": "f add a retry to the upload"
+  },
+  {
+    "expected": "fork",
+    "name": "f in capitals with extra spaces before the task",
+    "prompt": "F  Add a retry to the upload"
+  },
+  {
+    "expected": "fork",
+    "name": "f followed by a tab and a task",
+    "prompt": "f\tadd a retry to the upload"
+  },
+  {
+    "expected": "fork",
+    "name": "f with the task on the next line",
+    "prompt": "f\nadd a retry to the upload"
+  },
+  {
+    "expected": "fork",
+    "name": "f followed by a spaced number",
+    "prompt": "f 2"
+  },
+  {
+    "expected": "pass-through",
+    "name": "bare f, which means fold",
+    "prompt": "f"
+  },
+  {
+    "expected": "pass-through",
+    "name": "f followed by only spaces",
+    "prompt": "f   "
+  },
+  {
+    "expected": "pass-through",
+    "name": "fold draft pick with the number after",
+    "prompt": "f2"
+  },
+  {
+    "expected": "pass-through",
+    "name": "fold draft pick with the number first",
+    "prompt": "2f"
+  },
+  {
+    "expected": "pass-through",
+    "name": "a word starting with f",
+    "prompt": "fix the upload retry"
+  },
+  {
+    "expected": "pass-through",
+    "name": "fold spelled out",
+    "prompt": "fold"
+  },
+  {
+    "expected": "pass-through",
+    "name": "a word starting with fork",
+    "prompt": "forkx"
+  },
+  {
+    "expected": "pass-through",
+    "name": "f after a leading space",
+    "prompt": " f add a retry to the upload"
+  },
+  {
+    "expected": "pass-through",
+    "name": "f mid-prompt",
+    "prompt": "please f add a retry to the upload"
+  }
+]
