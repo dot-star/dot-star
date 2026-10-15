@@ -81,6 +81,13 @@ claude_run() {
         inside_worktree=1
     fi
 
+    # Resolve the repo's main checkout up front, since a worktree the session
+    # lands tears down the directory it launched from.
+    local main_checkout=""
+    if [[ -n "${git_common_dir}" ]]; then
+        main_checkout="$(dirname "${git_common_dir}")"
+    fi
+
     # Name a marker the SessionStart hook touches, so the cleanup below can tell
     # a session that ran from a picker that exited 0 without starting one.
     local started_marker="${TMPDIR:-/tmp}/claude_run_started.$$"
@@ -141,20 +148,30 @@ claude_run() {
 
     rm --force -- "${started_marker}"
 
+    # Count commits in the main checkout that no remote holds. Count none
+    # without a remote, since there is nowhere to push them.
+    local unpushed_count=0
+    if [[ -n "${main_checkout}" && -n "$(git -C "${main_checkout}" remote)" ]]; then
+        unpushed_count="$(git -C "${main_checkout}" rev-list --count HEAD --not --remotes)"
+    fi
+
     # Minimize the window out of the way during the cleanup when the session
-    # finished, since the shell then closes it anyway. Leave anything else on
-    # screen.
-    if [[ -n "${session_finished}" ]]; then
+    # finished with nothing left to push, since the shell then closes it
+    # anyway. Leave anything else on screen.
+    if [[ -n "${session_finished}" && "${unpushed_count}" -eq 0 ]]; then
         ~/.dot-star/ai/claude/minimize_own_window.sh
     fi
 
     run_claude_cleanup_step ~/.dot-star/ai/claude/prune.sh
     run_claude_cleanup_step ~/.dot-star/ai/claude/reap_stale_workers.sh
 
-    # Close the shell, and with it the terminal window, once the session
-    # finished. Keep it open otherwise so a failure or picker message stays
-    # readable.
-    if [[ -n "${session_finished}" ]]; then
+    # Show the repo's status over unpushed commits rather than closing on them.
+    # Close the shell and window after a clean finish; otherwise keep a failure
+    # or picker message on screen.
+    if [[ -n "${session_finished}" && "${unpushed_count}" -gt 0 ]]; then
+        cd "${main_checkout}" &&
+            rc_status
+    elif [[ -n "${session_finished}" ]]; then
         exit
     fi
 }

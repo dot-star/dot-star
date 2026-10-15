@@ -31,6 +31,11 @@ claude() {
     fi
 }
 
+# Stub the status wrapper so it leaves a trace instead of clearing the screen.
+rc_status() {
+    touch -- "${HOME}/status_shown"
+}
+
 # Point HOME at a throwaway dir holding no-op cleanup scripts, so the run doesn't
 # minimize the real window, sweep the real session store or kill real background
 # workers on the way out.
@@ -103,18 +108,34 @@ assert_dispatch "main checkout, clr opens the picker" \
 assert_dispatch "main checkout, clo labels the window" \
     "${MAIN_CHECKOUT}" "${MAIN_CHECKOUT}|--resume|ship it" --obj "ship it" --resume
 
+# Build a repo whose commits all sit on its remote, so the cleanup cases control
+# whether anything is left to push.
+CLEANUP_REPO="$(mktemp -d)/repo"
+git init --quiet "${CLEANUP_REPO}"
+git -C "${CLEANUP_REPO}" commit \
+    --allow-empty \
+    --quiet \
+    --message "pushed"
+git clone \
+    --bare \
+    --quiet \
+    "${CLEANUP_REPO}" \
+    "${CLEANUP_REPO}.git"
+git -C "${CLEANUP_REPO}" remote add origin "${CLEANUP_REPO}.git"
+git -C "${CLEANUP_REPO}" fetch --quiet origin
+
 assert_cleanup() {
-    # Run claude_run in the main checkout and compare what its cleanup did
-    # (minimize, exit) against <expected>.
+    # Run claude_run in the cleanup repo and compare what its cleanup did
+    # (minimize, status, exit) against <expected>.
     local label="$1"
     local expected="$2"
 
-    rm --force -- "${HOME}/minimized"
+    rm --force -- "${HOME}/minimized" "${HOME}/status_shown"
 
     # Print "kept" only when claude_run returns rather than exiting the shell.
     local shell_state
     shell_state="$(
-        cd "${MAIN_CHECKOUT}" &&
+        cd "${CLEANUP_REPO}" &&
             claude_run --resume >/dev/null &&
             echo "kept"
     )"
@@ -125,7 +146,12 @@ assert_cleanup() {
         window_state="minimized"
     fi
 
-    local actual="window ${window_state}, shell ${shell_state}"
+    local status_state="hidden"
+    if [[ -e "${HOME}/status_shown" ]]; then
+        status_state="shown"
+    fi
+
+    local actual="window ${window_state}, status ${status_state}, shell ${shell_state}"
     if [[ "${actual}" == "${expected}" ]]; then
         echo "✓ ${label}"
     else
@@ -140,11 +166,18 @@ assert_cleanup() {
 echo 'touch -- "${HOME}/minimized"' >>"${HOME}/.dot-star/ai/claude/minimize_own_window.sh"
 
 assert_cleanup "session ran, window minimized and shell closed" \
-    "window minimized, shell exited"
+    "window minimized, status hidden, shell exited"
 STUB_PICKER_BAIL=1
 assert_cleanup "picker exited without a session, window and shell stay open" \
-    "window open, shell kept"
+    "window open, status hidden, shell kept"
 unset STUB_PICKER_BAIL
+
+git -C "${CLEANUP_REPO}" commit \
+    --allow-empty \
+    --quiet \
+    --message "unpushed"
+assert_cleanup "session left unpushed commits, status shown and shell kept" \
+    "window open, status shown, shell kept"
 
 git -C "${MAIN_CHECKOUT}" worktree remove --force "${WORKTREE_DIR}"
 
