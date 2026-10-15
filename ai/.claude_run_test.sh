@@ -98,8 +98,8 @@ assert_dispatch "worktree, clr continues its own session" \
 STUB_NO_SESSION=1
 assert_dispatch "worktree with no session, bare cl starts a fresh one" \
     "${WORKTREE_DIR}" "${WORKTREE_DIR}|--continue|"$'\n'"${WORKTREE_DIR}||"
-assert_dispatch "worktree with no session, clr starts a fresh one" \
-    "${WORKTREE_DIR}" "${WORKTREE_DIR}|--continue|"$'\n'"${WORKTREE_DIR}||" --resume
+assert_dispatch "worktree with no session, clr fails rather than start a fresh one" \
+    "${WORKTREE_DIR}" "${WORKTREE_DIR}|--continue|" --resume
 unset STUB_NO_SESSION
 assert_dispatch "worktree, explicit --resume <uuid> passes through" \
     "${WORKTREE_DIR}" "${WORKTREE_DIR}|--resume ${uuid}|" --resume "${uuid}"

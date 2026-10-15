@@ -172,7 +172,8 @@ claude_run() {
         # `--resume` rather than opening a picker listing every session in the
         # repo. Start fresh when the worktree has hosted none yet, since
         # `--continue` exits with "No conversation found to continue" instead of
-        # falling back on its own:
+        # falling back on its own. Leave that error on screen for `--resume`,
+        # which asked for an existing session:
         #   $ cl     (run inside a worktree)
         #   $ clr    (run inside a worktree)
         #
@@ -183,6 +184,8 @@ claude_run() {
             if [[ -n "${moved_in_session}" ]]; then
                 cd "${main_checkout}" &&
                     claude --resume "${moved_in_session}"
+            elif [[ "$1" == "--resume" ]]; then
+                claude --continue
             else
                 claude --continue ||
                     claude
