@@ -61,7 +61,8 @@ Each subject must:
 - Stay under 70 characters.
 - Use backticks only when the literal token is the point.
 - Avoid em dashes anywhere.
-- Be genuinely different from the others (vary the verb, scope, or framing); skip near-duplicates.
+- Be genuinely different from the others: vary the framing, not just the wording. Three rewordings of one angle ("Add test for X", "Cover X", "Reproduce X") count as one draft.
+- Lead a test committed ahead of its fix with `Add test that reproduces <bug>`, naming the bug in the terms the fix's subject uses, so the pair reads as one story (`Add test that reproduces checkout failing on empty cart`, then `Skip empty carts at checkout instead of failing`). Never write `Add failing test`: the next commit makes "failing" false.
 
 ## Pick
 
