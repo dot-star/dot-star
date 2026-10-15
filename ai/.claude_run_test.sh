@@ -107,6 +107,27 @@ assert_dispatch "worktree, bare <uuid> resumes that session" \
     "${WORKTREE_DIR}" "${WORKTREE_DIR}|--resume ${uuid}|" "${uuid}"
 assert_dispatch "worktree, other flags start a fresh session" \
     "${WORKTREE_DIR}" "${WORKTREE_DIR}|--some-flag|" --some-flag
+
+# File a transcript under the main checkout for a session that moved into the
+# worktree, standing in for one that ran EnterWorktree.
+moved_in_uuid="55555555-6666-7777-8888-999999999999"
+main_project_dir="$(claude_project_dir "${MAIN_CHECKOUT}")"
+mkdir --parents "${main_project_dir}"
+echo "{\"cwd\":\"${WORKTREE_DIR}\"}" >"${main_project_dir}/${moved_in_uuid}.jsonl"
+echo "{\"cwd\":\"${MAIN_CHECKOUT}\"}" >"${main_project_dir}/${uuid}.jsonl"
+assert_dispatch "worktree, bare cl resumes a moved-in session from the main checkout" \
+    "${WORKTREE_DIR}" "${MAIN_CHECKOUT}|--resume ${moved_in_uuid}|"
+assert_dispatch "worktree, clr resumes a moved-in session from the main checkout" \
+    "${WORKTREE_DIR}" "${MAIN_CHECKOUT}|--resume ${moved_in_uuid}|" --resume
+
+# Backdate the moved-in session behind one launched in the worktree itself.
+worktree_project_dir="$(claude_project_dir "${WORKTREE_DIR}")"
+mkdir --parents "${worktree_project_dir}"
+echo "{\"cwd\":\"${WORKTREE_DIR}\"}" >"${worktree_project_dir}/${uuid}.jsonl"
+touch -t 202001010000 "${main_project_dir}/${moved_in_uuid}.jsonl"
+assert_dispatch "worktree, clr continues an own session newer than a moved-in one" \
+    "${WORKTREE_DIR}" "${WORKTREE_DIR}|--continue|" --resume
+rm --force --recursive -- "${main_project_dir}" "${worktree_project_dir}"
 assert_dispatch "main checkout, bare cl starts a fresh session" \
     "${MAIN_CHECKOUT}" "${MAIN_CHECKOUT}||"
 assert_dispatch "main checkout, clr opens the picker" \

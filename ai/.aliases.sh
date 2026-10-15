@@ -32,6 +32,55 @@ run_claude_cleanup_step() {
     rm --force --recursive -- "${log_dir}"
 }
 
+claude_project_dir() {
+    # Print the folder claude files a directory's sessions under: its path with
+    # every non-alphanumeric character swapped for a dash.
+    local dir="$1"
+
+    echo "${CLAUDE_CONFIG_DIR:-${HOME}/.claude}/projects/$(sed 's/[^[:alnum:]]/-/g' <<<"${dir}")"
+}
+
+list_session_transcripts() {
+    # Print the path of each session transcript filed under <dir>'s folder.
+    local dir="$1"
+
+    find \
+        "$(claude_project_dir "${dir}")" \
+        -maxdepth 1 \
+        -name '*.jsonl' \
+        2>/dev/null
+}
+
+newest_moved_in_session() {
+    # Print the uuid of the newest session that moved into <worktree> from
+    # <main_checkout>, unless one launched in the worktree is newer. claude
+    # files a moved-in session under its launch checkout, out of --continue's reach.
+    local worktree="$1"
+    local main_checkout="$2"
+    local newest=""
+    local transcript
+
+    while IFS= read -r transcript; do
+        if ! grep --quiet --fixed-strings "\"cwd\":\"${worktree}\"" -- "${transcript}"; then
+            continue
+        elif [[ -z "${newest}" || "${transcript}" -nt "${newest}" ]]; then
+            newest="${transcript}"
+        fi
+    done < <(list_session_transcripts "${main_checkout}")
+
+    if [[ -z "${newest}" ]]; then
+        return
+    fi
+
+    while IFS= read -r transcript; do
+        if [[ "${transcript}" -nt "${newest}" ]]; then
+            return
+        fi
+    done < <(list_session_transcripts "${worktree}")
+
+    basename "${newest}" .jsonl
+}
+
 claude_run() {
     # Run claude, optionally resuming a session and/or labeling the window.
     # Usage:
@@ -73,7 +122,7 @@ claude_run() {
     # Note whether we're in a linked git worktree, so a bare `cl` or `--resume`
     # can reopen that worktree's own session. Launching stays in the worktree:
     # claude keys sessions by cwd, so the worktree gets its own session pool and
-    # `--continue` finds the last one without any transcript lookup.
+    # `--continue` finds the last one launched there.
     local inside_worktree=""
     local git_common_dir="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"
     local toplevel="$(git rev-parse --show-toplevel 2>/dev/null)"
@@ -126,9 +175,18 @@ claude_run() {
         # falling back on its own:
         #   $ cl     (run inside a worktree)
         #   $ clr    (run inside a worktree)
+        #
+        # Resume a session that moved in with EnterWorktree from the main
+        # checkout instead, since claude files it there, when it's the newest.
         elif [[ -n "${inside_worktree}" && ("$1" == "--resume" || -n "${bare_invocation}") ]]; then
-            claude --continue ||
-                claude
+            moved_in_session="$(newest_moved_in_session "${toplevel}" "${main_checkout}")"
+            if [[ -n "${moved_in_session}" ]]; then
+                cd "${main_checkout}" &&
+                    claude --resume "${moved_in_session}"
+            else
+                claude --continue ||
+                    claude
+            fi
 
         # Open the normal picker for a bare `--resume` outside a worktree:
         #   $ clr    (run outside a worktree)
