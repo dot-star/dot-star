@@ -1,5 +1,11 @@
 export DISABLE_TELEMETRY=1
 
+strip_terminal_codes() {
+    # Print stdin as a terminal would leave it: color codes dropped, each line cut to what follows its last `\r`.
+    # Drop a line-ending `\r` first, so a CRLF line keeps its text.
+    perl -p -e 's/\e\[[0-9;?]*[ -\/]*[@-~]//g; s/\r+$//; s/.*\r//'
+}
+
 run_claude_cleanup_step() {
     # Run one post-session cleanup script, opening an investigation window when it fails.
     # Hand the failure off rather than leave it on screen; claude_run closes the window right after.
@@ -21,7 +27,7 @@ run_claude_cleanup_step() {
 
     if [[ "${exit_status}" -ne 0 ]]; then
         task="${script} exited ${exit_status} during claude_run's post-session cleanup."
-        task+=" Its output: $(<"${log_dir}/output")"
+        task+=" Its output: $(strip_terminal_codes <"${log_dir}/output")"
         task+=" Find why it failed and propose a fix."
         ~/.dot-star/ai/claude/open_investigation_window.sh \
             "${name%.sh}" \
