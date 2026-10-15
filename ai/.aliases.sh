@@ -247,7 +247,7 @@ claude_run() {
     # finished with nothing left to push, since the shell then closes it
     # anyway. Leave anything else on screen.
     if [[ -n "${session_finished}" && -z "${unpushed_repos}" ]]; then
-        ~/.dot-star/ai/claude/minimize_own_window.sh
+        run_claude_cleanup_step ~/.dot-star/ai/claude/minimize_own_window.sh
     fi
 
     run_claude_cleanup_step ~/.dot-star/ai/claude/prune.sh
