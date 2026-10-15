@@ -33,7 +33,9 @@ raise pick their mechanism by the emulator claude runs in, read off TERM_PROGRAM
 
 A missing macOS permission or client must never break Claude, so every skipped
 step and osascript or Hammerspoon failure fails soft and is recorded to a log
-instead. Tail it while debugging "nothing happened":
+instead. An installed Hammerspoon client that can't reach the app also posts a
+desktop notification once per session, since that is a misconfiguration rather
+than a machine without Hammerspoon. Tail the log while debugging "nothing happened":
 
   tail -f /tmp/claude-state-hook/announce_window_state.log
 """
@@ -84,12 +86,31 @@ def run_osascript(script: str, action: str) -> subprocess.CompletedProcess[str]:
     return result
 
 
-def run_hammerspoon(lua: str, action: str) -> str | None:
+def alert_hammerspoon_unreachable(session_id: str) -> None:
+    """
+    Post a desktop notification that Hammerspoon's client can't reach the app, once per session.
+
+    :param session_id: Claude session id the once-only marker is filed under.
+    """
+    marker = STATE_DIR / f"{session_id}.hammerspoon_alerted"
+
+    if marker.exists():
+        return
+
+    marker.touch()
+    run_osascript(
+        'display notification "Window capture and raise are off. Check Hammerspoon is running with require(\'hs.ipc\') in its init.lua." with title "Hammerspoon unreachable"',
+        "post Hammerspoon alert",
+    )
+
+
+def run_hammerspoon(lua: str, action: str, session_id: str) -> str | None:
     """
     Run a Lua snippet inside Hammerspoon, returning its printed result or None on failure.
 
     :param lua: Lua source for `hs -c`; its `return` value comes back as text.
     :param action: Short label for the log line (e.g. "capture window id").
+    :param session_id: Claude session id whose once-only failure alert this may fire.
     :return: The snippet's return value, stripped, or None when the client is
         missing or the snippet errored.
     """
@@ -107,6 +128,8 @@ def run_hammerspoon(lua: str, action: str) -> str | None:
     if result.returncode != 0:
         log(f"{action} failed (hs exit {result.returncode}): {result.stderr.strip()}")
         log("  fix: Hammerspoon must be running with `require('hs.ipc')` in its init.lua")
+        # Alert only here, not on a missing client above: an installed client that can't connect is a misconfiguration.
+        alert_hammerspoon_unreachable(session_id)
         return None
 
     return result.stdout.strip()
@@ -199,6 +222,7 @@ def capture_window_id(session_id: str) -> None:
             return string.format("%d %s", window:id(), window:application():bundleID() or "")
             """,
             "capture window id",
+            session_id,
         )
 
         if not record:
@@ -267,6 +291,7 @@ def focus_window(session_id: str) -> None:
         return "window {window_id} not visible (background tab?); activated {bundle_id} instead"
         """,
         f"raise window {window_id}",
+        session_id,
     )
 
     if outcome:
