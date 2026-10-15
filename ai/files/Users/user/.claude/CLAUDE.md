@@ -232,6 +232,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
     - Mark the row the pick rule takes next with `❯` (the recommended-pick rule in Output).
   - `bt` means "bank todo" (or "bank task"): bank the loose ends the conversation just named as todos, per the banking rule in Output.
   - `eg`, `egs`, `examples` mean "show me examples"
+  - `play` means "play it out": simulate how the situation under discussion unfolds from here, turn by turn. Voice the other side's likely moves (a reviewer's pushback, a script's output, a user's next click) and show my best move after each one. Branch wherever a realistic alternative splits the path. It's a rehearsal, so don't send, write or run anything.
   - `sample`, `val`, `validate` mean "render a worked example of what we just changed, as it would fire in practice, so I can check it does what I meant": pick a realistic input (this session, where it fits), show the output the change produces, then name what's new against the old behavior. `show` renders the edit itself; `sample` renders what the edit produces. It's a preview, so don't start new work.
   - `opt`, `opts` mean "show me options"
   - `show`, `show me` mean "render the thing the previous message described as its actual artifact": the literal file lines, sample output, or rendered text, so I can evaluate it rather than read another description of it. It's a preview request, so don't write the file or run the action until I say so.
