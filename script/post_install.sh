@@ -347,5 +347,7 @@ bt_push "hammerspoon setup"
 mkdir -p "${HOME}/.hammerspoon"
 setup_bootstrap "${HOME}/.hammerspoon/init.lua" "package.path = os.getenv('HOME') .. '/.dot-star/tools/hammerspoon/?.lua;' .. package.path
 require('add_application_open_hotkeys')
-require('add_toggle_terminal_hotkey')" '--'
+require('add_toggle_terminal_hotkey')
+-- Open the port the hs command-line client talks to; the Claude window hooks run Lua through it.
+require('hs.ipc')" '--'
 bt_pop # hammerspoon setup
