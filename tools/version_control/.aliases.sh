@@ -401,7 +401,13 @@ git_rebase_master() {
     fi
 
     set -x
-    git pull origin "${base_branch}" --rebase
+    # Paint git's "Successfully" green so the outcome stands out from the trace. Keep progress on through the pipe.
+    git pull \
+        --progress \
+        --rebase \
+        origin \
+        "${base_branch}" 2>&1 |
+        sed $'s/Successfully/\e[97;48;5;22m&\e[0m/'
     set +x
 }
 alias rbm="git_rebase_master"
