@@ -1827,6 +1827,11 @@ stack_renamed_paths() {
                 body = substr(body, 1, RSTART - 1)
             }
 
+            # Hang the "- "/"+ " markers left of the path column git printed, so both
+            # paths line up under the paths of the neighboring labeled lines.
+            match(bare, /^[[:space:]]*renamed:[ ]+/)
+            gutter = sprintf("%*s", RLENGTH - length(indent) - 2, "")
+
             sep = index(body, " -> ")
             old = substr(body, 1, sep - 1)
             new = substr(body, sep + 4)
@@ -1849,11 +1854,11 @@ stack_renamed_paths() {
             label_color = (reset != "") ? "\033[35m" : ""
             print indent label_color "renamed:" reset
             if (reset != "") {
-                print indent "    " paint(oa, no, p, no - sfx, "\033[31m", "\033[31;48;5;52m", "- ")
-                print indent "    " paint(na, nn, p, nn - sfx, "\033[32m", "\033[32;48;5;22m", "+ ")
+                print indent gutter paint(oa, no, p, no - sfx, "\033[31m", "\033[31;48;5;52m", "- ")
+                print indent gutter paint(na, nn, p, nn - sfx, "\033[32m", "\033[32;48;5;22m", "+ ")
             } else {
-                print indent "    - " old
-                print indent "    + " new
+                print indent gutter "- " old
+                print indent gutter "+ " new
             }
         }
     '
