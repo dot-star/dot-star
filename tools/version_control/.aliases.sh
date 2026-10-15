@@ -1853,6 +1853,59 @@ stack_renamed_paths() {
     '
 }
 
+label_untracked_paths() {
+    # Label each `git status` untracked path "untracked:", padded so the path
+    # lines up under the labeled paths above it. Read the column from the output
+    # rather than assuming git's, since a merge's "both modified:" runs wider.
+    awk '
+        {
+            raw = $0
+
+            # Match against a color-stripped copy so embedded color codes do not
+            # break the pattern.
+            bare = raw
+            gsub(/\033\[[0-9;]*m/, "", bare)
+
+            # Track the section from its unindented header, since an untracked
+            # path containing ": " would otherwise read as a labeled line.
+            if (bare ~ /^[^[:space:]]/) {
+                in_untracked = (bare == "Untracked files:")
+                print raw
+                next
+            }
+
+            # Record the widest label column seen. Rely on git printing the
+            # untracked section last, so the column is known before it is used.
+            if (!in_untracked && match(bare, /^\t[a-z][a-z ]*:[ ]+/)) {
+                if (RLENGTH - 1 > label_width) {
+                    label_width = RLENGTH - 1
+                }
+                print raw
+                next
+            }
+
+            # Pass through anything else: blank lines, hint lines, other sections.
+            if (!in_untracked || bare !~ /^\t[^(]/) {
+                print raw
+                next
+            }
+
+            # Pad to the recorded column, keeping one space when there is no
+            # labeled line to line up with or the label outgrows it.
+            label = "untracked:"
+            width = label_width
+            if (width < length(label) + 1) {
+                width = length(label) + 1
+            }
+
+            # Slip the label in after the tab and any leading color code, so it
+            # takes the path color the way git colors its own labels.
+            match(raw, /^\t(\033\[[0-9;]*m)*/)
+            printf "%s%-*s%s\n", substr(raw, 1, RLENGTH), width, label, substr(raw, RLENGTH + 1)
+        }
+    '
+}
+
 rc_status() {
     clear
 
@@ -1862,6 +1915,7 @@ rc_status() {
         # Pass before "$@" so an explicit `--untracked-files=...` from the caller still wins.
         # Force color so the rename stacker's pipe keeps git's status coloring.
         git -c color.status=always status --untracked-files=all "$@" |
+            label_untracked_paths |
             stack_renamed_paths
 
         # Run extra checks only when called with no args, to avoid noise on `s -s` etc.
