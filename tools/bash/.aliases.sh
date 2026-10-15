@@ -2399,6 +2399,12 @@ git_worktree_done() {
         fi
     fi
 
+    # Record the landed repo for claude_run's unpushed-commit check on exit,
+    # since a land moves commits without a `git commit` its hook would catch.
+    if [[ -n "${CLAUDE_RUN_COMMITTED_REPOS:-}" ]]; then
+        echo "${main_checkout}" >>"${CLAUDE_RUN_COMMITTED_REPOS}"
+    fi
+
     # Mirror the worktree's relative subdirectory in the main checkout
     # when it exists; otherwise stay at the top level.
     local target_path="${main_checkout}"
@@ -2538,6 +2544,12 @@ git_worktree_promote() {
     local new_tip
     new_tip="$(git rev-parse --short HEAD)"
     echo "✅ Promoted \"${branch}\" onto ${default_branch} (fast-forwarded ${old_tip}..${new_tip})"
+
+    # Record the promoted repo for claude_run's unpushed-commit check on exit,
+    # since a promote moves commits without a `git commit` its hook would catch.
+    if [[ -n "${CLAUDE_RUN_COMMITTED_REPOS:-}" ]]; then
+        echo "${main_checkout}" >>"${CLAUDE_RUN_COMMITTED_REPOS}"
+    fi
 
     # Promote keeps the worktree and branch; return to where we started.
     cd "${original_pwd}"
