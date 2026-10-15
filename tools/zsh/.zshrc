@@ -215,6 +215,20 @@ zsh_startup_investigate() {
         "${task}"
 }
 
+# Report whether a dot-star install or update is running; its brew and package work slows any shell it overlaps.
+zsh_startup_install_running() {
+    local marker="${XDG_STATE_HOME:-${HOME}/.local/state}/dot-star/install.pid"
+    local pid
+
+    if [[ ! -r "${marker}" ]]; then
+        return 1
+    fi
+
+    read -r pid <"${marker}"
+    # Treat a marker left by a killed run as no install.
+    kill -0 "${pid}" 2>/dev/null
+}
+
 # Print the gap between shell start and first prompt, once per interactive shell.
 zsh_startup_report() {
     # Warn once the wait is noticeable before typing, alert once it feels sluggish.
@@ -244,7 +258,9 @@ zsh_startup_report() {
         fi
 
         if ((elapsed_ms >= warn_ms)); then
-            if zsh_startup_investigate "${elapsed_ms}"; then
+            if zsh_startup_install_running; then
+                note=" · install running, not investigating"
+            elif zsh_startup_investigate "${elapsed_ms}"; then
                 note=" · opening investigation window"
             fi
         fi
@@ -259,6 +275,7 @@ zsh_startup_report() {
     add-zsh-hook -d precmd zsh_startup_report
     unfunction zsh_startup_report
     unfunction zsh_startup_investigate
+    unfunction zsh_startup_install_running
     unset zsh_startup_start
 }
 autoload -Uz add-zsh-hook

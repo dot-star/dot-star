@@ -9,6 +9,12 @@
 set -o nounset
 set -o pipefail
 
+# Mark the run as live, so a shell opened meanwhile skips the slow-start investigation.
+install_marker="${XDG_STATE_HOME:-${HOME}/.local/state}/dot-star/install.pid"
+mkdir -p "$(dirname "${install_marker}")"
+echo "$$" >"${install_marker}"
+trap 'rm -f "${install_marker}"' EXIT
+
 [[ $(basename "${BASH_SOURCE}") = "install.sh" ]] && install=true || install=false
 [[ "${install}" = true ]] && update=false || update=true
 
