@@ -93,6 +93,11 @@ claude_run() {
     local started_marker="${TMPDIR:-/tmp}/claude_run_started.$$"
     rm --force -- "${started_marker}"
 
+    # Name a file the PostToolUse hook appends each repo the session commits in
+    # to, so the cleanup below can check them all for unpushed commits.
+    local committed_repos_file="${TMPDIR:-/tmp}/claude_run_committed_repos.$$"
+    rm --force -- "${committed_repos_file}"
+
     local uuid_pattern='^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
     # Confine the cd to a subshell so the caller's directory survives once
     # claude exits.
@@ -102,6 +107,7 @@ claude_run() {
             exit
 
         export CLAUDE_RUN_STARTED_MARKER="${started_marker}"
+        export CLAUDE_RUN_COMMITTED_REPOS="${committed_repos_file}"
 
         # Pass an explicit `--resume <uuid>` straight through:
         #   $ cl --resume <uuid>
@@ -148,32 +154,75 @@ claude_run() {
 
     rm --force -- "${started_marker}"
 
-    # Count commits in the main checkout that no remote holds. Count none
-    # without a remote, since there is nowhere to push them.
-    local unpushed_count=0
-    if [[ -n "${main_checkout}" && -n "$(git -C "${main_checkout}" remote)" ]]; then
-        unpushed_count="$(git -C "${main_checkout}" rev-list --count HEAD --not --remotes)"
-    fi
+    # Collect the repos holding commits no remote has, launch repo first, one
+    # per line. Skip a repo with no remote, since there is nowhere to push.
+    local unpushed_repos=""
+    local repo
+    while IFS= read -r repo; do
+        if [[ -z "$(git -C "${repo}" remote 2>/dev/null)" ]]; then
+            continue
+        elif [[ "$(git -C "${repo}" rev-list --count HEAD --not --remotes)" -gt 0 ]]; then
+            unpushed_repos+="${repo}"$'\n'
+        fi
+    done < <(
+        {
+            echo "${main_checkout}"
+            if [[ -f "${committed_repos_file}" ]]; then
+                cat -- "${committed_repos_file}"
+            fi
+        } |
+            awk 'NF && !seen[$0]++'
+    )
+
+    rm --force -- "${committed_repos_file}"
 
     # Minimize the window out of the way during the cleanup when the session
     # finished with nothing left to push, since the shell then closes it
     # anyway. Leave anything else on screen.
-    if [[ -n "${session_finished}" && "${unpushed_count}" -eq 0 ]]; then
+    if [[ -n "${session_finished}" && -z "${unpushed_repos}" ]]; then
         ~/.dot-star/ai/claude/minimize_own_window.sh
     fi
 
     run_claude_cleanup_step ~/.dot-star/ai/claude/prune.sh
     run_claude_cleanup_step ~/.dot-star/ai/claude/reap_stale_workers.sh
 
-    # Show the repo's status over unpushed commits rather than closing on them.
-    # Close the shell and window after a clean finish; otherwise keep a failure
-    # or picker message on screen.
-    if [[ -n "${session_finished}" && "${unpushed_count}" -gt 0 ]]; then
-        cd "${main_checkout}" &&
-            rc_status
+    # Show the status of each repo with unpushed commits rather than closing on
+    # them. Close the shell and window after a clean finish; otherwise keep a
+    # failure or picker message on screen.
+    if [[ -n "${session_finished}" && -n "${unpushed_repos}" ]]; then
+        show_unpushed_repo_statuses "${unpushed_repos}"
     elif [[ -n "${session_finished}" ]]; then
         exit
     fi
+}
+
+show_unpushed_repo_statuses() {
+    # Run the status wrapper in each newline-separated repo. Land the shell in
+    # the first so its `dN` aliases stay live; stack the rest below it from
+    # subshells with the wrapper's screen clear stubbed out.
+    local repos="$1"
+    local first_repo="${repos%%$'\n'*}"
+
+    cd "${first_repo}" &&
+        rc_status
+
+    local repo
+    while IFS= read -r repo; do
+        if [[ -z "${repo}" ]]; then
+            continue
+        elif [[ "${repo}" == "${first_repo}" ]]; then
+            continue
+        fi
+
+        echo -e "\n\033[1m${repo}\033[0m"
+        (
+            clear() {
+                :
+            }
+            cd "${repo}" &&
+                rc_status
+        )
+    done <<<"${repos}"
 }
 alias cl="claude_run"
 

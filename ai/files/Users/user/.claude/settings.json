@@ -80,6 +80,10 @@
           {
             "command": "${HOME}/.claude/hooks/recheck_amended_subject.sh",
             "type": "command"
+          },
+          {
+            "command": "${HOME}/.claude/hooks/record_committed_repo_for_claude_run.sh",
+            "type": "command"
           }
         ],
         "matcher": "Bash"

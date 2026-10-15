@@ -19,7 +19,8 @@ source "${SCRIPT_DIR}/.aliases.sh"
 # and the objective claude_run exported. Fail `--continue` while STUB_NO_SESSION
 # is set, standing in for a worktree that has hosted no session yet. Touch the
 # start marker as the SessionStart hook would, unless STUB_PICKER_BAIL stands in
-# for a picker that exits 0 without starting a session.
+# for a picker that exits 0 without starting a session. Record STUB_COMMITTED_REPO
+# as the commit hook would, standing in for a commit outside the launch repo.
 claude() {
     echo "$(pwd)|$*|${CLAUDE_OBJECTIVE:-}"
     if [[ -n "${STUB_NO_SESSION:-}" && "$1" == "--continue" ]]; then
@@ -29,11 +30,16 @@ claude() {
     if [[ -z "${STUB_PICKER_BAIL:-}" ]]; then
         touch -- "${CLAUDE_RUN_STARTED_MARKER}"
     fi
+
+    if [[ -n "${STUB_COMMITTED_REPO:-}" ]]; then
+        echo "${STUB_COMMITTED_REPO}" >>"${CLAUDE_RUN_COMMITTED_REPOS}"
+    fi
 }
 
-# Stub the status wrapper so it leaves a trace instead of clearing the screen.
+# Stub the status wrapper so it logs the repo it ran in instead of clearing the
+# screen.
 rc_status() {
-    touch -- "${HOME}/status_shown"
+    basename "$(pwd)" >>"${HOME}/status_shown"
 }
 
 # Point HOME at a throwaway dir holding no-op cleanup scripts, so the run doesn't
@@ -108,21 +114,38 @@ assert_dispatch "main checkout, clr opens the picker" \
 assert_dispatch "main checkout, clo labels the window" \
     "${MAIN_CHECKOUT}" "${MAIN_CHECKOUT}|--resume|ship it" --obj "ship it" --resume
 
-# Build a repo whose commits all sit on its remote, so the cleanup cases control
-# whether anything is left to push.
-CLEANUP_REPO="$(mktemp -d)/repo"
-git init --quiet "${CLEANUP_REPO}"
-git -C "${CLEANUP_REPO}" commit \
-    --allow-empty \
-    --quiet \
-    --message "pushed"
-git clone \
-    --bare \
-    --quiet \
-    "${CLEANUP_REPO}" \
-    "${CLEANUP_REPO}.git"
-git -C "${CLEANUP_REPO}" remote add origin "${CLEANUP_REPO}.git"
-git -C "${CLEANUP_REPO}" fetch --quiet origin
+make_pushed_repo() {
+    # Build a repo at <dir> whose commits all sit on its remote, so the cleanup
+    # cases control whether anything is left to push.
+    local dir="$1"
+
+    git init --quiet "${dir}"
+    git -C "${dir}" commit \
+        --allow-empty \
+        --quiet \
+        --message "pushed"
+    git clone \
+        --bare \
+        --quiet \
+        "${dir}" \
+        "${dir}.git"
+    git -C "${dir}" remote add origin "${dir}.git"
+    git -C "${dir}" fetch --quiet origin
+}
+
+add_unpushed_commit() {
+    git -C "$1" commit \
+        --allow-empty \
+        --quiet \
+        --message "unpushed"
+}
+
+# Launch from one repo and stand in for a session that also committed in another.
+CLEANUP_SANDBOX="$(mktemp -d)"
+CLEANUP_REPO="${CLEANUP_SANDBOX}/launch"
+OTHER_REPO="${CLEANUP_SANDBOX}/other"
+make_pushed_repo "${CLEANUP_REPO}"
+make_pushed_repo "${OTHER_REPO}"
 
 assert_cleanup() {
     # Run claude_run in the cleanup repo and compare what its cleanup did
@@ -146,9 +169,10 @@ assert_cleanup() {
         window_state="minimized"
     fi
 
+    # Name the repos the status ran in, in order.
     local status_state="hidden"
     if [[ -e "${HOME}/status_shown" ]]; then
-        status_state="shown"
+        status_state="shown in $(paste -s -d ',' -- "${HOME}/status_shown")"
     fi
 
     local actual="window ${window_state}, status ${status_state}, shell ${shell_state}"
@@ -172,12 +196,20 @@ assert_cleanup "picker exited without a session, window and shell stay open" \
     "window open, status hidden, shell kept"
 unset STUB_PICKER_BAIL
 
-git -C "${CLEANUP_REPO}" commit \
-    --allow-empty \
-    --quiet \
-    --message "unpushed"
-assert_cleanup "session left unpushed commits, status shown and shell kept" \
-    "window open, status shown, shell kept"
+STUB_COMMITTED_REPO="${OTHER_REPO}"
+assert_cleanup "committed repo with nothing unpushed still closes" \
+    "window minimized, status hidden, shell exited"
+add_unpushed_commit "${OTHER_REPO}"
+assert_cleanup "committed repo left unpushed, its status shown" \
+    "window open, status shown in other, shell kept"
+add_unpushed_commit "${CLEANUP_REPO}"
+assert_cleanup "both repos left unpushed, launch repo shown first" \
+    "window open, status shown in launch,other, shell kept"
+unset STUB_COMMITTED_REPO
+assert_cleanup "launch repo left unpushed, its status shown" \
+    "window open, status shown in launch, shell kept"
+
+rm -r -- "${CLEANUP_SANDBOX}"
 
 git -C "${MAIN_CHECKOUT}" worktree remove --force "${WORKTREE_DIR}"
 
