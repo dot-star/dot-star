@@ -451,6 +451,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
     1. Does every row wrap its option as `**` + `` ` `` + `[x]remainder` + `` ` `` + `**`? A bare `🧹 [cl]ean` is a fail; the bold inline-code span is as mandatory here as anywhere else.
     2. Are 🏁 **`[L]and`** and 🧨 **`[x]`** both on the menu, plus ⬆️ **`[p]romote`** unless there's nothing to move? Land and close are never conditional: each commits whatever is pending first, so no tree state rules them out. Promote drops only on a clean tree with nothing ahead of the default branch (the state right after a promote), where it would fast-forward by zero commits. A menu missing a row it owes is an omission, not a narrowed menu; the other rows that drop are 💾 **`[c]ommit`**, 📦 **`[f]old`**, 🛠️ **`[i]terate`** and 🧨🧨 **`[xx]`**.
+       - Does a `git status --porcelain` run this turn back the shape? Empty output is the only license for the clean-tree menu; a staged path still owes 💾 **`[c]ommit`** with its drafts and 🧨🧨 **`[xx]`**.
     3. Is 🛠️ **`[i]terate`** the top row? Only ⚡ **`[n]ow`** and 📋 **`[a]dd`** may sit above it, in that order.
     4. Does 🧨🧨 **`[xx]`** render only over a dirty tree, and on a dirty tree is it the bottom row, with 🧨 **`[x]`** directly above it and 🏁 **`[L]and`** above that? A clean tree ends on 🧨 **`[x]`** instead. If any other option (even a lone keep/iterate slot) renders beneath 🏁 **`[L]and`**, reorder before sending.
     5. Is there exactly one space between each emoji and its bracket span? The column padding goes after the closing `**`, before the `(`, never between the emoji and the bracket.
@@ -496,7 +497,9 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
     - **Nothing ahead of the default branch** (`git rev-list --count master..HEAD` prints `0`): drop `[p]romote` too, since it would fast-forward by zero commits, and cut `✅ promote to master` from the `[L]and` and `[x]` parentheticals, leaving the teardown they still do.
 
-  Never offer `[c]ommit` off a stale mental model of the tree (e.g. after edits that net back to the committed value) without re-checking.
+  Pick the menu shape from a `git status --porcelain` run in the same turn, never from a mental model of the tree. The model goes stale both ways:
+  - **Offering a commit on a clean tree:** edits that net back to the committed value leave nothing to commit.
+  - **Dropping the commit on a dirty tree:** a staged file (`M ` in the first column) is still uncommitted, so "staged it" never means "committed it". Staging is the step before every `[cN]` tree, so a turn that just staged owes the dirty-tree menu.
 
   The common options:
   - 🛠️ **`[i]terate`**: no commit yet, keep iterating in the worktree (the do-nothing default, named for the action rather than a passive "keep").
