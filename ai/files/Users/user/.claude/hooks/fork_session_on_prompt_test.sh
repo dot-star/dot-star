@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# Tests for fork_session_into_new_window.sh.
-# Reads cases from fork_session_into_new_window_test_cases.json (each entry is
+# Tests for fork_session_on_prompt.sh.
+# Reads cases from fork_session_on_prompt_test_cases.json (each entry is
 # {name, prompt, expected}). For each case, feeds a synthetic Claude Code
 # UserPromptSubmit payload to the hook and asserts whether it forks or lets the
 # prompt pass through to the session.
 #
-# Run: bash ai/files/Users/user/.claude/hooks/fork_session_into_new_window_test.sh
+# Run: bash ai/files/Users/user/.claude/hooks/fork_session_on_prompt_test.sh
 
 set -u
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HOOK="${SCRIPT_DIR}/fork_session_into_new_window.sh"
-CASES="${SCRIPT_DIR}/fork_session_into_new_window_test_cases.json"
+HOOK="${SCRIPT_DIR}/fork_session_on_prompt.sh"
+CASES="${SCRIPT_DIR}/fork_session_on_prompt_test_cases.json"
 
 # Stop when the hook is missing. A hook that fails to run emits nothing, which
 # is indistinguishable from a pass-through, so every pass-through case would pass.
