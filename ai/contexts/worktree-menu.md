@@ -1,6 +1,6 @@
 # Worktree follow-up menu
 
-Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before any message that offers a worktree follow-up. Section names below (Workflow, Shell commands, the bracket-prefix list) refer to that file.
+Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before any message that offers a follow-up, in a worktree or the main checkout. Section names below (Workflow, Shell commands, the bracket-prefix list) refer to that file.
 
 - When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment (any subset the tree allows; 🏁 land and 🧨 close always apply, ⬆️ promote whenever there's something to move), each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**).
   - 🧨 **`[x]`** is the one designed bundle: `x` means close the session and closing a worktree session means landing it first, so the row reads land + close rather than two actions glued together.
