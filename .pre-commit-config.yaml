@@ -8,6 +8,13 @@ repos:
         files: ^ai/files/Users/user/\.claude/(settings\.json|settings_test\.py|settings_test_cases\.json|hooks/)
         pass_filenames: false
 
+      - id: remind-style-guide-tests
+        name: remind style guide tests
+        language: system
+        entry: bash ai/files/Users/user/.claude/hooks/remind_style_guide_test.sh
+        files: ^ai/(contexts/|files/Users/user/\.claude/(hooks/remind_style_guide|styles/))
+        pass_filenames: false
+
       - id: shfmt
         name: shfmt
         language: golang

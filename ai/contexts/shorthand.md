@@ -47,13 +47,13 @@ Interpret a bare one-token reply or a short fixed phrase as shorthand. Fires onl
   - Group by channel: native memory (global `CLAUDE.md`, the project `CLAUDE.md`, any `CLAUDE.local.md` and its `@` imports, `MEMORY.md`), each `SessionStart` loader call with its `CLAUDE_*.md` files in load order, and fired `claude-mention` pointers.
   - Give each file its absolute path (the real dot-star path where it's a symlink) and its size, plus each loader call's total against the 10,000-character cap.
   - Flag a loader call near the cap, a file offloaded to a preview, or an `@` import or symlink that failed to resolve.
-- `todo`, `todos` mean "list the open todos for the repo we're in": find the file the way 📋 **`[a]dd`** resolves where entries land (personal record first, then the markdown beside the work, then the repository root), then render them for scanning. It's a read, so don't start new work.
+- `todo`, `todos` mean "list the open todos for the repo we're in": find the file the way `~/.dot-star/ai/contexts/todo-banking.md` resolves where entries land (personal record first, then the markdown beside the work, then the repository root), then render them for scanning. It's a read, so don't start new work.
   - Name the file in a lead line above the list.
   - Order by the file's own pick rule when it states one, else priority then severity.
   - Render one row per entry in a fenced block: a row number, then labels (`P2 S3`), then the entry's first line trimmed to a subject.
   - Number the rows `1`, `2`, `3` in rendered order, so a bare-number reply picks that entry without describing it. Numbers are positional and hold only for this render, since banking or closing an entry shifts them.
   - Mark the row the pick rule takes next with `❯` (the recommended-pick rule in Output).
-- `bt` means "bank todo" (or "bank task"): bank the loose ends the conversation just named as todos, per the banking rule in Output.
+- `bt` means "bank todo" (or "bank task"): bank the loose ends the conversation just named as todos, per the banking rule in Output and `~/.dot-star/ai/contexts/todo-banking.md`.
 - `eg`, `egs`, `examples` mean "show me examples"
 - `play` means "play it out": simulate how the situation under discussion unfolds from here, turn by turn. Voice the other side's likely moves (a reviewer's pushback, a script's output, a user's next click) and show my best move after each one. Branch wherever a realistic alternative splits the path. It's a rehearsal, so don't send, write or run anything.
 - `sample`, `val`, `validate` mean "render a worked example of what we just changed, as it would fire in practice, so I can check it does what I meant": pick a realistic input (this session, where it fits), show the output the change produces, then name what's new against the old behavior. `show` renders the edit itself; `sample` renders what the edit produces. It's a preview, so don't start new work.

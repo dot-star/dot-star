@@ -338,7 +338,7 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
 - Read `~/.dot-star/ai/contexts/worktree-menu.md` before sending any message that offers a worktree follow-up (commit, fold, promote, land, close); render the menu from that file, never from memory. It holds the row order, subject-draft trees, staging step and pre-send check, loaded on demand so sessions that never offer a menu skip its cost.
 - Whenever a message names loose ends (work this session surfaced but didn't do: a figure still unsourced, a file still to write, a decision the user has to make), offer 📋 **`[a]dd`** to bank them in a TODO section. Fires anywhere loose ends get named, not just at wrap-up: the 🏁 completion recap, a worktree follow-up, or a plain answer trailing off in "still needs". A loose end left in chat scrollback dies with the session; a TODO entry outlives it.
 
-  **Asking to bank a todo runs this flow directly.** Any wording that banks (bank a todo, bank these as todos, bank that) names the entries itself, so skip the menu: resolve where they land, write them shaped as below, report the file and the entries as written.
+  **Asking to bank a todo runs this flow directly.** Any wording that banks (bank a todo, bank these as todos, bank that) names the entries itself, so skip the menu: resolve where they land and write them per the banking doc below, then report the file and the entries as written.
 
   **Pre-send check**, run on every message that names a loose end, not only on ones already shaped as a menu:
 
@@ -348,44 +348,7 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
     4. Does the ⚡ row's parenthetical name the concrete job rather than generic filler?
     5. Is there no worktree menu beneath? Then ☕ **`[d]iscuss`** joins too.
 
-  **Where the entries land**, resolved in this order, first hit wins:
-
-  1. A personal record, when the todo can't sit in the repo: the repo is public, the `todo` mention doc maps it, or the user calls the todo personal. The entry goes to that repo's personal planning workspace, a `todo.md` kept in a personal repo. The mention doc (its pointer is injected on any prompt saying `todo`) maps each such repo to its workspace and names where an unmapped repo gets a new one; read it before writing.
-  2. A TODO section in the markdown beside the work (`todo.md`, `CLAUDE.md`, `README.md` in the directory being edited).
-  3. A TODO section in the repository root's markdown.
-  4. Neither exists: create `todo.md` at the repository root with a `# todo` heading.
-
-  Match a heading case-insensitively (`# todo`, `## TODO`, `## Todo`) and append to the end of that section, never the top; existing entries were banked first and keep their slots.
-
-  **What each entry carries:** one entry per loose end, shaped like the entries already in that section (bullet marker, sentence vs. fragment), leading with an action verb per the TODO rule above. Spell out the context the chat message carried implicitly (`file_path:line_number`, what's wrong, what "it" refers to), since the reader picking this up months later has none of this session.
-
-  **Label every entry on two scales**, one label per line as the entry's last lines, so retuning one leaves the other's line untouched in the diff. `P#` is priority, when the task gets worked. `S#` is severity, how much the problem hurts while it sits there. The two are independent: a cosmetic label that takes one line to fix earns a high priority at a low severity, and a real annoyance nobody but the developer hits stays low priority. Assign both while banking, weighting priority toward effort-to-payoff (a cheap fix with a visible result ranks high even when trivial); the labels are a starting point the user corrects by hand, never a record of a decision. Rendered example:
-
-  ```
-  - Fix the settings button needing two taps to open the modal; the first tap should open it.
-    P2
-    S3
-  ```
-
-  | P | Priority: when it gets done |
-  |---|---|
-  | P0 | Drop everything |
-  | P1 | This week |
-  | P2 | Next up |
-  | P3 | When convenient |
-  | P4 | Someday |
-  | P5 | Only if it gets cheap |
-
-  | S | Severity: what it costs while unfixed |
-  |---|---|
-  | S0 | Shows wrong output as correct, or the thing is unusable |
-  | S1 | A core path is broken with no workaround |
-  | S2 | Broken, but a retry or a workaround gets past it |
-  | S3 | Degraded: friction, misreads, extra steps |
-  | S4 | Cosmetic |
-  | S5 | No defect; a feature that doesn't exist yet |
-
-  A file whose entries don't yet carry labels gets both tables added above its entries in the same edit, so a bare `P2` reads to the next person; its existing entries stay unlabeled until a backfill of their own.
+  **Read `~/.dot-star/ai/contexts/todo-banking.md` before writing any banked entry**; apply it from that file, never from memory. It holds where the entries land, what each entry carries and the `P#`/`S#` labels, loaded on demand so sessions that never bank a todo skip its cost.
 
   **Slot order:** ⚡ **`[n]ow`** leads, then 📋 **`[a]dd`**, then the rest. Joining a worktree menu, both sit above 🛠️ **`[i]terate`** and the close rows still end the list.
 

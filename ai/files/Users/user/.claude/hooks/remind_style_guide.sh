@@ -32,6 +32,13 @@ case "${file_path}" in
     ;;
 esac
 
+# Point at the banking rules on a todo file, where banked entries get written.
+case "${file_path}" in
+todo.md | */todo.md | TODO.md | */TODO.md)
+    context_docs+=("todo-banking.md")
+    ;;
+esac
+
 # Map by content type so the right guide is in context as the code is written.
 case "${file_path}" in
 *.py)
