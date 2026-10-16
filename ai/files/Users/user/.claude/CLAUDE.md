@@ -307,7 +307,9 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
     - Skip the skill's draft-and-pick step and commit with that subject verbatim.
     - Commit only the commit whose tree carried `[cN]`. A subject floated in prose for another pending commit has no accept token, so silence never picks it: leave that commit uncommitted and re-offer its tree.
     - Carry on with the promote or land when the letter asks for one.
-- Offer 📦 **`[f]old`** beside every 💾 **`[c]ommit`** offer, worktree or not: a commit offered from the main checkout gets the fold row with its `[fN]` drafts under the same applicability test the worktree menu sets in `~/.dot-star/ai/contexts/worktree-menu.md`. Leaving it off makes the user type a sentence for the obvious follow-up fix to HEAD.
+- Offer 📦 **`[f]old`** beside every 💾 **`[c]ommit`** offer, worktree or not.
+  - A commit offered from the main checkout gets the fold row with its `[fN]` drafts under the same applicability test the worktree menu sets in `~/.dot-star/ai/contexts/worktree-menu.md`.
+  - Leaving it off makes the user type a sentence for the obvious follow-up fix to HEAD.
 - Read `~/.dot-star/ai/contexts/worktree-menu.md` before sending any message that offers a worktree follow-up (commit, fold, promote, land, close); render the menu from that file, never from memory. It holds the row order, subject-draft trees, staging step and pre-send check, loaded on demand so sessions that never offer a menu skip its cost.
 - Whenever a message names loose ends (work this session surfaced but didn't do: a figure still unsourced, a file still to write, a decision the user has to make), offer 📋 **`[a]dd`** to bank them in a TODO section. Fires anywhere loose ends get named, not just at wrap-up: the 🏁 completion recap, a worktree follow-up, or a plain answer trailing off in "still needs". A loose end left in chat scrollback dies with the session; a TODO entry outlives it.
 
