@@ -230,6 +230,10 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
 
   - `ses`, `sesid`, `sess`, `sessid`, `sid` mean "print this session's full id (as in the scratchpad path) and put it on the clipboard"
   - `2g`, `2nd` mean "summarize this session so far for a second opinion and put the summary on the clipboard": the reader is another model seeing only the pasted text, so write it for someone with none of the session's context. It's a handoff, so don't start new work.
+  - `md`, `mds` mean "map the instruction docs loaded in this session": render a `flow` diagram from each context channel down to the files it delivered. It's a read, so don't start new work.
+    - Group by channel: native memory (global `CLAUDE.md`, the project `CLAUDE.md`, any `CLAUDE.local.md` and its `@` imports, `MEMORY.md`), each `SessionStart` loader call with its `CLAUDE_*.md` files in load order, and fired `claude-mention` pointers.
+    - Give each file its absolute path (the real dot-star path where it's a symlink) and its size, plus each loader call's total against the 10,000-character cap.
+    - Flag a loader call near the cap, a file offloaded to a preview, or an `@` import or symlink that failed to resolve.
   - `todo`, `todos` mean "list the open todos for the repo we're in": find the file the way 📋 **`[a]dd`** resolves where entries land (personal record first, then the markdown beside the work, then the repository root), then render them for scanning. It's a read, so don't start new work.
     - Name the file in a lead line above the list.
     - Order by the file's own pick rule when it states one, else priority then severity.
