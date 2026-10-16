@@ -145,3 +145,17 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   - Close is a land plus the session's end, the one step more committal than a land, so it sits beneath it.
   - Close-as-is is the close with the land taken out, so it sits beneath close as its variant.
   - **`[L]and`** leads with 🏁 (not the 🛬 land marker) to flag that picking Land completes the objective; the 🏁 goes at the front of the Land line, not trailing after the `?`.
+
+  **The 🏁 recap after a land, promote or close** follows the 🏁 checklist convention in Output, listing these steps in lifecycle order:
+
+    - ✅ Committed N commits, then list each subject beneath as a tree sub-list (newest-first); a lone commit is a single `└─`. Wrap each subject in inline-code backticks so it renders in the inline-code accent and indent each glyph with 2 ideographic full-width spaces (U+3000) + 1 regular space, landing the `├`/`└` under the first letter of the step text (the `C` of `Committed`), not under the `✅` (plain leading spaces collapse in rendered markdown, so the wide U+3000s hold the indent):
+　　 ├─ `<newer commit subject>`
+　　 └─ `<older commit subject>`
+    - ✅ Promoted to master (on land too: a land is a promote plus a teardown, and the row matches the ⬆️ menu wording rather than naming the fast-forward underneath)
+    - ✅ Pushed to `<remote>` (only when the user asked for the push in words; land and promote are local, so this line is absent by default and is never a step to run, and a configured upstream doesn't earn it or a ⏸️)
+    - 🪓 Worktree removed (land) or `⏸️ Worktree kept (<name>); promote keeps it, land tears it down` (promote). The kept line always names why it survived, since a bare "kept" reads as an oversight and prompts a "why not tear down?" round trip.
+    - 🧨 Session marked for prune (close only)
+
+    Fired means over the whole objective, not the latest turn: a land after a promote renders the promote's rows again (the `✅ Committed` tree, then `✅ Promoted to master`) ahead of the 🪓, so the recap reads the same whether the promote happened a turn earlier or never. A free-form `master already carried N commits` row hides the subjects and invites a hash.
+
+    Order the rows by clock, except 🪓, which stays the last git row however things unfolded: a commit that lands after the teardown (a follow-up in another repo) still slots above it as its own `✅ Committed N commits (<repo>)` row. A 🪓 above a commit list reads as torn down before the work was banked. 🧨 is the one row allowed beneath it, mirroring the menu, where the close rows are the only ones beneath 🏁 **`[L]and`**.
