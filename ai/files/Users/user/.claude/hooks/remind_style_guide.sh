@@ -19,6 +19,18 @@ tool_name=$(printf '%s' "${input}" |
     command jq --raw-output '.tool_name // empty')
 
 guides=()
+context_docs=()
+
+# Point at the language-agnostic code rules on any edit that isn't prose.
+case "${file_path}" in
+*.md | *.txt)
+    # Skip prose; CLAUDE.md's Writing style already covers it every session.
+    :
+    ;;
+*)
+    context_docs+=("code-style.md")
+    ;;
+esac
 
 # Map by content type so the right guide is in context as the code is written.
 case "${file_path}" in
@@ -43,14 +55,24 @@ if [ "${tool_name}" = "Write" ]; then
     guides+=("file-naming-style.md")
 fi
 
-if [ "${#guides[@]}" -eq 0 ]; then
+if [ "${#guides[@]}" -eq 0 ] && [ "${#context_docs[@]}" -eq 0 ]; then
     exit 0
 fi
 
 reminder="Apply the user's style guide(s) to ${file_path} as you write it; read each now if not already read this session:"
-for guide in "${guides[@]}"; do
-    reminder+=" ~/.claude/styles/${guide}"
-done
+
+# Guard each loop; bash 3.2 under `set -u` treats an empty array as unbound.
+if [ "${#context_docs[@]}" -gt 0 ]; then
+    for context_doc in "${context_docs[@]}"; do
+        reminder+=" ~/.dot-star/ai/contexts/${context_doc}"
+    done
+fi
+
+if [ "${#guides[@]}" -gt 0 ]; then
+    for guide in "${guides[@]}"; do
+        reminder+=" ~/.claude/styles/${guide}"
+    done
+fi
 
 command jq --null-input --compact-output \
     --arg ctx "${reminder}" \
