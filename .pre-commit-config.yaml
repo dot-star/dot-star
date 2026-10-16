@@ -8,6 +8,13 @@ repos:
         files: ^ai/files/Users/user/\.claude/(settings\.json|settings_test\.py|settings_test_cases\.json|hooks/)
         pass_filenames: false
 
+      - id: doc-pointers-resolve
+        name: doc pointers resolve
+        language: system
+        entry: bash script/check_doc_pointers_resolve.sh
+        files: \.md$
+        pass_filenames: false
+
       - id: remind-style-guide-tests
         name: remind style guide tests
         language: system
