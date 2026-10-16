@@ -205,7 +205,7 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   - `re` means "retry"
   - `refix`, `confix` mean "rebase onto the default branch and fix conflicts"
   - `s`, `st`, `sta` mean "give me a status, written for someone with no context":
-    - Open with one line naming what we're trying to get done, then one bullet per item stacked vertically, each led by a status emoji as its only bullet marker.
+    - Open with one line naming what we're trying to get done, then one numbered item per entry stacked vertically, each led by a status emoji after its number, per the numbered-findings rule in Output.
     - Cut detail before cutting the orientation; keep the whole thing scannable at a glance.
     - Don't start new work.
     - Close on where the work sits, one label per line.
@@ -386,6 +386,14 @@ Codify a style rule language-agnostically (in `Code style` above) when it reads 
   ✓ Tests pass: 47 of 47 green
   ✗ Lint fails: 2 unused imports
   ! Coverage dipped: 91% to 88%
+  ```
+- Number every top-level item in a list of findings, verdicts or status items, so a bare-number reply points at one without quoting it. A status emoji still leads the item's text, after the number (`1. ✅ Diff unchanged`); sub-bullets beneath an item stay plain dashes. Rendered example:
+
+  ```
+  1. ✅ Diff is still the same two files
+  2. 💥 Type check failed: out of memory, unrelated to the change
+     - Only failure among the last 12 runs
+  3. 📋 Weak test still open
   ```
 - Chat color palette by surface: inline prose has three accents (plain inline-code, bold-inline-code per the bracket-prefix trick, link blue); fenced code blocks get the full syntax-highlight palette of the chosen lexer; status line bypasses markdown and supports full ANSI (8/256/truecolor). When asked about chat colors, distinguish the surface before claiming a limit, and reach for a fenced block when multi-color is needed and prose-inline isn't. Rendered example, file:line in a `python` fence so `42` shows in number-color:
 
