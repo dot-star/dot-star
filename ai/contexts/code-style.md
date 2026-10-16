@@ -37,3 +37,11 @@ Loaded on demand: the Writing style section of `~/.claude/CLAUDE.md` points here
       "ANN",
   ]
   ```
+- Pretty-print every JSON sample in markdown, even a two-key object: two-space indent, one key per line, keys in code-point order (`jq --sort-keys`), so adding a key diffs as one line. Rendered example:
+
+  ```json
+  {
+    "bar": "baz",
+    "foo": false
+  }
+  ```
