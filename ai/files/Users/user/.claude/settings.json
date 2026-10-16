@@ -245,7 +245,7 @@
             "type": "command"
           },
           {
-            "command": "${HOME}/.claude/hooks/inject_status_shorthand_pointer.sh",
+            "command": "${HOME}/.claude/hooks/inject_shorthand_meaning.py",
             "type": "command"
           },
           {
