@@ -369,6 +369,7 @@ git_rebase_last_two() {
     # Capture the two subjects before the reset wipes them.
     message_one="$(git log -1 --pretty=format:"%s" HEAD~1)"
     message_two="$(git log -1 --pretty=format:"%s" HEAD)"
+    original_head="$(git rev-parse HEAD)"
 
     if ! git reset --soft HEAD~2; then
         return 1
@@ -378,8 +379,14 @@ git_rebase_last_two() {
     # message_two), so a commit exists even if you never pick an alternative.
     # Capture the diff first; the commit empties the index the draft reads from.
     combined_diff="$(git diff --cached)"
-    git commit --message "${message_one}" --message "${message_two}" &&
-        echo "You're now on $(git log -1 --pretty=format:"%h %s")"
+    if ! git commit --message "${message_one}" --message "${message_two}"; then
+        # Put the two commits back; a failed commit leaves the branch reset.
+        git reset --soft "${original_head}"
+        echo "Error: squash commit failed; restored the two original commits"
+        return 1
+    fi
+
+    echo "You're now on $(git log -1 --pretty=format:"%h %s")"
 
     claude_display_commit_message_options "Update the commit message based on the combined diff now that two commits were squashed into one. Original commit message #1: ${message_one}. Original commit message #2: ${message_two}." "${combined_diff}" &
 }
