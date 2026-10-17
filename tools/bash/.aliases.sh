@@ -2114,7 +2114,8 @@ git_worktree_cd() {
 
         # Index width comes from the unfiltered list so digits stay aligned even
         # after a grep filter trims the visible rows.
-        local total_count num_width
+        local total_count
+        local num_width
         total_count="$(echo "${indexed_list}" | wc -l | tr -d ' ')"
         num_width="${#total_count}"
 
@@ -2340,7 +2341,8 @@ git_worktree_done() {
     # stash them and retry. Pop the stash after `git worktree remove` so a pop
     # conflict resolves in a tidy state, not with a leftover worktree.
     local stashed=0
-    local ff_output ff_status
+    local ff_output
+    local ff_status
     ff_output="$(git merge --ff-only "${branch}" 2>&1)"
     ff_status="${?}"
 
@@ -2497,7 +2499,8 @@ git_worktree_promote() {
     # Try the FF; if it's blocked by unrelated dirty files in the main checkout,
     # stash them and retry, then pop once the FF lands.
     local stashed=0
-    local ff_output ff_status
+    local ff_output
+    local ff_status
     ff_output="$(git merge --ff-only "${branch}" 2>&1)"
     ff_status="${?}"
 

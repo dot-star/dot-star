@@ -31,7 +31,9 @@ run_test() {
     local stop="$3"
     local expect="$4"
     local needs_dict="$5"
-    local input out actual
+    local input
+    local out
+    local actual
 
     if [ "${needs_dict}" = "true" ] && ! have_dictionary; then
         skips=$((skips + 1))

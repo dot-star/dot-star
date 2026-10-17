@@ -22,7 +22,8 @@ run_test() {
     local label="$1"
     local cmd="$2"
     local expect="$3"
-    local out actual
+    local out
+    local actual
     out=$(printf '%s' "${cmd}" | command jq --raw-input '{tool_input:{command:.}}' | "${HOOK}")
     if [ -n "${out}" ]; then
         actual=$(printf '%s' "${out}" | command jq --raw-output '.hookSpecificOutput.permissionDecision')

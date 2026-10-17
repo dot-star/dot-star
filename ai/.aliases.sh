@@ -376,7 +376,10 @@ claude_draft_commit_message_options() {
     #     Add the foo helper
     #     Fix the off-by-one in bar
     #     Rename the baz flag
-    local instructions commit_diff prompt response
+    local instructions
+    local commit_diff
+    local prompt
+    local response
     commit_diff="${2:-$(claude_git_with_json_hunk_headers diff --cached)}"
 
     instructions="$(
@@ -424,7 +427,8 @@ EOF
 }
 
 claude_git_commit() {
-    local options selected
+    local options
+    local selected
     options="$(claude_draft_commit_message_options "$1")"
     if [[ -z "${options}" ]]; then
         return 1
@@ -469,7 +473,8 @@ claude_git_stash() {
     # then rewrite the entry by dropping it and re-storing the same commit under
     # the new message, since git has no in-place stash-message edit.
     (
-        local diff summary
+        local diff
+        local summary
         diff="$(
             claude_git_with_json_hunk_headers stash show \
                 --patch \

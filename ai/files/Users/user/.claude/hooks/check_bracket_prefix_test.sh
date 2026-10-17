@@ -23,7 +23,9 @@ run_test() {
     local msg="$2"
     local stop="$3"
     local expect="$4"
-    local input out actual
+    local input
+    local out
+    local actual
 
     input=$(command jq --null-input --compact-output \
         --arg msg "${msg}" \

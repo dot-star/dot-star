@@ -563,7 +563,8 @@ git_branches_clean_up() {
 
     # Read each local branch paired with its worktree path (tab-separated; the
     # path is empty unless the branch is checked out somewhere).
-    local branch worktreepath
+    local branch
+    local worktreepath
     while IFS=$'\t' read -r branch worktreepath; do
         # Never delete the default branch.
         if [[ "${branch}" == "${default_branch}" ]]; then
@@ -1468,7 +1469,8 @@ rc_push() {
     if [[ "${current_branch}" == worktree-* ]]; then
         local worktree_push="${DOTSTAR_WORKTREE_PUSH:-pr-branch}"
         if [[ "${worktree_push}" == "default-branch" ]]; then
-            local main_checkout default_branch
+            local main_checkout
+            local default_branch
             main_checkout="$(git worktree list | awk 'NR==1 {print $1}')"
             default_branch="$(git_default_branch "${main_checkout}")"
             if [[ -z "${default_branch}" ]]; then
@@ -1533,8 +1535,14 @@ git_worktree_list_sorted() {
     # Usage:
     #   $ git_worktree_list_sorted
 
-    local entry sha branch markers
-    local name gitdir head_file branch_kept
+    local entry
+    local sha
+    local branch
+    local markers
+    local name
+    local gitdir
+    local head_file
+    local branch_kept
     local rows=""
     local -a head_files=()
 
@@ -2003,7 +2011,8 @@ rc_status() {
             fi
 
             # Notice uncleaned linked worktrees, only from the main checkout.
-            local main_toplevel current_toplevel
+            local main_toplevel
+            local current_toplevel
             main_toplevel="$(git worktree list | awk 'NR==1 {print $1}')"
             current_toplevel="$(git rev-parse --show-toplevel)"
             if [[ "${main_toplevel}" == "${current_toplevel}" ]]; then
@@ -2018,7 +2027,8 @@ rc_status() {
                     # Bind digit aliases `1`..`N` (capped at the 10 visible rows)
                     # to `cd <worktree-path>` so the user can jump to the Nth
                     # worktree by typing its index after running `s`.
-                    local idx=1 entry
+                    local idx=1
+                    local entry
                     while read -r entry; do
                         if [[ "${idx}" -gt 10 ]]; then
                             break
