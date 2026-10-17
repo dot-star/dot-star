@@ -416,8 +416,9 @@ EOF
     # --strict-mcp-config; the former leaves MCP and connector tools loaded.
     #
     # The model returns a JSON array, often wrapped in prose or ```json fences
-    # (especially when it flags injected text), so pull the bracketed array out
-    # of claude's result envelope before parsing. Stray commentary is dropped.
+    # (especially when it flags injected text), so try every [ ... ] span of the
+    # whole reply and keep the first that parses as a list of strings. Drop stray
+    # commentary, bracketed or not, and tolerate a list spread over many lines.
     response="$(
         claude \
             --print \
@@ -427,9 +428,18 @@ EOF
             "${prompt}"
     )"
     printf '%s\n' "${response}" |
-        \jq --raw-output '.result' |
-        \grep --only-matching '\[.*\]' |
-        \jq --raw-output '.[]'
+        \jq --raw-output '
+            .result as $text
+            | [
+                ($text | indices("[")[]) as $start
+                | ($text | indices("]") | reverse[]) as $end
+                | $text[$start:$end + 1]
+                | try fromjson catch empty
+                | select(type == "array" and length > 0 and all(type == "string"))
+            ]
+            | first // empty
+            | .[]
+        '
 }
 
 claude_git_commit() {
