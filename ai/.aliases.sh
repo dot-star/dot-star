@@ -412,7 +412,8 @@ EOF
     )"
 
     # Draft with no tools: writing a commit message needs none, so an injection
-    # in the diff or context can't drive tool execution.
+    # in the diff or context can't drive tool execution. Pair --tools "" with
+    # --strict-mcp-config; the former leaves MCP and connector tools loaded.
     #
     # The model returns a JSON array, often wrapped in prose or ```json fences
     # (especially when it flags injected text), so pull the bracketed array out
@@ -421,6 +422,7 @@ EOF
         claude \
             --print \
             --tools "" \
+            --strict-mcp-config \
             --output-format=json \
             "${prompt}"
     )"
