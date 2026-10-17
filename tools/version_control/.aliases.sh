@@ -361,6 +361,9 @@ git_rebase_last_two() {
     if ! git rev-parse --verify --quiet HEAD~2 >/dev/null; then
         echo "Error: need at least two commits above the root to squash"
         return 1
+    elif ! git diff --cached --quiet; then
+        echo "Error: staged changes would be folded into the squash; commit or unstage them first"
+        return 1
     fi
 
     # Capture the two subjects before the reset wipes them.
