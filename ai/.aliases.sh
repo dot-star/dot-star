@@ -403,12 +403,14 @@ EOF
 
     # Encode untrusted input as JSON string values so jq escapes it; the model
     # gets clearly-delimited data fields a crafted diff or message can't escape.
+    # Pipe the diff and prompt in on stdin; Linux caps one argument at 128 KiB.
     prompt="$(
-        \jq --null-input \
-            --arg instructions "${instructions}" \
-            --arg untrusted_diff "${commit_diff}" \
-            --arg untrusted_context "$1" \
-            '{instructions: $instructions, untrusted_diff: $untrusted_diff, untrusted_context: $untrusted_context}'
+        printf '%s' "${commit_diff}" |
+            \jq --raw-input \
+                --slurp \
+                --arg instructions "${instructions}" \
+                --arg untrusted_context "$1" \
+                '{instructions: $instructions, untrusted_diff: ., untrusted_context: $untrusted_context}'
     )"
 
     # Draft with no tools: writing a commit message needs none, so an injection
@@ -420,12 +422,12 @@ EOF
     # whole reply and keep the first that parses as a list of strings. Drop stray
     # commentary, bracketed or not, and tolerate a list spread over many lines.
     response="$(
-        claude \
-            --print \
-            --tools "" \
-            --strict-mcp-config \
-            --output-format=json \
-            "${prompt}"
+        printf '%s' "${prompt}" |
+            claude \
+                --print \
+                --tools "" \
+                --strict-mcp-config \
+                --output-format=json
     )"
     printf '%s\n' "${response}" |
         \jq --raw-output '
