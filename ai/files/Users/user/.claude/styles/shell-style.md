@@ -50,17 +50,29 @@ A `\n` mid-string is still fine (a header's trailing `\n\n` stays inline); the r
 
 ## One declaration per `local`
 
-Declare one variable per `local`; give each its own line rather than packing several into `local x=.. y=..`.
+Declare one variable per `local`; give each its own line rather than packing several onto one, whether they carry assignments (`local x=.. y=..`) or are bare names (`local x y z`).
+
+Why: each variable diffs on its own line, so adding, removing, or renaming one touches one source line (same reasoning as the multi-flag rule above).
 
 ```
 local dir="$1"
 local project_root="$2"
 ```
 
+```
+local foo
+local bar
+local baz
+```
+
 Not:
 
 ```
 local dir="$1" project_root="$2"
+```
+
+```
+local foo bar baz
 ```
 
 ## Pipelines
