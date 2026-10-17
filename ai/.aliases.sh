@@ -418,7 +418,11 @@ EOF
     # (especially when it flags injected text), so pull the bracketed array out
     # of claude's result envelope before parsing. Stray commentary is dropped.
     response="$(
-        claude --print --tools "" --output-format=json "${prompt}"
+        claude \
+            --print \
+            --tools "" \
+            --output-format=json \
+            "${prompt}"
     )"
     printf '%s\n' "${response}" |
         \jq --raw-output '.result' |
