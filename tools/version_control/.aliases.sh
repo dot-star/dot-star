@@ -1538,7 +1538,6 @@ git_worktree_list_sorted() {
     local entry
     local sha
     local branch
-    local markers
     local name
     local gitdir
     local head_file
@@ -1546,10 +1545,9 @@ git_worktree_list_sorted() {
     local rows=""
     local -a head_files=()
 
-    # Read git's trailing markers ("locked", "prunable") into a discarded
-    # fourth field. Without it `branch` swallows them, which both breaks the
-    # `[worktree-<name>]` match below and widens the row.
-    while read -r entry sha branch markers; do
+    # Read porcelain output, not the human listing, which splits "(detached
+    # HEAD)" and paths on their spaces. Skip the first record, the main checkout.
+    while IFS=$'\t' read -r entry sha branch; do
         name="${entry##*/}"
 
         # Resolve HEAD through the worktree's `.git` pointer file
@@ -1584,7 +1582,16 @@ git_worktree_list_sorted() {
         fi
 
         rows+="${entry}"$'\t'"${sha}"$'\t'"${branch_kept}"$'\t'"${name}"$'\t'"${head_file}"$'\n'
-    done < <(git worktree list | awk 'NR>1')
+    done < <(
+        git worktree list --porcelain |
+            awk '
+                /^worktree / { sub(/^worktree /, ""); entry = $0; branch = "" }
+                /^HEAD / { sha = substr($2, 1, 7) }
+                /^branch / { sub(/^branch refs\/heads\//, ""); branch = "[" $0 "]" }
+                /^detached$/ { branch = "(detached HEAD)" }
+                /^$/ { if (++records > 1) print entry "\t" sha "\t" branch }
+            '
+    )
 
     if [[ -z "${rows}" ]]; then
         return 0
