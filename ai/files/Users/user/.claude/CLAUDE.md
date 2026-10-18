@@ -42,6 +42,7 @@
 - Capture every generated screenshot at full quality: render at the screen's Retina density and save lossless. A 1x capture reads as blurry on the user's display, so a visual comparison built on it can't be judged.
   - Set `deviceScaleFactor: 2` on the viewport in Puppeteer (`page.setViewport`) or Playwright (`browser.newPage`/`newContext`); the default of 1 is the blur.
   - Save PNG, never JPEG or a `quality` below 100, and never downscale afterward (`sips --resampleWidth`, `magick -resize`).
+  - Reveal each batch in Finder once it's written: `open -R <file>` on the headline image (the composite when there is one, else the last capture), so the folder opens with that file selected. Once per batch, not once per file; a window per capture buries the one that matters.
 - Enter an isolated worktree on the first message in a git repository, before any reading or exploring, so the main checkout stays free for parallel work.
   - Skip it only when the message is purely a question about the main checkout's own state (its uncommitted edits, its branch, what `git status` shows there), since a worktree starts from a committed branch and would answer from a clean copy. Enter one at the first later message that asks for work.
   - Name the worktree's path in the reply that creates it.
