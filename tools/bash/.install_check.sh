@@ -48,11 +48,14 @@ dot_star_check_install_stale() {
     local answer
     answer="$(display_confirm_prompt_caution "dot-star: installer changed since last install. Run \`~/.dot-star/install.sh\` now? This will take a minute. [y/N]")"
     echo >&2
-    if [[ "${answer}" != "y" ]] && [[ "${answer}" != "Y" ]]; then
-        return 0
+    if [[ "${answer}" = "y" ]] || [[ "${answer}" = "Y" ]]; then
+        DOT_STAR_PROFILE=1 "${HOME}/.dot-star/install.sh"
     fi
 
-    DOT_STAR_PROFILE=1 "${HOME}/.dot-star/install.sh"
+    # Restart zsh's startup timer, so neither the wait on this prompt nor the install reads as a slow start.
+    if [[ -n "${zsh_startup_start}" ]]; then
+        zsh_startup_start="${EPOCHREALTIME}"
+    fi
 }
 
 dot_star_check_install_stale
