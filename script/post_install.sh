@@ -79,6 +79,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
         glow
         grep
         lazygit
+        less
         php@8.4
         # Provide `pdftoppm` and `pdfinfo`, which Claude Code shells out to when reading a PDF.
         poppler
