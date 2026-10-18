@@ -1695,6 +1695,135 @@ relative_age_color_awk() {
 AWK
 }
 
+git_worktree_list_triage() {
+    # Emit the evidence for deciding whether to pick a worktree back up, leave
+    # it parked or tear it down, as TSV rows for the worktree paths on stdin:
+    #   entry \t ahead \t dirty \t parked \t objective
+    # <ahead> is empty when unknown (detached HEAD, no default branch), so the
+    # caller never reads a worktree with lost commits as having nothing to lose.
+    # Usage:
+    #   $ echo "<worktree-path>" | git_worktree_list_triage
+
+    local entries
+    entries="$(cat)"
+    if [[ -z "${entries}" ]]; then
+        return 0
+    fi
+
+    local main_checkout
+    main_checkout="$(git worktree list | awk 'NR==1 {print $1}')"
+
+    # Count commits not yet on the default branch for every worktree in one
+    # call, keyed by the path the branch is checked out at.
+    local default_branch
+    local ahead=""
+    if default_branch="$(git_default_branch "${main_checkout}")"; then
+        ahead="$(
+            git for-each-ref \
+                --format="%(worktreepath)%09%(ahead-behind:${default_branch})" \
+                refs/heads/
+        )"
+    fi
+
+    # Run one `git status` per worktree in parallel, since dirty state has no
+    # single-call form. Skip Claude Code's runtime permissions file the way
+    # `wtd` does, so it alone never reads as work.
+    local dirty
+    dirty="$(
+        printf '%s\n' "${entries}" |
+            xargs \
+                -I{} \
+                -P 8 \
+                sh -c '
+                    count="$(git -C "$1" status --porcelain --untracked-files=all 2>/dev/null | awk "\$0 != \"?? .claude/settings.local.json\"" | wc -l | tr -d " ")"
+                    printf "%s\t%s\n" "$1" "${count}"
+                ' _ {}
+    )"
+
+    # List worktree names whose changes a `/try` parked in the main checkout's
+    # stash, where the worktree itself reads clean.
+    local parked
+    parked="$(git -C "${main_checkout}" stash list --format="%gs" | awk '
+        match($0, /try:wt-source:/) {
+            print substr($0, RSTART + RLENGTH)
+        }
+    ')"
+
+    # Map each worktree to its Claude session's objective through the session
+    # dirs `claude_session_dir.inc.sh` names. Feed the markers oldest first so
+    # the newest session wins when a worktree name was reused.
+    local markers
+    local -a stat_mtime=(stat -c '%Y %n')
+    if [[ "${OSTYPE}" == "darwin"* ]]; then
+        # Call BSD stat directly, as `git_worktree_list_sorted` does.
+        stat_mtime=(/usr/bin/stat -f '%m %N')
+    fi
+    markers="$(
+        find \
+            /tmp/claude \
+            -mindepth 2 \
+            -maxdepth 2 \
+            -name worktree \
+            -type f \
+            -exec "${stat_mtime[@]}" {} + \
+            2>/dev/null
+    )"
+    markers="$(printf '%s\n' "${markers}" | command sort -n)"
+
+    awk \
+        -F'\t' \
+        '
+            FILENAME == ARGV[1] {
+                ahead[$1] = $2
+                next
+            }
+            FILENAME == ARGV[2] {
+                dirty[$1] = $2
+                next
+            }
+            FILENAME == ARGV[3] {
+                parked[$0] = 1
+                next
+            }
+            FILENAME == ARGV[4] {
+                # Read "<mtime> <marker-path>", then the worktree path inside the
+                # marker and the objective beside it.
+                marker = substr($0, index($0, " ") + 1)
+                if (marker == "" || (getline worktree < marker) <= 0) {
+                    next
+                }
+                close(marker)
+                objective_file = marker
+                sub(/\/worktree$/, "/objective", objective_file)
+                if ((getline line < objective_file) > 0) {
+                    gsub(/\t/, " ", line)
+                    objective[worktree] = line
+                }
+                close(objective_file)
+                next
+            }
+            $0 != "" {
+                entry = $0
+                name = entry
+                sub(/.*\//, "", name)
+
+                # Keep only the ahead count from "<ahead> <behind>".
+                a = ""
+                if (entry in ahead) {
+                    a = ahead[entry]
+                    sub(/ .*/, "", a)
+                }
+
+                printf "%s\t%s\t%s\t%s\t%s\n", entry, a, dirty[entry], ((name in parked) ? 1 : 0), objective[entry]
+            }
+        ' \
+        <(printf '%s\n' "${ahead}") \
+        <(printf '%s\n' "${dirty}") \
+        <(printf '%s\n' "${parked}") \
+        <(printf '%s\n' "${markers}") \
+        <(printf '%s\n' "${entries}")
+}
+
 git_worktree_list_render() {
     # Render `git_worktree_list_sorted`'s TSV rows, read from stdin, as an
     # indented table under a "<count> worktrees:" header. Show at most the given
@@ -1726,9 +1855,13 @@ git_worktree_list_render() {
     # index column matches the row number `wt N` accepts. Rows print
     # oldest-first so [1] (newest) lands closest to the prompt, the
     # same orientation `wt`'s fzf picker uses.
+    # Trail each row with what the worktree still holds (from
+    # `git_worktree_list_triage`) and its Claude session's objective, so the
+    # table answers whether to pick it back up, leave it or tear it down.
     # Example output:
-    #     [2]  custom-checkout   abc1234 (2 days ago)  [feature/foo]
-    #     [1]  pretty-tail-glow  e762c60 (1 day ago)
+    #     [3]  old-spike         1234567 (3 weeks ago)                 nothing to lose  Try export idea
+    #     [2]  custom-checkout   abc1234 (2 days ago)   [feature/foo]  2 unlanded       Add checkout flow
+    #     [1]  pretty-tail-glow  e762c60 (1 day ago)                   1 uncommitted
     # awk fades the parenthetical from 256-color 255 (white) at
     # newest down to 239 (gray) at oldest, linearly by rank,
     # right-pads the 1-based index for two-digit alignment, and
@@ -1737,19 +1870,81 @@ git_worktree_list_render() {
         echo -e "    \033[2m... and \033[0m\033[1;36m$((total - max_rows))\033[0m\033[2m more\033[0m"
     fi
 
-    echo "${rows}" |
-        awk -F'\t' -v max_rows="${max_rows}" "$(relative_age_color_awk)"'
+    # Gather triage evidence for the visible rows only, since each costs a
+    # `git status`.
+    local triage
+    triage="$(
+        echo "${rows}" |
+            awk -F'\t' -v max_rows="${max_rows}" 'max_rows == 0 || NR <= max_rows { print $2 }' |
+            git_worktree_list_triage
+    )"
+
+    local now
+    now="$(/bin/date +%s)"
+
+    awk \
+        -F'\t' \
+        -v max_rows="${max_rows}" \
+        -v now="${now}" \
+        "$(relative_age_color_awk)"'
+            # Index the triage rows by worktree path.
+            NR == FNR {
+                if ($0 != "") {
+                    t_ahead[$1] = $2
+                    t_dirty[$1] = $3
+                    t_parked[$1] = $4
+                    t_objective[$1] = $5
+                }
+                next
+            }
+
+            # Spell out what a worktree still holds, or "nothing to lose" when
+            # tearing it down loses no work.
+            function verdict(entry, mt,    v) {
+                v = ""
+                if (t_ahead[entry] > 0) {
+                    v = t_ahead[entry] " unlanded"
+                }
+                if (t_dirty[entry] > 0) {
+                    v = v (v == "" ? "" : ", ") t_dirty[entry] " uncommitted"
+                }
+                if (t_parked[entry] == 1) {
+                    v = v (v == "" ? "" : ", ") "parked in /try"
+                }
+
+                # Hold back the all-clear while the worktree is under a day old
+                # (a session may still be starting work in it) or its commits
+                # cannot be counted.
+                if (v != "") {
+                    return v
+                } else if (t_ahead[entry] == "") {
+                    return ""
+                } else if (mt == "" || now - mt < 86400) {
+                    return ""
+                }
+                return "nothing to lose"
+            }
+
             {
-                lines[NR] = $0
+                i = FNR
+                lines[i] = $0
                 if (length($5) > max_name) {
                     max_name = length($5)
                 }
                 if (length($6) > max_rel) {
                     max_rel = length($6)
                 }
+                if (length($4) > max_branch) {
+                    max_branch = length($4)
+                }
+                verdicts[i] = verdict($2, $1)
+                if (length(verdicts[i]) > max_verdict) {
+                    max_verdict = length(verdicts[i])
+                }
+                count = i
             }
             END {
-                total = NR
+                total = count
                 digits = length(total "")
                 visible = (max_rows > 0 && total > max_rows) ? max_rows : total
                 # Iterate oldest-of-visible down to newest so [1]
@@ -1773,17 +1968,47 @@ git_worktree_list_render() {
                     # Brackets hint that the number is a live
                     # `cd` alias bound by `s`/`wta` for this row.
                     idx_str = sprintf("[%*d]", digits, i)
-                    if (branch_kept == "") {
-                        printf "\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m %s(%s)\033[0m\n", idx_str, max_name, name, sha, color, rel
-                    } else {
-                        # Right-pad the parenthetical to its widest so
-                        # the branch column lines up across rows.
-                        rel_pad = sprintf("%*s", max_rel - length(rel), "")
-                        printf "\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m %s(%s)\033[0m%s  \033[38;5;177m%s\033[0m\n", idx_str, max_name, name, sha, color, rel, rel_pad, branch_kept
+                    line = sprintf("\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m %s(%s)\033[0m", idx_str, max_name, name, sha, color, rel)
+
+                    # Paint "nothing to lose" as a cleanup candidate and
+                    # anything else as work still held.
+                    v = verdicts[i]
+                    v_color = "\033[38;5;214m"
+                    if (v == "nothing to lose") {
+                        v_color = "\033[38;5;108m"
                     }
+                    objective = t_objective[f[2]]
+
+                    # Right-pad each column to its widest only when a later
+                    # column follows on this row, so trailing columns line up
+                    # across rows without leaving trailing spaces.
+                    rel_pad = sprintf("%*s", max_rel - length(rel), "")
+                    branch_pad = sprintf("%*s", max_branch - length(branch_kept), "")
+                    verdict_pad = sprintf("%*s", max_verdict - length(v), "")
+                    if (branch_kept != "" || v != "" || objective != "") {
+                        line = line rel_pad
+                    }
+                    if (max_branch > 0 && (branch_kept != "" || v != "" || objective != "")) {
+                        line = line "  \033[38;5;177m" branch_kept "\033[0m"
+                    }
+                    if (max_branch > 0 && (v != "" || objective != "")) {
+                        line = line branch_pad
+                    }
+                    if (max_verdict > 0 && (v != "" || objective != "")) {
+                        line = line "  " v_color v "\033[0m"
+                    }
+                    if (max_verdict > 0 && objective != "") {
+                        line = line verdict_pad
+                    }
+                    if (objective != "") {
+                        line = line "  \033[2m" objective "\033[0m"
+                    }
+                    print line
                 }
             }
-        ' |
+        ' \
+        <(printf '%s\n' "${triage}") \
+        <(printf '%s\n' "${rows}") |
         sed 's/^/    /'
 }
 
