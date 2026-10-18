@@ -3,7 +3,7 @@
 Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before any message that offers a follow-up, in a worktree or the main checkout. Section names below (Workflow, Shell commands, the bracket-prefix list) refer to that file.
 
 - When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment, each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**).
-  - Offer any subset the tree allows: 🏁 land and 🧨 close always apply, ⬆️ promote whenever there's something to move.
+  - Offer any subset the tree allows: 🏁 land and 🧨 close apply everywhere but mid-series, ⬆️ promote whenever there's something to move.
   - 🧨 **`[x]`** is the one designed bundle: `x` means close the session and closing a worktree session means landing it first, so the row reads land + close rather than two actions glued together.
   - 🧨🧨 **`[xx]`** is the same close without the land, per the close rows below.
   - Whenever two or more appear together, list them top-to-bottom in this fixed order: iterate → commit → fold → promote → land → close → close-as-is.
@@ -20,13 +20,14 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
 
     1. Does every row wrap its option as `**` + `` ` `` + `[x]remainder` + `` ` `` + `**`? A bare `🧹 [cl]ean` is a fail; the bold inline-code span is as mandatory here as anywhere else.
     2. Are 🏁 **`[L]and`** and 🧨 **`[x]`** both on the menu, plus ⬆️ **`[p]romote`** unless there's nothing to move?
-       - Land and close are never conditional: each commits whatever is pending first, so no tree state rules them out.
+       - Land and close drop only mid-series, per the series rule below; otherwise each commits whatever is pending first, so no tree state rules them out.
        - Promote drops only on a clean tree with nothing ahead of the default branch (the state right after a promote), where it would fast-forward by zero commits.
        - A menu missing a row it owes is an omission, not a narrowed menu; the other rows that drop are 💾 **`[c]ommit`**, 📦 **`[f]old`**, 🛠️ **`[i]terate`** and 🧨🧨 **`[xx]`**.
        - Does a `git status --porcelain` run this turn back the shape? Empty output is the only license for the clean-tree menu; a staged path still owes 💾 **`[c]ommit`** with its drafts and 🧨🧨 **`[xx]`**.
     3. Is 🛠️ **`[i]terate`** the top row? Only ⚡ **`[n]ow`** and 📋 **`[a]dd`** may sit above it, in that order.
     4. Does 🧨🧨 **`[xx]`** render only over a dirty tree, and on a dirty tree is it the bottom row, with 🧨 **`[x]`** directly above it and 🏁 **`[L]and`** above that?
        - A clean tree ends on 🧨 **`[x]`** instead.
+       - A mid-series menu, with no land or close row, ends on 🧨🧨 **`[xx]`** directly beneath ⬆️ **`[p]romote`**.
        - If any other option (even a lone keep/iterate slot) renders beneath 🏁 **`[L]and`**, reorder before sending.
     5. Is there exactly one space between each emoji and its bracket span? The column padding goes after the closing `**`, before the `(`, never between the emoji and the bracket.
        - Does that padding put every `(` in one column, ⚡ and 📋 rows included? Pad per the alignment rule in the bracket-prefix list.
@@ -55,6 +56,7 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
     - Name that commit above the menu (`🟢 Staged 1 file for commit 1 of 4`).
     - Name it again in every row whose parenthetical opens with `commit` (`💾 [c]ommit (commit 1 of 4)`), so the row picked says which commit it banks.
     - Give each later commit its tree on the menu after the one before it lands; a tree over unstaged paths asks the user to judge subjects they can't `d`.
+    - **Drop 🏁 `[L]and` and 🧨 `[x]` mid-series:** while a later commit in the series is still pending (unstaged paths waiting for their turn, or a change set aside behind a 🪚 refactor-first split), the menu offers neither. Both tear the worktree down after banking only the staged commit, so picking one strands the rest of the series. They return on the menu for the last commit, which is the one that can finish the objective.
   - **Fold gets the same staging**, since `git commit --amend --no-edit` commits the index too.
 
   **Applicability is a fact about the tree, not a guess.** Before sending, run `git status --porcelain` and branch on the result:
