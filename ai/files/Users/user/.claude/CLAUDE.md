@@ -138,6 +138,10 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
 
   **A bare number indexes rendered content, never an option's position.** Bracket options are picked by their letter alone, so a number never selects one no matter where it sits in the menu. It names one of the numbered items the previous message actually rendered: a finding, a list entry, a drafted variant. A number paired with a destination or a verb (`2 to cb`, `2 as a comment`) is always content, since a destination takes a thing rather than an action.
 
+- Treat the casing of a named identifier as unreliable: a dictated prompt capitalizes short words at will (an alias `foo` arrives as `FOO`).
+  - Look up a named alias, function, command or file case-insensitively before calling it missing; `grep --ignore-case`, and `type <name>` on the lowercase form too.
+  - Run `type <name>` yourself rather than asking the user to run it; only a lookup that needs their interactive shell state is theirs to run.
+
 ## Output
 
 - Run the pre-send scans below before ending any message. A Stop hook block is expensive: the rejected draft stays on screen and the fix costs another turn.
