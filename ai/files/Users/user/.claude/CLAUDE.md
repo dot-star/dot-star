@@ -15,6 +15,12 @@
   - Avoid a hardcoded value that must stay in sync with another; derive it or restructure so the coupling disappears.
   - Derive only from what actually drives the value, though. When a number encodes a judgment about the world outside the program (how fast weather moves, how long a person waits before giving up), a commented absolute is its correct form.
   - Deriving that one from a nearby constant that happened to be in scope is worse than a magic number: it reads as principled, so nobody re-examines it.
+- Fix the cause, not the symptom. When a bug traces back to a fragile approach (parsing output meant for people, special-casing the input that broke), replace the approach; a patch fixes today's input and leaves the next one waiting.
+  - Answer "is this the right fix?" against the cause: a symptom patch is "works, but a patch", then name the real fix.
+  - Count a bigger diff or an output change as the fix's price, never a reason to keep the patch; flag an output change for sign-off per the refactor rule.
+  - Patch only as a stopgap when the real fix can't land now, marked with a `TODO: Replace ...` naming the cause and the fix.
+  - Prefer a tool's machine-readable interface (`--porcelain`, `--format`, `--json`, `-z`); output built for people changes shape without notice.
+  - Treat the cause fix as in scope even past the failing line; the scope rule bars unrelated cleanup, not the fix.
 - Keep every environment (dev, staging, nightly, prod) on one code path. Branch on the environment only where environments genuinely differ (minifying, a secret, what a label reads) and share everything else, so each one runs the code prod runs and a mismatch can't hide until the deploy.
   - Rethink an existing environment branch before extending it. A value computed for one environment reads as "the others have none", when moving it out of the branch is often the fix; building a fallback for the rest deepens the split.
 - Don't nag over nothing. A warning, badge, or alert fires only when the state it reports actually costs the reader something; detectable but harmless stays silent.
