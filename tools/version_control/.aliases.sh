@@ -1859,8 +1859,8 @@ git_worktree_list_render() {
     # `git_worktree_list_triage`) and its Claude session's objective, so the
     # table answers whether to pick it back up, leave it or tear it down.
     # Example output:
-    #     [3]  old-spike         1234567 (3 weeks ago)                 nothing to lose  Try export idea
-    #     [2]  custom-checkout   abc1234 (2 days ago)   [feature/foo]  2 unlanded       Add checkout flow
+    #     [3]  old-spike         1234567 (3 weeks ago)                 safe to remove  Try export idea
+    #     [2]  custom-checkout   abc1234 (2 days ago)   [feature/foo]  2 unlanded      Add checkout flow
     #     [1]  pretty-tail-glow  e762c60 (1 day ago)                   1 uncommitted
     # awk fades the parenthetical from 256-color 255 (white) at
     # newest down to 239 (gray) at oldest, linearly by rank,
@@ -1898,7 +1898,7 @@ git_worktree_list_render() {
                 next
             }
 
-            # Spell out what a worktree still holds, or "nothing to lose" when
+            # Spell out what a worktree still holds, or "safe to remove" when
             # tearing it down loses no work.
             function verdict(entry, mt,    v) {
                 v = ""
@@ -1922,7 +1922,7 @@ git_worktree_list_render() {
                 } else if (mt == "" || now - mt < 86400) {
                     return ""
                 }
-                return "nothing to lose"
+                return "safe to remove"
             }
 
             {
@@ -1970,11 +1970,11 @@ git_worktree_list_render() {
                     idx_str = sprintf("[%*d]", digits, i)
                     line = sprintf("\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m %s(%s)\033[0m", idx_str, max_name, name, sha, color, rel)
 
-                    # Paint "nothing to lose" as a cleanup candidate and
+                    # Paint "safe to remove" as a cleanup candidate and
                     # anything else as work still held.
                     v = verdicts[i]
                     v_color = "\033[38;5;214m"
-                    if (v == "nothing to lose") {
+                    if (v == "safe to remove") {
                         v_color = "\033[38;5;108m"
                     }
                     objective = t_objective[f[2]]
