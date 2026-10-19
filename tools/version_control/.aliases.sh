@@ -1711,14 +1711,17 @@ git_worktree_list_triage() {
     # Usage:
     #   $ echo "<worktree-path>" | git_worktree_list_triage
 
+    # Call `command git` and `command cat` throughout: the `git` and `cat`
+    # aliases fork a stderr filter or `bat` per call, and `s` pays that on
+    # every lookup here.
     local entries
-    entries="$(cat)"
+    entries="$(command cat)"
     if [[ -z "${entries}" ]]; then
         return 0
     fi
 
     local main_checkout
-    main_checkout="$(git worktree list | awk 'NR==1 {print $1}')"
+    main_checkout="$(command git worktree list | awk 'NR==1 {print $1}')"
 
     # Count commits not yet on the default branch for every worktree in one
     # call, keyed by the path the branch is checked out at.
@@ -1726,7 +1729,7 @@ git_worktree_list_triage() {
     local ahead=""
     if default_branch="$(git_default_branch "${main_checkout}")"; then
         ahead="$(
-            git for-each-ref \
+            command git for-each-ref \
                 --format="%(worktreepath)%09%(ahead-behind:${default_branch})" \
                 refs/heads/
         )"
@@ -1750,7 +1753,7 @@ git_worktree_list_triage() {
     # List worktree names whose changes a `/try` parked in the main checkout's
     # stash, where the worktree itself reads clean.
     local parked
-    parked="$(git -C "${main_checkout}" stash list --format="%gs" | awk '
+    parked="$(command git -C "${main_checkout}" stash list --format="%gs" | awk '
         match($0, /try:wt-source:/) {
             print substr($0, RSTART + RLENGTH)
         }
