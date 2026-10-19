@@ -1723,63 +1723,17 @@ git_worktree_list_triage() {
     local main_checkout
     main_checkout="$(command git worktree list | awk 'NR==1 {print $1}')"
 
-    # Count commits not yet on the default branch for every worktree in one
-    # call, keyed by the path the branch is checked out at.
     local default_branch
-    local ahead=""
-    if default_branch="$(git_default_branch "${main_checkout}")"; then
-        ahead="$(
-            command git for-each-ref \
-                --format="%(worktreepath)%09%(ahead-behind:${default_branch})" \
-                refs/heads/
-        )"
-    fi
+    default_branch="$(git_default_branch "${main_checkout}")"
 
-    # Run one `git status` per worktree in parallel, since dirty state has no
-    # single-call form. Skip Claude Code's runtime permissions file the way
-    # `wtd` does, so it alone never reads as work.
-    local dirty
-    dirty="$(
-        printf '%s\n' "${entries}" |
-            xargs \
-                -I{} \
-                -P 8 \
-                sh -c '
-                    count="$(git -C "$1" status --porcelain --untracked-files=all 2>/dev/null | awk "\$0 != \"?? .claude/settings.local.json\"" | wc -l | tr -d " ")"
-                    printf "%s\t%s\n" "$1" "${count}"
-                ' _ {}
-    )"
-
-    # List worktree names whose changes a `/try` parked in the main checkout's
-    # stash, where the worktree itself reads clean.
-    local parked
-    parked="$(command git -C "${main_checkout}" stash list --format="%gs" | awk '
-        match($0, /try:wt-source:/) {
-            print substr($0, RSTART + RLENGTH)
-        }
-    ')"
-
-    # Map each worktree to its Claude session's objective through the session
-    # dirs `claude_session_dir.inc.sh` names. Feed the markers oldest first so
-    # the newest session wins when a worktree name was reused.
-    local markers
     local -a stat_mtime=(stat -c '%Y %n')
     if [[ "${OSTYPE}" == "darwin"* ]]; then
         # Call BSD stat directly, as `git_worktree_list_sorted` does.
         stat_mtime=(/usr/bin/stat -f '%m %N')
     fi
-    markers="$(
-        find \
-            /tmp/claude \
-            -mindepth 2 \
-            -maxdepth 2 \
-            -name worktree \
-            -type f \
-            -exec "${stat_mtime[@]}" {} + \
-            2>/dev/null
-    )"
-    markers="$(printf '%s\n' "${markers}" | command sort -n)"
 
+    # Run the lookups at once as awk's process-substitution inputs, which all
+    # start when awk does, so the `git status` fan-out overlaps the rest.
     awk \
         -F'\t' \
         '
@@ -1827,10 +1781,52 @@ git_worktree_list_triage() {
                 printf "%s\t%s\t%s\t%s\t%s\n", entry, a, dirty[entry], ((name in parked) ? 1 : 0), objective[entry]
             }
         ' \
-        <(printf '%s\n' "${ahead}") \
-        <(printf '%s\n' "${dirty}") \
-        <(printf '%s\n' "${parked}") \
-        <(printf '%s\n' "${markers}") \
+        <(
+            # Count commits not yet on the default branch for every worktree in
+            # one call, keyed by the path the branch is checked out at.
+            if [[ -n "${default_branch}" ]]; then
+                command git for-each-ref \
+                    --format="%(worktreepath)%09%(ahead-behind:${default_branch})" \
+                    refs/heads/
+            fi
+        ) \
+        <(
+            # Run one `git status` per worktree in parallel, since dirty state
+            # has no single-call form. Skip Claude Code's runtime permissions
+            # file the way `wtd` does, so it alone never reads as work.
+            printf '%s\n' "${entries}" |
+                xargs \
+                    -I{} \
+                    -P 8 \
+                    sh -c '
+                        count="$(git -C "$1" status --porcelain --untracked-files=all 2>/dev/null | awk "\$0 != \"?? .claude/settings.local.json\"" | wc -l | tr -d " ")"
+                        printf "%s\t%s\n" "$1" "${count}"
+                    ' _ {}
+        ) \
+        <(
+            # List worktree names whose changes a `/try` parked in the main
+            # checkout's stash, where the worktree itself reads clean.
+            command git -C "${main_checkout}" stash list --format="%gs" | awk '
+                match($0, /try:wt-source:/) {
+                    print substr($0, RSTART + RLENGTH)
+                }
+            '
+        ) \
+        <(
+            # Map each worktree to its Claude session's objective through the
+            # session dirs `claude_session_dir.inc.sh` names. Feed the markers
+            # oldest first so the newest session wins when a worktree name was
+            # reused.
+            find \
+                /tmp/claude \
+                -mindepth 2 \
+                -maxdepth 2 \
+                -name worktree \
+                -type f \
+                -exec "${stat_mtime[@]}" {} + \
+                2>/dev/null |
+                command sort -n
+        ) \
         <(printf '%s\n' "${entries}")
 }
 
