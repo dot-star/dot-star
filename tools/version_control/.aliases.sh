@@ -342,6 +342,7 @@ alias pull="rc_pull"
 alias pull_tags="rc_fetch_tags"
 alias pull_with_rebase="rc_pull_with_rebase"
 alias pus="rc_push"
+alias pusx="rc_push_and_quit"
 alias push="rc_push"
 alias rb="git_rebase"
 alias rb0="git_rebase 10"
@@ -1520,6 +1521,11 @@ rc_push() {
     fi
 
     return "${push_status}"
+}
+
+rc_push_and_quit() {
+    # Quit only after a clean push, so a failed push stays on screen.
+    rc_push "$@" && quit
 }
 
 git_worktree_list_sorted() {
