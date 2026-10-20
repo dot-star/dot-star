@@ -1946,6 +1946,13 @@ git_worktree_list_render() {
             {
                 i = FNR
                 lines[i] = $0
+                count = i
+
+                # Size the columns from the rows that print, so a long name
+                # hidden behind "... and N more" never widens the table.
+                if (max_rows > 0 && i > max_rows) {
+                    next
+                }
                 if (length($5) > max_name) {
                     max_name = length($5)
                 }
@@ -1959,7 +1966,6 @@ git_worktree_list_render() {
                 if (length(verdicts[i]) > max_verdict) {
                     max_verdict = length(verdicts[i])
                 }
-                count = i
             }
             END {
                 total = count
