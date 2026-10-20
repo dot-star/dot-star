@@ -35,3 +35,24 @@ jobs:
         run: |
           uv pip install --system pre-commit
           pre-commit run --all-files
+
+  merge-pre-commit-update:
+    needs: lint
+    # Merge only the pre-commit auto-update PR (branch set in pre-commit-auto-update.yml), never a fork's lookalike.
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.head_ref == 'create-pull-request/pre-commit' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Merge pull request
+        run: |
+          gh pr merge \
+              --merge \
+              --repo="${GITHUB_REPOSITORY}" \
+              "${PR_NUMBER}"
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          # Merge as a collaborator so the merge commit's push to master starts Lint; GITHUB_TOKEN pushes don't trigger workflows.
+          GH_TOKEN: ${{ secrets.DOT_STAR_TOKEN }}

@@ -65,6 +65,7 @@ jobs:
           branch: create-pull-request/pre-commit
           committer: GitHub <noreply@github.com>
           delete-branch: true
+          token: ${{ secrets.DOT_STAR_TOKEN }}
 
       - name: Pull request created or updated
         if: ${{ steps.cpr.outputs.pull-request-number }}
