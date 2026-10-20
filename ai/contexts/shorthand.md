@@ -77,7 +77,7 @@ Interpret a bare one-token reply or a short fixed phrase as shorthand. Fires onl
   - Accept the number first too: `3c` picks the same draft as `c3`. The reversal holds for every draft token (`3f`, `3p`, `3L`, `3x`), since the letter and number together name one row whichever leads.
   - One `c<N>` picks one commit: the number names a draft under exactly one commit's tree, so with two or more commits pending (one per repo, say) the reply names one per commit (`c2 c5`). A reply that covers only some of them commits those alone; the rest stay unpicked and get their trees re-offered.
   - `p<N>` and `L<N>` pick the same draft N from the commit row's list (the promote and land rows carry only a `[pN] ...` stand-in), then promote or land.
-  - `f<N>` picks from the fold row's own list instead, since a fold's subjects describe the combined diff rather than the pending change alone, then amends HEAD with that subject. A bare `f` folds under HEAD's existing subject.
+  - `f<N>` picks from the fold row's own list instead, since a fold's subjects describe the combined diff rather than the pending change alone, then folds into the target commit with that subject. A bare `f` folds under the target's existing subject.
   - `c<N> iter` is the `<N> iter` form: refine draft N, no commit yet.
   <!-- shorthand-match: ^((c|f|p|l|x)\d+|\d+(c|f|p|l|x))( ((c|f|p|l|x)\d+|\d+(c|f|p|l|x)))*( iter)?$ -->
 - `cs` means "commit only the already-staged changes": like `c` (the `commit` skill), but never auto-stage; if nothing is staged, stop.

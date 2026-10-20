@@ -34,7 +34,7 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
     6. Does every decision the message body left open have a row here? Re-read the prose above for nits, 💅 polish notes, 🔄 heads-ups, and 🔴 blockers; each one the user could accept needs its own row under the same letter and emoji, per the bracket-prefix checklist. A menu that omits one sends the reader back to typing a sentence.
     7. Does every committing row carry its drafts? A committing row with none costs the user a round trip through the skill's pick step.
        - The 💾 commit row carries the subject drafts beneath it.
-       - The 📦 fold row carries a `[f]` row with HEAD's subject when that subject still fits, then its own `[fN]` drafts against the combined diff, none repeating HEAD's subject.
+       - The 📦 fold row carries a `[f]` row with the fold target's subject when that subject still fits, then its own `[fN]` drafts against the combined diff, none repeating the target's subject.
        - The ⬆️ promote, 🏁 land and 🧨 close rows each carry their `[pN] ...` stand-in.
     8. Is the change the drafts describe staged? Every `[cN]` tree needs its paths in the index before the menu renders, per the staging rule below; a menu with drafts over an unstaged change sends the user back to asking for the staging before they can judge the subjects.
     9. Would a behavior-preserving restructure of a touched line shrink this diff? Read the staged diff's deleted lines: a long paragraph replaced by a copy of itself with one clause changed is the tell, since the reviewer sees a rewrite where the intent is one sentence.
@@ -51,12 +51,12 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
     - Number the drafts globally unique across the message (`[c1]`-`[c3]` for the first commit, `[c4]`-`[c6]` for the second), so a single `c<N>` names one draft of one commit.
     - Never float a commit's subject in prose beside another commit's tree; a subject with no token can't be picked, so it reads as decided when it isn't.
   - **Fold unstales the subject it amends**, so its row carries a tree too:
-    - Draft it against the combined diff (HEAD's change plus the pending one), which is what the amended commit will hold.
+    - Draft it against the combined diff (the fold target's change plus the pending one), which is what the amended commit will hold.
     - Number it after the commit row's drafts, `[f4]`-`[f6]` under a `[c1]`-`[c3]` commit row, so one number names one draft.
-    - A bare `f` keeps HEAD's subject, the right pick whenever that subject already covers the combined diff; `f<N>` amends with draft N instead.
-    - Lead the tree with a `[f]` row carrying HEAD's subject verbatim, tagged `(same subject, still fits)`, whenever that subject still covers the combined diff, so the keep-it pick sits on screen beside the drafts it competes with.
-    - Leave the `[f]` row off when HEAD's subject has gone stale: the row is a verdict that the subject holds, so showing it beside a stale one offers the wrong pick as a good one. A typed `f` still keeps the subject.
-    - Never repeat HEAD's subject as an `[fN]` draft: that pick is the `[f]` row, and a numbered copy hides that a bare `f` already reuses it.
+    - A bare `f` keeps the target's subject, the right pick whenever that subject already covers the combined diff; `f<N>` amends with draft N instead.
+    - Lead the tree with a `[f]` row carrying the target's subject verbatim, tagged `(same subject, still fits)`, whenever that subject still covers the combined diff, so the keep-it pick sits on screen beside the drafts it competes with.
+    - Leave the `[f]` row off when the target's subject has gone stale: the row is a verdict that the subject holds, so showing it beside a stale one offers the wrong pick as a good one. A typed `f` still keeps the subject.
+    - Never repeat the target's subject as an `[fN]` draft: that pick is the `[f]` row, and a numbered copy hides that a bare `f` already reuses it.
     - The tree renders on every fold, since whether the old subject still covers the folded-in change is the question the drafts answer, so leaving them off when it looks fine is the guess they replace.
   - **Bare `c` still runs the skill** and shows the full list of five.
 
@@ -67,17 +67,18 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
     - Name it again in every row whose parenthetical opens with `commit` (`💾 [c]ommit (commit 1 of 4)`), so the row picked says which commit it banks.
     - Give each later commit its tree on the menu after the one before it lands; a tree over unstaged paths asks the user to judge subjects they can't `d`.
     - **Drop 🏁 `[L]and` and 🧨 `[x]` mid-series:** while a later commit in the series is still pending (unstaged paths waiting for their turn, or a change set aside behind a 🪚 refactor-first split), the menu offers neither. Both tear the worktree down after banking only the staged commit, so picking one strands the rest of the series. They return on the menu for the last commit, which is the one that can finish the objective.
-  - **Fold gets the same staging**, since `git commit --amend --no-edit` commits the index too.
+  - **Fold gets the same staging**, since both `git commit --amend` and `git commit --fixup` commit the index too.
 
   **Applicability is a fact about the tree, not a guess.** Before sending, run `git status --porcelain` and branch on the result:
 
   - **Non-empty** (something is actually uncommitted): offer `[c]ommit`, plus `[f]old` when both of these hold:
 
-    - **HEAD isn't on the remote default branch.**
-      - Run the check, don't assume: `git merge-base --is-ancestor HEAD <remote>/<default>` exits nonzero, taking `<remote>` from `git remote` rather than assuming `origin`.
-      - Published history means the remote default branch's, so an unpushed commit on local `<default>` (main-checkout work) still folds; a HEAD already there gets no fold slot, since amending it rewrites commits everyone else builds on.
+    - **The pending change belongs to an existing commit on the branch**, finishing or fixing that one intent rather than standing on its own (atomic commits). That commit is the fold target: usually HEAD, but an earlier commit when the change finishes that one instead (a line the earlier commit added, now removed). A change that deserves its own subject gets `[c]ommit`, not `[f]old`.
+      - Never swap the fold row for a one-off row (an `[ab]sorb` or `[fx]up`) when the target sits below HEAD; fold is the user's word for banking a change into the commit it belongs to, wherever that commit sits.
+    - **The fold target isn't on the remote default branch.**
+      - Run the check, don't assume: `git merge-base --is-ancestor <target> <remote>/<default>` exits nonzero, taking `<remote>` from `git remote` rather than assuming `origin`.
+      - Published history means the remote default branch's, so an unpushed commit on local `<default>` (main-checkout work) still folds; a target already there gets no fold slot, since rewriting it rewrites commits everyone else builds on.
       - A pushed PR branch is fair game: keep the fold row and name the cost in its parenthetical (`amend into HEAD + force-with-lease push`, plus any stacked PR that then needs a rebase).
-    - **The pending change belongs to HEAD's commit**, finishing or fixing that one intent rather than standing on its own (atomic commits). A change that deserves its own subject gets `[c]ommit`, not `[f]old`.
 
   - **Empty** (clean tree): drop `[c]ommit`, `[f]old` and `[xx]`, reframe `[i]terate` from "defer the commit" to "keep tuning", and narrow the menu to `[i]terate`/`[p]romote`/`[L]and`/`[x]` (they act on the already-committed work, or leave it where it is). `[xx]` goes because the work it guards is already in a commit, per the close rows above.
 
@@ -90,7 +91,9 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   The common options:
   - 🛠️ **`[i]terate`**: no commit yet, keep iterating in the worktree (the do-nothing default, named for the action rather than a passive "keep").
   - 💾 **`[c]ommit`**: commit, keep iterating in the worktree (commits what's there; `[i]terate` defers the commit). Carries its three `[cN]` subject drafts beneath it.
-  - 📦 **`[f]old`**: amend the pending change into HEAD with `git commit --amend --no-edit`, keep iterating in the worktree. Carries its three `[fN]` subject drafts beneath it, scored against the combined diff; picking one swaps the `--no-edit` for `--message "<subject>"`, so the amended commit carries the new subject.
+  - 📦 **`[f]old`**: fold the pending change into its target commit, keep iterating in the worktree. Carries its three `[fN]` subject drafts beneath it, scored against the combined diff; picking one gives the folded commit that subject.
+    - **Target is HEAD:** `git commit --amend --no-edit`; a picked draft swaps the `--no-edit` for `--message "<subject>"`. Parenthetical: `(amend into HEAD)`.
+    - **Target is an earlier commit:** `git commit --fixup=<target>`, then `git rebase --autosquash <target>~1`, which runs without an editor (checked on git 2.54); a picked draft rewords the target in a follow-up step. Parenthetical names the target by subject: ``(fixup into `<subject>` + autosquash)``.
   - ⬆️ **`[p]romote`**: commit + fast-forward the default branch to here, keep the worktree (via `worktree-promote`). Carries a single `[pN] ...` stand-in for the commit row's numbering when the tree is dirty.
   - 🏁 **`[L]and`**: commit + promote + tear down the worktree (via `worktree-done`). Carries a single `[LN] ...` stand-in for the commit row's numbering when the tree is dirty.
   - 🧨 **`[x]`**: commit + promote + tear down the worktree + mark the session for prune + `/exit`, per the close rows above. The parenthetical spells out the land row's steps rather than saying `land +`, since every option is self-contained. Carries a single `[xN] ...` stand-in for the commit row's numbering when the tree is dirty.
