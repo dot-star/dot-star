@@ -34,7 +34,7 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
     6. Does every decision the message body left open have a row here? Re-read the prose above for nits, 💅 polish notes, 🔄 heads-ups, and 🔴 blockers; each one the user could accept needs its own row under the same letter and emoji, per the bracket-prefix checklist. A menu that omits one sends the reader back to typing a sentence.
     7. Does every committing row carry its drafts? A committing row with none costs the user a round trip through the skill's pick step.
        - The 💾 commit row carries the subject drafts beneath it.
-       - The 📦 fold row carries its own `[fN]` drafts against the combined diff.
+       - The 📦 fold row carries a `[f]` row with HEAD's subject when that subject still fits, then its own `[fN]` drafts against the combined diff, none repeating HEAD's subject.
        - The ⬆️ promote, 🏁 land and 🧨 close rows each carry their `[pN] ...` stand-in.
     8. Is the change the drafts describe staged? Every `[cN]` tree needs its paths in the index before the menu renders, per the staging rule below; a menu with drafts over an unstaged change sends the user back to asking for the staging before they can judge the subjects.
     9. Would a behavior-preserving restructure of a touched line shrink this diff? Read the staged diff's deleted lines: a long paragraph replaced by a copy of itself with one clause changed is the tell, since the reviewer sees a rewrite where the intent is one sentence.
@@ -54,6 +54,9 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
     - Draft it against the combined diff (HEAD's change plus the pending one), which is what the amended commit will hold.
     - Number it after the commit row's drafts, `[f4]`-`[f6]` under a `[c1]`-`[c3]` commit row, so one number names one draft.
     - A bare `f` keeps HEAD's subject, the right pick whenever that subject already covers the combined diff; `f<N>` amends with draft N instead.
+    - Lead the tree with a `[f]` row carrying HEAD's subject verbatim, tagged `(same subject, still fits)`, whenever that subject still covers the combined diff, so the keep-it pick sits on screen beside the drafts it competes with.
+    - Leave the `[f]` row off when HEAD's subject has gone stale: the row is a verdict that the subject holds, so showing it beside a stale one offers the wrong pick as a good one. A typed `f` still keeps the subject.
+    - Never repeat HEAD's subject as an `[fN]` draft: that pick is the `[f]` row, and a numbered copy hides that a bare `f` already reuses it.
     - The tree renders on every fold, since whether the old subject still covers the folded-in change is the question the drafts answer, so leaving them off when it looks fine is the guess they replace.
   - **Bare `c` still runs the skill** and shows the full list of five.
 
@@ -106,8 +109,9 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   > 　　 ├─ **`[c2]`** Give open search box room when title is long
   > 　　 └─ **`[c3]`** Stop long title squeezing search input to nothing
   >   📦 **`[f]old`**    (amend into HEAD + keep iterating)
+  > 　　 ├─ **`[f]`** Add search box to toolbar (same subject, still fits)
   > 　　 ├─ **`[f4]`** Add search box that stays usable under long title
-  > 　　 ├─ **`[f5]`** Add search box to toolbar
+  > 　　 ├─ **`[f5]`** Add toolbar search box that survives long title
   > 　　 └─ **`[f6]`** Add search box that yields to title
   >   ⬆️ **`[p]romote`** (commit + ✅ promote to master)
   > 　　 └─ **`[pN]`** ...
