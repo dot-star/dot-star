@@ -84,6 +84,12 @@ Interpret a bare one-token reply or a short fixed phrase as shorthand. Fires onl
   <!-- shorthand-match: ^((c|f|p|l|x)\d+|\d+(c|f|p|l|x))( ((c|f|p|l|x)\d+|\d+(c|f|p|l|x)))*( iter)?$ -->
 - `cs` means "commit only the already-staged changes": like `c` (the `commit` skill), but never auto-stage; if nothing is staged, stop.
 - `🚢` means "ship it" (land the work)
+- `split`, `sp`, `prs` mean "propose splitting the current change into separate PRs": offer the unsplit PR first, then a split into 2, into 3 and so on while each PR still carries one intent, with line counts beside every PR. It's a plan, so don't branch, commit or push.
+  - Count from `git diff --numstat <merge-base>`, summing each file's adds and deletes into the PR that would carry it.
+  - Write each option as a numbered choice: a one-line summary of the cut, then one indented line per PR with its subject, file count, `+adds` and `-deletes`.
+  - Render the options in a fenced block and right-align the file count, `+adds` and `-deletes` into columns shared by every option, so the counts compare top to bottom.
+  - Carry each option's totals on its summary line, summed over its PRs and aligned in the same columns.
+  - Mark my pick with `❯` and say why in one line.
 - `<N> iter` means "option N is the front-runner, but iterate on it": treat N as the starting point and propose refinements rather than committing it as-is. E.g. `2 iter` → improve on option 2.
 - `<x> vs <y>` or `<x> v <y>`, as a whole message, means `w <x> vs <y>`. Treat a `vs` or `v` inside an ordinary question or sentence as prose; it fires only when the candidates and their separator make up the entire message.
 - `exp <x>` means "explain `<x>`" without acting on it; re-offer any menu it came from.
