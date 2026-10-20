@@ -1448,6 +1448,7 @@ rc_pull_with_rebase() {
 
 rc_push() {
     local current_branch
+    local push_status
     current_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
 
     # Route every worktree branch by the per-machine DOTSTAR_WORKTREE_PUSH
@@ -1503,17 +1504,22 @@ rc_push() {
             git push -u origin "HEAD:${remote_branch}" "$@"
         fi
 
-        if [[ $? -ne 0 ]]; then
+        # Return the push's own status; the hint's `if` would mask a failure.
+        push_status="${?}"
+        if [[ "${push_status}" -ne 0 ]]; then
             echo -e "\ngit push options: $(git remote show)"
         fi
 
-        return
+        return "${push_status}"
     fi
 
     git push "$@"
-    if [[ $? -ne 0 ]]; then
+    push_status="${?}"
+    if [[ "${push_status}" -ne 0 ]]; then
         echo -e "\ngit push options: $(git remote show)"
     fi
+
+    return "${push_status}"
 }
 
 git_worktree_list_sorted() {
