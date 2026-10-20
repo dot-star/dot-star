@@ -45,7 +45,7 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
 
   **Subject drafts ride under every row that commits.** Whenever the tree is dirty, draft subjects the way the `commit` skill does (over-generate, score, rank) and render the top three beneath each of 💾 **`[c]ommit`**, 📦 **`[f]old`**, ⬆️ **`[p]romote`**, 🏁 **`[L]and`** and 🧨 **`[x]`** as a tree sub-list, the same shape as the 🏁 checklist's commit list:
 
-  - **Row shape:** each row indented with 2 ideographic full-width spaces (U+3000) + 1 regular space so the glyph lands under the `[` of the parent row, a `├─` on each row and `└─` on the last, then the bracket token `**` + `` ` `` + `[cN]` + `` ` `` + `**` (or `[fN]`, `[pN]`, `[LN]`, `[xN]`, the parent's letter plus the draft number), a space, and the subject in plain text. The subject stays plain because it's text to compare, not an option name.
+  - **Row shape:** each row indented with 2 ideographic full-width spaces (U+3000) + 1 regular space so the glyph lands under the `[` of the parent row, a `├─` on each row and `└─` on the last, then the bracket token `**` + `` ` `` + `[cN]` + `` ` `` + `**` (or `[fN]`, `[pN]`, `[LN]`, `[xN]`, the parent's letter plus the draft number), a space, and the subject in plain text. Pad a bare `[f]` row with 2 spaces before its subject, so its subject starts in the same column as the `[fN]` subjects beneath it. The subject stays plain because it's text to compare, not an option name.
   - **Spelled out once:** the subjects sit under the commit row; the promote, land and close rows each carry a single stand-in row instead of a tree, `[pN] ...`, `[LN] ...`, `[xN] ...` with a literal `N`, so the accept-token shape is on screen without three rows of `...` repeating three times. The stand-in takes a `└─`, since it's the last row under its parent, the same way `└─` closes the commit row's list.
   - **One tree per staged commit:**
     - A menu covering commits in two or more repos or worktrees renders a draft tree under each one's staged commit.
@@ -115,7 +115,7 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   > 　　 ├─ **`[c2]`** Give open search box room when title is long
   > 　　 └─ **`[c3]`** Stop long title squeezing search input to nothing
   >   📦 **`[f]old`**    (amend into HEAD + keep iterating)
-  > 　　 ├─ **`[f]`** Add search box to toolbar (same subject, still fits)
+  > 　　 ├─ **`[f]`**  Add search box to toolbar (same subject, still fits)
   > 　　 ├─ **`[f4]`** Add search box that stays usable under long title
   > 　　 ├─ **`[f5]`** Add toolbar search box that survives long title
   > 　　 └─ **`[f6]`** Add search box that yields to title
