@@ -34,6 +34,7 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
     6. Does every decision the message body left open have a row here? Re-read the prose above for nits, 💅 polish notes, 🔄 heads-ups, and 🔴 blockers; each one the user could accept needs its own row under the same letter and emoji, per the bracket-prefix checklist. A menu that omits one sends the reader back to typing a sentence.
     7. Does every committing row carry its drafts? A committing row with none costs the user a round trip through the skill's pick step.
        - The 💾 commit row carries the subject drafts beneath it.
+       - A menu banking two or more commits gives each its own labeled branch with its drafts nested beneath, never one flat list of every commit's drafts.
        - The 📦 fold row carries a `[f]` row with the fold target's subject when that subject still fits, then its own `[fN]` drafts against the combined diff, none repeating the target's subject.
        - The ⬆️ promote, 🏁 land and 🧨 close rows each carry their `[pN] ...` stand-in.
     8. Is the change the drafts describe staged? Every `[cN]` tree needs its paths in the index before the menu renders, per the staging rule below; a menu with drafts over an unstaged change sends the user back to asking for the staging before they can judge the subjects.
@@ -47,7 +48,9 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   - **Row shape:** each row indented with 2 ideographic full-width spaces (U+3000) + 1 regular space so the glyph lands under the `[` of the parent row, a `├─` on each row and `└─` on the last, then the bracket token `**` + `` ` `` + `[cN]` + `` ` `` + `**` (or `[fN]`, `[pN]`, `[LN]`, `[xN]`, the parent's letter plus the draft number), a space, and the subject in plain text. The subject stays plain because it's text to compare, not an option name.
   - **Spelled out once:** the subjects sit under the commit row; the promote, land and close rows each carry a single stand-in row instead of a tree, `[pN] ...`, `[LN] ...`, `[xN] ...` with a literal `N`, so the accept-token shape is on screen without three rows of `...` repeating three times. The stand-in takes a `└─`, since it's the last row under its parent, the same way `└─` closes the commit row's list.
   - **One tree per staged commit:**
-    - A menu covering commits in two or more repos renders a draft tree under each repo's staged commit.
+    - A menu covering commits in two or more repos or worktrees renders a draft tree under each one's staged commit.
+    - Hang each commit's tree off its own label row under the commit row, naming the commit (what it holds, plus the repo or worktree), with that commit's drafts nested one level deeper. A flat run of six drafts under one row reads as six candidates for a single commit, however the numbers split.
+      - Nest with a `│` + 1 U+3000 continuation under every label row but the last, and 1 U+3000 + 1 regular space under the last, so each draft glyph lands under its label's first letter.
     - Number the drafts globally unique across the message (`[c1]`-`[c3]` for the first commit, `[c4]`-`[c6]` for the second), so a single `c<N>` names one draft of one commit.
     - Never float a commit's subject in prose beside another commit's tree; a subject with no token can't be picked, so it reads as decided when it isn't.
   - **Fold unstales the subject it amends**, so its row carries a tree too:
@@ -123,6 +126,20 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   >   🧨 **`[x]`**       (commit + ✅ promote to master + 🪓 tear down worktree + 🧨 close session)
   > 　　 └─ **`[xN]`** ...
   >   🧨🧨 **`[xx]`**    (no commit + worktree left as-is + 🧨🧨 close session)
+
+  Two commits (one staged in each of two worktrees, so each gets a labeled branch; promote, land and close rows left out):
+
+  > 👉 How do you want to proceed? Pick one subject per commit (e.g. `c1 c4`):
+  >   🛠️ **`[i]terate`** (no commit + keep iterating)
+  >   💾 **`[c]ommit`**  (commit both + keep iterating)
+  > 　　 ├─ Search box (`toolbar-search`)
+  > 　　 │　├─ **`[c1]`** Add search box to toolbar
+  > 　　 │　├─ **`[c2]`** Add toolbar search box
+  > 　　 │　└─ **`[c3]`** Show search box in toolbar
+  > 　　 └─ Title truncation (`toolbar-title`)
+  > 　　 　 ├─ **`[c4]`** Truncate long toolbar title
+  > 　　 　 ├─ **`[c5]`** Clip toolbar title with ellipsis
+  > 　　 　 └─ **`[c6]`** Stop long title overflowing toolbar
 
   Subset (e.g. nothing worth keeping uncommitted, so no iterate slot):
 
