@@ -3,7 +3,8 @@
 zmodload zsh/datetime
 typeset -g zsh_startup_start=$EPOCHREALTIME
 
-zstyle ':omz:update' mode auto
+# Update oh-my-zsh in the background; a foreground update holds the first prompt for its network pull.
+zstyle ':omz:update' mode background-alpha
 
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
