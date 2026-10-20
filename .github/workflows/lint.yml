@@ -61,3 +61,42 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           # Merge as a collaborator so the merge commit's push to master starts Lint; GITHUB_TOKEN pushes don't trigger workflows.
           GH_TOKEN: ${{ secrets.DOT_STAR_TOKEN }}
+
+  merge-dependabot-update:
+    needs: lint
+    # Merge only Dependabot's own PRs, never a fork's lookalike.
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Fetch Dependabot metadata
+        id: dependabot-metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+
+      # Leave major updates open for review; they can carry breaking changes.
+      - name: Merge patch update
+        if: steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch'
+        run: |
+          gh pr merge \
+              --merge \
+              --repo="${GITHUB_REPOSITORY}" \
+              "${PR_NUMBER}"
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          # Read from the Dependabot secrets store; Dependabot-triggered runs can't see Actions secrets.
+          GH_TOKEN: ${{ secrets.DOT_STAR_TOKEN }}
+
+      - name: Merge minor update
+        if: steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'
+        run: |
+          gh pr merge \
+              --merge \
+              --repo="${GITHUB_REPOSITORY}" \
+              "${PR_NUMBER}"
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          # Read from the Dependabot secrets store; Dependabot-triggered runs can't see Actions secrets.
+          GH_TOKEN: ${{ secrets.DOT_STAR_TOKEN }}
