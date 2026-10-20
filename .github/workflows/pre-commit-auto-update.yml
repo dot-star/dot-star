@@ -69,5 +69,7 @@ jobs:
 
       - name: Pull request created or updated
         if: ${{ steps.cpr.outputs.pull-request-number }}
+        env:
+          PULL_REQUEST_URL: ${{ steps.cpr.outputs.pull-request-url }}
         run: |
-          echo "Pull request: ${{ steps.cpr.outputs.pull-request-url }}"
+          echo "Pull request: ${PULL_REQUEST_URL}"
