@@ -8,3 +8,4 @@
 /uv.lock
 
 tools/bash/extra.sh
+tools/bash/extra.local.sh
