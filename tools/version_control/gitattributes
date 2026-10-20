@@ -8,3 +8,6 @@
 
 # Name the enclosing heading. Git ships this driver, so no xfuncname is needed.
 *.md diff=markdown
+
+# Name the enclosing function or method. Git ships this driver too.
+*.php diff=php
