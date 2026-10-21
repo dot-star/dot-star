@@ -635,7 +635,9 @@ edit() {
 
         if [[ ! -z "${result}" ]] && [[ -x "${editor_cli}" ]]; then
             echo "${result}" | while read -r file_to_edit; do
-                "${editor_cli}" --goto "${file_to_edit}:$(first_diff_line "${file_to_edit}")"
+                # Keep the editor off the loop's stdin. Without this, the first
+                # call swallows the remaining file names.
+                "${editor_cli}" --goto "${file_to_edit}:$(first_diff_line "${file_to_edit}")" </dev/null
             done
         else
             editor_args="$(echo "${result}" | tr '\n' ' ')"
