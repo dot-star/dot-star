@@ -63,8 +63,11 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
     - The tree renders on every fold, since whether the old subject still covers the folded-in change is the question the drafts answer, so leaving them off when it looks fine is the guess they replace.
   - **Bare `c` still runs the skill** and shows the full list of five.
 
-  **Stage the change before rendering its drafts.** A subject is judged against the diff it describes, so the diff has to be one command away while the drafts are on screen: once the paths are in the index, a bare `d` in another terminal shows `git diff --cached` (`rc_diff` prefers the staged diff when one exists) and `s` lists the staged files, which is exactly what the picked draft would commit. Whenever a menu carries a `[cN]` tree, run `git add -- <path> [<path> ...]` over the paths this session edited first, under the same explicit-path and `git status --porcelain` checks the staging rule in Shell commands sets, and say so in a line above the menu (`🟢 Staged 2 files`) so the user knows `d` is live. Re-run it on every menu, since edits made after an earlier staging land unstaged.
+  **Stage the change before rendering its drafts.** A subject is judged against the diff it describes, so the diff has to be one command away while the drafts are on screen: once the paths are in the index, a bare `d` in another terminal shows `git diff --cached` (`rc_diff` prefers the staged diff when one exists) and `s` lists the staged files, which is exactly what the picked draft would commit.
 
+  - Whenever a menu carries a `[cN]` tree, run `git add -- <path> [<path> ...]` over the paths this session edited first, under the same explicit-path and `git status --porcelain` checks the staging rule in Shell commands sets.
+  - Say so in a line above the menu (`🟢 Staged 2 files`) so the user knows `d` is live.
+  - Re-run the staging on every menu, since edits made after an earlier staging land unstaged.
   - **Draft only what's staged:** the index holds one commit, so a repo with several pending commits stages only the first one's paths and renders only that commit's tree.
     - Name that commit above the menu (`🟢 Staged 1 file for commit 1 of 4`).
     - Name it again in every row whose parenthetical opens with `commit` (`💾 [c]ommit (commit 1 of 4)`), so the row picked says which commit it banks.
