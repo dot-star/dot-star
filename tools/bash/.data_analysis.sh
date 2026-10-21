@@ -120,7 +120,9 @@ difference() {
 
     if [[ "${exit_code}" -eq 0 ]]; then
         echo "⚖️ No differences found."
-        md5sum "${1}" "${2}"
+        if [[ -f "${1}" ]] && [[ -f "${2}" ]]; then
+            md5sum "${1}" "${2}"
+        fi
     elif [[ "${exit_code}" -eq 2 ]]; then
         echo "Error running diff."
     fi
