@@ -122,7 +122,10 @@ class BuildContextTest(unittest.TestCase):
     def test_injects_in_message_tokens(self) -> None:
         """Ensure build_context injects the in-message entry when its token is a word inside a longer prompt."""
         cases = {
+            "bg s": "`bg` means",
             "copy that to cb": "`c`, `cb` mean",
+            "p bg": "`bg` means",
+            "p bg; bg s": "`bg` means",
             "ok sta please": "`sta` means",
             "do it nw": "`nw`, `nwt` mean",
             "where are we, sta?": "`sta` means",
