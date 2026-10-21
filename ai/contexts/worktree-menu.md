@@ -66,10 +66,11 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   **Stage the change before rendering its drafts.** A subject is judged against the diff it describes, so the diff has to be one command away while the drafts are on screen: once the paths are in the index, a bare `d` in another terminal shows `git diff --cached` (`rc_diff` prefers the staged diff when one exists) and `s` lists the staged files, which is exactly what the picked draft would commit.
 
   - Whenever a menu carries a `[cN]` tree, run `git add -- <path> [<path> ...]` over the paths this session edited first, under the same explicit-path and `git status --porcelain` checks the staging rule in Shell commands sets.
-  - Say so in a line above the menu (`🟢 Staged 2 files`) so the user knows `d` is live.
+  - Say so in a line above the menu (`🟢 Staged 2 files (+13 -9)`) so the user knows `d` is live.
+  - Carry the staged line counts in that line, summed from `git diff --cached --numstat`, so the user knows how big a diff the drafts describe before opening it.
   - Re-run the staging on every menu, since edits made after an earlier staging land unstaged.
   - **Draft only what's staged:** the index holds one commit, so a repo with several pending commits stages only the first one's paths and renders only that commit's tree.
-    - Name that commit above the menu (`🟢 Staged 1 file for commit 1 of 4`).
+    - Name that commit above the menu (`🟢 Staged 1 file (+4 -1) for commit 1 of 4`).
     - Name it again in every row whose parenthetical opens with `commit` (`💾 [c]ommit (commit 1 of 4)`), so the row picked says which commit it banks.
     - Give each later commit its tree on the menu after the one before it lands; a tree over unstaged paths asks the user to judge subjects they can't `d`.
     - **Drop 🏁 `[L]and` and 🧨 `[x]` mid-series:** while a later commit in the series is still pending (unstaged paths waiting for their turn, or a change set aside behind a 🪚 refactor-first split), the menu offers neither. Both tear the worktree down after banking only the staged commit, so picking one strands the rest of the series. They return on the menu for the last commit, which is the one that can finish the objective.
