@@ -78,6 +78,10 @@
       {
         "hooks": [
           {
+            "command": "${HOME}/.claude/hooks/open_created_pr_in_browser.sh",
+            "type": "command"
+          },
+          {
             "command": "${HOME}/.claude/hooks/recheck_amended_subject.sh",
             "type": "command"
           },
