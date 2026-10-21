@@ -49,9 +49,14 @@ BT_PIPE="│"
 _BT_LABELS=()
 _BT_STARTS=()
 
-# gdate (coreutils) is required for %N on macOS; BSD date returns "N" literally.
+# Use gdate (coreutils) for %N on macOS, where BSD date returns "N" literally; fall back to date on Linux, where date is already GNU and gdate doesn't exist.
+_BT_DATE="date"
+if command -v gdate >/dev/null 2>&1; then
+    _BT_DATE="gdate"
+fi
+
 _bt_now_ns() {
-    gdate +%s%N
+    "${_BT_DATE}" +%s%N
 }
 
 _bt_indent() {
