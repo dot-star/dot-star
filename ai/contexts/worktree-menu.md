@@ -57,7 +57,7 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
     - Draft it against the combined diff (the fold target's change plus the pending one), which is what the amended commit will hold.
     - Number it after the commit row's drafts, `[f4]`-`[f6]` under a `[c1]`-`[c3]` commit row, so one number names one draft.
     - A bare `f` keeps the target's subject, the right pick whenever that subject already covers the combined diff; `f<N>` amends with draft N instead.
-    - Lead the tree with a `[f]` row carrying the target's subject verbatim, tagged `(same subject, still fits)`, whenever that subject still covers the combined diff, so the keep-it pick sits on screen beside the drafts it competes with.
+    - Lead the tree with a `[f]` row carrying the target's subject verbatim, tagged `(♻️ same subject, still fits)` (the recycle emoji: the subject gets reused), whenever that subject still covers the combined diff, so the keep-it pick sits on screen beside the drafts it competes with.
     - Leave the `[f]` row off when the target's subject has gone stale: the row is a verdict that the subject holds, so showing it beside a stale one offers the wrong pick as a good one. A typed `f` still keeps the subject.
     - Never repeat the target's subject as an `[fN]` draft: that pick is the `[f]` row, and a numbered copy hides that a bare `f` already reuses it.
     - The tree renders on every fold, since whether the old subject still covers the folded-in change is the question the drafts answer, so leaving them off when it looks fine is the guess they replace.
@@ -115,7 +115,7 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   > 　　 ├─ **`[c2]`** Give open search box room when title is long
   > 　　 └─ **`[c3]`** Stop long title squeezing search input to nothing
   >   📦 **`[f]old`**    (amend into HEAD + keep iterating)
-  > 　　 ├─ **`[f]`**  Add search box to toolbar (same subject, still fits)
+  > 　　 ├─ **`[f]`**  Add search box to toolbar (♻️ same subject, still fits)
   > 　　 ├─ **`[f4]`** Add search box that stays usable under long title
   > 　　 ├─ **`[f5]`** Add toolbar search box that survives long title
   > 　　 └─ **`[f6]`** Add search box that yields to title
