@@ -103,8 +103,8 @@ difference() {
                 --no-dereference \
                 --recursive \
                 --unified \
-                ${1} \
-                ${2}
+                "${1}" \
+                "${2}"
         )"
         exit_code="${?}"
     fi
