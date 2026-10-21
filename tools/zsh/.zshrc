@@ -230,6 +230,18 @@ zsh_startup_install_running() {
     kill -0 "${pid}" 2>/dev/null
 }
 
+# Report whether this shell rebuilt oh-my-zsh's completion dump; each oh-my-zsh update forces one full rebuild in the next shell.
+zsh_startup_compdump_rebuilt() {
+    local -a mtime
+
+    zmodload -F zsh/stat b:zstat
+    if ! zstat -A mtime +mtime -- "${ZSH_COMPDUMP}" 2>/dev/null; then
+        return 1
+    fi
+
+    ((mtime[1] >= ${zsh_startup_start%.*}))
+}
+
 # Print the gap between shell start and first prompt, once per interactive shell.
 zsh_startup_report() {
     # Warn once the wait is noticeable before typing, alert once it feels sluggish.
@@ -261,6 +273,8 @@ zsh_startup_report() {
         if ((elapsed_ms >= warn_ms)); then
             if zsh_startup_install_running; then
                 note=" · install running, not investigating"
+            elif zsh_startup_compdump_rebuilt; then
+                note=" · completion cache rebuilt, not investigating"
             elif zsh_startup_investigate "${elapsed_ms}"; then
                 note=" · opening investigation window"
             fi
@@ -277,6 +291,7 @@ zsh_startup_report() {
     unfunction zsh_startup_report
     unfunction zsh_startup_investigate
     unfunction zsh_startup_install_running
+    unfunction zsh_startup_compdump_rebuilt
     unset zsh_startup_start
 }
 autoload -Uz add-zsh-hook
