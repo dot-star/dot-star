@@ -17,7 +17,10 @@ source "tools/bash/.config.sh"
 source "tools/bash/.requires.sh"
 source "tools/bash/.confirm_prompts.sh"
 source "tools/bash/.aliases.sh"
-source "tools/zsh/.aliases.sh"
+
+if [[ -n "${ZSH_VERSION}" ]]; then
+    source "tools/zsh/.aliases.sh"
+fi
 
 if [[ -n "${BASH_VERSION}" ]]; then
     source "tools/bash/.behavior.sh"
