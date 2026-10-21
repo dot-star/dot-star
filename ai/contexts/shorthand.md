@@ -41,7 +41,8 @@ Interpret a bare one-token reply or a short fixed phrase as shorthand. Fires onl
 
   A status is a place to act from, so end it on the bracket-prefix menu that applies (worktree menu, loose-end rows, an open pick), rendered in full per the Output rules; with nothing to offer, end on the labels.
 
-- `ses`, `sesid`, `sess`, `sessid`, `sid` mean "print this session's handle as other sessions see it and put it on the clipboard": run `ListAgents` and copy the name and bracket ref from its `This session is` line (`dot-star-12 [abcdef]`).
+- `ses`, `sesid`, `sess`, `sessid`, `sid` mean "print this session's handle as other sessions see it and put it on the clipboard": run `ListAgents` and copy the name and bracket ref from its `This session is` line, wrapped in a label that says what they are (`Peer Claude session dot-star-12 [abcdef] (reach it with SendMessage):`).
+  - Label the handle so it explains itself wherever it lands: pasted into another session ahead of a task, a bare `dot-star-12 [abcdef]` reads as a hostname, branch or user, so the receiver misses that the task is about a peer session.
   - Copy the ref along with the name: two sessions can share a name, and the ref is what `SendMessage` uses to tell them apart.
   - Print the full id (as in the scratchpad path) beneath it, labeled, without copying it. A peer can't look that id up, since the session list shows only short refs and the ref isn't a prefix of the id.
 - `2g`, `2nd` mean "summarize this session so far for a second opinion and put the summary on the clipboard": the reader is another model seeing only the pasted text, so write it for someone with none of the session's context. It's a handoff, so don't start new work.
