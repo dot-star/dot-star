@@ -108,16 +108,20 @@ difference() {
         )"
         exit_code="${?}"
     fi
-    if [[ "${exit_code}" -eq 1 ]]; then
+    # Show the differences even when diff also hit an error, since an
+    # unreadable path doesn't stop it comparing the rest.
+    if [[ -n "${diff_result}" ]]; then
         if [[ -t 1 ]]; then
             echo "${diff_result}" | pretty_diff_filter | less -R
         else
             echo "${diff_result}"
         fi
-    elif [[ "${exit_code}" -eq 0 ]]; then
+    fi
+
+    if [[ "${exit_code}" -eq 0 ]]; then
         echo "⚖️ No differences found."
         md5sum "${1}" "${2}"
-    else
+    elif [[ "${exit_code}" -eq 2 ]]; then
         echo "Error running diff."
     fi
 
