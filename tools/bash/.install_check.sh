@@ -6,14 +6,9 @@
 dot_star_check_install_stale() {
     local stamp_file="${HOME}/.dot-star-installed-commit"
     local checked_file="${HOME}/.dot-star-install-checked-commit"
-    if [[ ! -f "${stamp_file}" ]]; then
-        return 0
-    fi
-
-    local installed_commit
-    installed_commit="$(<"${stamp_file}")"
-    if [[ -z "${installed_commit}" ]]; then
-        return 0
+    local installed_commit=""
+    if [[ -f "${stamp_file}" ]]; then
+        installed_commit="$(<"${stamp_file}")"
     fi
 
     local current_commit
@@ -33,8 +28,13 @@ dot_star_check_install_stale() {
     fi
 
     # Cheap re-source covers everything except these two; only prompt when one of them changed.
-    local changed_installer_files
-    changed_installer_files="$(git -C "${HOME}/.dot-star" diff --name-only "${installed_commit}" HEAD -- script/install.sh script/post_install.sh 2>/dev/null)"
+    # Count both installer files as changed when no stamp exists. A host installed before the stamp was added has nothing to diff against, and skipping it would hide every later post-install change (a git pager swap, say) from that host for good.
+    local installer_files=(script/install.sh script/post_install.sh)
+    local changed_installer_files="${installer_files[*]}"
+    if [[ -n "${installed_commit}" ]]; then
+        changed_installer_files="$(git -C "${HOME}/.dot-star" diff --name-only "${installed_commit}" HEAD -- "${installer_files[@]}" 2>/dev/null)"
+    fi
+
     if [[ -z "${changed_installer_files}" ]]; then
         echo "${installed_commit} ${current_commit}" >"${checked_file}"
         return 0
