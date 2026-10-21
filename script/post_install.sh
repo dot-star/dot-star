@@ -243,10 +243,6 @@ elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
     if [[ ${#missing_apt[@]} -gt 0 ]]; then
         sudo apt-get install "${missing_apt[@]}"
     fi
-
-    cd "/usr/share/doc/git/contrib/diff-highlight" &&
-        sudo make &&
-        sudo ln -v -s "/usr/share/doc/git/contrib/diff-highlight/diff-highlight" /usr/local/bin/
     bt_pop # linux section
 fi
 
