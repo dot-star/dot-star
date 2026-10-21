@@ -358,18 +358,21 @@ bt_pop
 
 bt_push "ipython"
 install_ipython() {
+    # Run ipython by the name each platform installs it under: Ubuntu's package only ships `ipython3`.
+    local ipython_command="ipython"
     if [[ "${OSTYPE}" == "darwin"* ]]; then
         if ! command -v ipython >/dev/null; then
             brew install ipython
             brew link --overwrite ipython
         fi
     elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
+        ipython_command="ipython3"
         if ! command -v ipython3 >/dev/null; then
             sudo apt-get install -y ipython3
         fi
     fi
 
-    ipython profile create
+    "${ipython_command}" profile create
     local config_file=~/.ipython/profile_default/ipython_config.py
     local header="# Begin dot-star ipython config."
     local footer="# End dot-star ipython config."
