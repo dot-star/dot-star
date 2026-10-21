@@ -52,10 +52,11 @@ Interpret a bare one-token reply or a short fixed phrase as shorthand. Fires onl
   - Flag a loader call near the cap, a file offloaded to a preview, or an `@` import or symlink that failed to resolve.
 - `todo`, `todos` mean "list the open todos for the repo we're in": find the file the way `~/.dot-star/ai/contexts/todo-banking.md` resolves where entries land (personal record first, then the markdown beside the work, then the repository root), then render them for scanning. It's a read, so don't start new work.
   - Name the file in a lead line above the list.
-  - Order by the file's own pick rule when it states one, else priority then severity.
+  - Sort the rows by priority, then severity, then the file's own pick rule when it states one, then file order. An entry missing a label sorts after every labeled entry on that scale.
+    - Sort only in the render, never in the file: a reprioritized entry then changes one label line instead of moving the whole entry.
   - Render one row per entry in a fenced block: a row number, then labels (`P2 S3`), then the entry's first line trimmed to a subject.
   - Number the rows `1`, `2`, `3` in rendered order, so a bare-number reply picks that entry without describing it. Numbers are positional and hold only for this render, since banking or closing an entry shifts them.
-  - Mark the row the pick rule takes next with `❯` (the recommended-pick rule in Output).
+  - Mark the top row with `❯` (the recommended-pick rule in Output).
 - `bank`, `bt` mean "bank todo" (or "bank task"): bank the loose ends the conversation just named as todos, per the banking rule in Output and `~/.dot-star/ai/contexts/todo-banking.md`.
 - `cbank` means "bank a consideration": bank the point the conversation just raised as a todo whose task is to consider it, not to carry it out, per `bank`. Lead the entry with `Consider` (`Consider moving the cache into the loader`), so whoever picks it up weighs the idea and decides rather than implementing it.
 - `eg`, `egs`, `examples` mean "show me examples"

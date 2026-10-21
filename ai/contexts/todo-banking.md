@@ -9,7 +9,7 @@ Loaded on demand: the loose-end rule in the Output section of `~/.claude/CLAUDE.
 3. A TODO section in the repository root's markdown.
 4. Neither exists: create `todo.md` at the repository root with a `# todo` heading.
 
-Match a heading case-insensitively (`# todo`, `## TODO`, `## Todo`) and append to the end of that section, never the top; existing entries were banked first and keep their slots.
+Match a heading case-insensitively (`# todo`, `## TODO`, `## Todo`) and append to the end of that section, never the top; existing entries were banked first and keep their slots. Never sort the file by label: the `todo` render sorts, so reprioritizing an entry edits its label line without moving it.
 
 **What each entry carries:** one entry per loose end, shaped like the entries already in that section (bullet marker, sentence vs. fragment), leading with an action verb per the TODO rule in Writing style. Spell out the context the chat message carried implicitly (`file_path:line_number`, what's wrong, what "it" refers to), since the reader picking this up months later has none of this session.
 
