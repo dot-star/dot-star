@@ -229,6 +229,7 @@ elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
         fzf
         git-delta
         jq
+        python3-pip
         tig
     )
 
