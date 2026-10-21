@@ -95,7 +95,14 @@ difference() {
         diff_result="$(diff --unified <(jq --sort-keys . "${1}") <(jq --sort-keys . "${2}"))"
         exit_code="${?}"
     else
-        diff_result="$(diff --exclude='.git' --recursive --unified ${1} ${2})"
+        diff_result="$(
+            diff \
+                --exclude='.git' \
+                --recursive \
+                --unified \
+                ${1} \
+                ${2}
+        )"
         exit_code="${?}"
     fi
     if [[ "${exit_code}" -eq 1 ]]; then
