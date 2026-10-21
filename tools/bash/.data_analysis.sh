@@ -95,9 +95,12 @@ difference() {
         diff_result="$(diff --unified <(jq --sort-keys . "${1}") <(jq --sort-keys . "${2}"))"
         exit_code="${?}"
     else
+        # Compare symlinks by target rather than following them, so a
+        # dangling or looping link is not an error.
         diff_result="$(
             diff \
                 --exclude='.git' \
+                --no-dereference \
                 --recursive \
                 --unified \
                 ${1} \
