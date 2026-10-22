@@ -137,6 +137,30 @@ class BuildContextTest(unittest.TestCase):
             with self.subTest(prompt=prompt):
                 self.assert_injects(prompt, lead)
 
+    def test_injects_whole_message_entries_for_clauses(self) -> None:
+        """Ensure build_context injects a whole-message entry when it fills one `;`-separated clause."""
+        cases = {
+            "undo; gen rendered example; look it up": "`gen`, `gen <x>`,",
+            "fix the typo; play": "`play` means",
+            "play ;": "`play` means",
+        }
+        for prompt, lead in cases.items():
+            with self.subTest(prompt=prompt):
+                self.assert_injects(prompt, lead)
+
+    def test_skips_clauses_that_are_not_whole_tokens(self) -> None:
+        """Ensure build_context returns "" when no clause is a whole token, including a question clause and a code span."""
+        for prompt in ("fix it; then play the clip", "undo; what is play", "use `a; play` here"):
+            with self.subTest(prompt=prompt):
+                self.assertEqual(build_context(prompt, "", DOC_PATH), "")
+
+    def test_defers_a_clause_to_an_offered_bracket_option(self) -> None:
+        """Ensure build_context skips a clause that names an offered option instead of injecting the table entry."""
+        with tempfile.TemporaryDirectory() as directory:
+            transcript = write_transcript(directory, "Proceed?\n  ⚡ **`[n]ow`** (do it)")
+            context = build_context("undo that; n", transcript, DOC_PATH)
+        self.assertNotIn('mean "no"', context)
+
     def test_skips_a_token_quoted_in_code(self) -> None:
         """Ensure build_context returns "" when the only token sits in a code span."""
         self.assertEqual(build_context("rename the `cb` variable", "", DOC_PATH), "")

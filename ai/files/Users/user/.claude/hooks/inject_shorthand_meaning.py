@@ -5,7 +5,8 @@ UserPromptSubmit hook: inject the shorthand entry a prompt invokes.
 The shorthand table lives in `ai/contexts/shorthand.md` instead of the
 always-on `~/.claude/CLAUDE.md`, so its cost is paid only by the prompt that
 uses a token. Match the whole prompt against the Whole-message tokens section,
-else scan it for the In-message tokens, and inject each matched entry verbatim.
+else match each `;`-separated clause against that section and scan the prompt
+for the In-message tokens, and inject each matched entry verbatim.
 
 A bracket option offered in the last assistant message outranks the table
 (`n` after a `[n]ow` offer means now, not no), so a prompt naming one injects
@@ -225,6 +226,32 @@ def match_whole(prompt: str, entries: Iterable[Entry]) -> list[Entry]:
     return matched
 
 
+def match_clauses(prompt: str, entries: Iterable[Entry], transcript_path: str) -> list[Entry]:
+    """
+    Returns the whole-message entries matched by a `;`-separated clause.
+
+    :param prompt: Stripped prompt text (e.g. "undo; gen the example"). Code
+        spans are skipped, so a `;` quoted in backticks never splits a clause.
+    :param entries: Whole-message entries.
+    :param transcript_path: Session transcript; a clause naming a bracket option
+        its last message offered picks that option, so it matches no entry.
+    :return: Matched entries in doc order of first match, without repeats.
+    """
+    prose = CODE_SPAN_PATTERN.sub(" ", prompt)
+    if ";" not in prose:
+        return []
+    offered = offered_options(last_assistant_text(transcript_path))
+    matched: list[Entry] = []
+    for clause in prose.split(";"):
+        clause = clause.strip()
+        if not clause or clause.lower() in offered:
+            continue
+        for entry in match_whole(clause, entries):
+            if entry not in matched:
+                matched.append(entry)
+    return matched
+
+
 def match_in_message(prompt: str, entries: Iterable[Entry]) -> list[Entry]:
     """
     Returns the entries whose tokens appear as words inside the prompt.
@@ -269,11 +296,16 @@ def build_context(prompt: str, transcript_path: str, path: str) -> str:
     elif " " not in prompt:
         return ""
 
+    sections = []
+    clauses = match_clauses(prompt, whole_entries, transcript_path)
+    if clauses:
+        header = f"Shorthand: clauses of the prompt match these whole-message entries in {path}; apply each:"
+        sections.append("\n\n".join([header] + [entry.text for entry in clauses]))
     in_message = match_in_message(prompt, in_message_entries)
-    if not in_message:
-        return ""
-    header = f"Shorthand: the prompt uses these in-message tokens from {path}; read each as its referent:"
-    return "\n\n".join([header] + [entry.text for entry in in_message])
+    if in_message:
+        header = f"Shorthand: the prompt uses these in-message tokens from {path}; read each as its referent:"
+        sections.append("\n\n".join([header] + [entry.text for entry in in_message]))
+    return "\n\n".join(sections)
 
 
 def main() -> None:

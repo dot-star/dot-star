@@ -9,7 +9,7 @@ The hook reads each top-level entry's backticked tokens, up to its `mean` or `me
 
 ## Whole-message tokens
 
-Interpret a bare one-token reply or a short fixed phrase as shorthand. Fires only when the entire message is exactly that token or phrase; if the message starts with a question word (what/how/why/is/should/can/does/...) it's a question *about* the token, not an invocation. A bracket-prefix offer in the previous message outranks this table, per Input in `~/.claude/CLAUDE.md`.
+Interpret a bare one-token reply or a short fixed phrase as shorthand. Fires only when the entire message, or one `;`-separated clause of it, is exactly that token or phrase; if the message or clause starts with a question word (what/how/why/is/should/can/does/...) it's a question *about* the token, not an invocation. A bracket-prefix offer in the previous message outranks this table, per Input in `~/.claude/CLAUDE.md`.
 
 - `y`, `ya` mean "yes" (treat as a `y/n?` style answer)
 - `n`, `no`, `nope` mean "no"
