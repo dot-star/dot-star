@@ -13,10 +13,13 @@ Match a heading case-insensitively (`# todo`, `## TODO`, `## Todo`) and append t
 
 **What each entry carries:** one entry per loose end, shaped like the entries already in that section (bullet marker, sentence vs. fragment), leading with an action verb per the TODO rule in Writing style. Spell out the context the chat message carried implicitly (`file_path:line_number`, what's wrong, what "it" refers to), since the reader picking this up months later has none of this session.
 
+**Keep the head line short and put the detail beneath it**, so each change touches one short line in the diff. The head line names the task and carries any checkbox; context, steps and findings go on indented lines below it, ahead of the labels (see the example below). Give a rechecked fact (a version, a disk reading, a `seen` date) its own line.
+
 **Label every entry on two scales**, one label per line as the entry's last lines, so retuning one leaves the other's line untouched in the diff. `P#` is priority, when the task gets worked. `S#` is severity, how much the problem hurts while it sits there. The two are independent: a cosmetic label that takes one line to fix earns a high priority at a low severity, and a real annoyance nobody but the developer hits stays low priority. Assign both while banking, weighting priority toward effort-to-payoff (a cheap fix with a visible result ranks high even when trivial); the labels are a starting point the user corrects by hand, never a record of a decision. Rendered example:
 
 ```
-- Fix the settings button needing two taps to open the modal; the first tap should open it.
+- [ ] Fix the settings button needing two taps to open the modal
+  The first tap should open it.
   P2
   S3
 ```
