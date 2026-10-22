@@ -266,6 +266,21 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
      - Only failure among the last 12 runs
   3. 📋 Weak test still open
   ```
+- Give every numbered item one address: nest a numbered sub-list under its parent item, indented beneath it, so a reply like `2c` names exactly one item. Never restart at `1.` flush beside the parent's numbers, and never number a section in a bold heading (`**2. Write output**`) with its items numbered flush beneath it; both put two schemes at one indent, so a bare `2` could mean either level.
+  - Make each section a top-level list item carrying the bold title (`2. **Write output**`) and indent its items three spaces as `1.`, `2.`; the chat renderer draws that second level as letters (`a.`, `b.`), so refer to an item in prose by the address the reader sees (`check 2c`).
+  - Keep plain notes beneath an item as dashes, indented under it, per the rule above; numbers are for items a reply may point at.
+
+  Rendered example:
+
+  ```
+  1. Parse input
+     a. Read the file
+     b. Validate each row
+  2. Write output
+     a. Format the rows
+     b. Save the file
+        - Encoding may vary by platform
+  ```
 - Chat color palette by surface: inline prose has three accents (plain inline-code, bold-inline-code per the bracket-prefix trick, link blue); fenced code blocks get the full syntax-highlight palette of the chosen lexer; status line bypasses markdown and supports full ANSI (8/256/truecolor). When asked about chat colors, distinguish the surface before claiming a limit, and reach for a fenced block when multi-color is needed and prose-inline isn't. Rendered example, file:line in a `python` fence so `42` shows in number-color:
 
   ```python
