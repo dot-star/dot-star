@@ -66,30 +66,31 @@ def cwd_url(cwd: str) -> str:
     return f"kitty-shell-cwd://{host}{cwd}"
 
 
-def session_worktree(session_id: str) -> str | None:
+def session_marker(session_id: str, name: str) -> str | None:
     """
-    Return the worktree the session's marker names, or None when there is none.
+    Return the directory a session marker names, or None when there is none.
 
     :param session_id: Raw session id from the hook payload (e.g. a uuid).
-    :return: The worktree path, or None when the marker is missing or its
-        worktree has since been torn down.
+    :param name: Marker file in the session dir (e.g. "worktree").
+    :return: The directory path, or None when the marker is missing or its
+        directory has since been removed.
     """
     session_dir = claude_session_dir(session_id)
 
     if session_dir is None:
         return None
 
-    marker = session_dir / "worktree"
+    marker = session_dir / name
 
     if not marker.is_file():
         return None
 
-    worktree = marker.read_text().strip()
+    directory = marker.read_text().strip()
 
-    if not os.path.isdir(worktree):
+    if not os.path.isdir(directory):
         return None
 
-    return worktree
+    return directory
 
 
 def report_cwd(tty: str, cwd: str) -> None:
@@ -111,7 +112,7 @@ def main() -> None:
     except (json.JSONDecodeError, ValueError):
         event = {}
 
-    cwd = session_worktree(event.get("session_id", "")) or event.get("cwd")
+    cwd = session_marker(event.get("session_id", ""), "worktree") or event.get("cwd")
 
     if not cwd:
         log("no cwd on the payload; skipping")
