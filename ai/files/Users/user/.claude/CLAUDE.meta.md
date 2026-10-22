@@ -113,6 +113,7 @@
   -
   -
   -
+    - A bare `Mark` opens a noun phrase (a mark, the mark), so it stays on the bad list, but `Mark <todo> done` reads fine: it frames the commit as finishing something, where checking a todo off only names the checkbox. Scoping the exception to that one form keeps it from reopening `Mark` as a general leader.
   -
   -
 -

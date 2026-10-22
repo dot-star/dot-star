@@ -113,6 +113,7 @@
   - **Where it binds:** TODOs in code comments (`// TODO:`, `# TODO:`) and task-list entries (`todo.md`, `TODO`, `tasks.md`, README task sections), commit subjects and PR titles.
   - **Good leaders** are unambiguous: `Add`, `Show`, `Fix`, `Render`, `Plot`, `Wire`, `Move`, `Replace`, `Remove`, `Rename`, `Drop`.
   - **Bad leaders** read as nouns first: `Baseline`, `Brief`, `File`, `Mark`, `Plant`, `Surface`. They're valid verbs but parse as nouns at a glance, breaking scan-ability.
+    - **Exception:** `Mark <todo> done` passes for todo-tick commits (`~/.claude/styles/commit-message-style.md`); `Mark` anywhere else still fails.
   - **The test:** read the first word alone, with no context. If it could open a noun phrase, pick another verb. `Baseline the new lint errors` reads as "the lint baseline"; `Silence` or `Ignore` reads as an instruction.
   - **TODOs specifically:** give every entry its own `TODO: `, never one comment governing several sibling entries. Entries get deleted one at a time, so a shared TODO strands the survivors' rationale when the first one goes.
 - Match the file's existing line-wrapping convention; don't hard-wrap prose or markdown to a column. If the surrounding bullets/paragraphs each run one line, keep yours on one line too. Only wrap where the existing lines already wrap. For a new file with no convention to match, default to no wrapping: one line per paragraph and per bullet.
