@@ -1,7 +1,7 @@
 -- Show where the focused Space sits in the swipe order, as experiments toggled independently:
 --   Keep a strip on a full-screen Space's right edge while another Space lies beyond it, a stop sign once none does (edge_bars).
 --   Add a strip on the left edge of the first full-screen Space, where swiping left leaves the full-screen apps (edge_bars).
---   Add a thin band along the bottom edge in the right strip's color, wherever the right strip shows (bottom_bar, needs edge_bars).
+--   Add a thin band along the bottom edge of every full-screen Space in that Space's strip color (bottom_bar, needs edge_bars).
 --   Flash a row of dots after each switch, the focused Space filled (page_dots).
 -- Toggle from the shell with `space_position_experiment`; each flag persists across reloads.
 
@@ -234,6 +234,16 @@ local function showsRightBar(focused, index, count)
     return true
 end
 
+-- Return whether the focused Space gets a bottom band; desktops stay clear, the same as for the right bar.
+local function showsBottomBar(focused)
+    if not isEnabled('bottom_bar') then
+        return false
+    elseif hs.spaces.spaceType(focused) ~= 'fullscreen' then
+        return false
+    end
+    return true
+end
+
 local function deleteEdgeBarPair(pair)
     pair.left:delete()
     pair.right:delete()
@@ -311,7 +321,7 @@ local function renderEdgeBars(index, count, screen, focused)
     local rightVisible = showsRightBar(focused, index, count)
     setEdgeBarVisible(pair.left, startsFullScreenRun(hs.spaces.spacesForScreen(screen) or {}, index))
     setEdgeBarVisible(pair.right, rightVisible)
-    setEdgeBarVisible(pair.bottom, rightVisible and isEnabled('bottom_bar'))
+    setEdgeBarVisible(pair.bottom, showsBottomBar(focused))
     setEdgeBarVisible(pair.stop, index == count)
 end
 
