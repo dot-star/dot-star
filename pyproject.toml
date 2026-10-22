@@ -28,8 +28,18 @@ extend-select = [
     "I",
     # Flag no-op code, such as a pass beside a docstring or a duplicate class field.
     "PIE",
+    # Run Ruff's own checks, such as a mutable default argument or a lookalike Unicode character.
+    "RUF",
     # Rewrite outdated syntax into the form the pinned interpreter supports, such as list[str] over List[str].
     "UP",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Allow lookalike Unicode characters in the hook that detects them, whose docs and tests spell them out.
+"ai/files/Users/user/.claude/hooks/block_hidden_characters*.py" = [
+    "RUF001",
+    "RUF002",
+    "RUF003",
 ]
 
 [tool.ruff.lint.isort]
