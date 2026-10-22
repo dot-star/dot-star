@@ -132,6 +132,11 @@ claude_supplemental_assemble() {
             continue
         fi
 
+        # Skip a `.meta.md` companion; it holds reasoning for human readers, not rules to load.
+        if [[ "${file}" == *.meta.md ]]; then
+            continue
+        fi
+
         file_name="${file##*/CLAUDE_}"
         file_name="${file_name%.md}"
         if [ -n "${name}" ] && [ "${file_name}" != "${name}" ]; then

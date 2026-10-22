@@ -34,6 +34,11 @@ prompt_lower=$(printf '%s' "${prompt}" | tr '[:upper:]' '[:lower:]')
 context=""
 referenced_files=""
 while IFS= read -r file; do
+    # Skip a `.meta.md` companion; a marker quoted in its reasoning isn't a mention target.
+    if [[ "${file}" == *.meta.md ]]; then
+        continue
+    fi
+
     sentinel="${sentinel_dir}/referenced-${file##*/}"
     if [ -e "${sentinel}" ]; then
         continue
