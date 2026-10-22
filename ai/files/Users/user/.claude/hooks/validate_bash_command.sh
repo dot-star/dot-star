@@ -306,12 +306,23 @@ is_read_only_command() {
 # commits nothing.
 runs_git_commit_all() {
     local all_flag='(^|[[:space:]])(--all|-[[:alnum:]]*a[[:alnum:]]*)([[:space:]]|$)'
+    local value="(\"[^\"]*\"|'[^']*'|[^[:space:]]+)"
+    local valued_option="(-C|-c|--config-env|--git-dir|--namespace|--work-tree)"
+    local global_option="[[:space:]]+(${valued_option}[[:space:]]+${value}|-[^[:space:]]*)"
+    local git_commit="^git(${global_option})*[[:space:]]+commit([[:space:]]|$)"
     local segment
+    local commit_args
 
     split_commands "${1}"
     for segment in "${segments[@]}"; do
-        if [[ "${segment}" =~ ^git[[:space:]]+commit([[:space:]]|$) && "${segment}" =~ ${all_flag} ]]; then
-            return 0
+        # Step over git's global options (`git -C <path> commit`), each listed
+        # one spending the next word as its value, and test only the words
+        # after `commit` for the flag.
+        if [[ "${segment}" =~ ${git_commit} ]]; then
+            commit_args="${segment:${#BASH_REMATCH[0]}}"
+            if [[ "${commit_args}" =~ ${all_flag} ]]; then
+                return 0
+            fi
         fi
     done
 
