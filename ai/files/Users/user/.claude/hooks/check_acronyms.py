@@ -194,7 +194,7 @@ def main() -> int:
         "Your last message uses unexplained acronym(s) in prose "
         "(per ~/.claude/CLAUDE.md Output > spell out niche acronyms): " + ", ".join(offenders) + "\n"
         "\n┌─ 🤖 for Claude ───────────────────────────────────────────────────────"
-        "\n│ Reply with only the CLAUDE.md acronym table or whitelist them."
+        "\n│ Reply with only the CLAUDE.md acronym table or whitelist [wl] them."
         "\n└───────────────────────────────────────────────────────────────────────"
     )
     print(json.dumps({"decision": "block", "reason": reason}))
