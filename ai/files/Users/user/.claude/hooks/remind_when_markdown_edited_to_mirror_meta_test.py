@@ -13,7 +13,9 @@ import sys
 import tempfile
 import unittest
 
+from remind_when_markdown_edited_to_mirror_meta import describe_credits
 from remind_when_markdown_edited_to_mirror_meta import describe_drift
+from remind_when_markdown_edited_to_mirror_meta import find_credits
 from remind_when_markdown_edited_to_mirror_meta import find_mismatches
 from remind_when_markdown_edited_to_mirror_meta import line_shape
 from remind_when_markdown_edited_to_mirror_meta import lines_match
@@ -103,6 +105,55 @@ class FindMismatchesTest(unittest.TestCase):
         """Ensure find_mismatches returns the 1-based number of each drifted line."""
         drifted = META.replace("  - A dead", "- A dead")
         self.assertEqual(find_mismatches(DOC, drifted), [4])
+
+
+class FindCreditsTest(unittest.TestCase):
+    """Test the `find_credits` function."""
+
+    def test_returns_empty_for_bare_reasoning(self) -> None:
+        """Ensure find_credits returns nothing when every line states only its reason."""
+        self.assertEqual(find_credits(META), [])
+
+    def test_flags_each_credit_and_date(self) -> None:
+        """Ensure find_credits flags a passive credit, an active credit and both date forms."""
+        for line in (
+            "- Retry once. Stated by the user.",
+            "- Retry once. Scope narrowed by the user.",
+            "- Retry once. Chosen by the user.",
+            "- Retry once, as the user ruled.",
+            "- Retry once, as the user chose.",
+            "- Retry once, picked on Thu, Oct 22.",
+            "- Retry once, picked on 2026-10-22.",
+        ):
+            with self.subTest(line=line):
+                self.assertEqual(find_credits(line), [1])
+
+    def test_skips_user_in_reasoning(self) -> None:
+        """Ensure find_credits ignores the user named as the reader rather than the source."""
+        self.assertEqual(find_credits("- A blurry capture leaves the user unable to judge it."), [])
+
+    def test_returns_line_numbers(self) -> None:
+        """Ensure find_credits returns the 1-based number of each credited line."""
+        credited = META.replace("fifty.", "fifty. Stated by the user.")
+        self.assertEqual(find_credits(credited), [3])
+
+
+class DescribeCreditsTest(unittest.TestCase):
+    """Test the `describe_credits` function."""
+
+    def test_returns_none_for_bare_reasoning(self) -> None:
+        """Ensure describe_credits returns None when no line credits or dates its reasoning."""
+        self.assertIsNone(describe_credits("a.meta.md", META))
+
+    def test_returns_none_for_missing_meta(self) -> None:
+        """Ensure describe_credits returns None when the companion is missing."""
+        self.assertIsNone(describe_credits("a.meta.md", None))
+
+    def test_names_credited_line(self) -> None:
+        """Ensure describe_credits names the line number and the meta path."""
+        reminder = describe_credits("a.meta.md", META.replace("fifty.", "fifty. The user ruled."))
+        assert reminder is not None
+        self.assertIn("at line 3 of a.meta.md", reminder)
 
 
 class PairPathsTest(unittest.TestCase):

@@ -10,7 +10,8 @@ always explains line N of the doc. Each meta line keeps its doc line's format
 carries no prose.
 
 The hook stays silent while the pair lines up and speaks only when the
-companion is missing or a line's shape drifted.
+companion is missing, a line's shape drifted or a meta line credits its
+reasoning to someone or stamps it with a date.
 
 Usage:
     Wired in settings.json as a PostToolUse hook with a Write|Edit matcher.
@@ -31,6 +32,19 @@ MARKER = re.compile(r"(?:>[ \t]?)*(?:(?:#{1,6}|[-*+]|\d+[.)])(?=\s|$)|`{3,}|~{3,
 
 # Name the most mismatched lines a reminder lists before it stops counting.
 MAX_REPORTED_LINES = 5
+
+# Flag reasoning that says who gave it or when instead of why. Every line is the
+# user's rule, so the credit adds nothing and git history already holds the date.
+CREDIT_PATTERNS = (
+    # Catch a passive credit (`Stated by the user`, `Scope narrowed by the user`).
+    re.compile(r"\b(?:\w+ed|chosen|said) by the user\b", re.IGNORECASE),
+    # Catch an active credit (`the user ruled`, `the user chose`).
+    re.compile(r"\bthe user (?:\w+ed|chose|said)\b", re.IGNORECASE),
+    # Catch a prose date (`Thu, Oct 22`).
+    re.compile(r"\b(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun), (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{1,2}\b"),
+    # Catch an ISO date (`2026-10-22`).
+    re.compile(r"\b\d{4}-\d{2}-\d{2}\b"),
+)
 
 # Match only the instruction docs the rule covers, so another repo's markdown and
 # a directory that loads every `.md` it holds (`commands/`, `agents/`) never get a companion.
@@ -176,6 +190,49 @@ def describe_drift(doc_path: str, meta_path: str, doc_text: str, meta_text: str 
     )
 
 
+def find_credits(meta_text: str) -> list[int]:
+    """
+    Returns the 1-based numbers of the meta lines that credit or date their reasoning.
+
+    :param meta_text: Full content of the `.meta.md` file.
+    :return: Line numbers matching any of `CREDIT_PATTERNS`, in file order.
+    """
+    credited: list[int] = []
+    for number, line in enumerate(meta_text.splitlines(), start=1):
+        for pattern in CREDIT_PATTERNS:
+            if pattern.search(line):
+                credited.append(number)
+                break
+
+    return credited
+
+
+def describe_credits(meta_path: str, meta_text: str | None) -> str | None:
+    """
+    Returns the reminder text for credited or dated reasoning, or None when there is none.
+
+    :param meta_path: Path of the `.meta.md` file.
+    :param meta_text: Content of the `.meta.md` file, or None when it is missing.
+    :return: Reminder naming the offending lines, or None when every line states only its reason.
+    """
+    if meta_text is None:
+        return None
+
+    credited = find_credits(meta_text)
+    if not credited:
+        return None
+
+    listed = ", ".join(str(number) for number in credited[:MAX_REPORTED_LINES])
+    if len(credited) > MAX_REPORTED_LINES:
+        listed += f" and {len(credited) - MAX_REPORTED_LINES} more"
+
+    return (
+        f"Meta reasoning credited or dated at line {listed} of {meta_path}. "
+        "State the reason itself and drop who gave it (stated by the user, the user ruled) and when (a date): "
+        "every line is the user's rule and git history records the date."
+    )
+
+
 def read_text(path: str) -> str | None:
     """
     Returns a file's content, or None when it can't be read.
@@ -232,11 +289,20 @@ def main() -> None:
     if doc_text is None:
         return
 
-    context = describe_drift(doc_path, meta_path, doc_text, read_text(meta_path))
-    if context is None:
+    meta_text = read_text(meta_path)
+    reminders: list[str] = []
+    drift = describe_drift(doc_path, meta_path, doc_text, meta_text)
+    if drift is not None:
+        reminders.append(drift)
+
+    credit = describe_credits(meta_path, meta_text)
+    if credit is not None:
+        reminders.append(credit)
+
+    if not reminders:
         return
 
-    json.dump(build_reminder(context), sys.stdout, separators=(",", ":"))
+    json.dump(build_reminder(" ".join(reminders)), sys.stdout, separators=(",", ":"))
 
 
 if __name__ == "__main__":
