@@ -2,8 +2,9 @@
 Shared plumbing for hooks that write escape sequences to the session's terminal.
 
 Import-only (no shebang, not executable): `announce_window_state.py`,
-`color_tab_per_session.py` and `report_cwd_for_new_tabs.py` import it from the
-hooks directory, which Python puts on `sys.path` when it runs a script there.
+`color_tab_per_session.py`, `open_status_tab_on_commit_menu.py` and
+`report_cwd_for_new_tabs.py` import it from the hooks directory, which Python
+puts on `sys.path` when it runs a script there.
 
 Hooks run with piped stdio, so `/dev/tty` is closed to them; the terminal is
 reached through the tty the parent claude process owns, and every write fails

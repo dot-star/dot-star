@@ -180,6 +180,10 @@
           {
             "command": "${HOME}/.claude/hooks/announce_fork_parent.sh",
             "type": "command"
+          },
+          {
+            "command": "${HOME}/.claude/hooks/open_status_tab_on_commit_menu.py SessionStart",
+            "type": "command"
           }
         ]
       }
@@ -216,6 +220,15 @@
         "hooks": [
           {
             "command": "${HOME}/.claude/hooks/chime_when_reply_ready_to_review.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      },
+      {
+        "hooks": [
+          {
+            "command": "${HOME}/.claude/hooks/open_status_tab_on_commit_menu.py Stop",
             "type": "command"
           }
         ],
