@@ -20,8 +20,8 @@ local EDGE_GLOW_WIDTHS = {
     right = 64,
 }
 local EDGE_BAR_CANVAS_WIDTH = math.max(EDGE_BAR_WIDTH, EDGE_GLOW_WIDTHS.left, EDGE_GLOW_WIDTHS.right)
--- Keep the bottom band a hairline with no glow, so it hints at the Space's color without eating into the terminal.
-local BOTTOM_BAR_HEIGHT = 3
+-- Keep the bottom band thin with no glow, so it hints at the Space's color without eating into the terminal.
+local BOTTOM_BAR_HEIGHT = 7
 -- Show a stop sign at the right edge's midpoint on the last Space, where there's no bar to say the swipe ends.
 local STOP_SIGN_SIZE = 64
 local STOP_SIGN_MARGIN = 8
