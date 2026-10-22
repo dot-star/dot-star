@@ -40,3 +40,8 @@ Match a heading case-insensitively (`# todo`, `## TODO`, `## Todo`) and append t
 | S5 | No defect; a feature that doesn't exist yet |
 
 A file whose entries don't yet carry labels gets both tables added above its entries in the same edit, so a bare `P2` reads to the next person; its existing entries stay unlabeled until a backfill of their own.
+
+**Retire a finished entry in two commits, never one:** check it off where the work lands, then delete the line later in a commit of its own. A box that goes `[ ]` to `[x]` in the same diff as the work ties the work to the task it closes. A line that vanishes in that diff reads as a dropped task, and the record of what got done goes with it.
+
+1. `- [ ] Fix the thing` becomes `- [x] Fix the thing` in the commit that does the work.
+2. The `- [x]` line gets deleted later in a prune commit that touches nothing else, often sweeping several finished entries at once.
