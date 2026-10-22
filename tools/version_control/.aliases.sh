@@ -1469,9 +1469,53 @@ rc_pull_with_rebase() {
     git pull --rebase $@
 }
 
+# Record what `s` just showed: the command line it ran on and the checkout and
+# HEAD it listed, so `rc_push_guard` can tell whether the push follows that
+# review. Keep it in shell variables, never a file, so an `s` in another tab
+# can't vouch for this one.
+rc_push_guard_stamp() {
+    DOTSTAR_STATUS_COMMAND_LINE="${DOTSTAR_COMMAND_LINE_COUNT:-}"
+    DOTSTAR_STATUS_GIT_DIR="$(git rev-parse --absolute-git-dir 2>/dev/null)"
+    DOTSTAR_STATUS_HEAD="$(git rev-parse HEAD 2>/dev/null)"
+}
+
+# Refuse a push that doesn't directly follow `s`, or whose HEAD moved since
+# then (an agent promoting commits in between), so nothing unreviewed ships.
+# Plain `git push` skips both checks.
+rc_push_guard() {
+    local current_head
+
+    # Skip the previous-command check where no preexec hook counts command
+    # lines (bash, non-interactive shells); the HEAD check below still runs.
+    if [[ -n "${DOTSTAR_COMMAND_LINE_COUNT:-}" ]]; then
+        if [[ "${DOTSTAR_STATUS_COMMAND_LINE:-}" != "$((DOTSTAR_COMMAND_LINE_COUNT - 1))" ]]; then
+            echo "refusing to push: run \`s\` right before \`pus\` to review what it ships"
+            return 1
+        fi
+    fi
+
+    if [[ "$(git rev-parse --absolute-git-dir)" != "${DOTSTAR_STATUS_GIT_DIR:-}" ]]; then
+        echo "refusing to push: no \`s\` review of this checkout in this shell; run \`s\` first"
+        return 1
+    fi
+
+    current_head="$(git rev-parse HEAD)"
+    if [[ "${current_head}" != "${DOTSTAR_STATUS_HEAD}" ]]; then
+        echo "refusing to push: HEAD moved since the last \`s\`; commits added since:"
+        git log --oneline "${DOTSTAR_STATUS_HEAD}..${current_head}"
+        echo "run \`s\` again to review them"
+        return 1
+    fi
+}
+
 rc_push() {
     local current_branch
     local push_status
+
+    if ! rc_push_guard; then
+        return 1
+    fi
+
     current_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
 
     # Route every worktree branch by the per-machine DOTSTAR_WORKTREE_PUSH

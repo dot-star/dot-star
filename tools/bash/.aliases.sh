@@ -868,6 +868,7 @@ conditional_s() {
     if [[ "${param_count}" -eq 0 ]]; then
         # Show version control status when no parameters are passed.
         rc_status
+        rc_push_guard_stamp
 
     else
         case_insensitive_search "${@}"

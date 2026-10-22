@@ -26,3 +26,10 @@ recover_dead_cwd() {
 }
 autoload -Uz add-zsh-hook
 add-zsh-hook precmd recover_dead_cwd
+
+# Count each command line run, so `rc_push_guard` can tell whether `s` ran
+# right before `pus`. Preexec skips empty lines, so a bare Enter doesn't count.
+count_command_lines() {
+    DOTSTAR_COMMAND_LINE_COUNT=$((${DOTSTAR_COMMAND_LINE_COUNT:-0} + 1))
+}
+add-zsh-hook preexec count_command_lines
