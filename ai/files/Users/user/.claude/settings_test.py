@@ -196,7 +196,7 @@ def resolve_hook_script(command: str, settings_dir: Path) -> Path | None:
     :param settings_dir: Directory holding the settings file being checked.
     :return: Path to the script, or None when the command names no path.
     """
-    script = command.split()[0]
+    script = command.split(maxsplit=1)[0]
     for prefix in HOOK_PATH_PREFIXES:
         if script.startswith(prefix):
             return settings_dir / script[len(prefix) :]

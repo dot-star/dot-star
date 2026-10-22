@@ -46,6 +46,8 @@ extend-select = [
     "PGH",
     # Flag no-op code, such as a pass beside a docstring or a duplicate class field.
     "PIE",
+    # Flag a split that keeps only its first or last piece but splits the whole string.
+    "PLC0207",
     # Flag a loop variable reassigned inside its loop, which hides the original value.
     "PLW2901",
     # Drop a needless `return None` from a function that never returns a value.
