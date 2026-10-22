@@ -21,11 +21,10 @@
 
 set -u
 
+source "$(dirname -- "${BASH_SOURCE[0]}")/git_command.inc.sh"
+
 # Hold the tokens the last `tokenize` call produced.
 tokens=()
-
-# Hold the commands the last `split_commands` call produced.
-segments=()
 
 # Fail on any shell metacharacter that breaks the literal-string assumption:
 # command chaining (; & | newline), redirection (< >), substitution ($ `),
@@ -123,65 +122,6 @@ tokenize() {
     fi
 
     return 0
-}
-
-# Push a segment onto `segments` with its edge spaces stripped, dropping the
-# empty one a `&&` pair or a trailing separator leaves.
-add_segment() {
-    local text="${1}"
-
-    while [[ "${text}" == " "* ]]; do
-        text="${text# }"
-    done
-
-    while [[ "${text}" == *" " ]]; do
-        text="${text% }"
-    done
-
-    if [[ -n "${text}" ]]; then
-        segments+=("${text}")
-    fi
-}
-
-# Split a command line into `segments`, one per command it runs, treating a
-# separator inside quotes as argument text. Leave every other metacharacter
-# in place for the per-command checks to reject.
-split_commands() {
-    local text="${1}"
-    local quote=""
-    local current=""
-    local index=0
-    local char
-
-    segments=()
-    while [[ "${index}" -lt "${#text}" ]]; do
-        char="${text:index:1}"
-        index=$((index + 1))
-
-        if [[ -n "${quote}" ]]; then
-            if [[ "${char}" == "${quote}" ]]; then
-                quote=""
-            fi
-            current+="${char}"
-            continue
-        fi
-
-        case "${char}" in
-        '"' | "'")
-            quote="${char}"
-            current+="${char}"
-            ;;
-        ';' | '&' | '|' | $'\n')
-            add_segment "${current}"
-            current=""
-            ;;
-        *)
-            current+="${char}"
-            ;;
-        esac
-    done
-
-    add_segment "${current}"
 }
 
 # Accept one `gh api <endpoint>` carrying no flag beyond --paginate and --jq,
@@ -306,20 +246,14 @@ is_read_only_command() {
 # commits nothing.
 runs_git_commit_all() {
     local all_flag='(^|[[:space:]])(--all|-[[:alnum:]]*a[[:alnum:]]*)([[:space:]]|$)'
-    local value="(\"[^\"]*\"|'[^']*'|[^[:space:]]+)"
-    local valued_option="(-C|-c|--config-env|--git-dir|--namespace|--work-tree)"
-    local global_option="[[:space:]]+(${valued_option}[[:space:]]+${value}|-[^[:space:]]*)"
-    local git_commit="^git(${global_option})*[[:space:]]+commit([[:space:]]|$)"
     local segment
     local commit_args
 
     split_commands "${1}"
     for segment in "${segments[@]}"; do
-        # Step over git's global options (`git -C <path> commit`), each listed
-        # one spending the next word as its value, and test only the words
-        # after `commit` for the flag.
-        if [[ "${segment}" =~ ${git_commit} ]]; then
-            commit_args="${segment:${#BASH_REMATCH[0]}}"
+        # Test only the words after `commit` for the flag, never a global
+        # option's value ahead of it.
+        if commit_args="$(git_subcommand_args "${segment}" commit)"; then
             if [[ "${commit_args}" =~ ${all_flag} ]]; then
                 return 0
             fi
