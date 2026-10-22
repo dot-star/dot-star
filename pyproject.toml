@@ -28,6 +28,8 @@ extend-select = [
     "I",
     # Flag no-op code, such as a pass beside a docstring or a duplicate class field.
     "PIE",
+    # Rewrite outdated syntax into the form the pinned interpreter supports, such as list[str] over List[str].
+    "UP",
 ]
 
 [tool.ruff.lint.isort]
