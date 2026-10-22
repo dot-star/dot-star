@@ -2,7 +2,7 @@
 """
 PostToolUse hook: remind Claude when a markdown file and its `.meta.md` companion fall out of step.
 
-Every hand-written `<name>.md` carries a `<name>.meta.md` beside it: the `.md`
+Every instruction doc `<name>.md` carries a `<name>.meta.md` beside it: the `.md`
 holds the trimmed rules, the meta holds the reasoning behind each one on the
 same line number. The two stay line-for-line aligned, so line N of the meta
 always explains line N of the doc. Each meta line keeps its doc line's format
@@ -16,6 +16,7 @@ Usage:
     Wired in settings.json as a PostToolUse hook with a Write|Edit matcher.
 """
 
+import fnmatch
 import json
 import os
 import re
@@ -31,37 +32,27 @@ MARKER = re.compile(r"(?:>[ \t]?)*(?:(?:#{1,6}|[-*+]|\d+[.)])(?=\s|$)|`{3,}|~{3,
 # Name the most mismatched lines a reminder lists before it stops counting.
 MAX_REPORTED_LINES = 5
 
-# Exempt the markdown that isn't a hand-written doc: memory files, todo lists,
-# plans and scratch files.
-EXEMPT_NAMES = (
-    "memory.md",
-    "tasks.md",
-)
-EXEMPT_NAME_SUFFIXES = ("todo.md",)
-EXEMPT_PATH_PREFIXES = (
-    "/private/tmp/",
-    "/tmp/",
-)
-EXEMPT_PATH_PARTS = (
-    "/.claude/plans/",
-    "/memory/",
-    "/scratchpad/",
+# Match only the instruction docs the rule covers, so another repo's markdown and
+# a directory that loads every `.md` it holds (`commands/`, `agents/`) never get a companion.
+INSTRUCTION_DOC_PATTERNS = (
+    "*/.claude/CLAUDE.md",
+    "*/.claude/CLAUDE_*.md",
+    "*/.claude/skills/*/SKILL.md",
+    "*/.claude/styles/*.md",
+    "*/ai/contexts/*.md",
 )
 
 
-def is_exempt(path: str) -> bool:
+def is_instruction_doc(path: str) -> bool:
     """
-    Returns whether a markdown file sits outside the hand-written docs the rule covers.
+    Returns whether a markdown file is one of the instruction docs the rule covers.
 
-    :param path: Absolute path of the markdown file (e.g. `/repo/README.md`).
-    :return: True for memory files, todo files, plans and scratch files.
+    :param path: Absolute path of the markdown file (e.g. `/repo/ai/contexts/code-style.md`).
+    :return: True for the user-global `CLAUDE.md`, `CLAUDE_*.md` supplementals,
+        skills, style guides and context docs.
     """
-    name = os.path.basename(path).lower()
-    if name in EXEMPT_NAMES or name.endswith(EXEMPT_NAME_SUFFIXES) or path.startswith(EXEMPT_PATH_PREFIXES):
-        return True
-
-    for part in EXEMPT_PATH_PARTS:
-        if part in path:
+    for pattern in INSTRUCTION_DOC_PATTERNS:
+        if fnmatch.fnmatchcase(path, pattern):
             return True
 
     return False
@@ -73,7 +64,7 @@ def pair_paths(path: str) -> tuple[str, str] | None:
 
     :param path: Absolute path the edit landed in (e.g. `/repo/CLAUDE.md`).
     :return: The doc path and its meta path, or None when the file isn't
-        markdown or is exempt from the rule.
+        an instruction doc.
     """
     if path.endswith(META_SUFFIX):
         doc_path = path[: -len(META_SUFFIX)] + ".md"
@@ -82,7 +73,7 @@ def pair_paths(path: str) -> tuple[str, str] | None:
     else:
         return None
 
-    if is_exempt(doc_path):
+    if not is_instruction_doc(doc_path):
         return None
 
     return doc_path, doc_path[: -len(".md")] + META_SUFFIX
@@ -135,7 +126,9 @@ def find_mismatches(doc_text: str, meta_text: str) -> list[int]:
         doc line's format, in file order.
     """
     mismatches: list[int] = []
-    for number, (doc_line, meta_line) in enumerate(zip(doc_text.splitlines(), meta_text.splitlines()), start=1):
+    for number, (doc_line, meta_line) in enumerate(
+        zip(doc_text.splitlines(), meta_text.splitlines(), strict=False), start=1
+    ):
         if not lines_match(doc_line, meta_line):
             mismatches.append(number)
 

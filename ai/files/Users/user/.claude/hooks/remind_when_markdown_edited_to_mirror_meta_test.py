@@ -13,13 +13,11 @@ import sys
 import tempfile
 import unittest
 
-from remind_when_markdown_edited_to_mirror_meta import (
-    describe_drift,
-    find_mismatches,
-    line_shape,
-    lines_match,
-    pair_paths,
-)
+from remind_when_markdown_edited_to_mirror_meta import describe_drift
+from remind_when_markdown_edited_to_mirror_meta import find_mismatches
+from remind_when_markdown_edited_to_mirror_meta import line_shape
+from remind_when_markdown_edited_to_mirror_meta import lines_match
+from remind_when_markdown_edited_to_mirror_meta import pair_paths
 
 HOOK_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "remind_when_markdown_edited_to_mirror_meta.py")
 
@@ -112,27 +110,45 @@ class PairPathsTest(unittest.TestCase):
 
     def test_pairs_doc_with_meta(self) -> None:
         """Ensure pair_paths returns the meta beside the doc when the doc was edited."""
-        self.assertEqual(pair_paths("/repo/CLAUDE.md"), ("/repo/CLAUDE.md", "/repo/CLAUDE.meta.md"))
+        self.assertEqual(
+            pair_paths("/home/.claude/CLAUDE.md"), ("/home/.claude/CLAUDE.md", "/home/.claude/CLAUDE.meta.md")
+        )
 
     def test_pairs_meta_with_doc(self) -> None:
         """Ensure pair_paths returns the same pair when the meta was edited."""
-        self.assertEqual(pair_paths("/repo/CLAUDE.meta.md"), ("/repo/CLAUDE.md", "/repo/CLAUDE.meta.md"))
+        self.assertEqual(
+            pair_paths("/home/.claude/CLAUDE.meta.md"), ("/home/.claude/CLAUDE.md", "/home/.claude/CLAUDE.meta.md")
+        )
 
     def test_skips_non_markdown(self) -> None:
         """Ensure pair_paths returns None when the file is not markdown."""
         self.assertIsNone(pair_paths("/repo/install.sh"))
 
-    def test_skips_exempt_files(self) -> None:
-        """Ensure pair_paths returns None for memory, todo, plan and scratch files."""
+    def test_pairs_instruction_docs(self) -> None:
+        """Ensure pair_paths returns a pair for each instruction doc location."""
         for path in (
-            "/home/.claude/projects/repo/memory/MEMORY.md",
-            "/home/.claude/projects/repo/memory/feedback_foo.md",
-            "/repo/todo.md",
-            "/repo/private-dot-star-todo.md",
-            "/repo/tasks.md",
+            "/home/.claude/CLAUDE.md",
+            "/home/.claude/CLAUDE_foo.md",
+            "/home/.claude/skills/foo/SKILL.md",
+            "/home/.claude/styles/shell-style.md",
+            "/repo/ai/contexts/code-style.md",
+        ):
+            with self.subTest(path=path):
+                self.assertIsNotNone(pair_paths(path))
+
+    def test_skips_other_markdown(self) -> None:
+        """Ensure pair_paths returns None for markdown outside the instruction docs."""
+        for path in (
+            "/home/.claude/agents/foo.md",
+            "/home/.claude/commands/commit.md",
             "/home/.claude/plans/some-plan.md",
-            "/tmp/claude/12345678/notes.md",
+            "/home/.claude/projects/repo/memory/MEMORY.md",
+            "/home/.claude/skills/foo/reference.md",
             "/private/tmp/claude-501/repo/12345678/scratchpad/notes.md",
+            "/repo/CHANGELOG.md",
+            "/repo/CLAUDE.md",
+            "/repo/README.md",
+            "/repo/todo.md",
         ):
             with self.subTest(path=path):
                 self.assertIsNone(pair_paths(path))
@@ -197,10 +213,21 @@ class HookContractTest(unittest.TestCase):
         with open(path, "w", encoding="utf-8") as handle:
             handle.write(text)
 
+    def make_contexts_dir(self, root: str) -> str:
+        """
+        Creates an `ai/contexts/` directory, where every doc is an instruction doc.
+
+        :param root: Directory to create it under.
+        :return: Path of the new directory.
+        """
+        directory = os.path.join(root, "ai", "contexts")
+        os.makedirs(directory)
+        return directory
+
     def test_reminds_when_meta_missing(self) -> None:
         """Ensure the hook prints a PostToolUse reminder when the doc has no companion."""
-        with tempfile.TemporaryDirectory(dir=os.path.expanduser("~")) as directory:
-            doc_path = os.path.join(directory, "README.md")
+        with tempfile.TemporaryDirectory() as root:
+            doc_path = os.path.join(self.make_contexts_dir(root), "foo.md")
             self.write(doc_path, DOC)
             output = json.loads(self.run_hook("Write", doc_path))
         self.assertEqual(output["hookSpecificOutput"]["hookEventName"], "PostToolUse")
@@ -208,11 +235,19 @@ class HookContractTest(unittest.TestCase):
 
     def test_silent_when_pair_aligned(self) -> None:
         """Ensure the hook prints nothing when the meta mirrors the doc."""
-        with tempfile.TemporaryDirectory(dir=os.path.expanduser("~")) as directory:
-            doc_path = os.path.join(directory, "README.md")
+        with tempfile.TemporaryDirectory() as root:
+            directory = self.make_contexts_dir(root)
+            doc_path = os.path.join(directory, "foo.md")
             self.write(doc_path, DOC)
-            self.write(os.path.join(directory, "README.meta.md"), META)
+            self.write(os.path.join(directory, "foo.meta.md"), META)
             self.assertEqual(self.run_hook("Edit", doc_path), "")
+
+    def test_silent_for_readme_without_meta(self) -> None:
+        """Ensure the hook prints nothing when a README outside the instruction docs has no companion."""
+        with tempfile.TemporaryDirectory() as root:
+            doc_path = os.path.join(root, "README.md")
+            self.write(doc_path, DOC)
+            self.assertEqual(self.run_hook("Write", doc_path), "")
 
     def test_silent_for_other_tools(self) -> None:
         """Ensure the hook prints nothing when the payload names a tool other than Edit or Write."""
