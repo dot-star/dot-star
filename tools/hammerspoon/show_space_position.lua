@@ -12,8 +12,11 @@ local SETTINGS_PREFIX = 'show_space_position.'
 local COLOR = { red = 1, green = 0.6, blue = 0.1, alpha = 0.9 }
 local EDGE_BAR_WIDTH = 7
 -- Back the strip with a wide glow that fades out toward the middle, so the edge reads from the corner of the eye.
-local EDGE_GLOW_WIDTH = 64
-local EDGE_BAR_CANVAS_WIDTH = math.max(EDGE_BAR_WIDTH, EDGE_GLOW_WIDTH)
+local EDGE_GLOW_WIDTHS = {
+    left = 40,
+    right = 64,
+}
+local EDGE_BAR_CANVAS_WIDTH = math.max(EDGE_BAR_WIDTH, EDGE_GLOW_WIDTHS.left, EDGE_GLOW_WIDTHS.right)
 -- Show a stop sign at the right edge's midpoint on the last Space, where there's no bar to say the swipe ends.
 local STOP_SIGN_SIZE = 64
 local STOP_SIGN_MARGIN = 8
@@ -125,7 +128,7 @@ local function layoutEdgeBar(bar, side, color, height)
         glowColors = { opaque, clear }
     else
         stripX = EDGE_BAR_CANVAS_WIDTH - EDGE_BAR_WIDTH
-        glowX = EDGE_BAR_CANVAS_WIDTH - EDGE_GLOW_WIDTH
+        glowX = EDGE_BAR_CANVAS_WIDTH - EDGE_GLOW_WIDTHS.right
         glowColors = { clear, opaque }
     end
     bar[1] = {
@@ -134,7 +137,7 @@ local function layoutEdgeBar(bar, side, color, height)
         fillGradient = 'linear',
         fillGradientColors = glowColors,
         fillGradientAngle = 0,
-        frame = { x = glowX, y = 0, w = EDGE_GLOW_WIDTH, h = height },
+        frame = { x = glowX, y = 0, w = EDGE_GLOW_WIDTHS[side], h = height },
     }
     bar[2] = {
         type = 'rectangle',
