@@ -263,10 +263,32 @@ claude_run() {
     fi
 }
 
+open_status_tab() {
+    # Open a Ghostty tab in the front window at <dir>, typing the status alias
+    # into its shell. Report failure, so the caller can fall back; other
+    # emulators lack the scripting to open a tab.
+    local dir="$1"
+
+    if [[ "${TERM_PROGRAM}" != "ghostty" ]]; then
+        return 1
+    fi
+
+    osascript - "${dir}" >/dev/null <<'EOF'
+on run argv
+    tell application "Ghostty"
+        set surfaceConfig to new surface configuration
+        set initial working directory of surfaceConfig to item 1 of argv
+        set initial input of surfaceConfig to "s" & linefeed
+        new tab in front window with configuration surfaceConfig
+    end tell
+end run
+EOF
+}
+
 show_unpushed_repo_statuses() {
     # Run the status wrapper in each newline-separated repo. Land the shell in
-    # the first so its `dN` aliases stay live; stack the rest below it from
-    # subshells with the wrapper's screen clear stubbed out.
+    # the first so its `dN` aliases stay live; give each of the rest its own
+    # Ghostty tab, or stack it below from a subshell where tabs can't be scripted.
     local repos="$1"
     local first_repo="${repos%%$'\n'*}"
 
@@ -278,6 +300,8 @@ show_unpushed_repo_statuses() {
         if [[ -z "${repo}" ]]; then
             continue
         elif [[ "${repo}" == "${first_repo}" ]]; then
+            continue
+        elif open_status_tab "${repo}"; then
             continue
         fi
 
