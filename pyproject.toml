@@ -60,6 +60,8 @@ extend-select = [
     "RET502",
     # Require an explicit return at the end of a function that returns a value on other paths.
     "RET503",
+    # Drop empty parentheses when raising an exception without arguments.
+    "RSE",
     # Run Ruff's own checks, such as a mutable default argument or a lookalike Unicode character.
     "RUF",
     # Flag a leftover breakpoint() or debugger import.
