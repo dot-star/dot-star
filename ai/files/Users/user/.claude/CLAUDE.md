@@ -344,6 +344,10 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
     - The script keeps the steps reviewable in one file; the paste stays one line.
   - **Flag the copy so it stands out:** once the command is on the clipboard, lead the line above its block with 📎 and bold the notice (`📎 **Copied to your clipboard:**`). A plain-prose notice blends into the reply, so the user retypes a command that was already waiting for them.
     - Close the copy block with a flush prose line before any indented block that follows (`Pick one of these:` above a numbered list). Without it the next block hangs under the 📎 too and reads as part of the copy.
+  - **Name where the paste goes:** a command pasted in the wrong place fails or hangs, so mark the destination with an emoji after the 📎 and in words; the `!` prefix alone is too easy to miss.
+    - `📎🖥️ **Copied to your clipboard; paste in a new terminal:**` for a command without `!`.
+    - `📎✳️ **Copied to your clipboard; paste at this Claude prompt:**` for a `! <command>`.
+    - Name it in the 📎 **`[cb]`** row's parenthetical too (`(copy for a new terminal)`, `(copy for this prompt)`), so the user knows before accepting.
   - **Wrap a script that may still change in `wf`:** hand it as `wf <script>` (`alias_watch_file` in `tools/bash/.aliases.sh`), so each save reruns it with no second paste; a script taking arguments uses `wf <script> "<command>"`. Copy it without `!`, since the watcher never exits and would hang the session's prompt.
   - **Reach for 📎, not 📋:** the loose-end 📋 **`[a]dd`** row already owns 📋 and both can share one menu.
   - **On a menu that also commits:** `[cb]` matches the `cb` clipboard shorthand and collides with commit on its first character, so that menu renders 💾 **`[co]mmit`** per the collision rule.
