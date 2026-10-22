@@ -2,6 +2,7 @@
 # PreToolUse hook: surface the on-demand style guide for the file being written.
 # Map the target path to the matching ~/.claude/styles/ guide and inject it as
 # context so code lands in the user's style while it is written, not on request.
+# Ask for a trim pass on docs loaded into context.
 # Silent for paths with no matching guide.
 
 set -u
@@ -20,6 +21,7 @@ tool_name=$(printf '%s' "${input}" |
 
 guides=()
 context_docs=()
+trim_reminder=""
 
 # Point at the language-agnostic code rules on any edit that isn't prose.
 case "${file_path}" in
@@ -36,6 +38,13 @@ esac
 case "${file_path}" in
 todo.md | */todo.md | TODO.md | */TODO.md)
     context_docs+=("todo-banking.md")
+    ;;
+esac
+
+# Ask for a trim pass on docs loaded into context, where every word costs every session.
+case "${file_path}" in
+CLAUDE.md | */CLAUDE.md | */CLAUDE_*.md | */ai/contexts/*.md | */.claude/projects/*/memory/*.md | */skills/*/SKILL.md)
+    trim_reminder="After this edit lands, re-read what it added to ${file_path} and trim it: cut every word whose loss keeps the meaning. Keep a reason or edge case only when a reader with the instruction alone would break or misapply it."
     ;;
 esac
 
@@ -62,11 +71,15 @@ if [ "${tool_name}" = "Write" ]; then
     guides+=("file-naming-style.md")
 fi
 
-if [ "${#guides[@]}" -eq 0 ] && [ "${#context_docs[@]}" -eq 0 ]; then
+if [ "${#guides[@]}" -eq 0 ] && [ "${#context_docs[@]}" -eq 0 ] && [ -z "${trim_reminder}" ]; then
     exit 0
 fi
 
-reminder="Apply the user's style guide(s) to ${file_path} as you write it; read each now if not already read this session:"
+reminder=""
+
+if [ "${#guides[@]}" -gt 0 ] || [ "${#context_docs[@]}" -gt 0 ]; then
+    reminder="Apply the user's style guide(s) to ${file_path} as you write it; read each now if not already read this session:"
+fi
 
 # Guard each loop; bash 3.2 under `set -u` treats an empty array as unbound.
 if [ "${#context_docs[@]}" -gt 0 ]; then
@@ -79,6 +92,12 @@ if [ "${#guides[@]}" -gt 0 ]; then
     for guide in "${guides[@]}"; do
         reminder+=" ~/.claude/styles/${guide}"
     done
+fi
+
+if [ -n "${trim_reminder}" ] && [ -n "${reminder}" ]; then
+    reminder+=" ${trim_reminder}"
+elif [ -n "${trim_reminder}" ]; then
+    reminder="${trim_reminder}"
 fi
 
 command jq --null-input --compact-output \

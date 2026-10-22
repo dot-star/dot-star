@@ -100,6 +100,17 @@ run_case Edit todo.md todo-banking.md
 run_case Write /repo/new.md file-naming-style.md
 
 echo ""
+echo "== Reminder asks for a trim on docs loaded into context =="
+run_case Edit /repo/CLAUDE.md "trim it"
+run_case Edit /home/.claude/CLAUDE_extra.md "trim it"
+run_case Edit /repo/ai/contexts/shorthand.md "trim it"
+run_case Edit /home/.claude/projects/repo/memory/feedback_foo.md "trim it"
+run_case Edit /repo/skills/commit/SKILL.md "trim it"
+run_case Write /repo/ai/contexts/new.md file-naming-style.md
+run_case Write /repo/ai/contexts/new.md "trim it"
+run_case Edit /repo/docs/guide.md silent
+
+echo ""
 echo "Passed: ${passes}  Failed: ${fails}"
 if [[ "${fails}" -gt 0 ]]; then
     exit 1
