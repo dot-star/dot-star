@@ -1,11 +1,35 @@
 # Open a Ghostty window running a clean `claude_run` forked from another
 # session. Source this; don't execute it. The window gets the parent's session
-# id and transcript path in its environment, where announce_fork_parent.sh
-# picks them up at SessionStart.
+# id, transcript path and SendMessage address in its environment, where
+# announce_fork_parent.sh picks them up at SessionStart.
 #
 # The window opens in the main checkout, even from a worktree, so the fork never
 # shares the parent's worktree; it makes its own. A window rather than a tab
 # keeps the fork's separate objective out of the parent's tab bar.
+
+# Echo the SendMessage address of the `claude` process running this hook; return 1 when none is found.
+# Each session listens on /tmp/cc-socks/<its claude pid>.sock, and SendMessage takes that path as `uds:<path>`.
+claude_session_address() {
+    local pid="${PPID}"
+    local command_name
+    local socket
+
+    while [ -n "${pid}" ] && [ "${pid}" -gt 1 ]; do
+        command_name=$(ps -o comm= -p "${pid}")
+        if [ "${command_name##*/}" != "claude" ]; then
+            pid=$(ps -o ppid= -p "${pid}" | tr -d ' ')
+            continue
+        fi
+
+        socket="/tmp/cc-socks/${pid}.sock"
+        if [ ! -S "${socket}" ]; then
+            return 1
+        fi
+        printf '%s' "uds:${socket}"
+        return 0
+    done
+    return 1
+}
 
 # Open the fork window and echo the directory it opened in; echo the reason and return 1 when it can't.
 # Usage:
@@ -18,6 +42,7 @@ open_fork_window() {
     local start_dir
     local git_common_dir
     local command_line
+    local parent_address
     local error
 
     if [ "${TERM_PROGRAM:-}" != "ghostty" ]; then
@@ -33,6 +58,9 @@ open_fork_window() {
 
     command_line="CLAUDE_FORKED_FROM=$(printf '%q' "${session_id}")"
     command_line+=" CLAUDE_FORKED_TRANSCRIPT=$(printf '%q' "${transcript_path}")"
+    if parent_address=$(claude_session_address); then
+        command_line+=" CLAUDE_FORKED_FROM_ADDRESS=$(printf '%q' "${parent_address}")"
+    fi
     # Launch through `claude_run` rather than `claude`, so the window minimizes and
     # closes once the fork's session ends, the same as `cl`.
     command_line+=" claude_run"

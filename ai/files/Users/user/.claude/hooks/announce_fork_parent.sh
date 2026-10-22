@@ -17,6 +17,9 @@ fi
 context="This session was forked from session ${CLAUDE_FORKED_FROM} to take on a side task while that session carries on."
 context+=" Its transcript is at ${CLAUDE_FORKED_TRANSCRIPT:-an unknown path} (JSONL, one event per line)."
 context+=" Read it only as far as the task needs: the user's references to earlier work (that file, the bug we found) point there."
+if [ -n "${CLAUDE_FORKED_FROM_ADDRESS:-}" ]; then
+    context+=" Reach that session with SendMessage to ${CLAUDE_FORKED_FROM_ADDRESS}, e.g. to report back when the task is done."
+fi
 
 command jq \
     --null-input \
