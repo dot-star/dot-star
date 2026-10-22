@@ -167,6 +167,12 @@ class DescribeDriftTest(unittest.TestCase):
         assert reminder is not None
         self.assertIn("missing: create a.meta.md", reminder)
 
+    def test_asks_for_skeleton_commit_when_meta_missing(self) -> None:
+        """Ensure describe_drift asks for a prose-free skeleton commit ahead of the change."""
+        reminder = describe_drift("a.md", "a.meta.md", DOC, None)
+        assert reminder is not None
+        self.assertIn("prose-free skeleton", reminder)
+
     def test_names_line_count_gap(self) -> None:
         """Ensure describe_drift names both counts when the meta is short a line."""
         reminder = describe_drift("a.md", "a.meta.md", DOC, META + "Extra.\n")

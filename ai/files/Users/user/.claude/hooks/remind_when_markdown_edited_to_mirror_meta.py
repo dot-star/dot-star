@@ -149,7 +149,9 @@ def describe_drift(doc_path: str, meta_path: str, doc_text: str, meta_text: str 
         return (
             f"Meta companion missing: create {meta_path} beside {doc_path}. "
             "Mirror every line of the doc at the same line number, keeping each line's indentation and markers "
-            "(heading, list, quote, fence) and write the reasoning behind each changed line on its meta line."
+            "(heading, list, quote, fence) and write the reasoning behind each changed line on its meta line. "
+            "When the doc was already committed, land a prose-free skeleton of the committed doc as its own commit "
+            "ahead of this change, so the change's meta diff shows only its reasoning lines."
         )
 
     doc_count = len(doc_text.splitlines())

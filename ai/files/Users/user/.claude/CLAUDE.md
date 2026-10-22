@@ -123,6 +123,7 @@
   - Pass: `Always include a rendered sample in each option.`
 - Pair every instruction doc (`CLAUDE.md`, `CLAUDE_*.md`, skills, style guides, context docs) with a `.meta.md` companion that explains it line by line: the `.md` stays trimmed to the rules and the reasoning behind each line lives in the `.meta.md` at the same line number.
   - Create the companion beside the doc (`CLAUDE.md` → `CLAUDE.meta.md`) on the first edit that finds it missing.
+    - Land the new companion as its own prose-free skeleton commit ahead of the change: the committed doc's markers, no reasoning. The change's `.meta.md` diff then shows only its reasoning lines, not a mostly empty new file. Skip the skeleton for a brand-new doc.
   - Mirror the doc's shape exactly: the same line count, and each meta line keeps its doc line's indentation and marker (heading, list, quote, fence) even when it carries no prose. A blank doc line stays blank in the meta.
   - Write the reasoning for every line the edit adds or changes; the meta is unbounded, so a one-line rule can carry a paragraph of why.
   - Skip every other markdown (READMEs, slash commands, memory files, todo files, plans, scratch files): a companion there litters a repo that never chose the convention, or turns into a slash command. A `.meta.md` never gets a companion of its own.
