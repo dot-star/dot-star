@@ -18,6 +18,8 @@ line-length = 120
 
 [tool.ruff.lint]
 extend-select = [
+    # Flag names that shadow a builtin, such as a parameter called id or type.
+    "A",
     # Require type annotations on every function; ty checks only what is annotated.
     "ANN",
     # Catch likely bugs, such as a zip() that silently drops the longer list's tail.
