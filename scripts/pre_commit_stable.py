@@ -17,7 +17,8 @@ Example:
 
 import sys
 
-from packaging.version import InvalidVersion, Version
+from packaging.version import InvalidVersion
+from packaging.version import Version
 from pre_commit import git
 from pre_commit.git import NO_FS_MONITOR
 from pre_commit.main import main as pre_commit_main

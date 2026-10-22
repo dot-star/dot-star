@@ -17,7 +17,8 @@ import sys
 import tempfile
 import unittest
 
-from inject_shorthand_meaning import build_context, parse_doc
+from inject_shorthand_meaning import build_context
+from inject_shorthand_meaning import parse_doc
 
 HOOKS_DIR = os.path.dirname(os.path.abspath(__file__))
 HOOK_PATH = os.path.join(HOOKS_DIR, "inject_shorthand_meaning.py")

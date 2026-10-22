@@ -13,7 +13,8 @@ import sys
 import unittest
 from typing import Any
 
-from block_hidden_characters import build_deny, find_hidden_character
+from block_hidden_characters import build_deny
+from block_hidden_characters import find_hidden_character
 
 HOOK_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "block_hidden_characters.py")
 

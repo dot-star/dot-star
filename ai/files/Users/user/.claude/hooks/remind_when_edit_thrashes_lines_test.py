@@ -17,13 +17,11 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from typing import Any
 
-from remind_when_edit_thrashes_lines import (
-    build_reminder,
-    changed_lines,
-    is_thrashing,
-    lines_around_edit,
-    measure_churn,
-)
+from remind_when_edit_thrashes_lines import build_reminder
+from remind_when_edit_thrashes_lines import changed_lines
+from remind_when_edit_thrashes_lines import is_thrashing
+from remind_when_edit_thrashes_lines import lines_around_edit
+from remind_when_edit_thrashes_lines import measure_churn
 
 HOOK_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "remind_when_edit_thrashes_lines.py")
 

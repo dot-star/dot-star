@@ -47,7 +47,11 @@ import sys
 from pathlib import Path
 
 from claude_session_dir import claude_session_dir
-from terminal_tty import IN_TERMINAL_APP, STATE_DIR, append_log, controlling_tty, write_to_terminal
+from terminal_tty import IN_TERMINAL_APP
+from terminal_tty import STATE_DIR
+from terminal_tty import append_log
+from terminal_tty import controlling_tty
+from terminal_tty import write_to_terminal
 
 LOG_FILE = STATE_DIR / "announce_window_state.log"
 WINDOW_OBJECTIVE = os.environ.get("CLAUDE_OBJECTIVE", "Claude Code")

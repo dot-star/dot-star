@@ -20,7 +20,13 @@ line-length = 120
 extend-select = [
     # Require type annotations on every function; ty checks only what is annotated.
     "ANN",
+    # Sort imports and keep each on its own line.
+    "I",
 ]
+
+[tool.ruff.lint.isort]
+# Give each imported name its own line, so adding or dropping one touches one line.
+force-single-line = true
 
 [tool.pyright]
 # Leave type checking to ty; run pyright only for the rules ty lacks.

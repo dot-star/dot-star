@@ -27,7 +27,8 @@ import os
 import re
 import sys
 from collections.abc import Iterable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field
 from typing import Any
 
 DOC_NAME = "shorthand.md"

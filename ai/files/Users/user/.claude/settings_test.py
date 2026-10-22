@@ -28,7 +28,9 @@ import json
 import os
 import re
 import sys
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable
+from collections.abc import Mapping
+from collections.abc import Sequence
 from functools import cache
 from pathlib import Path
 from typing import Any
