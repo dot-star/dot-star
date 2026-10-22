@@ -247,6 +247,8 @@ claude_run() {
     # finished with nothing left to push, since the shell then closes it
     # anyway. Leave anything else on screen.
     if [[ -n "${session_finished}" && -z "${unpushed_repos}" ]]; then
+        # Arm before the minimize, while the window still holds its full-screen Space.
+        run_claude_cleanup_step ~/.dot-star/ai/claude/follow_closed_full_screen_space.sh
         run_claude_cleanup_step ~/.dot-star/ai/claude/minimize_own_window.sh
     fi
 

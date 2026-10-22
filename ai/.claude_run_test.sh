@@ -48,7 +48,7 @@ rc_status() {
 HOME="$(mktemp -d)"
 export HOME
 mkdir --parents "${HOME}/.dot-star/ai/claude"
-for cleanup_script in minimize_own_window.sh prune.sh reap_stale_workers.sh; do
+for cleanup_script in follow_closed_full_screen_space.sh minimize_own_window.sh prune.sh reap_stale_workers.sh; do
     echo '#!/usr/bin/env bash' >"${HOME}/.dot-star/ai/claude/${cleanup_script}"
     chmod +x "${HOME}/.dot-star/ai/claude/${cleanup_script}"
 done
