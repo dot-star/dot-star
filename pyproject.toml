@@ -32,6 +32,8 @@ extend-select = [
     "C4",
     # Require a time zone on datetimes, so now() never silently uses local time.
     "DTZ",
+    # Flag commented-out code left behind.
+    "ERA",
     # Sort imports and keep each on its own line.
     "I",
     # Flag no-op code, such as a pass beside a docstring or a duplicate class field.
