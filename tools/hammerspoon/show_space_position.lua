@@ -1,5 +1,5 @@
 -- Show where the focused Space sits in the swipe order, as experiments toggled independently:
---   Keep a strip on a full-screen Space's right edge while another Space lies beyond it, a stop sign once none does (edge_bars).
+--   Keep a strip on a full-screen Space's right edge while another Space lies beyond it, a bumper once none does (edge_bars).
 --   Add a strip on the left edge of the first full-screen Space, where swiping left leaves the full-screen apps (edge_bars).
 --   Add a thin band along the bottom edge of every full-screen Space in that Space's strip color (bottom_bar, needs edge_bars).
 --   Flash a row of dots after each switch, the focused Space filled (page_dots).
@@ -22,12 +22,9 @@ local EDGE_GLOW_WIDTHS = {
 local EDGE_BAR_CANVAS_WIDTH = math.max(EDGE_BAR_WIDTH, EDGE_GLOW_WIDTHS.left, EDGE_GLOW_WIDTHS.right)
 -- Keep the bottom band thin with no glow, so it hints at the Space's color without eating into the terminal.
 local BOTTOM_BAR_HEIGHT = 7
--- Show a stop sign at the right edge's midpoint on the last Space, where there's no bar to say the swipe ends.
-local STOP_SIGN_SIZE = 64
-local STOP_SIGN_MARGIN = 8
-local STOP_SIGN_BORDER = 3
-local STOP_SIGN_FONT_SIZE = 16
-local STOP_SIGN_RED = { red = 0.8, green = 0.05, blue = 0.05, alpha = 1 }
+-- Bulge a soft bumper out of the right edge's midpoint on the last Space, where there's no bar to say the swipe goes on.
+local BUMPER_DEPTH = 28
+local BUMPER_HEIGHT = 140
 -- Paint each Space's pair the next color, so pairs are told apart and a recreated pair shows up as a color change.
 local EDGE_BAR_COLORS = {
     { red = 1, green = 0.2, blue = 0.2, alpha = 0.9 },
@@ -59,7 +56,7 @@ local EDGE_BAR_BEHAVIOR = {
 
 showSpacePosition = {}
 
--- Map each Space id to its own { left, right, bottom, stop } set of bars and stop sign.
+-- Map each Space id to its own { left, right, bottom, bumper } set of bars and bumper.
 local edgeBarsBySpace = {}
 local edgeBarPairsCreated = 0
 local dots = nil
@@ -164,44 +161,17 @@ local function layoutEdgeBar(bar, side, color, height)
     }
 end
 
--- Return the corners of an octagon with flat top and bottom sides, centered in a square of `STOP_SIGN_SIZE`.
-local function octagonCoordinates(radius)
-    local center = STOP_SIGN_SIZE / 2
-    local coordinates = {}
-    for corner = 0, 7 do
-        local angle = math.rad(22.5 + 45 * corner)
-        coordinates[#coordinates + 1] = { x = center + radius * math.cos(angle), y = center + radius * math.sin(angle) }
-    end
-    return coordinates
-end
-
-local function newStopSign()
-    local sign = newOverlay({ x = 0, y = 0, w = STOP_SIGN_SIZE, h = STOP_SIGN_SIZE }, EDGE_BAR_BEHAVIOR)
-    local radius = STOP_SIGN_SIZE / 2
-    sign[1] = {
-        type = 'segments',
+-- Draw a full oval twice the canvas width, so the canvas clips it to the half that bulges in from the edge.
+local function newBumper(color)
+    local bumper = newOverlay({ x = 0, y = 0, w = BUMPER_DEPTH, h = BUMPER_HEIGHT }, EDGE_BAR_BEHAVIOR)
+    bumper:alpha(color.alpha)
+    bumper[1] = {
+        type = 'oval',
         action = 'fill',
-        fillColor = { white = 1, alpha = 1 },
-        closed = true,
-        coordinates = octagonCoordinates(radius),
+        fillColor = { red = color.red, green = color.green, blue = color.blue, alpha = 1 },
+        frame = { x = 0, y = 0, w = 2 * BUMPER_DEPTH, h = BUMPER_HEIGHT },
     }
-    sign[2] = {
-        type = 'segments',
-        action = 'fill',
-        fillColor = STOP_SIGN_RED,
-        closed = true,
-        coordinates = octagonCoordinates(radius - STOP_SIGN_BORDER),
-    }
-    sign[3] = {
-        type = 'text',
-        text = hs.styledtext.new('STOP', {
-            font = { name = 'Helvetica-Bold', size = STOP_SIGN_FONT_SIZE },
-            color = { white = 1, alpha = 1 },
-            paragraphStyle = { alignment = 'center' },
-        }),
-        frame = { x = 0, y = radius - STOP_SIGN_FONT_SIZE * 0.65, w = STOP_SIGN_SIZE, h = STOP_SIGN_FONT_SIZE * 1.4 },
-    }
-    return sign
+    return bumper
 end
 
 local function setEdgeBarVisible(bar, visible)
@@ -248,7 +218,7 @@ local function deleteEdgeBarPair(pair)
     pair.left:delete()
     pair.right:delete()
     pair.bottom:delete()
-    pair.stop:delete()
+    pair.bumper:delete()
 end
 
 -- Drop the pairs of Spaces that no longer exist.
@@ -288,7 +258,7 @@ local function renderEdgeBars(index, count, screen, focused)
             left = newEdgeBar(color),
             right = newEdgeBar(color),
             bottom = newBottomBar(color),
-            stop = newStopSign(),
+            bumper = newBumper(color),
             color = color,
         }
         edgeBarsBySpace[focused] = pair
@@ -312,17 +282,17 @@ local function renderEdgeBars(index, count, screen, focused)
     pair.left:frame(edgeBarFrame(barFrame, barFrame.x))
     pair.right:frame(edgeBarFrame(barFrame, barFrame.x + barFrame.w - EDGE_BAR_CANVAS_WIDTH))
     pair.bottom:frame({ x = frame.x, y = frame.y + frame.h - BOTTOM_BAR_HEIGHT, w = frame.w, h = BOTTOM_BAR_HEIGHT })
-    pair.stop:frame({
-        x = frame.x + frame.w - STOP_SIGN_SIZE - STOP_SIGN_MARGIN,
-        y = frame.y + (frame.h - STOP_SIGN_SIZE) / 2,
-        w = STOP_SIGN_SIZE,
-        h = STOP_SIGN_SIZE,
+    pair.bumper:frame({
+        x = frame.x + frame.w - BUMPER_DEPTH,
+        y = frame.y + (frame.h - BUMPER_HEIGHT) / 2,
+        w = BUMPER_DEPTH,
+        h = BUMPER_HEIGHT,
     })
     local rightVisible = showsRightBar(focused, index, count)
     setEdgeBarVisible(pair.left, startsFullScreenRun(hs.spaces.spacesForScreen(screen) or {}, index))
     setEdgeBarVisible(pair.right, rightVisible)
     setEdgeBarVisible(pair.bottom, showsBottomBar(focused))
-    setEdgeBarVisible(pair.stop, index == count)
+    setEdgeBarVisible(pair.bumper, index == count)
 end
 
 local function renderPageDots(index, count, screen)
