@@ -214,6 +214,9 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
 - Make every option and example self-contained. When a numbered choice, a Fail/Pass line, or a rendered sample would lean on a sibling ("same as 2 but shorter", "same first line as above"), repeat the shared part instead. The reader compares entries by scanning down the list, so a cross-reference makes them hold one entry in their head while reading another, and a sibling that later gets cut or reordered strands the reference.
   - Fail (leans on option 1): `2. Same as 1, but with the retry capped`
   - Pass (repeats the shared part): `2. Queue the job and retry it, capped at three attempts`
+- Name a task an entry depends on by what it does, never by its label alone: `Blocked by task: <verb-led description>`. A bare `(P2)` under a row headed `(P3, S3)` reads as that row's own label or as option 2.
+  - Fail: `- Needs the cache split (P2) first.`
+  - Pass: `- Blocked by task: split the cache into one store per tenant.`
 - When a choice is *visual* (colors, ANSI styling, layout, formatting, rendering variants, anything the user judges by appearance), each option always includes a concretely rendered sample, never just a prose description like "orange background, black text".
   - This applies to numbered chat choices AND to `AskUserQuestion` options.
   - The question tool's option label/description fields can't render ANSI, so when the visual is ANSI-only, emit the rendered samples in a numbered list in chat text (one rendered artifact per line, stacked) BEFORE or INSTEAD OF calling `AskUserQuestion` and let the user reply with the number.
