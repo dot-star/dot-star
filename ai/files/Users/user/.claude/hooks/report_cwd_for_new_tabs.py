@@ -13,12 +13,14 @@ reporting it on SessionStart and after every tool that can move it (Bash,
 EnterWorktree, ExitWorktree) keeps the tab's copy current. Nothing to undo at
 SessionEnd: once claude exits, the shell's next prompt reports the real pwd.
 
-A worktree the session works in wins over `cwd`. A worktree in another repo
-can't be entered, so claude's cwd stays at launch while every edit lands in the
-worktree; the marker `record_worktree_for_statusline.sh` keeps (from Edit,
-Write and any Bash command naming a worktree) names it. That hook runs
-alongside this one, so a freshly recorded worktree reaches the tab one tool
-call later.
+The repo the session last worked in wins over `cwd`. Claude can't enter a
+worktree or repo outside the one it launched in, so its cwd stays at launch
+while every edit lands elsewhere. `record_worktree_for_statusline.sh` keeps two
+markers naming that place: `last_repo` (the repo of the last Edit or Write, or
+the last worktree a tool named) first, else `worktree` (a session from before
+`last_repo` existed). That hook runs alongside this one, so a freshly recorded
+repo reaches the tab one tool call later. Set `TAB_FOLLOWS` to "worktree" to
+skip `last_repo` and keep the tab on the session's worktree.
 
 Emit the sequence the emulator's own shell integration emits, read off
 TERM_PROGRAM:
@@ -38,12 +40,16 @@ import json
 import os
 import socket
 import sys
+from typing import Any
 from urllib.parse import quote
 
 from claude_session_dir import claude_session_dir
 from terminal_tty import IN_TERMINAL_APP, STATE_DIR, append_log, controlling_tty, write_to_terminal
 
 LOG_FILE = STATE_DIR / "report_cwd.log"
+
+# Pick where a new tab opens: "last_repo" follows the last repo edited, "worktree" stays on the session's worktree.
+TAB_FOLLOWS = "last_repo"
 
 
 def log(message: str) -> None:
@@ -106,13 +112,41 @@ def report_cwd(tty: str, cwd: str) -> None:
         log(f"report {cwd} failed (write to {tty}): {error}")
 
 
+def tab_dir_following_last_repo(event: dict[str, Any]) -> str | None:
+    """
+    Return the repo the session last worked in, else its worktree, else claude's cwd.
+
+    :param event: Hook payload parsed from stdin JSON, so its values are untyped (e.g. `{"session_id": "...", "cwd": "/Users/me/foo"}`).
+    :return: Directory for a new tab, or None when the payload carries no cwd.
+    """
+    session_id = event.get("session_id", "")
+
+    return session_marker(session_id, "last_repo") or session_marker(session_id, "worktree") or event.get("cwd")
+
+
+def tab_dir_following_worktree(event: dict[str, Any]) -> str | None:
+    """
+    Return the session's worktree, else claude's cwd.
+
+    :param event: Hook payload parsed from stdin JSON, so its values are untyped (e.g. `{"session_id": "...", "cwd": "/Users/me/foo"}`).
+    :return: Directory for a new tab, or None when the payload carries no cwd.
+    """
+    return session_marker(event.get("session_id", ""), "worktree") or event.get("cwd")
+
+
 def main() -> None:
     try:
-        event = json.load(sys.stdin)
+        event: dict[str, Any] = json.load(sys.stdin)
     except (json.JSONDecodeError, ValueError):
         event = {}
 
-    cwd = session_marker(event.get("session_id", ""), "worktree") or event.get("cwd")
+    if TAB_FOLLOWS == "last_repo":
+        cwd = tab_dir_following_last_repo(event)
+    elif TAB_FOLLOWS == "worktree":
+        cwd = tab_dir_following_worktree(event)
+    else:
+        log(f"unknown TAB_FOLLOWS {TAB_FOLLOWS!r}; skipping")
+        return
 
     if not cwd:
         log("no cwd on the payload; skipping")

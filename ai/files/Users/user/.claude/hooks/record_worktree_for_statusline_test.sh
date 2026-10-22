@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 # Check that the hook records the worktree a Bash command creates or works in,
-# skipping paths that don't exist (an unexpanded "$R/..." among them).
+# skipping paths that don't exist (an unexpanded "$R/..." among them), and the
+# repo an edited file sits in, worktree or not.
 #
 # Run: bash ai/files/Users/user/.claude/hooks/record_worktree_for_statusline_test.sh
 
@@ -21,8 +22,12 @@ for name in first second; do
         "${SANDBOX}/repo/worktrees/${name}"
 done
 
+mkdir "${SANDBOX}/loose"
+git init --quiet "${SANDBOX}/other"
+
 SESSION_ID="test-record-worktree-$$"
 MARKER="/tmp/claude/${SESSION_ID:0:7}/worktree"
+LAST_REPO_MARKER="/tmp/claude/${SESSION_ID:0:7}/last_repo"
 
 failures=0
 
@@ -54,6 +59,34 @@ assert_recorded() {
     fi
 }
 
+assert_last_repo() {
+    # Feed the hook an Edit of <file_path> and compare the last_repo marker against <expected>.
+    local label="$1"
+    local file_path="$2"
+    local expected="$3"
+
+    rm --force -- "${LAST_REPO_MARKER}"
+    jq --null-input --compact-output \
+        --arg path "${file_path}" \
+        --arg sid "${SESSION_ID}" \
+        '{session_id: $sid, tool_name: "Edit", tool_input: {file_path: $path}}' |
+        bash "${HOOK}"
+
+    local actual=""
+    if [[ -f "${LAST_REPO_MARKER}" ]]; then
+        actual="$(cat -- "${LAST_REPO_MARKER}")"
+    fi
+
+    if [[ "${actual}" == "${expected}" ]]; then
+        echo "✓ ${label}"
+    else
+        echo "✗ ${label}"
+        echo "    expected: ${expected}"
+        echo "    actual:   ${actual}"
+        failures=$((failures + 1))
+    fi
+}
+
 assert_recorded "worktree add records the new worktree" \
     "git worktree add ${SANDBOX}/repo/worktrees/first" "${SANDBOX}/repo/worktrees/first"
 assert_recorded "worktree add skips the git -C path before it" \
@@ -66,6 +99,13 @@ assert_recorded "missing worktree path records nothing" \
     "ls ${SANDBOX}/repo/worktrees/gone" ""
 assert_recorded "command naming no worktree records nothing" \
     "git status" ""
+
+assert_last_repo "edit in a plain repo records its root" \
+    "${SANDBOX}/other/notes.md" "${SANDBOX}/other"
+assert_last_repo "edit in a worktree records the worktree" \
+    "${SANDBOX}/repo/worktrees/first/notes.md" "${SANDBOX}/repo/worktrees/first"
+assert_last_repo "edit outside any repo records nothing" \
+    "${SANDBOX}/loose/notes.md" ""
 
 rm -r -- "/tmp/claude/${SESSION_ID:0:7}" "${SANDBOX}"
 

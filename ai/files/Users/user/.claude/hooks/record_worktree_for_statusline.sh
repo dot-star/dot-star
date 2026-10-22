@@ -12,6 +12,10 @@
 # shell variable), so a worktree made without EnterWorktree
 # (in another repo, by hand) still shows. render_statusline.sh skips a marker
 # whose directory is gone, so a teardown needs no hook of its own.
+#
+# A second marker, last_repo, records the repo the session last worked in,
+# worktree or not (Write / Edit add the repo an edited file sits in), so
+# report_cwd_for_new_tabs.py can open a new tab where the work happened.
 
 set -euo pipefail
 
@@ -25,6 +29,7 @@ if [ -z "${dir}" ]; then
 fi
 
 marker="${dir}/worktree"
+last_repo_marker="${dir}/last_repo"
 
 # Print the first existing "<...>/worktrees/<name>" path in $1, or nothing.
 # Skip a missing one: an unexpanded "$R/worktrees/foo" matches as "/worktrees/foo".
@@ -51,6 +56,22 @@ record_worktree() {
     fi
 }
 
+# Record $1 as the repo the session last worked in, skipping an empty path.
+record_last_repo() {
+    local path="$1"
+
+    if [ -n "${path}" ] && [ -d "${path}" ]; then
+        mkdir -p "${dir}"
+        printf '%s\n' "${path}" >"${last_repo_marker}"
+    fi
+}
+
+# Print the top of the git checkout holding file $1, or nothing outside one.
+repo_root_of() {
+    git -C "$(dirname -- "$1")" rev-parse --show-toplevel 2>/dev/null ||
+        true
+}
+
 tool=$(printf '%s' "${data}" |
     command jq --raw-output '.tool_name // empty')
 case "${tool}" in
@@ -72,23 +93,31 @@ Bash)
     fi
 
     record_worktree "${path}"
+    record_last_repo "${path}"
     ;;
 Edit | Write)
     file_path=$(printf '%s' "${data}" |
         command jq --raw-output '.tool_input.file_path // empty')
     record_worktree "$(worktree_path_in "${file_path}")"
+    record_last_repo "$(repo_root_of "${file_path}")"
     ;;
 EnterWorktree)
     # Extract the new worktree path from the tool response text
     # ("Created worktree at <path> on branch ..." or "Switched ...").
     response=$(printf '%s' "${data}" |
         command jq --raw-output '.tool_response | tostring')
-    record_worktree "$(worktree_path_in "${response}")"
+    path=$(worktree_path_in "${response}")
+    record_worktree "${path}"
+    record_last_repo "${path}"
     ;;
 ExitWorktree)
-    # Drop the marker; we're no longer in a worktree.
+    # Drop the markers; we're no longer in a worktree.
     if [ -f "${marker}" ]; then
         rm "${marker}"
+    fi
+
+    if [ -f "${last_repo_marker}" ]; then
+        rm "${last_repo_marker}"
     fi
     ;;
 esac
