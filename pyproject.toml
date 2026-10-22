@@ -28,6 +28,12 @@ extend-select = [
     "I",
     # Flag no-op code, such as a pass beside a docstring or a duplicate class field.
     "PIE",
+    # Drop a needless `return None` from a function that never returns a value.
+    "RET501",
+    # Spell out `return None` in a function that returns a value on other paths.
+    "RET502",
+    # Require an explicit return at the end of a function that returns a value on other paths.
+    "RET503",
     # Run Ruff's own checks, such as a mutable default argument or a lookalike Unicode character.
     "RUF",
     # Rewrite outdated syntax into the form the pinned interpreter supports, such as list[str] over List[str].
