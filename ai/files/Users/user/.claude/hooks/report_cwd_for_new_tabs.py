@@ -138,19 +138,29 @@ def tab_dir_following_worktree(event: dict[str, Any]) -> str | None:
     return session_marker(event.get("session_id", ""), "worktree") or event.get("cwd")
 
 
+def tab_dir(event: dict[str, Any]) -> str | None:
+    """
+    Return the directory a new tab should open in, per `TAB_FOLLOWS`.
+
+    :param event: Hook payload parsed from stdin JSON, so its values are untyped (e.g. `{"session_id": "...", "cwd": "/Users/me/foo"}`).
+    :return: Directory for a new tab, or None when there is none or `TAB_FOLLOWS` is unknown.
+    """
+    if TAB_FOLLOWS == "last_repo":
+        return tab_dir_following_last_repo(event)
+    elif TAB_FOLLOWS == "worktree":
+        return tab_dir_following_worktree(event)
+
+    log(f"unknown TAB_FOLLOWS {TAB_FOLLOWS!r}; skipping")
+    return None
+
+
 def main() -> None:
     try:
         event: dict[str, Any] = json.load(sys.stdin)
     except (json.JSONDecodeError, ValueError):
         event = {}
 
-    if TAB_FOLLOWS == "last_repo":
-        cwd = tab_dir_following_last_repo(event)
-    elif TAB_FOLLOWS == "worktree":
-        cwd = tab_dir_following_worktree(event)
-    else:
-        log(f"unknown TAB_FOLLOWS {TAB_FOLLOWS!r}; skipping")
-        return
+    cwd = tab_dir(event)
 
     if not cwd:
         log("no cwd on the payload; skipping")
