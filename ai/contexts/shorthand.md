@@ -71,6 +71,9 @@ Interpret a bare one-token reply or a short fixed phrase as shorthand. Fires onl
   <!-- shorthand-match: ^w( \d+)+$ -->
 - `harden`, `bake`, `firm` mean "strengthen the rule i just hit" by tightening it in `CLAUDE.md` or the matching `CLAUDE_*.md` sibling, or promoting it there from memory if that's where it lives. Memory isn't durable enough to harden into.
 - `cod`, `codify` mean "codify the rule" (invoke the `codify` skill): promote a saved memory into a mechanism that fires on its own (a hook, `settings.json` entry, `CLAUDE_*.md` line, shell alias, or skill).
+- `wl`, `wl <x>`, `whitelist`, `whitelist <x>` mean "whitelist the acronyms `check_acronyms.py` just flagged": add each to its `WHITELIST`, then run `check_acronyms_test.sh`. A trailing `<x>` names which ones (`wl FOO BAR`).
+  - Remove a mixed-case one (`IaC`) from `MIXED_CASE_FLAG` instead.
+  - Skip the correction table.
 - `t`, `trim` mean "strip whatever we're working on (a comment, a sentence, a rule, a block of code) to its load-bearing parts": cut non-load-bearing content outright (niceties, rationale, cross-references already obvious from context), not just tighten the wording, while preserving every constraint; flag anything load-bearing that can't be cut rather than dropping it silently.
 - `ws` means "add whitespace for readability": reformat whatever we're working on (a doc, code, a comment, a rule) with blank lines between stanzas and sub-bullets for dense lists so it scans better, without changing the content.
 - `vws` means `ws` weighted vertical: reach for blank lines first and add sub-bullets only where spacing alone leaves the block dense. Match the surrounding list's density, though: where the neighboring bullets sit tight, the block stays tight too, sub-bullets included.
