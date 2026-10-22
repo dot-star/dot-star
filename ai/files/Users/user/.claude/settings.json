@@ -29,16 +29,6 @@
         ]
       }
     ],
-    "PermissionRequest": [
-      {
-        "hooks": [
-          {
-            "command": "${HOME}/.claude/hooks/log_permission_requests.py",
-            "type": "command"
-          }
-        ]
-      }
-    ],
     "PostToolUse": [
       {
         "hooks": [
@@ -131,15 +121,6 @@
           }
         ],
         "matcher": "Bash"
-      },
-      {
-        "hooks": [
-          {
-            "command": "${HOME}/.claude/hooks/log_permission_grants.py",
-            "type": "command"
-          }
-        ],
-        "matcher": "ExitWorktree"
       },
       {
         "hooks": [

@@ -67,7 +67,7 @@ Always state the evidence, never a bare verdict. The user is deciding on a delet
 
 Ask before removing anything, with bracket-prefix options covering the useful splits (everything safe plus orphans / worktrees only / nothing). A survey that deletes on its own is a survey nobody trusts.
 
-For each picked worktree, prefer the `wtd` alias (`git_worktree_done` in `tools/bash/.aliases.sh`) over hand-rolled git: `cd <wt> && wtd`. It re-runs the clean-tree gate, snapshots the worktree's permission rules through `log_permission_grants.py` before the directory disappears, fast-forwards (a no-op when the branch is already landed), removes the worktree, and deletes the branch. A hand-rolled `git worktree remove` plus `git branch --delete` skips that snapshot. `wtd` ends in the main checkout, so `cd` back into the next worktree between runs.
+For each picked worktree, prefer the `wtd` alias (`git_worktree_done` in `tools/bash/.aliases.sh`) over hand-rolled git: `cd <wt> && wtd`. It re-runs the clean-tree gate, fast-forwards (a no-op when the branch is already landed), removes the worktree, and deletes the branch. `wtd` ends in the main checkout, so `cd` back into the next worktree between runs.
 
 For each picked orphan, `rm -r <dir>`, or `unlink <path>` when the leftover is a symlink.
 

@@ -2386,10 +2386,6 @@ git_worktree_done() {
         return 1
     fi
 
-    # Snapshot the worktree's accumulated permission rules before removal:
-    # git worktree remove deletes .claude/settings.local.json along with it.
-    "${HOME}/.claude/hooks/log_permission_grants.py" --worktree "${worktree_path}" --reason wtd
-
     if ! git worktree remove "${worktree_path}"; then
         echo "failed to remove worktree at \"${worktree_path}\""
         return 1
