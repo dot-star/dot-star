@@ -76,6 +76,7 @@ WHITELIST = {
     "PDF",
     "PHP",
     "PM",
+    "PNG",
     "PR",
     "PRD",
     "PTAL",
