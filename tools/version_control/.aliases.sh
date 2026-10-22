@@ -234,6 +234,8 @@ alias difflast="git_diff_last"
 alias difftool="git difftool"
 alias dlf="git_diff_last"
 alias drop="git_stash_drop"
+alias dun="rc_diff_unstaged"
+alias dw="rc_diff_unstaged"
 alias edit_commit="git_rebase_interactive"
 alias fetch="git fetch"
 alias fetch_tags="rc_fetch_tags"
@@ -1402,6 +1404,26 @@ rc_diff() {
             \df "${@}"
         fi
     fi
+}
+
+rc_diff_unstaged() {
+    # Show only the unstaged changes, which rc_diff hides whenever anything is
+    # staged.
+    clear
+
+    # Pull the alias-level --full out of the arguments before any reach git.
+    local full_diff=false
+    local -a diff_args
+    local arg
+    for arg in "${@}"; do
+        if [[ "${arg}" == "--full" ]]; then
+            full_diff=true
+        else
+            diff_args+=("${arg}")
+        fi
+    done
+
+    git_diff_announced "${full_diff}" diff "${diff_args[@]}"
 }
 
 rc_fetch_tags() {
