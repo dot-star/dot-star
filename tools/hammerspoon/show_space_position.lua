@@ -10,7 +10,16 @@ local DEFAULT_ENABLED = {
 }
 local SETTINGS_PREFIX = 'show_space_position.'
 local COLOR = { red = 1, green = 0.6, blue = 0.1, alpha = 0.9 }
-local EDGE_BAR_WIDTH = 4
+local EDGE_BAR_WIDTH = 12
+-- Paint each Space's pair the next color, so pairs are told apart and a recreated pair shows up as a color change.
+local EDGE_BAR_COLORS = {
+    { red = 1, green = 0.2, blue = 0.2, alpha = 0.9 },
+    { red = 0.2, green = 0.8, blue = 0.2, alpha = 0.9 },
+    { red = 0.2, green = 0.5, blue = 1, alpha = 0.9 },
+    { red = 0.9, green = 0.2, blue = 0.9, alpha = 0.9 },
+    { red = 0.1, green = 0.9, blue = 0.9, alpha = 0.9 },
+    { red = 1, green = 0.9, blue = 0.1, alpha = 0.9 },
+}
 local DOT_SIZE = 10
 local DOT_GAP = 10
 -- Clear the terminal's prompt and status lines at the bottom of the screen.
@@ -25,11 +34,17 @@ local OVERLAY_BEHAVIOR = {
     'fullScreenAuxiliary',
     'stationary',
 }
+-- Stay on the Space the bar was shown on, so it slides in with that Space; macOS blanks an all-Spaces window mid-swipe.
+local EDGE_BAR_BEHAVIOR = {
+    'fullScreenAuxiliary',
+    'stationary',
+}
 
 showSpacePosition = {}
 
-local leftBar = nil
-local rightBar = nil
+-- Map each Space id to its own { left, right } pair of bars.
+local edgeBarsBySpace = {}
+local edgeBarPairsCreated = 0
 local dots = nil
 local dotsTimer = nil
 
@@ -50,10 +65,10 @@ local function experimentNames()
     return names
 end
 
-local function newOverlay(frame)
+local function newOverlay(frame, behavior)
     local overlay = hs.canvas.new(frame)
     overlay:level(hs.canvas.windowLevels.overlay)
-    overlay:behavior(OVERLAY_BEHAVIOR)
+    overlay:behavior(behavior)
     return overlay
 end
 
@@ -64,42 +79,84 @@ local function deleteOverlay(overlay)
     return nil
 end
 
--- Return the focused Space's 1-based position, the Space count and the screen holding them.
+-- Return the focused Space's 1-based position, the Space count, the screen holding them and the focused Space's id.
 local function focusedPosition()
     local focused = hs.spaces.focusedSpace()
     local screen = hs.screen.find(hs.spaces.spaceDisplay(focused)) or hs.screen.mainScreen()
     local spaces = hs.spaces.spacesForScreen(screen) or {}
     for index, space in ipairs(spaces) do
         if space == focused then
-            return index, #spaces, screen
+            return index, #spaces, screen, focused
         end
     end
-    return nil, #spaces, screen
+    return nil, #spaces, screen, focused
 end
 
-local function newEdgeBar(screenFrame, x)
-    local bar = newOverlay({ x = x, y = screenFrame.y, w = EDGE_BAR_WIDTH, h = screenFrame.h })
-    bar[1] = { type = 'rectangle', action = 'fill', fillColor = COLOR }
+local function edgeBarFrame(screenFrame, x)
+    return { x = x, y = screenFrame.y, w = EDGE_BAR_WIDTH, h = screenFrame.h }
+end
+
+local function newEdgeBar(color)
+    local bar = newOverlay({ x = 0, y = 0, w = EDGE_BAR_WIDTH, h = 1 }, EDGE_BAR_BEHAVIOR)
+    bar[1] = { type = 'rectangle', action = 'fill', fillColor = color }
     return bar
 end
 
-local function renderEdgeBars(index, count, screen)
-    leftBar = deleteOverlay(leftBar)
-    rightBar = deleteOverlay(rightBar)
+local function setEdgeBarVisible(bar, visible)
+    if visible and not bar:isShowing() then
+        bar:show()
+    elseif not visible and bar:isShowing() then
+        bar:hide()
+    end
+end
 
-    if not isEnabled('edge_bars') or index == nil then
+local function deleteEdgeBarPair(pair)
+    pair.left:delete()
+    pair.right:delete()
+end
+
+-- Drop the pairs of Spaces that no longer exist.
+local function pruneEdgeBars()
+    local live = {}
+    for _, spaces in pairs(hs.spaces.allSpaces() or {}) do
+        for _, space in ipairs(spaces) do
+            live[space] = true
+        end
+    end
+    for space, pair in pairs(edgeBarsBySpace) do
+        if not live[space] then
+            deleteEdgeBarPair(pair)
+            edgeBarsBySpace[space] = nil
+        end
+    end
+end
+
+-- Give the focused Space its own pair on first visit; only a reorder of Spaces ever flips a pair's visibility.
+local function renderEdgeBars(index, count, screen, focused)
+    if not isEnabled('edge_bars') then
+        for space, pair in pairs(edgeBarsBySpace) do
+            deleteEdgeBarPair(pair)
+            edgeBarsBySpace[space] = nil
+        end
+        return
+    elseif index == nil then
         return
     end
 
+    pruneEdgeBars()
+    local pair = edgeBarsBySpace[focused]
+    if pair == nil then
+        edgeBarPairsCreated = edgeBarPairsCreated + 1
+        local color = EDGE_BAR_COLORS[(edgeBarPairsCreated - 1) % #EDGE_BAR_COLORS + 1]
+        pair = { left = newEdgeBar(color), right = newEdgeBar(color) }
+        edgeBarsBySpace[focused] = pair
+    end
+
     local frame = screen:fullFrame()
-    if index > 1 then
-        leftBar = newEdgeBar(frame, frame.x)
-        leftBar:show()
-    end
-    if index < count then
-        rightBar = newEdgeBar(frame, frame.x + frame.w - EDGE_BAR_WIDTH)
-        rightBar:show()
-    end
+    pair.left:frame(edgeBarFrame(frame, frame.x))
+    pair.right:frame(edgeBarFrame(frame, frame.x + frame.w - EDGE_BAR_WIDTH))
+    setEdgeBarVisible(pair.left, index > 1)
+    setEdgeBarVisible(pair.right, index < count)
 end
 
 local function renderPageDots(index, count, screen)
@@ -122,7 +179,7 @@ local function renderPageDots(index, count, screen)
         y = frame.y + frame.h - height - DOTS_BOTTOM_MARGIN,
         w = width,
         h = height,
-    })
+    }, OVERLAY_BEHAVIOR)
     dots[1] = {
         type = 'rectangle',
         action = 'fill',
@@ -153,8 +210,8 @@ end
 
 -- Redraw both edge bars and flash the dots; `flashDots` false redraws the bars alone.
 local function render(flashDots)
-    local index, count, screen = focusedPosition()
-    renderEdgeBars(index, count, screen)
+    local index, count, screen, focused = focusedPosition()
+    renderEdgeBars(index, count, screen, focused)
     if flashDots then
         renderPageDots(index, count, screen)
     end
