@@ -22,6 +22,8 @@ extend-select = [
     "ANN",
     # Catch likely bugs, such as a zip() that silently drops the longer list's tail.
     "B",
+    # Flag redundant comprehensions and collection calls, such as list() around a list comprehension.
+    "C4",
     # Sort imports and keep each on its own line.
     "I",
 ]
