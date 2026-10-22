@@ -40,6 +40,8 @@ extend-select = [
     "I",
     # Flag implicitly joined strings, such as a list missing a comma between two literals.
     "ISC",
+    # Enforce standard Python naming, such as snake_case function names.
+    "N",
     # Flag no-op code, such as a pass beside a docstring or a duplicate class field.
     "PIE",
     # Drop a needless `return None` from a function that never returns a value.
