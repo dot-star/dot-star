@@ -1,11 +1,13 @@
 -- Show where the focused Space sits in the swipe order, as experiments toggled independently:
 --   Keep a strip on a full-screen Space's right edge while another Space lies beyond it, a stop sign once none does (edge_bars).
 --   Add a strip on the left edge of the first full-screen Space, where swiping left leaves the full-screen apps (edge_bars).
+--   Add a thin band along the bottom edge in the right strip's color, wherever the right strip shows (bottom_bar, needs edge_bars).
 --   Flash a row of dots after each switch, the focused Space filled (page_dots).
 -- Toggle from the shell with `space_position_experiment`; each flag persists across reloads.
 
 -- Apply each experiment's default until it's toggled; a saved setting wins after that.
 local DEFAULT_ENABLED = {
+    bottom_bar = true,
     edge_bars = true,
     page_dots = false,
 }
@@ -18,6 +20,8 @@ local EDGE_GLOW_WIDTHS = {
     right = 64,
 }
 local EDGE_BAR_CANVAS_WIDTH = math.max(EDGE_BAR_WIDTH, EDGE_GLOW_WIDTHS.left, EDGE_GLOW_WIDTHS.right)
+-- Keep the bottom band a hairline with no glow, so it hints at the Space's color without eating into the terminal.
+local BOTTOM_BAR_HEIGHT = 3
 -- Show a stop sign at the right edge's midpoint on the last Space, where there's no bar to say the swipe ends.
 local STOP_SIGN_SIZE = 64
 local STOP_SIGN_MARGIN = 8
@@ -55,7 +59,7 @@ local EDGE_BAR_BEHAVIOR = {
 
 showSpacePosition = {}
 
--- Map each Space id to its own { left, right, stop } set of bars and stop sign.
+-- Map each Space id to its own { left, right, bottom, stop } set of bars and stop sign.
 local edgeBarsBySpace = {}
 local edgeBarPairsCreated = 0
 local dots = nil
@@ -113,6 +117,18 @@ end
 local function newEdgeBar(color)
     local bar = newOverlay({ x = 0, y = 0, w = EDGE_BAR_CANVAS_WIDTH, h = 1 }, EDGE_BAR_BEHAVIOR)
     bar:alpha(color.alpha)
+    return bar
+end
+
+-- Fill the whole canvas, so resizing the band to a new screen width needs no redraw.
+local function newBottomBar(color)
+    local bar = newOverlay({ x = 0, y = 0, w = 1, h = BOTTOM_BAR_HEIGHT }, EDGE_BAR_BEHAVIOR)
+    bar:alpha(color.alpha)
+    bar[1] = {
+        type = 'rectangle',
+        action = 'fill',
+        fillColor = { red = color.red, green = color.green, blue = color.blue, alpha = 1 },
+    }
     return bar
 end
 
@@ -221,6 +237,7 @@ end
 local function deleteEdgeBarPair(pair)
     pair.left:delete()
     pair.right:delete()
+    pair.bottom:delete()
     pair.stop:delete()
 end
 
@@ -257,7 +274,13 @@ local function renderEdgeBars(index, count, screen, focused)
     if pair == nil then
         edgeBarPairsCreated = edgeBarPairsCreated + 1
         local color = EDGE_BAR_COLORS[(edgeBarPairsCreated - 1) % #EDGE_BAR_COLORS + 1]
-        pair = { left = newEdgeBar(color), right = newEdgeBar(color), stop = newStopSign(), color = color }
+        pair = {
+            left = newEdgeBar(color),
+            right = newEdgeBar(color),
+            bottom = newBottomBar(color),
+            stop = newStopSign(),
+            color = color,
+        }
         edgeBarsBySpace[focused] = pair
     end
 
@@ -278,14 +301,17 @@ local function renderEdgeBars(index, count, screen, focused)
     end
     pair.left:frame(edgeBarFrame(barFrame, barFrame.x))
     pair.right:frame(edgeBarFrame(barFrame, barFrame.x + barFrame.w - EDGE_BAR_CANVAS_WIDTH))
+    pair.bottom:frame({ x = frame.x, y = frame.y + frame.h - BOTTOM_BAR_HEIGHT, w = frame.w, h = BOTTOM_BAR_HEIGHT })
     pair.stop:frame({
         x = frame.x + frame.w - STOP_SIGN_SIZE - STOP_SIGN_MARGIN,
         y = frame.y + (frame.h - STOP_SIGN_SIZE) / 2,
         w = STOP_SIGN_SIZE,
         h = STOP_SIGN_SIZE,
     })
+    local rightVisible = showsRightBar(focused, index, count)
     setEdgeBarVisible(pair.left, startsFullScreenRun(hs.spaces.spacesForScreen(screen) or {}, index))
-    setEdgeBarVisible(pair.right, showsRightBar(focused, index, count))
+    setEdgeBarVisible(pair.right, rightVisible)
+    setEdgeBarVisible(pair.bottom, rightVisible and isEnabled('bottom_bar'))
     setEdgeBarVisible(pair.stop, index == count)
 end
 
