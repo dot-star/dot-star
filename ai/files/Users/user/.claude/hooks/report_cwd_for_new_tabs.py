@@ -16,8 +16,9 @@ SessionEnd: once claude exits, the shell's next prompt reports the real pwd.
 A worktree the session works in wins over `cwd`. A worktree in another repo
 can't be entered, so claude's cwd stays at launch while every edit lands in the
 worktree; the marker `record_worktree_for_statusline.sh` keeps (from Edit,
-Write and `git worktree add`) names it. That hook runs alongside this one, so a
-freshly recorded worktree reaches the tab one tool call later.
+Write and any Bash command naming a worktree) names it. That hook runs
+alongside this one, so a freshly recorded worktree reaches the tab one tool
+call later.
 
 Emit the sequence the emulator's own shell integration emits, read off
 TERM_PROGRAM:

@@ -7,7 +7,9 @@
 # (a worktree the session was launched inside, or a resumed session).
 #
 # Write / Edit record the worktree an edited file sits in and Bash records the
-# path a `git worktree add` creates, so a worktree made without EnterWorktree
+# path a `git worktree add` creates, else any existing worktree the command
+# names (a later `git -C <worktree>` catches an add whose path hid behind a
+# shell variable), so a worktree made without EnterWorktree
 # (in another repo, by hand) still shows. render_statusline.sh skips a marker
 # whose directory is gone, so a teardown needs no hook of its own.
 
@@ -24,12 +26,19 @@ fi
 
 marker="${dir}/worktree"
 
-# Print the first "<...>/worktrees/<name>" path in $1, or nothing.
+# Print the first existing "<...>/worktrees/<name>" path in $1, or nothing.
+# Skip a missing one: an unexpanded "$R/worktrees/foo" matches as "/worktrees/foo".
 worktree_path_in() {
-    printf '%s' "$1" |
-        grep --only-matching --extended-regexp '/[A-Za-z0-9_./-]+/worktrees/[A-Za-z0-9_.-]+' |
-        head -n 1 ||
-        true
+    local path
+
+    while IFS= read -r path; do
+        if [ -d "${path}" ]; then
+            printf '%s' "${path}"
+            return 0
+        fi
+    done < <(printf '%s' "$1" |
+        grep --only-matching --extended-regexp '/[A-Za-z0-9_./-]+/worktrees/[A-Za-z0-9_.-]+' ||
+        true)
 }
 
 # Record $1 as the session's worktree, skipping a path that doesn't exist.
@@ -46,14 +55,23 @@ tool=$(printf '%s' "${data}" |
     command jq --raw-output '.tool_name // empty')
 case "${tool}" in
 Bash)
-    # Read the path after "worktree add", skipping any "git -C <path>" before it.
     command=$(printf '%s' "${data}" |
         command jq --raw-output '.tool_input.command // empty')
+    path=""
+
+    # Prefer the path after "worktree add", skipping any "git -C <path>" before it.
     case "${command}" in
     *"worktree add"*)
-        record_worktree "$(worktree_path_in "${command#*worktree add}")"
+        path=$(worktree_path_in "${command#*worktree add}")
         ;;
     esac
+
+    # Fall back to any worktree the command works in, as Edit / Write do.
+    if [ -z "${path}" ]; then
+        path=$(worktree_path_in "${command}")
+    fi
+
+    record_worktree "${path}"
     ;;
 Edit | Write)
     file_path=$(printf '%s' "${data}" |
