@@ -269,6 +269,7 @@
       "Bash(git -c color.ui=always diff)",
       "Bash(git add *)",
       "Bash(git checkout *)",
+      "Bash(git commit *)",
       "Bash(git diff *)",
       "Bash(git fetch *)",
       "Bash(git log *)",

@@ -4,10 +4,9 @@
 #
 #   - Allow a `gh` view/list/diff read.
 #   - Allow a read-only `gh api` fetch.
-#   - Allow `git commit --amend --no-edit`, the one fold that needs no confirmation.
 #   - Allow `git log`, with or without args.
 #   - Allow `rm` of exactly one session's prune mark.
-#   - Ask on every other `git commit`.
+#   - Ask on a `git commit` that stages every tracked change itself (`-a`).
 #
 # Anything else falls through to the normal permission flow.
 #
@@ -16,10 +15,9 @@
 # already skips the prompt; what it cannot express is the flag-dependent
 # `gh api` half, which drags the whole chain into a prompt.
 #
-# The `git commit` gate lives here rather than in an `ask` rule because the
-# rule language has no negation and an ask rule outranks both allow rules and
-# this hook, so a single `Bash(git commit:*)` entry would prompt for the fold
-# too.
+# The `git commit -a` gate lives here rather than in an `ask` rule because a
+# rule matches by prefix, so it misses `-a` bundled into `-am` or placed after
+# the message.
 
 set -u
 
@@ -302,13 +300,22 @@ is_read_only_command() {
     esac
 }
 
-# Report whether `git commit` runs as a command here: at the start of the text
-# or after a character that opens a new one. Ignore the phrase inside an
-# argument (`grep "git commit"`), which commits nothing and needs no prompt.
-runs_git_commit() {
-    local opener=$'(^|[;&|(`\n])'
+# Report whether a command in the line is a `git commit` carrying `--all` or
+# `-a`, alone or bundled (`-am`), which sweeps unreviewed edits into the
+# commit. Ignore the phrase inside an argument (`grep "git commit -a"`), which
+# commits nothing.
+runs_git_commit_all() {
+    local all_flag='(^|[[:space:]])(--all|-[[:alnum:]]*a[[:alnum:]]*)([[:space:]]|$)'
+    local segment
 
-    [[ "${1}" =~ ${opener}[[:space:]]*git[[:space:]]+commit([[:space:]]|$) ]]
+    split_commands "${1}"
+    for segment in "${segments[@]}"; do
+        if [[ "${segment}" =~ ^git[[:space:]]+commit([[:space:]]|$) && "${segment}" =~ ${all_flag} ]]; then
+            return 0
+        fi
+    done
+
+    return 1
 }
 
 # Report whether the text removes exactly one session's prune mark. Match a
@@ -335,15 +342,10 @@ emit_decision() {
 
 cmd=$(command jq --raw-output '.tool_input.command')
 
-# Wave the fold through: `--no-edit` writes no new subject and opens no editor,
-# so the amend leaves nothing to confirm. Match the exact text, since any extra
-# flag or pipeline stage is a different command.
-if [[ "${cmd}" == "git commit --amend --no-edit" ]]; then
-    emit_decision allow "fold the staged change into HEAD, subject untouched"
-elif is_prune_mark_removal "${cmd}"; then
+if is_prune_mark_removal "${cmd}"; then
     emit_decision allow "keep this session by removing its prune mark"
-elif runs_git_commit "${cmd}"; then
-    emit_decision ask "git commit writes history; confirm the command first"
+elif runs_git_commit_all "${cmd}"; then
+    emit_decision ask "git commit -a sweeps in every tracked edit; stage paths by name instead"
 fi
 
 # Wave the line through only when every command in it reads. One command that
