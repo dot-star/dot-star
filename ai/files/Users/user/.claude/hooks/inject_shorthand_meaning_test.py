@@ -91,6 +91,7 @@ class BuildContextTest(unittest.TestCase):
             "2 iter": "`<N> iter` means",
             "a vs b": "`<x> vs <y>` or",
             "exp 1": "`exp <x>` means",
+            "gen rendered example": "`gen`, `gen <x>`,",
             "show me the menu": "`show me <x>` means",
             "w 2 4": "`w`, `weigh` mean",
         }
@@ -112,6 +113,7 @@ class BuildContextTest(unittest.TestCase):
             "look at the stack",
             "that was instant",
             "install stack",
+            "general cleanup",
             "the vista from here",
             "",
         )
