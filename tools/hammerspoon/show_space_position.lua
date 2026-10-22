@@ -1,5 +1,5 @@
 -- Show where the focused Space sits in the swipe order, as experiments toggled independently:
---   Keep a strip on each edge that has another Space beyond it, none on an edge with nothing past it (edge_bars).
+--   Keep a strip on the right edge while another Space lies beyond it, a stop sign once none does (edge_bars).
 --   Flash a row of dots after each switch, the focused Space filled (page_dots).
 -- Toggle from the shell with `space_position_experiment`; each flag persists across reloads.
 
@@ -12,11 +12,8 @@ local SETTINGS_PREFIX = 'show_space_position.'
 local COLOR = { red = 1, green = 0.6, blue = 0.1, alpha = 0.9 }
 local EDGE_BAR_WIDTH = 7
 -- Back the strip with a wide glow that fades out toward the middle, so the edge reads from the corner of the eye.
-local EDGE_GLOW_WIDTHS = {
-    left = 40,
-    right = 64,
-}
-local EDGE_BAR_CANVAS_WIDTH = math.max(EDGE_BAR_WIDTH, EDGE_GLOW_WIDTHS.left, EDGE_GLOW_WIDTHS.right)
+local EDGE_GLOW_WIDTH = 64
+local EDGE_BAR_CANVAS_WIDTH = math.max(EDGE_BAR_WIDTH, EDGE_GLOW_WIDTH)
 -- Show a stop sign at the right edge's midpoint on the last Space, where there's no bar to say the swipe ends.
 local STOP_SIGN_SIZE = 64
 local STOP_SIGN_MARGIN = 8
@@ -54,7 +51,7 @@ local EDGE_BAR_BEHAVIOR = {
 
 showSpacePosition = {}
 
--- Map each Space id to its own { left, right } pair of bars.
+-- Map each Space id to its own { right, stop } pair of bar and stop sign.
 local edgeBarsBySpace = {}
 local edgeBarPairsCreated = 0
 local dots = nil
@@ -115,35 +112,23 @@ local function newEdgeBar(color)
     return bar
 end
 
--- Draw the strip flush against the screen edge on `side` over a glow that starts as solid as the strip and fades out.
-local function layoutEdgeBar(bar, side, color, height)
+-- Draw the strip flush against the right screen edge over a glow that starts as solid as the strip and fades out.
+local function layoutEdgeBar(bar, color, height)
     local opaque = { red = color.red, green = color.green, blue = color.blue, alpha = 1 }
     local clear = { red = color.red, green = color.green, blue = color.blue, alpha = 0 }
-    local stripX
-    local glowX
-    local glowColors
-    if side == 'left' then
-        stripX = 0
-        glowX = 0
-        glowColors = { opaque, clear }
-    else
-        stripX = EDGE_BAR_CANVAS_WIDTH - EDGE_BAR_WIDTH
-        glowX = EDGE_BAR_CANVAS_WIDTH - EDGE_GLOW_WIDTHS.right
-        glowColors = { clear, opaque }
-    end
     bar[1] = {
         type = 'rectangle',
         action = 'fill',
         fillGradient = 'linear',
-        fillGradientColors = glowColors,
+        fillGradientColors = { clear, opaque },
         fillGradientAngle = 0,
-        frame = { x = glowX, y = 0, w = EDGE_GLOW_WIDTHS[side], h = height },
+        frame = { x = EDGE_BAR_CANVAS_WIDTH - EDGE_GLOW_WIDTH, y = 0, w = EDGE_GLOW_WIDTH, h = height },
     }
     bar[2] = {
         type = 'rectangle',
         action = 'fill',
         fillColor = opaque,
-        frame = { x = stripX, y = 0, w = EDGE_BAR_WIDTH, h = height },
+        frame = { x = EDGE_BAR_CANVAS_WIDTH - EDGE_BAR_WIDTH, y = 0, w = EDGE_BAR_WIDTH, h = height },
     }
 end
 
@@ -196,7 +181,6 @@ local function setEdgeBarVisible(bar, visible)
 end
 
 local function deleteEdgeBarPair(pair)
-    pair.left:delete()
     pair.right:delete()
     pair.stop:delete()
 end
@@ -234,18 +218,16 @@ local function renderEdgeBars(index, count, screen, focused)
     if pair == nil then
         edgeBarPairsCreated = edgeBarPairsCreated + 1
         local color = EDGE_BAR_COLORS[(edgeBarPairsCreated - 1) % #EDGE_BAR_COLORS + 1]
-        pair = { left = newEdgeBar(color), right = newEdgeBar(color), stop = newStopSign(), color = color }
+        pair = { right = newEdgeBar(color), stop = newStopSign(), color = color }
         edgeBarsBySpace[focused] = pair
     end
 
     local frame = screen:fullFrame()
     -- Redraw the elements only when the screen height changes, so a plain Space switch never repaints the bars.
     if pair.height ~= frame.h then
-        layoutEdgeBar(pair.left, 'left', pair.color, frame.h)
-        layoutEdgeBar(pair.right, 'right', pair.color, frame.h)
+        layoutEdgeBar(pair.right, pair.color, frame.h)
         pair.height = frame.h
     end
-    pair.left:frame(edgeBarFrame(frame, frame.x))
     pair.right:frame(edgeBarFrame(frame, frame.x + frame.w - EDGE_BAR_CANVAS_WIDTH))
     pair.stop:frame({
         x = frame.x + frame.w - STOP_SIGN_SIZE - STOP_SIGN_MARGIN,
@@ -253,7 +235,6 @@ local function renderEdgeBars(index, count, screen, focused)
         w = STOP_SIGN_SIZE,
         h = STOP_SIGN_SIZE,
     })
-    setEdgeBarVisible(pair.left, index > 1)
     setEdgeBarVisible(pair.right, index < count)
     setEdgeBarVisible(pair.stop, index == count)
 end
