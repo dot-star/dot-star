@@ -22,6 +22,16 @@ extend-select = [
     "ANN",
 ]
 
+[tool.pyright]
+# Leave type checking to ty; run pyright only for the rules ty lacks.
+typeCheckingMode = "off"
+# Reject a bare `dict` or `list`, which strict Pylance reads as `dict[Unknown, Unknown]`.
+reportMissingTypeArgument = "error"
+# Skip the worktree checkouts, which each hold a full copy of the tree.
+exclude = [
+    ".claude",
+]
+
 [tool.ty.src]
 # Skip the worktree checkouts, which each hold a full copy of the tree.
 exclude = [".claude"]
