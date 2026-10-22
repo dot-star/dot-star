@@ -36,6 +36,24 @@
     "expected": "pass"
   },
   {
+    "name": "all-caps token past acronym length passes",
+    "msg": "The tests cover README and CHANGELOG paths.",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
+    "name": "five-letter niche acronym still flagged",
+    "msg": "Route it through the FABRQ queue.",
+    "stop": false,
+    "expected": "block"
+  },
+  {
+    "name": "six-letter exchange name passes without a whitelist entry",
+    "msg": "It trades on NASDAQ.",
+    "stop": false,
+    "expected": "pass"
+  },
+  {
     "name": "acronym inside inline code is exempt",
     "msg": "Toggle `FAB` visibility.",
     "stop": false,

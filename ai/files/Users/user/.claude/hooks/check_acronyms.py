@@ -4,9 +4,10 @@ Stop hook: flag unexplained niche acronyms in the last assistant message.
 
 Per ~/.claude/CLAUDE.md (Output > spell out niche acronyms), prose should spell
 out insider acronyms and keep only the skim-without-expansion set (API, AWS,
-URL, PR). Scan the last turn's prose for all-caps tokens of 2+ letters that are
+URL, PR). Scan the last turn's prose for all-caps tokens of 2-5 letters that are
 neither whitelisted nor a plain English word, and block so Claude spells them
-out before re-sending.
+out before re-sending. Longer all-caps runs are file names (README, CHANGELOG)
+or emphasis rather than acronyms, so they pass.
 
 Code spans, fenced blocks, and blockquotes are stripped first: acronyms inside
 code identifiers or quoted material are legitimately exempt. The dictionary
@@ -69,7 +70,6 @@ WHITELIST = {
     "KYC",
     "LLC",
     "MB",
-    "NASDAQ",
     "OK",
     "OS",
     "PDF",
@@ -81,7 +81,6 @@ WHITELIST = {
     "QA",
     "QR",
     "RAM",
-    "README",
     "RSVP",
     "SDK",
     "SPCX",
@@ -119,6 +118,10 @@ MIXED_CASE_FLAG = {
 
 DICT_PATH = "/usr/share/dict/words"
 
+# Cap the scan at the length real acronyms run to; past it an all-caps token is
+# a file name (README, CHANGELOG) or emphasis, not an acronym to spell out.
+MAX_ACRONYM_LENGTH = 5
+
 
 def load_dictionary() -> set[str]:
     """Returns the lowercased system word list, or an empty set if unavailable."""
@@ -152,7 +155,7 @@ def find_offenders(prose: str, dictionary: set[str]) -> list[str]:
     """Returns unexplained acronyms in order, deduped."""
     offenders = []
     seen = set()
-    for token in re.findall(r"\b[A-Z]{2,}\b", prose):
+    for token in re.findall(r"\b[A-Z]{2," + str(MAX_ACRONYM_LENGTH) + r"}\b", prose):
         if token in WHITELIST:
             continue
         if token.lower() in dictionary:

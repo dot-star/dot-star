@@ -203,7 +203,7 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
   - A bracket-prefix option label is the exception, since the letters there are an accept token rather than prose: 📎 **`[cb]`** names the clipboard option (see the clipboard rule below). The ban still binds the surrounding sentence, so word the parenthetical "put it on the clipboard", never "to cb".
 - Spell out niche or insider technical acronyms in prose rather than abbreviating: write "infrastructure as code", not "IaC".
   - Keep only acronyms a reader skims without expansion (API, AWS, URL, PR).
-  - Pre-send check: scan output for all-caps tokens of 2+ letters; each must be whitelisted or spelled out.
+  - Pre-send check: scan output for all-caps tokens of 2-5 letters; each must be whitelisted or spelled out.
 - Pick `a`/`an` by how the next token is said aloud, never by its spelling. A bare bracket token, lone letter, or initialism is said as letter names: `an [x] row` (said "ex"), `an SQL query`, `a URL`. A bracket letter with a remainder is said as the word: `a [f]old`, `an [a]dd row`. Binds commit subjects and code comments, not just chat prose.
   - Letter names opening on a vowel sound, so a bare one takes `an`: `a`, `e`, `f`, `h`, `i`, `l`, `m`, `n`, `o`, `r`, `s`, `x`.
   - Pre-send check: for every `a `/`an ` before a `[` or an all-caps token, say the token aloud.
