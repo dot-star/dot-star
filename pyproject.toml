@@ -36,6 +36,8 @@ extend-select = [
     "ERA",
     # Keep each shebang in step with the file's executable bit.
     "EXE",
+    # Prefer an f-string over joining a fixed list of strings.
+    "FLY",
     # Sort imports and keep each on its own line.
     "I",
     # Flag implicitly joined strings, such as a list missing a comma between two literals.
