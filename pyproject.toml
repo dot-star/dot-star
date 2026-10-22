@@ -38,6 +38,8 @@ extend-select = [
     "EXE",
     # Sort imports and keep each on its own line.
     "I",
+    # Flag implicitly joined strings, such as a list missing a comma between two literals.
+    "ISC",
     # Flag no-op code, such as a pass beside a docstring or a duplicate class field.
     "PIE",
     # Drop a needless `return None` from a function that never returns a value.
