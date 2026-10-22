@@ -42,6 +42,8 @@ extend-select = [
     "ISC",
     # Enforce standard Python naming, such as snake_case function names.
     "N",
+    # Require a rule code on every type: ignore comment.
+    "PGH",
     # Flag no-op code, such as a pass beside a docstring or a duplicate class field.
     "PIE",
     # Drop a needless `return None` from a function that never returns a value.
