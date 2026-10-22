@@ -8,6 +8,7 @@ Annotate every function and method: each parameter and the return type, on every
 - Every function gets a return type. A function with no `return` is `-> None`; a test method is `-> None`. Leaving the return off reads as "forgot", not as "returns nothing".
 - Write `-> NoReturn` on a function that always raises or exits.
 - Use the modern builtin spellings, never the `typing` aliases: `list[str]`, `dict[str, int]`, `tuple[int, ...]`, `set[str]`, `type[Foo]`, `str | None`. `typing.List`, `typing.Dict`, `typing.Optional`, `typing.Union` are out.
+- Give every generic its type arguments; a bare `dict`, `list`, `set` or `tuple` is out. Strict Pylance (the editor's `typeCheckingMode`) reads a bare `dict` as `dict[Unknown, Unknown]`, so every value pulled out of it and every return built from one gets flagged too. A parsed JSON payload is `dict[str, Any]`. Annotate the variable `json.load` fills as well (`event: dict[str, Any] = json.load(sys.stdin)`), so an `event = {}` fallback branch shares that type.
 - Skip `from __future__ import annotations`; the pinned interpreter (`.python-version`) already reads the modern syntax at runtime.
 - Import the abstract shapes from `collections.abc`, not `typing`: `Iterable`, `Iterator`, `Callable`, `Mapping`, `Sequence`.
 - Accept the broad shape and return the concrete one: take `Iterable[str]` or `Mapping[str, str]` where any will do; return `list[str]` or `dict[str, str]`, the thing actually built.
