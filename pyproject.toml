@@ -46,6 +46,8 @@ extend-select = [
     "PGH",
     # Flag no-op code, such as a pass beside a docstring or a duplicate class field.
     "PIE",
+    # Flag a loop variable reassigned inside its loop, which hides the original value.
+    "PLW2901",
     # Drop a needless `return None` from a function that never returns a value.
     "RET501",
     # Spell out `return None` in a function that returns a value on other paths.

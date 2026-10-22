@@ -159,8 +159,8 @@ def selected_modes() -> set[str]:
     raw = os.environ.get("CLAUDE_SESSION_COLOR", DEFAULT_MODES)
     modes = set()
 
-    for name in raw.split(","):
-        name = name.strip().lower()
+    for raw_name in raw.split(","):
+        name = raw_name.strip().lower()
         if name in MODES:
             modes.add(name)
         elif name and name != "off":

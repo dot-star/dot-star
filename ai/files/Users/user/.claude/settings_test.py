@@ -97,8 +97,8 @@ def split_subcommands(command: str) -> list[str]:
     :return: Stripped, non-empty subcommand strings.
     """
     subcommands = []
-    for part in SEPARATOR_PATTERN.split(command):
-        part = part.strip()
+    for raw_part in SEPARATOR_PATTERN.split(command):
+        part = raw_part.strip()
         if part:
             subcommands.append(part)
     return subcommands

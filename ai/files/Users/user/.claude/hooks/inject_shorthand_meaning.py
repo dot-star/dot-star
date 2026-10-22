@@ -243,8 +243,8 @@ def match_clauses(prompt: str, entries: Iterable[Entry], transcript_path: str) -
         return []
     offered = offered_options(last_assistant_text(transcript_path))
     matched: list[Entry] = []
-    for clause in prose.split(";"):
-        clause = clause.strip()
+    for raw_clause in prose.split(";"):
+        clause = raw_clause.strip()
         if not clause or clause.lower() in offered:
             continue
         for entry in match_whole(clause, entries):
