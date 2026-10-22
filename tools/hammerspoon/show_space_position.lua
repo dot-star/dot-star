@@ -223,12 +223,20 @@ local function renderEdgeBars(index, count, screen, focused)
     end
 
     local frame = screen:fullFrame()
-    -- Redraw the elements only when the screen height changes, so a plain Space switch never repaints the bars.
-    if pair.height ~= frame.h then
-        layoutEdgeBar(pair.right, pair.color, frame.h)
-        pair.height = frame.h
+    -- Start the first Space's bar below the menu bar, so it doesn't cover the clock; `frame()` drops the menu bar where this screen has one.
+    local barTop
+    if index == 1 then
+        barTop = screen:frame().y
+    else
+        barTop = frame.y
     end
-    pair.right:frame(edgeBarFrame(frame, frame.x + frame.w - EDGE_BAR_CANVAS_WIDTH))
+    local barFrame = { x = frame.x, y = barTop, w = frame.w, h = frame.y + frame.h - barTop }
+    -- Redraw the elements only when the bar height changes, so a plain Space switch never repaints the bars.
+    if pair.height ~= barFrame.h then
+        layoutEdgeBar(pair.right, pair.color, barFrame.h)
+        pair.height = barFrame.h
+    end
+    pair.right:frame(edgeBarFrame(barFrame, barFrame.x + barFrame.w - EDGE_BAR_CANVAS_WIDTH))
     pair.stop:frame({
         x = frame.x + frame.w - STOP_SIGN_SIZE - STOP_SIGN_MARGIN,
         y = frame.y + (frame.h - STOP_SIGN_SIZE) / 2,
