@@ -33,12 +33,13 @@ import sys
 
 # Whitelist acronyms a reader skims without expansion. Extend as needed; the
 # dictionary check below already covers all-caps English words, so list only
-# true acronyms.
+# true acronyms. List a hyphenated compound whole when its parts are niche alone.
 WHITELIST = {
     "AM",
     "API",
     "AWS",
     "BSD",
+    "CD-ROM",
     "CDK",
     "CI",
     "CLI",
@@ -151,11 +152,27 @@ def strip_exempt(text: str) -> str:
     return text
 
 
+def find_tokens(prose: str) -> list[str]:
+    """Returns all-caps tokens, keeping a whitelisted hyphenated compound whole."""
+    part = r"[A-Z]{2," + str(MAX_ACRONYM_LENGTH) + r"}"
+    tokens = []
+    for compound, plural in re.findall(r"\b(" + part + r"(?:-" + part + r")*)(s?)\b", prose):
+        parts = compound.split("-")
+        if compound in WHITELIST:
+            tokens.append(compound)
+        elif plural:
+            # Skip the last part: its trailing "s" hid it from the scan, as with a lone plural (APIs).
+            tokens.extend(parts[:-1])
+        else:
+            tokens.extend(parts)
+    return tokens
+
+
 def find_offenders(prose: str, dictionary: set[str]) -> list[str]:
     """Returns unexplained acronyms in order, deduped."""
     offenders = []
     seen = set()
-    for token in re.findall(r"\b[A-Z]{2," + str(MAX_ACRONYM_LENGTH) + r"}\b", prose):
+    for token in find_tokens(prose):
         if token in WHITELIST:
             continue
         if token.lower() in dictionary:
