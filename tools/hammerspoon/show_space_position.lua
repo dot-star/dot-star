@@ -12,7 +12,7 @@ local SETTINGS_PREFIX = 'show_space_position.'
 local COLOR = { red = 1, green = 0.6, blue = 0.1, alpha = 0.9 }
 local EDGE_BAR_WIDTH = 7
 -- Back the strip with a wide glow that fades out toward the middle, so the edge reads from the corner of the eye.
-local EDGE_GLOW_WIDTH = 96
+local EDGE_GLOW_WIDTH = 64
 local EDGE_BAR_CANVAS_WIDTH = math.max(EDGE_BAR_WIDTH, EDGE_GLOW_WIDTH)
 -- Show a stop sign at the right edge's midpoint on the last Space, where there's no bar to say the swipe ends.
 local STOP_SIGN_SIZE = 64
