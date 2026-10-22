@@ -38,6 +38,8 @@ extend-select = [
     "EXE",
     # Prefer an f-string over joining a fixed list of strings.
     "FLY",
+    # Modernize dated idioms, such as sorted(x)[0] over min(x).
+    "FURB",
     # Sort imports and keep each on its own line.
     "I",
     # Flag implicitly joined strings, such as a list missing a comma between two literals.
