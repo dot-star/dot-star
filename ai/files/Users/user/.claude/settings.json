@@ -41,6 +41,10 @@
             "type": "command"
           },
           {
+            "command": "${HOME}/.claude/hooks/remind_when_markdown_edited_to_mirror_meta.py",
+            "type": "command"
+          },
+          {
             "command": "${HOME}/.claude/hooks/remind_when_personal_context_edited_to_bank_it.sh",
             "type": "command"
           }
