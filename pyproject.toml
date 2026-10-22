@@ -34,6 +34,8 @@ extend-select = [
     "DTZ",
     # Flag commented-out code left behind.
     "ERA",
+    # Keep each shebang in step with the file's executable bit.
+    "EXE",
     # Sort imports and keep each on its own line.
     "I",
     # Flag no-op code, such as a pass beside a docstring or a duplicate class field.
