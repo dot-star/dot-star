@@ -349,4 +349,10 @@ require('add_toggle_terminal_hotkey')
 require('show_space_position')
 -- Open the port the hs command-line client talks to; the Claude window hooks run Lua through it.
 require('hs.ipc')" '--'
+
+# Put the hs client on PATH, the link `hs.ipc.cliInstall()` would make, without needing Hammerspoon running.
+hammerspoon_cli="/Applications/Hammerspoon.app/Contents/Frameworks/hs/hs"
+if [ -e "${hammerspoon_cli}" ]; then
+    ensure_symlink "${hammerspoon_cli}" "${HOMEBREW_PREFIX:-/usr/local}/bin/hs"
+fi
 bt_pop # hammerspoon setup
