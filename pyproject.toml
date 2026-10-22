@@ -20,6 +20,8 @@ line-length = 120
 extend-select = [
     # Require type annotations on every function; ty checks only what is annotated.
     "ANN",
+    # Catch likely bugs, such as a zip() that silently drops the longer list's tail.
+    "B",
     # Sort imports and keep each on its own line.
     "I",
 ]

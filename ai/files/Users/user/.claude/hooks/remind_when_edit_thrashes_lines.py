@@ -144,7 +144,7 @@ def moves_line_breaks(removed: list[str], added: list[str]) -> bool:
     :param added: Lines the diff marks as added.
     :return: True when more than half the paired lines changed their last word.
     """
-    pairs = list(zip(removed, added))
+    pairs = list(zip(removed, added, strict=False))
     if len(pairs) < 2:
         return False
 
