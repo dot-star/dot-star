@@ -45,5 +45,7 @@ A file whose entries don't yet carry labels gets both tables added above its ent
 
 1. `- [ ] Fix the thing` becomes `- [x] Fix the thing` in the commit that does the work.
 2. The `- [x]` line gets deleted later in a prune commit that touches nothing else, often sweeping several finished entries at once.
+   - Prune only what got done: reread each `- [x]` entry before deleting it, since a box checked off on a workaround or a superseded plan can still carry an unfinished part (a cause left undiagnosed, a follow-up named in passing).
+   - Split such an entry in a commit ahead of the prune: the done part keeps its `[x]` and the remainder moves to a new `- [ ]` bullet of its own, labeled like any banked entry. The prune then deletes only the `[x]` line, so the remainder never vanishes inside a diff that reads as pure deletion.
 
 **Offer the prune** as 🧹 **`[s]weep`** whenever the todo file already holds committed `- [x]` entries.
