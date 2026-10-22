@@ -70,7 +70,18 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   - Carry the staged line counts in that line, summed from `git diff --cached --numstat`, so the user knows how big a diff the drafts describe before opening it.
   - Re-run the staging on every menu, since edits made after an earlier staging land unstaged.
   - **Draft only what's staged:** the index holds one commit, so a repo with several pending commits stages only the first one's paths and renders only that commit's tree.
-    - Name that commit above the menu (`🟢 Staged 1 file (+4 -1) for commit 1 of 4`).
+    - Replace the staged line with a vertical progress block above the menu, so the user sees what landed and what's left beside the commit the menu acts on. Render it in a fenced block, one line per commit in series order:
+      - `✓ <subject>` for each commit made.
+      - `▸ <files>: staged N files (+A -D), commit K of M` for the staged one.
+      - `· <files>` for each pending one, which has no subject yet.
+      - `┌` leads the first line, `│` the middle ones and `└` the last, setting the series apart from the menu.
+
+      ```
+      ┌ ✓ Add foo parser
+      │ ▸ bar.py: staged 1 file (+7 -6), commit 2 of 4
+      │ · baz.py
+      └ · README.md, todo.md
+      ```
     - Name it again in every row whose parenthetical opens with `commit` (`💾 [c]ommit (commit 1 of 4)`), so the row picked says which commit it banks.
     - Give each later commit its tree on the menu after the one before it lands; a tree over unstaged paths asks the user to judge subjects they can't `d`.
     - **Drop 🏁 `[L]and` and 🧨 `[x]` mid-series:** while a later commit in the series is still pending (unstaged paths waiting for their turn, or a change set aside behind a 🪚 refactor-first split), the menu offers neither. Both tear the worktree down after banking only the staged commit, so picking one strands the rest of the series. They return on the menu for the last commit, which is the one that can finish the objective.
