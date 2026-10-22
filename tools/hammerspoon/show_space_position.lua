@@ -11,6 +11,15 @@ local DEFAULT_ENABLED = {
 local SETTINGS_PREFIX = 'show_space_position.'
 local COLOR = { red = 1, green = 0.6, blue = 0.1, alpha = 0.9 }
 local EDGE_BAR_WIDTH = 12
+-- Back the strip with a wide glow that fades out toward the middle, so the edge reads from the corner of the eye.
+local EDGE_GLOW_WIDTH = 96
+local EDGE_BAR_CANVAS_WIDTH = math.max(EDGE_BAR_WIDTH, EDGE_GLOW_WIDTH)
+-- Show a stop sign at the right edge's midpoint on the last Space, where there's no bar to say the swipe ends.
+local STOP_SIGN_SIZE = 64
+local STOP_SIGN_MARGIN = 8
+local STOP_SIGN_BORDER = 3
+local STOP_SIGN_FONT_SIZE = 16
+local STOP_SIGN_RED = { red = 0.8, green = 0.05, blue = 0.05, alpha = 1 }
 -- Paint each Space's pair the next color, so pairs are told apart and a recreated pair shows up as a color change.
 local EDGE_BAR_COLORS = {
     { red = 1, green = 0.2, blue = 0.2, alpha = 0.9 },
@@ -93,13 +102,86 @@ local function focusedPosition()
 end
 
 local function edgeBarFrame(screenFrame, x)
-    return { x = x, y = screenFrame.y, w = EDGE_BAR_WIDTH, h = screenFrame.h }
+    return { x = x, y = screenFrame.y, w = EDGE_BAR_CANVAS_WIDTH, h = screenFrame.h }
 end
 
+-- Fade the whole canvas rather than each fill, so the strip and glow overlap without a darker seam.
 local function newEdgeBar(color)
-    local bar = newOverlay({ x = 0, y = 0, w = EDGE_BAR_WIDTH, h = 1 }, EDGE_BAR_BEHAVIOR)
-    bar[1] = { type = 'rectangle', action = 'fill', fillColor = color }
+    local bar = newOverlay({ x = 0, y = 0, w = EDGE_BAR_CANVAS_WIDTH, h = 1 }, EDGE_BAR_BEHAVIOR)
+    bar:alpha(color.alpha)
     return bar
+end
+
+-- Draw the strip flush against the screen edge on `side` over a glow that starts as solid as the strip and fades out.
+local function layoutEdgeBar(bar, side, color, height)
+    local opaque = { red = color.red, green = color.green, blue = color.blue, alpha = 1 }
+    local clear = { red = color.red, green = color.green, blue = color.blue, alpha = 0 }
+    local stripX
+    local glowX
+    local glowColors
+    if side == 'left' then
+        stripX = 0
+        glowX = 0
+        glowColors = { opaque, clear }
+    else
+        stripX = EDGE_BAR_CANVAS_WIDTH - EDGE_BAR_WIDTH
+        glowX = EDGE_BAR_CANVAS_WIDTH - EDGE_GLOW_WIDTH
+        glowColors = { clear, opaque }
+    end
+    bar[1] = {
+        type = 'rectangle',
+        action = 'fill',
+        fillGradient = 'linear',
+        fillGradientColors = glowColors,
+        fillGradientAngle = 0,
+        frame = { x = glowX, y = 0, w = EDGE_GLOW_WIDTH, h = height },
+    }
+    bar[2] = {
+        type = 'rectangle',
+        action = 'fill',
+        fillColor = opaque,
+        frame = { x = stripX, y = 0, w = EDGE_BAR_WIDTH, h = height },
+    }
+end
+
+-- Return the corners of an octagon with flat top and bottom sides, centered in a square of `STOP_SIGN_SIZE`.
+local function octagonCoordinates(radius)
+    local center = STOP_SIGN_SIZE / 2
+    local coordinates = {}
+    for corner = 0, 7 do
+        local angle = math.rad(22.5 + 45 * corner)
+        coordinates[#coordinates + 1] = { x = center + radius * math.cos(angle), y = center + radius * math.sin(angle) }
+    end
+    return coordinates
+end
+
+local function newStopSign()
+    local sign = newOverlay({ x = 0, y = 0, w = STOP_SIGN_SIZE, h = STOP_SIGN_SIZE }, EDGE_BAR_BEHAVIOR)
+    local radius = STOP_SIGN_SIZE / 2
+    sign[1] = {
+        type = 'segments',
+        action = 'fill',
+        fillColor = { white = 1, alpha = 1 },
+        closed = true,
+        coordinates = octagonCoordinates(radius),
+    }
+    sign[2] = {
+        type = 'segments',
+        action = 'fill',
+        fillColor = STOP_SIGN_RED,
+        closed = true,
+        coordinates = octagonCoordinates(radius - STOP_SIGN_BORDER),
+    }
+    sign[3] = {
+        type = 'text',
+        text = hs.styledtext.new('STOP', {
+            font = { name = 'Helvetica-Bold', size = STOP_SIGN_FONT_SIZE },
+            color = { white = 1, alpha = 1 },
+            paragraphStyle = { alignment = 'center' },
+        }),
+        frame = { x = 0, y = radius - STOP_SIGN_FONT_SIZE * 0.65, w = STOP_SIGN_SIZE, h = STOP_SIGN_FONT_SIZE * 1.4 },
+    }
+    return sign
 end
 
 local function setEdgeBarVisible(bar, visible)
@@ -113,6 +195,7 @@ end
 local function deleteEdgeBarPair(pair)
     pair.left:delete()
     pair.right:delete()
+    pair.stop:delete()
 end
 
 -- Drop the pairs of Spaces that no longer exist.
@@ -148,15 +231,28 @@ local function renderEdgeBars(index, count, screen, focused)
     if pair == nil then
         edgeBarPairsCreated = edgeBarPairsCreated + 1
         local color = EDGE_BAR_COLORS[(edgeBarPairsCreated - 1) % #EDGE_BAR_COLORS + 1]
-        pair = { left = newEdgeBar(color), right = newEdgeBar(color) }
+        pair = { left = newEdgeBar(color), right = newEdgeBar(color), stop = newStopSign(), color = color }
         edgeBarsBySpace[focused] = pair
     end
 
     local frame = screen:fullFrame()
+    -- Redraw the elements only when the screen height changes, so a plain Space switch never repaints the bars.
+    if pair.height ~= frame.h then
+        layoutEdgeBar(pair.left, 'left', pair.color, frame.h)
+        layoutEdgeBar(pair.right, 'right', pair.color, frame.h)
+        pair.height = frame.h
+    end
     pair.left:frame(edgeBarFrame(frame, frame.x))
-    pair.right:frame(edgeBarFrame(frame, frame.x + frame.w - EDGE_BAR_WIDTH))
+    pair.right:frame(edgeBarFrame(frame, frame.x + frame.w - EDGE_BAR_CANVAS_WIDTH))
+    pair.stop:frame({
+        x = frame.x + frame.w - STOP_SIGN_SIZE - STOP_SIGN_MARGIN,
+        y = frame.y + (frame.h - STOP_SIGN_SIZE) / 2,
+        w = STOP_SIGN_SIZE,
+        h = STOP_SIGN_SIZE,
+    })
     setEdgeBarVisible(pair.left, index > 1)
     setEdgeBarVisible(pair.right, index < count)
+    setEdgeBarVisible(pair.stop, index == count)
 end
 
 local function renderPageDots(index, count, screen)
