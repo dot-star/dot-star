@@ -54,6 +54,8 @@ extend-select = [
     "RET503",
     # Run Ruff's own checks, such as a mutable default argument or a lookalike Unicode character.
     "RUF",
+    # Flag a leftover breakpoint() or debugger import.
+    "T10",
     # Rewrite outdated syntax into the form the pinned interpreter supports, such as list[str] over List[str].
     "UP",
 ]
