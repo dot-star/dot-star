@@ -501,6 +501,30 @@ first_diff_line() {
     echo "${first_changed_line}"
 }
 
+meta_pair_base() {
+    # Print the doc a ".meta.md" file pairs with, given either side of the
+    # pair, so "ea" can open both side by side. Fail when either side is
+    # missing on disk.
+    local file_path="${1}"
+    local base_path
+
+    if [[ "${file_path}" == *.meta.md ]]; then
+        base_path="${file_path%.meta.md}.md"
+    elif [[ "${file_path}" == *.md ]]; then
+        base_path="${file_path}"
+    else
+        return 1
+    fi
+
+    if [[ ! -f "${base_path}" ]]; then
+        return 1
+    elif [[ ! -f "${base_path%.md}.meta.md" ]]; then
+        return 1
+    fi
+
+    echo "${base_path}"
+}
+
 edit() {
     # Display an interface for selecting from a list of files to edit when no
     # file has been specified. Automatically select file when there's only one
@@ -634,10 +658,23 @@ edit() {
         editor_cli="/Applications/${MY_OPEN_EDITOR}/Contents/Resources/app/bin/code"
 
         if [[ ! -z "${result}" ]] && [[ -x "${editor_cli}" ]]; then
+            opened_pairs=""
             echo "${result}" | while read -r file_to_edit; do
+                # Open a ".meta.md" file and its doc as one side-by-side diff
+                # when "ea" was used, so the two panes scroll together. Skip
+                # the second member of a pair already opened.
                 # Keep the editor off the loop's stdin. Without this, the first
                 # call swallows the remaining file names.
-                "${editor_cli}" --goto "${file_to_edit}:$(first_diff_line "${file_to_edit}")" </dev/null
+                if [[ "${EDIT_SELECT_ALL}" == true ]] && pair_base="$(meta_pair_base "${file_to_edit}")"; then
+                    if [[ "${opened_pairs}" == *$'\n'"${pair_base}"$'\n'* ]]; then
+                        continue
+                    fi
+
+                    opened_pairs+=$'\n'"${pair_base}"$'\n'
+                    "${editor_cli}" --diff "${pair_base}" "${pair_base%.md}.meta.md" </dev/null
+                else
+                    "${editor_cli}" --goto "${file_to_edit}:$(first_diff_line "${file_to_edit}")" </dev/null
+                fi
             done
         else
             editor_args="$(echo "${result}" | tr '\n' ' ')"
