@@ -348,6 +348,8 @@
     9.
     10.
 -
+  - A `!` command's output lands in the conversation, so Claude can verify the result (a deploy landed, a test passed) without the user pasting it back; a new terminal hides the run and turns the check into a round trip. A `!` command runs with no keyboard attached, so a `read` prompt, password ask or full-screen program gets nothing and silently skips or hangs, and a command that never exits would pin the session's prompt.
+    - A confirmation prompt guarding a dry run exists only so a human reviews the dry run. Once the user has reviewed it in the conversation, the prompt has done its job, and answering it ahead of time keeps the run visible instead of exiling it to a terminal just to type one letter.
   -
   -
     -
