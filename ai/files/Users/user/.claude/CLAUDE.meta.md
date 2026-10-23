@@ -223,6 +223,7 @@
 -
   -
   -
+- A "both" option looks like strictly more for no extra price, which makes it the reflexive pick even when the two halves overlap, conflict or double the review. Naming the cost turns it back into a real tradeoff the user weighs against the single options; naming the gain too keeps that tradeoff balanced, since the case for both isn't always just "more" (the halves may cover different failures, or one may only be safe with the other). Stating both inside the option keeps them beside the pick instead of in prose the reader skips on the way to the list.
 -
   -
   -

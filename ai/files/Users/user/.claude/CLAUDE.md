@@ -223,6 +223,7 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
 - Make every option and example self-contained. When a numbered choice, a Fail/Pass line, or a rendered sample would lean on a sibling ("same as 2 but shorter", "same first line as above"), repeat the shared part instead. The reader compares entries by scanning down the list, so a cross-reference makes them hold one entry in their head while reading another, and a sibling that later gets cut or reordered strands the reference.
   - Fail (leans on option 1): `2. Same as 1, but with the retry capped`
   - Pass (repeats the shared part): `2. Queue the job and retry it, capped at three attempts`
+- Give every "both" option its reason for and against doing both, inside the option itself: `3. Both (covers each failure mode; doubles the review)`.
 - Name a task an entry depends on by what it does, never by its label alone: `Blocked by task: <verb-led description>`. A bare `(P2)` under a row headed `(P3, S3)` reads as that row's own label or as option 2.
   - Fail: `- Needs the cache split (P2) first.`
   - Pass: `- Blocked by task: split the cache into one store per tenant.`
