@@ -39,6 +39,13 @@ Interpret a bare one-token reply or a short fixed phrase as shorthand. Fires onl
   dirty:    <file count, or "clean">
   ```
 
+  Give each value its own line: stack a label's extra values under the first, aligned, never comma-joined:
+
+  ```
+  worktree: fix-login-redirect  (#123)
+            add-retry-cap       (#124)
+  ```
+
   A status is a place to act from, so end it on the bracket-prefix menu that applies (worktree menu, loose-end rows, an open pick), rendered in full per the Output rules; with nothing to offer, end on the labels.
 
 - `ses`, `sesid`, `sess`, `sessid`, `sid` mean "print this session's handle as other sessions see it and put it on the clipboard": run `ListAgents` and copy the name and bracket ref from its `This session is` line, wrapped in a label that says what they are (`Peer Claude session dot-star-12 [abcdef] (reach it with SendMessage):`).
