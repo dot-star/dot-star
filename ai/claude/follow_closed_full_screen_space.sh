@@ -10,7 +10,7 @@
 #
 # Skips silently where it can't apply (no Hammerspoon installed, no terminal app
 # to match). Fails loudly when Hammerspoon is installed but can't run the hop,
-# since that is a missing `hs.ipc`, a stopped app or a module not yet loaded.
+# since that is a missing `hs.ipc`, a stopped app or a missing bootstrap block.
 
 set -euo pipefail
 
@@ -28,7 +28,8 @@ if [[ -z "${terminal_bundle_id}" ]]; then
     exit 0
 fi
 
-if ! "${hammerspoon_cli}" -c "return followClosedFullScreenSpace.arm('${terminal_bundle_id}')" >/dev/null; then
-    echo "Couldn't arm the full-screen follow through Hammerspoon. Check it's running with require('hs.ipc') and require('follow_closed_full_screen_space') in ~/.hammerspoon/init.lua (./install.sh adds both), then reload its config." >&2
+# Load the module on demand, so a Hammerspoon still running a config from before the module shipped can arm it anyway.
+if ! "${hammerspoon_cli}" -c "require('follow_closed_full_screen_space'); return followClosedFullScreenSpace.arm('${terminal_bundle_id}')" >/dev/null; then
+    echo "Couldn't arm the full-screen follow through Hammerspoon. Check it's running with the dot-star bootstrap block and require('hs.ipc') in ~/.hammerspoon/init.lua (./install.sh adds both), then reload its config." >&2
     exit 1
 fi
