@@ -1489,19 +1489,19 @@ rc_push_guard() {
     # lines (bash, non-interactive shells); the HEAD check below still runs.
     if [[ -n "${DOTSTAR_COMMAND_LINE_COUNT:-}" ]]; then
         if [[ "${DOTSTAR_STATUS_COMMAND_LINE:-}" != "$((DOTSTAR_COMMAND_LINE_COUNT - 1))" ]]; then
-            echo "refusing to push: run \`s\` right before \`pus\` to review what it ships"
+            echo -e "\033[1;31mError:\033[0m refusing to push; run \`s\` right before \`pus\` to review what it ships"
             return 1
         fi
     fi
 
     if [[ "$(git rev-parse --absolute-git-dir)" != "${DOTSTAR_STATUS_GIT_DIR:-}" ]]; then
-        echo "refusing to push: no \`s\` review of this checkout in this shell; run \`s\` first"
+        echo -e "\033[1;31mError:\033[0m refusing to push; no \`s\` review of this checkout in this shell; run \`s\` first"
         return 1
     fi
 
     current_head="$(git rev-parse HEAD)"
     if [[ "${current_head}" != "${DOTSTAR_STATUS_HEAD}" ]]; then
-        echo "refusing to push: HEAD moved since the last \`s\`; commits added since:"
+        echo -e "\033[1;31mError:\033[0m refusing to push; HEAD moved since the last \`s\`; commits added since:"
         git log --oneline "${DOTSTAR_STATUS_HEAD}..${current_head}"
         echo "run \`s\` again to review them"
         return 1
