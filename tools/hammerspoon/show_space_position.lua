@@ -2,12 +2,14 @@
 --   Keep a strip on a full-screen Space's right edge while another Space lies beyond it, a bumper once none does (edge_bars).
 --   Add a strip on the left edge of the first full-screen Space, where swiping left leaves the full-screen apps (edge_bars).
 --   Add a thin band along the bottom edge of every full-screen Space in that Space's strip color (bottom_bar, needs edge_bars).
+--   Paint each Space's bars the next color in a cycle rather than one shared color (cycle_colors, needs edge_bars).
 --   Flash a row of dots after each switch, the focused Space filled (page_dots).
 -- Toggle from the shell with `space_position_experiment`; each flag persists across reloads.
 
 -- Apply each experiment's default until it's toggled; a saved setting wins after that.
 local DEFAULT_ENABLED = {
     bottom_bar = true,
+    cycle_colors = true,
     edge_bars = true,
     page_dots = false,
 }
@@ -31,6 +33,8 @@ local EDGE_BAR_COLORS = {
     { red = 0.1, green = 0.9, blue = 0.9, alpha = 0.9 },
     { red = 1, green = 0.9, blue = 0.1, alpha = 0.9 },
 }
+-- Paint every Space's bars this one color while cycle_colors is off, so the bars read as a single landmark.
+local UNIFORM_EDGE_BAR_COLOR = { red = 1, green = 0.6, blue = 0.1, alpha = 0.9 }
 local DOT_SIZE = 10
 local DOT_GAP = 10
 -- Clear the terminal's prompt and status lines at the bottom of the screen.
@@ -209,6 +213,14 @@ local function showsBottomBar(focused)
     return true
 end
 
+-- Return the color a pair paints: its own from the cycle, or the shared one while cycle_colors is off.
+local function edgeBarColor(cycleColor)
+    if isEnabled('cycle_colors') then
+        return cycleColor
+    end
+    return UNIFORM_EDGE_BAR_COLOR
+end
+
 local function deleteEdgeBarPair(pair)
     pair.left:delete()
     pair.right:delete()
@@ -246,15 +258,28 @@ local function renderEdgeBars(index, count, screen, focused)
 
     pruneEdgeBars()
     local pair = edgeBarsBySpace[focused]
+    local cycleColor
     if pair == nil then
         edgeBarPairsCreated = edgeBarPairsCreated + 1
-        local color = EDGE_BAR_COLORS[(edgeBarPairsCreated - 1) % #EDGE_BAR_COLORS + 1]
+        cycleColor = EDGE_BAR_COLORS[(edgeBarPairsCreated - 1) % #EDGE_BAR_COLORS + 1]
+    else
+        cycleColor = pair.cycleColor
+    end
+    local color = edgeBarColor(cycleColor)
+    -- Rebuild the pair when a cycle_colors toggle changed its color, keeping its cycle color for when cycling returns.
+    if pair ~= nil and pair.color ~= color then
+        deleteEdgeBarPair(pair)
+        pair = nil
+    end
+
+    if pair == nil then
         pair = {
             left = newEdgeBar(color),
             right = newEdgeBar(color),
             bottom = newBottomBar(color),
             bumper = newBumper(color),
             color = color,
+            cycleColor = cycleColor,
         }
         edgeBarsBySpace[focused] = pair
     end
