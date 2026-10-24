@@ -14,12 +14,9 @@ local DEFAULT_ENABLED = {
 local SETTINGS_PREFIX = 'show_space_position.'
 local COLOR = { red = 1, green = 0.6, blue = 0.1, alpha = 0.9 }
 local EDGE_BAR_WIDTH = 7
--- Back the strip with a wide glow that fades out toward the middle, so the edge reads from the corner of the eye.
-local EDGE_GLOW_WIDTHS = {
-    left = 20,
-    right = 64,
-}
-local EDGE_BAR_CANVAS_WIDTH = math.max(EDGE_BAR_WIDTH, EDGE_GLOW_WIDTHS.left, EDGE_GLOW_WIDTHS.right)
+-- Back the right strip with a wide glow that fades out toward the middle, so the edge reads from the corner of the eye.
+local EDGE_GLOW_WIDTH = 64
+local EDGE_BAR_CANVAS_WIDTH = math.max(EDGE_BAR_WIDTH, EDGE_GLOW_WIDTH)
 -- Keep the bottom band thin with no glow, so it hints at the Space's color without eating into the terminal.
 local BOTTOM_BAR_HEIGHT = 7
 -- Bulge a soft bumper out of the right edge's midpoint on the last Space, where there's no bar to say the swipe goes on.
@@ -129,35 +126,33 @@ local function newBottomBar(color)
     return bar
 end
 
--- Draw the strip flush against the screen edge on `side` over a glow that starts as solid as the strip and fades out.
+-- Draw the strip flush against the screen edge on `side`, the right one over a glow that starts as solid as the strip and fades out.
 local function layoutEdgeBar(bar, side, color, height)
     local opaque = { red = color.red, green = color.green, blue = color.blue, alpha = 1 }
-    local clear = { red = color.red, green = color.green, blue = color.blue, alpha = 0 }
-    local stripX
-    local glowX
-    local glowColors
     if side == 'left' then
-        stripX = 0
-        glowX = 0
-        glowColors = { opaque, clear }
-    else
-        stripX = EDGE_BAR_CANVAS_WIDTH - EDGE_BAR_WIDTH
-        glowX = EDGE_BAR_CANVAS_WIDTH - EDGE_GLOW_WIDTHS.right
-        glowColors = { clear, opaque }
+        bar[1] = {
+            type = 'rectangle',
+            action = 'fill',
+            fillColor = opaque,
+            frame = { x = 0, y = 0, w = EDGE_BAR_WIDTH, h = height },
+        }
+        return
     end
+
+    local clear = { red = color.red, green = color.green, blue = color.blue, alpha = 0 }
     bar[1] = {
         type = 'rectangle',
         action = 'fill',
         fillGradient = 'linear',
-        fillGradientColors = glowColors,
+        fillGradientColors = { clear, opaque },
         fillGradientAngle = 0,
-        frame = { x = glowX, y = 0, w = EDGE_GLOW_WIDTHS[side], h = height },
+        frame = { x = EDGE_BAR_CANVAS_WIDTH - EDGE_GLOW_WIDTH, y = 0, w = EDGE_GLOW_WIDTH, h = height },
     }
     bar[2] = {
         type = 'rectangle',
         action = 'fill',
         fillColor = opaque,
-        frame = { x = stripX, y = 0, w = EDGE_BAR_WIDTH, h = height },
+        frame = { x = EDGE_BAR_CANVAS_WIDTH - EDGE_BAR_WIDTH, y = 0, w = EDGE_BAR_WIDTH, h = height },
     }
 end
 
