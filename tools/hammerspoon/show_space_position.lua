@@ -20,7 +20,7 @@ local EDGE_BAR_WIDTH = 7
 local EDGE_GLOW_WIDTH = 64
 local EDGE_BAR_CANVAS_WIDTH = math.max(EDGE_BAR_WIDTH, EDGE_GLOW_WIDTH)
 -- Keep the bottom band thin with no glow, so it hints at the Space's color without eating into the terminal.
-local BOTTOM_BAR_HEIGHT = 7
+local BOTTOM_BAR_HEIGHT = 10
 -- Bulge a soft bumper out of the right edge's midpoint on the last Space, where there's no bar to say the swipe goes on.
 local BUMPER_DEPTH = 28
 local BUMPER_HEIGHT = 140
