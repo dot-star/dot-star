@@ -34,7 +34,7 @@ local EDGE_BAR_COLORS = {
     { red = 1, green = 0.9, blue = 0.1, alpha = 0.9 },
 }
 -- Paint every Space's bars this one color while cycle_colors is off, so the bars read as a single landmark.
-local UNIFORM_EDGE_BAR_COLOR = { red = 1, green = 0.6, blue = 0.1, alpha = 0.9 }
+local UNIFORM_EDGE_BAR_COLOR = { red = 1, green = 0.9, blue = 0.1, alpha = 0.9 }
 local DOT_SIZE = 10
 local DOT_GAP = 10
 -- Clear the terminal's prompt and status lines at the bottom of the screen.
