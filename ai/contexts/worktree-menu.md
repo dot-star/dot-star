@@ -3,7 +3,7 @@
 Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before any message that offers a follow-up, in a worktree or the main checkout. Section names below (Workflow, Shell commands, the bracket-prefix list) refer to that file.
 
 - When offering a worktree follow-up, present whichever of these bracket-prefix options apply to the moment, each on its own line led by its action emoji; never bundle two actions into one option (e.g. **`[p]romote and land`**).
-  - Offer any subset the tree allows: 🏁 land and 🧨 close apply everywhere but mid-series, ⬆️ promote whenever there's something to move.
+  - Offer any subset the tree allows: 🏁 land and 🧨 close apply everywhere but behind a set-aside change, ⬆️ promote whenever there's something to move.
   - 🧨 **`[x]`** is the one designed bundle: `x` means close the session and closing a worktree session means landing it first, so the row reads land + close rather than two actions glued together.
   - 🧨🧨 **`[xx]`** is the same close without the land, per the close rows below.
   - Whenever two or more appear together, list them top-to-bottom in this fixed order: iterate → commit → fold → promote → land → close → close-as-is.
@@ -20,14 +20,14 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
 
     1. Does every row wrap its option as `**` + `` ` `` + `[x]remainder` + `` ` `` + `**`? A bare `🧹 [cl]ean` is a fail; the bold inline-code span is as mandatory here as anywhere else.
     2. Are 🏁 **`[L]and`** and 🧨 **`[x]`** both on the menu, plus ⬆️ **`[p]romote`** unless there's nothing to move?
-       - Land and close drop only mid-series, per the series rule below; otherwise each commits whatever is pending first, so no tree state rules them out.
+       - Land and close drop only while a later commit's change is set aside off disk, per the series rule below; otherwise each commits whatever is pending first, so no tree state rules them out.
        - Promote drops only on a clean tree with nothing ahead of the default branch (the state right after a promote), where it would fast-forward by zero commits.
        - A menu missing a row it owes is an omission, not a narrowed menu; the other rows that drop are 💾 **`[c]ommit`**, 📦 **`[f]old`**, 🛠️ **`[i]terate`** and 🧨🧨 **`[xx]`**.
        - Does a `git status --porcelain` run this turn back the shape? Empty output is the only license for the clean-tree menu; a staged path still owes 💾 **`[c]ommit`** with its drafts and 🧨🧨 **`[xx]`**.
     3. Is 🛠️ **`[i]terate`** the top row? Only ⚡ **`[n]ow`** and 📋 **`[a]dd`** may sit above it, in that order.
     4. Does 🧨🧨 **`[xx]`** render only over a dirty tree, and on a dirty tree is it the bottom row, with 🧨 **`[x]`** directly above it and 🏁 **`[L]and`** above that?
        - A clean tree ends on 🧨 **`[x]`** instead.
-       - A mid-series menu, with no land or close row, ends on 🧨🧨 **`[xx]`** directly beneath ⬆️ **`[p]romote`**.
+       - A menu behind a set-aside change, with no land or close row, ends on 🧨🧨 **`[xx]`** directly beneath ⬆️ **`[p]romote`**.
        - If any other option (even a lone keep/iterate slot) renders beneath 🏁 **`[L]and`**, reorder before sending.
     5. Is there exactly one space between each emoji and its bracket span? The column padding goes after the closing `**`, before the `(`, never between the emoji and the bracket.
        - Does that padding put every `(` in one column, ⚡ and 📋 rows included? Pad per the alignment rule in the bracket-prefix list.
@@ -36,7 +36,7 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
        - The 💾 commit row carries the subject drafts beneath it.
        - A menu banking two or more commits gives each its own labeled branch with its drafts nested beneath, never one flat list of every commit's drafts.
        - The 📦 fold row carries a `[f]` row with the fold target's subject when that subject still fits, then its own `[fN]` drafts against the combined diff, none repeating the target's subject.
-       - The ⬆️ promote, 🏁 land and 🧨 close rows each carry their `[pN] ...` stand-in.
+       - The ⬆️ promote, 🏁 land and 🧨 close rows each carry their `[pN] ...` stand-in, with one `N` per commit when the menu banks several (`[pN pN] ...`).
     8. Is the change the drafts describe staged? Every `[cN]` tree needs its paths in the index before the menu renders, per the staging rule below; a menu with drafts over an unstaged change sends the user back to asking for the staging before they can judge the subjects.
     9. Would a behavior-preserving restructure of a touched line shrink this diff? Read the staged diff's deleted lines: a long paragraph replaced by a copy of itself with one clause changed is the tell, since the reviewer sees a rewrite where the intent is one sentence.
        - **Split first, unasked:** catch it before editing when the plan already shows one clause changing inside a dense paragraph. Caught only at the menu, set the change aside, restore the file, apply just the restructure (bullets, or an extracted helper) and stage it. The commit row's drafts then describe the refactor and its parenthetical says the change reapplies on top after it.
@@ -47,12 +47,14 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
 
   - **Row shape:** each row indented with 2 ideographic full-width spaces (U+3000) + 1 regular space so the glyph lands under the `[` of the parent row, a `├─` on each row and `└─` on the last, then the bracket token `**` + `` ` `` + `[cN]` + `` ` `` + `**` (or `[fN]`, `[pN]`, `[LN]`, `[xN]`, the parent's letter plus the draft number), a space, and the subject in plain text. Pad a bare `[f]` row with 2 spaces before its subject, so its subject starts in the same column as the `[fN]` subjects beneath it. The subject stays plain because it's text to compare, not an option name.
   - **Spelled out once:** the subjects sit under the commit row; the promote, land and close rows each carry a single stand-in row instead of a tree, `[pN] ...`, `[LN] ...`, `[xN] ...` with a literal `N`, so the accept-token shape is on screen without three rows of `...` repeating three times. The stand-in takes a `└─`, since it's the last row under its parent, the same way `└─` closes the commit row's list.
-  - **One tree per staged commit:**
-    - A menu covering commits in two or more repos or worktrees renders a draft tree under each one's staged commit.
-    - Hang each commit's tree off its own label row under the commit row, naming the commit (what it holds, plus the repo or worktree), with that commit's drafts nested one level deeper. A flat run of six drafts under one row reads as six candidates for a single commit, however the numbers split.
+    - Repeat the `N` once per commit when the menu banks several (`[pN pN] ...`), showing a pick takes one subject per tree.
+  - **One tree per commit:**
+    - A menu covering two or more commits renders a draft tree under each one, whether they're staged in separate repos or worktrees or queued as a series in one.
+    - Hang each commit's tree off its own label row under the commit row, naming the commit (what it holds, plus the repo or worktree, or in a series whether it's staged with `d` to view it or unstaged with `dw`), with that commit's drafts nested one level deeper. A flat run of six drafts under one row reads as six candidates for a single commit, however the numbers split.
       - Nest with a `│` + 1 U+3000 continuation under every label row but the last, and 1 U+3000 + 1 regular space under the last, so each draft glyph lands under its label's first letter.
     - Number the drafts globally unique across the message (`[c1]`-`[c3]` for the first commit, `[c4]`-`[c6]` for the second), so a single `c<N>` names one draft of one commit.
     - Never float a commit's subject in prose beside another commit's tree; a subject with no token can't be picked, so it reads as decided when it isn't.
+    - Bank as many commits as the reply names subjects: `c1` commits the first alone, `c1 c4` commits both. A series commits in order, staging the next commit's paths between commits, so a partial pick takes the first commits, never a later one alone.
   - **Fold unstales the subject it amends**, so its row carries a tree too:
     - Draft it against the combined diff (the fold target's change plus the pending one), which is what the amended commit will hold.
     - Number it after the commit row's drafts, `[f4]`-`[f6]` under a `[c1]`-`[c3]` commit row, so one number names one draft.
@@ -69,7 +71,7 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   - Say so in a line above the menu (`🟢 Staged 2 files (+13 -9)`) so the user knows `d` is live.
   - Carry the staged line counts in that line, summed from `git diff --cached --numstat`, so the user knows how big a diff the drafts describe before opening it.
   - Re-run the staging on every menu, since edits made after an earlier staging land unstaged.
-  - **Draft only what's staged:** the index holds one commit, so a repo with several pending commits stages only the first one's paths and renders only that commit's tree.
+  - **Stage only the first commit:** the index holds one commit, so a repo with several pending commits stages only the first one's paths; the later ones still get trees.
     - Replace the staged line with a vertical progress block above the menu, so the user sees what landed and what's left beside the commit the menu acts on. Render it in a fenced block, one line per commit in series order:
       - `✓ <subject>` for each commit made.
       - `▸ <files>: staged N files (+A -D), commit K of M` for the staged one.
@@ -82,9 +84,10 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
       │ · baz.py
       └ · README.md, todo.md
       ```
-    - Name it again in every row whose parenthetical opens with `commit` (`💾 [c]ommit (commit 1 of 4)`), so the row picked says which commit it banks.
-    - Give each later commit its tree on the menu after the one before it lands; a tree over unstaged paths asks the user to judge subjects they can't `d`.
-    - **Drop 🏁 `[L]and` and 🧨 `[x]` mid-series:** while a later commit in the series is still pending (unstaged paths waiting for their turn, or a change set aside behind a 🪚 refactor-first split), the menu offers neither. Both tear the worktree down after banking only the staged commit, so picking one strands the rest of the series. They return on the menu for the last commit, which is the one that can finish the objective.
+    - Name it again in every row whose parenthetical opens with `commit` (`💾 [c]ommit (commit 1 of 4, or all 4)`), so the row picked says which commits it banks; 🏁 land and 🧨 close read `commit all 4` (`commit both` for two).
+    - Label each later commit's tree unstaged with `dw` (`rc_diff_unstaged`) to view it, so its subjects can be judged before its paths are staged.
+    - **Land and close bank the whole series:** both tear the worktree down, so they need one subject per commit (`L1 L4`). Refuse a pick naming fewer and commit nothing: banking only the staged commit strands the rest in a deleted worktree. Say which commit lacks a subject.
+    - **A change set aside off disk gets no tree** (one held back behind a 🪚 refactor-first split): there's no diff to `dw`, so draft it on the menu after it's restored. Until then drop 🏁 `[L]and` and 🧨 `[x]`, since neither could bank it.
   - **Fold gets the same staging**, since both `git commit --amend` and `git commit --fixup` commit the index too.
 
   **Applicability is a fact about the tree, not a guess.** Before sending, run `git status --porcelain` and branch on the result:
@@ -155,6 +158,32 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   > 　　 　 ├─ **`[c4]`** Truncate long toolbar title
   > 　　 　 ├─ **`[c5]`** Clip toolbar title with ellipsis
   > 　　 　 └─ **`[c6]`** Stop long title overflowing toolbar
+
+  Series (two commits queued in one worktree, the first staged; land and close need one subject per commit):
+
+  ```
+  ┌ ▸ toolbar.py: staged 1 file (+12 -4), commit 1 of 2
+  └ · search.py, toolbar.css
+  ```
+
+  > 👉 How do you want to proceed? Pick one subject, or one per commit to bank both (e.g. `c1 c4`); land and close need one per commit:
+  >   🛠️ **`[i]terate`** (no commit + keep iterating)
+  >   💾 **`[c]ommit`**  (commit 1 of 2, or both + keep iterating)
+  > 　　 ├─ Toolbar layout refactor (staged; `d` to view)
+  > 　　 │　├─ **`[c1]`** Extract toolbar slot layout
+  > 　　 │　├─ **`[c2]`** Split toolbar layout into slots
+  > 　　 │　└─ **`[c3]`** Move toolbar sizing into slot helper
+  > 　　 └─ Search box (unstaged; `dw` to view)
+  > 　　 　 ├─ **`[c4]`** Add search box to toolbar
+  > 　　 　 ├─ **`[c5]`** Add toolbar search box
+  > 　　 　 └─ **`[c6]`** Show search box in toolbar
+  >   ⬆️ **`[p]romote`** (commit 1 of 2, or both + ✅ promote to master)
+  > 　　 └─ **`[pN pN]`** ...
+  >   🏁 **`[L]and`**    (commit both + ✅ promote to master + 🪓 tear down worktree)
+  > 　　 └─ **`[LN LN]`** ...
+  >   🧨 **`[x]`**       (commit both + ✅ promote to master + 🪓 tear down worktree + 🧨 close session)
+  > 　　 └─ **`[xN xN]`** ...
+  >   🧨🧨 **`[xx]`**    (no commit + worktree left as-is + 🧨🧨 close session)
 
   Subset (e.g. nothing worth keeping uncommitted, so no iterate slot):
 
