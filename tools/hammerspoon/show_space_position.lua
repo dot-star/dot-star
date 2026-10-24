@@ -9,7 +9,7 @@
 -- Apply each experiment's default until it's toggled; a saved setting wins after that.
 local DEFAULT_ENABLED = {
     bottom_bar = true,
-    cycle_colors = true,
+    cycle_colors = false,
     edge_bars = true,
     page_dots = false,
 }
