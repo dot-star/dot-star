@@ -437,8 +437,9 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
   - 💅 cosmetic nit / optional polish (harmless, fine either way, not 🔴): `💅 Two spaces before the `\`; a single one is tidier.`
   - 🪚 refactor-first split (a restructure the diff needs ahead of its change; required by the refactor principle, so never 💅): `🪚 Split the scope paragraph into bullets as its own commit; the rule change reapplies on top.`
   - 🔄 apply step / neutral heads-up (nothing wrong; names the reload, restart, or next session that makes the edit live, or a fact the reader should know that changes nothing about whether the work is done): `🔄 Read at session start, so this lands in the next claude session.`
+  - 💾 already done (a step that's moot because an earlier turn did it: a skeleton committed ahead of its change, a file already in place; nothing is owed, so never 🔴): `💾 Meta skeleton already committed in an earlier turn.`
   - ❓🤷 unconfirmed / inferred (a fact not found or a guess at a cause; nothing is broken, so never 🔴): `❓🤷 Couldn't find <thing>.`
-  - 🔴 warning / blocker (something costs the reader now: a step skipped, a state that bites if ignored; a harmless heads-up is 🔄, never 🔴): `🔴 Lockfile changed; skipping auto-stash.`
+  - 🔴 warning / blocker (something costs the reader now: a needed step left undone, a state that bites if ignored; a harmless heads-up is 🔄, never 🔴): `🔴 Lockfile changed; skipping auto-stash.`
   - 💥 hard failure / error (something broke): `💥 Tests failed: 3 of 47 assertions did not pass.`
   - 🟢 step succeeded (intermediate success): `🟢 Tests pass, ready to land.`
   - ✅ success: the overall task or work verified and succeeded, not the session-done signal: `✅ All tests green, change works end to end.`
