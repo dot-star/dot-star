@@ -277,12 +277,12 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
     2. Alternative approach
     3. Fallback approach
   ```
-- When presenting a pass/fail checklist (style checks, pre-send audits, criteria run-downs), lead each line with a single-width status glyph (`✓`, `✗`, `!`), then the item, then the detail after a colon, so the statuses stack into a scannable left column; a trailing glyph buries the signal at ragged line-ends. Keep the glyph single-width: a double-width emoji like `⚠️` renders two columns wide and shoves its line one cell right, breaking the column. Rendered example:
+- When presenting a pass/fail checklist (style checks, pre-send audits, criteria run-downs), lead each line with a status emoji (`🟢` pass, `❌` fail, `🟡` caution), then the item, then the detail after a colon, so the statuses stack into a scannable left column; a trailing glyph buries the signal at ragged line-ends. Keep every glyph the same width: a single-width mark like `!` beside the emoji, or a `⚠️` whose width terminals disagree on, shoves its line off the column. Rendered example:
 
   ```
-  ✓ Tests pass: 47 of 47 green
-  ✗ Lint fails: 2 unused imports
-  ! Coverage dipped: 91% to 88%
+  🟢 Tests pass: 47 of 47 green
+  ❌ Lint fails: 2 unused imports
+  🟡 Coverage dipped: 91% to 88%
   ```
 - Number every top-level item in a list of findings, verdicts or status items, so a bare-number reply points at one without quoting it. A status emoji still leads the item's text, after the number (`1. ✅ Diff unchanged`); sub-bullets beneath an item stay plain dashes. Rendered example:
 
