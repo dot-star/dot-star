@@ -1550,10 +1550,20 @@ rc_push() {
             # Prefer the branch's existing upstream so repeated pushes update
             # the same remote branch (and its PR) instead of forking a new
             # <slug>. Derive <slug> only when no upstream is set yet.
+            local default_branch
             local remote_branch
             local upstream
             upstream="$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null)"
-            if [[ -n "${upstream}" ]]; then
+            default_branch="$(git_default_branch .)"
+
+            # Refuse an upstream on the default branch, which `git checkout -B
+            # <branch> origin/<default>` sets on its own. Pushing there would
+            # land the work without its pull request.
+            if [[ "${upstream}" == "origin/${default_branch}" ]]; then
+                echo "upstream '${upstream}' is the default branch; refusing to push '${current_branch}' onto it"
+                echo "push once with: git push --set-upstream origin HEAD:refs/heads/<branch>"
+                return 1
+            elif [[ -n "${upstream}" ]]; then
                 remote_branch="${upstream#*/}"
             else
                 remote_branch="${current_branch#worktree-}"
