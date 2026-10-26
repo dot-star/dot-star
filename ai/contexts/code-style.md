@@ -14,6 +14,10 @@ Loaded on demand: the Writing style section of `~/.claude/CLAUDE.md` points here
   - Raise `NotImplementedError` (or the language's equivalent) in the base, so a missing override fails loudly at the call site instead of quietly doing nothing.
   - Override with an explicit no-op body in each subclass whose honest answer is "nothing to do", carrying a comment that names why that case is exempt.
   - Write that no-op body as an explicit statement (`pass` in Python, `{}` where the language needs nothing), never a bare docstring or comment with no statement under it. A body that only documents itself reads as unfinished, so the next reader "finishes" it by raising, breaking every caller that relied on the no-op.
+- Make every caller pass each argument; never give a parameter a default value. A default hides the choice at the call site: the reader can't see the value and a new caller inherits one it never weighed.
+  - Fail: `def render(theme: str = "dark")` called as `render()`
+  - Pass: `def render(theme: str)` called as `render(theme="dark")`
+  - Keep a default only where it keeps existing call sites unchanged (a new parameter on a widely called function) or a library signature demands one; every new call site still passes the value explicitly.
 - Two comment shapes:
   - **Block comments** (TODOs, design notes): blank line above and below.
   - **Line-doc comments** (describing the next line/pipeline): stay flush with the code they describe, no blank line between the comment and that code.
