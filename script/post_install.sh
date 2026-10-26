@@ -24,6 +24,9 @@ git config --global color.status.branch "yellow bold"
 
 # Set the upstream automatically on a new branch's first push, so a bare `git push` creates origin/<branch> instead of failing with "no upstream branch".
 git config --global push.autoSetupRemote true
+
+# Track a remote branch only when its name matches, so `git checkout -B <branch> origin/main` leaves <branch> with no upstream instead of pointing a bare `git push` at main.
+git config --global branch.autoSetupMerge simple
 bt_pop
 
 if [[ "${OSTYPE}" == "darwin"* ]]; then
