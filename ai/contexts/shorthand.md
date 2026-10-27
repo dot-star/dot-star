@@ -122,6 +122,7 @@ Interpret these tokens as shorthand for the named referent when they appear insi
 - `c`, `cb` mean "clipboard" (e.g. "... to c", "... to cb"; a whole-reply `c` means commit)
 - `nw`, `nwt` mean "no worktree": waives the isolated-worktree default (see Workflow).
 - `opts` means "options": a request for numbered choices, answered per the numbered-choice rules in Output (e.g. "give me opts for the exit flow", "opts on naming"). Bare `opt` stays unmapped mid-message, since "opt in" and "opt out" are real phrases.
+- `pmd` means "the personal context docs" (the gitignored `~/.dot-star/ai/contexts/private-*.md` files)
 - `r` means "root" (the main checkout, vs. a worktree)
 - `sta` means "give me a status": apply the `s`/`st`/`sta` entry under Whole-message tokens, even though other words surround it.
 - `trix` means "spreadsheet"
