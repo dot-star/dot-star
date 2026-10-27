@@ -9,7 +9,8 @@
 #   - a print-mode transcript (one-shot `claude --print` run, e.g. from `cmc`
 #     or `ask`), identified by a queue-operation first event.
 # A mark is removed along with its session, and any orphan the session left
-# running (e.g. a server run from its scratchpad) is killed.
+# running (e.g. a server run from its scratchpad) is killed and logged to
+# ~/.claude/prune.log.
 
 set -euo pipefail
 
@@ -20,12 +21,30 @@ projects_dir="${HOME}/.claude/projects"
 # Keep the marks outside ~/.claude: Claude Code treats .claude as a protected
 # path and prompts on every write there, whatever the allow rules say.
 marks_dir="/tmp/claude/prune_marks"
+# Keep the kills on disk: prune runs in a window that closes right after.
+log_file="${HOME}/.claude/prune.log"
+# Rotate past this size into a single prune.log.1, so the log never grows unbounded.
+log_max_bytes=$((1024 * 1024))
 
 if [[ ! -d "${projects_dir}" ]]; then
     printf '\r\033[K'
     echo "Error: ${projects_dir} does not exist"
     exit 1
 fi
+
+rotate_log() {
+    local size
+    if [[ ! -f "${log_file}" ]]; then
+        return 0
+    fi
+
+    size="$(wc -c <"${log_file}")"
+    if ((size > log_max_bytes)); then
+        mv "${log_file}" "${log_file}.1"
+    fi
+}
+
+rotate_log
 
 is_target_title() {
     local candidate="${1}"
@@ -91,6 +110,7 @@ kill_session_processes() {
             command_line="$(ps -o args= -p "${pid}" || true)"
             # Clear the progress line so the log line starts at column 0.
             printf '\r\033[K🔪 Killing orphan %s of session %s: %s\n' "${pid}" "${session_id}" "${command_line}"
+            printf '%s Killing orphan %s of session %s: %s\n' "$(date '+%Y-%m-%dT%H:%M:%S')" "${pid}" "${session_id}" "${command_line}" >>"${log_file}"
             kill "${pid}" || true
         fi
     done < <(pgrep -f "/${session_id}/" || true)
