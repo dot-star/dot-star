@@ -8,7 +8,8 @@
 #   - tagged with a customTitle in the target list (set via /rename), or
 #   - a print-mode transcript (one-shot `claude --print` run, e.g. from `cmc`
 #     or `ask`), identified by a queue-operation first event.
-# A mark is removed along with its session.
+# A mark is removed along with its session, and any orphan the session left
+# running (e.g. a server run from its scratchpad) is killed.
 
 set -euo pipefail
 
@@ -73,6 +74,28 @@ is_resumable_session() {
     grep -q '"isSidechain":false' "${file}" 2>/dev/null
 }
 
+# Kill orphans a pruned session left running (a server started with a bare `&`
+# gets reparented to launchd once its session exits). Require parent 1, so a
+# still-live session's children and an editor open on its files survive.
+kill_session_processes() {
+    local file="${1}"
+    local session_id
+    local pid
+    local parent_pid
+    local command_line
+    session_id="$(basename "${file}" .jsonl)"
+    # Match the id as a path segment, so `claude --resume <id>` never matches.
+    while IFS= read -r pid; do
+        parent_pid="$(ps -o ppid= -p "${pid}" || true)"
+        if [[ "${parent_pid// /}" == "1" ]]; then
+            command_line="$(ps -o args= -p "${pid}" || true)"
+            # Clear the progress line so the log line starts at column 0.
+            printf '\r\033[K🔪 Killing orphan %s of session %s: %s\n' "${pid}" "${session_id}" "${command_line}"
+            kill "${pid}" || true
+        fi
+    done < <(pgrep -f "/${session_id}/" || true)
+}
+
 pruned=0
 remaining=0
 sessions=0
@@ -84,12 +107,15 @@ while IFS= read -r -d '' file; do
             \jq -r '.customTitle // empty'
     )"
     if is_marked_done "${file}"; then
+        kill_session_processes "${file}"
         rm "${file}" "$(mark_for "${file}")"
         pruned=$((pruned + 1))
     elif is_target_title "${title}"; then
+        kill_session_processes "${file}"
         rm "${file}"
         pruned=$((pruned + 1))
     elif is_print_mode_transcript "${file}"; then
+        kill_session_processes "${file}"
         rm "${file}"
         pruned=$((pruned + 1))
     else
