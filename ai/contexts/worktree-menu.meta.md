@@ -40,6 +40,7 @@
     8.
     9.
        -
+       - The deleted-lines tell only catches a restructure that shrinks the diff; an outgrown name leaves no trace, since the feature's diff never touches the name's own line. Reading the names the new case flows through is the only check that catches it before the rename slips behind the feature as polish.
        -
        -
 

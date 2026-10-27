@@ -4,7 +4,7 @@
 
 - Explicit is better than implicit.
 - Atomic commits: one logical change per commit; a change is one intent, so everything that serves it lands together (e.g. the edit with its docs and tests).
-  - Land a behavior-preserving refactor as its own commit ahead of the change it serves, whenever restructuring first (splitting a dense paragraph into bullets, extracting a helper) shrinks the change's diff.
+  - Land a behavior-preserving refactor as its own commit ahead of the change it serves, whenever restructuring first shrinks the change's diff (splitting a dense paragraph into bullets, extracting a helper) or the change would leave a name or comment narrower than what the code now does (a `saveDraft` that now also publishes).
     - Folded together, the change reads as a rewrite of every touched line; split, the refactor is verifiably a no-op and the change shows only its intent.
     - Spot the split before making the edit and do the restructure first, so the first commit on offer is the no-op refactor and the change reapplies on top of it; announce the split rather than doing it silently.
 - Optimize for readability and reviewer happiness.
