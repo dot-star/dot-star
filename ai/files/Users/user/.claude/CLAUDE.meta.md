@@ -54,6 +54,8 @@
   -
   -
   -
+  - Repos ignore `.claude/worktrees/` because `EnterWorktree` writes there; a hand-picked path lands where no ignore rule covers it (a session in one repo once made `worktrees/<name>` in another), so every later status check lists it.
+    - Cross-repo edits are what tempt a hand-made worktree: `EnterWorktree` creates only in the launch repo (or one nested inside it). Routing the edit to a session in its own repo also loads that repo's `CLAUDE.md`.
   -
   -
     -

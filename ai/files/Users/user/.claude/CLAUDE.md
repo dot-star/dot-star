@@ -54,10 +54,12 @@
   - Name the worktree's path in the reply that creates it.
   - Subagents: pass `isolation: "worktree"`.
   - Direct edits: call `EnterWorktree` first, `ExitWorktree` with `action: "remove"` when done.
+  - Never hand-make a worktree (`git worktree add`); `EnterWorktree` keeps every worktree under the ignored `.claude/worktrees/`.
+    - Hand an edit in another repo to a session in that repo: message a live one there (`ListAgents`, then `SendMessage`), else ask the user to start one.
   - `nw` or `nwt` ("no worktree") anywhere in a user message waives that default: edit in the main checkout. The waiver covers that work and its follow-ups; a later unrelated request re-defaults to a worktree.
   - Branch from whichever of the local default branch and a freshly fetched `origin/<default>` is newer: lands and promotes stay local, so `origin/<default>` lags until the next push.
     - `fast_forward_new_worktree_to_local_default.sh` does this for an `EnterWorktree` worktree, moving it onto the local branch when that branch already contains origin's.
-    - A worktree made with `git worktree add` gets the same pick by hand; a subagent's `isolation: "worktree"` still starts from `origin/<default>`.
+    - A subagent's `isolation: "worktree"` still starts from `origin/<default>`.
     - Fetch again before `gh pr create` and rebase if `origin/<default>` moved.
 - When working directly in the main checkout (worktree skipped), commit on the default branch; don't auto-create a feature branch first. Overrides the harness default of branching before committing on the default branch. Branch only when the user asks, or a PR needs one to push.
 - Open every PR you create in the browser and include its URL in the reply, so the user lands on it without a click. `open_created_pr_in_browser.sh` (a `PostToolUse` hook) already does this for `gh pr create`; open a PR made any other way yourself (`open <pr-url>`). Don't re-open an existing PR unless asked.
