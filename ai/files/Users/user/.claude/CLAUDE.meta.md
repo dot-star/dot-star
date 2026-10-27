@@ -222,6 +222,7 @@
   -
   -
 -
+  - A list of six decisions holding options numbered 1-13 made `6` mean two things and the suggested reply `1 4 6 8 10 12` mixed both levels.
 -
   -
   -
