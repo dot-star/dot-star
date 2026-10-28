@@ -60,12 +60,17 @@ resize-overlay = never
 # field that twitches on every trackpad brush.
 mouse-hide-while-typing = true
 
+# Mark the focused split as the darkest pane. Ghostty has no per-pane
+# background, so this paints every pane and the unfocused-split tint below lays
+# over the inactive ones, leaving only the focused split untinted.
+background = #000000
+
 # Tint the inactive split rather than only fading it. Ghostty paints a
 # rectangle over every unfocused split, taking its alpha from the opacity below
 # and its color from the fill, which defaults to the background and so only
 # darkens. A hue shift marks a pane inactive without reading as disabled, which
 # is how the stock 0.7 fade came across.
-unfocused-split-opacity = 0.85
+unfocused-split-opacity = 0.7
 unfocused-split-fill = #6a5acd
 
 # Even out every pane after a split. Ghostty lays splits out as a binary tree,
