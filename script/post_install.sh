@@ -297,6 +297,8 @@ git config --global interactive.diffFilter "delta --color-only"
 git config --global delta.keep-plus-minus-markers true
 git config --global delta.line-numbers false
 git config --global delta.navigate true
+# Show the file path in every hunk header box, so the file being read stays visible while scrolling a long diff; less can't pin a per-file header.
+git config --global delta.hunk-header-style "file line-number syntax"
 
 # Install a Monokai variant that lightens only the comment color. delta reads syntax themes from bat's cache; stock Monokai comments are a dim olive that the bright `+`/`-` backgrounds below swallow whole. Ubuntu ships the binary as `batcat`.
 bat_bin="bat"
