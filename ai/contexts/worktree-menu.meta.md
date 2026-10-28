@@ -97,6 +97,7 @@
 
     -
       -
+      - Mirrors the cross-repo exception to the refactor-first split in CLAUDE.md's Principles, so a split made at planning still gets caught at the menu.
     -
       -
       -

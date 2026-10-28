@@ -97,6 +97,7 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
 
     - **The pending change belongs to an existing commit on the branch**, finishing or fixing that one intent rather than standing on its own (atomic commits). That commit is the fold target: usually HEAD, but an earlier commit when the change finishes that one instead (a line the earlier commit added, now removed). A change that deserves its own subject gets `[c]ommit`, not `[f]old`.
       - Never swap the fold row for a one-off row (an `[ab]sorb` or `[fx]up`) when the target sits below HEAD; fold is the user's word for banking a change into the commit it belongs to, wherever that commit sits.
+      - Count code the target commit moved in from another repo as part of its intent: a fix to that code folds into the import, since readers here can't see the original to check a move-only commit against.
     - **The fold target isn't on the remote default branch.**
       - Run the check, don't assume: `git merge-base --is-ancestor <target> <remote>/<default>` exits nonzero, taking `<remote>` from `git remote` rather than assuming `origin`.
       - Published history means the remote default branch's, so an unpushed commit on local `<default>` (main-checkout work) still folds; a target already there gets no fold slot, since rewriting it rewrites commits everyone else builds on.

@@ -7,6 +7,7 @@
   - Land a behavior-preserving refactor as its own commit ahead of the change it serves, whenever restructuring first shrinks the change's diff (splitting a dense paragraph into bullets, extracting a helper) or the change would leave a name or comment narrower than what the code now does (a `saveDraft` that now also publishes).
     - Folded together, the change reads as a rewrite of every touched line; split, the refactor is verifiably a no-op and the change shows only its intent.
     - Spot the split before making the edit and do the restructure first, so the first commit on offer is the no-op refactor and the change reapplies on top of it; announce the split rather than doing it silently.
+    - Land code moved in from another repo as one commit, its fixes included: the original isn't visible here, so a move-only commit has nothing to be checked against.
 - Optimize for readability and reviewer happiness.
 - Pursue correctness across the task; accept more churn when minimalist diffs and correctness conflict.
 - A refactor preserves behavior exactly. Any observable change (return value, status code, error path, output) means it is not a refactor: flag it and get sign-off, never fold it in silently.
