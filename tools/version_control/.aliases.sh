@@ -1469,22 +1469,24 @@ rc_pull_with_rebase() {
     git pull --rebase $@
 }
 
-# Print where HEAD's history meets local master when HEAD is off master, so a
-# caller can find the unpushed master commits a push of HEAD would carry along.
-# Return 1 on master itself, without a master branch, or without a remote.
+# Print where HEAD's history meets the local default branch when HEAD is off it,
+# so a caller can find the unpushed default-branch commits a push of HEAD would
+# carry along. Return 1 on the default branch itself, or without a remote.
 rc_default_branch_base_under_head() {
+    local default_branch="${1}"
+
     local head_branch
     head_branch="$(git symbolic-ref --short HEAD 2>/dev/null)"
 
-    if [[ "${head_branch}" == "master" ]]; then
+    if [[ "${head_branch}" == "${default_branch}" ]]; then
         return 1
-    elif ! git show-ref --verify --quiet refs/heads/master; then
+    elif ! git show-ref --verify --quiet "refs/heads/${default_branch}"; then
         return 1
     elif [[ -z "$(git remote)" ]]; then
         return 1
     fi
 
-    git merge-base HEAD master
+    git merge-base HEAD "${default_branch}"
 }
 
 # Record what `s` just showed: the command line it ran on and the checkout and
@@ -1499,8 +1501,8 @@ rc_push_guard_stamp() {
 
 # Refuse a push that doesn't directly follow `s`, or whose HEAD moved since
 # then (an agent promoting commits in between), or that would carry unpushed
-# master commits along, so nothing unreviewed ships. Plain `git push` skips
-# every check.
+# default-branch commits along, so nothing unreviewed ships. Plain `git push`
+# skips every check.
 rc_push_guard() {
     local current_head
 
@@ -1527,24 +1529,28 @@ rc_push_guard() {
         return 1
     fi
 
-    # Refuse while unpushed master commits sit under HEAD: the push would ship
-    # them too, and a push from master is where they get their own review.
+    # Refuse while unpushed default-branch commits sit under HEAD: the push
+    # would ship them too, and a push from that branch is where they get their
+    # own review.
+    local default_branch
     local default_branch_base
     local default_branch_upstream
     local riders
-    if default_branch_base="$(rc_default_branch_base_under_head)"; then
+    if ! default_branch="$(git_default_branch .)"; then
+        return 0
+    elif default_branch_base="$(rc_default_branch_base_under_head "${default_branch}")"; then
         riders="$(git rev-list --count "${default_branch_base}" --not --remotes)"
         if [[ "${riders}" -gt 0 ]]; then
-            echo -e "\033[1;31mERROR:\033[0m Refusing to push as HEAD carries unpushed master commits"
+            echo -e "\033[1;31mERROR:\033[0m Refusing to push as HEAD carries unpushed ${default_branch} commits"
             git --no-pager log --format='        %C(auto)%h%d %s' "${default_branch_base}" --not --remotes
 
-            # Name master's own upstream, since the remote isn't always `origin`.
-            default_branch_upstream="$(git rev-parse --abbrev-ref 'master@{upstream}' 2>/dev/null)"
+            # Name the default branch's own upstream, since the remote isn't always `origin`.
+            default_branch_upstream="$(git rev-parse --abbrev-ref "${default_branch}@{upstream}" 2>/dev/null)"
             if [[ -n "${default_branch_upstream}" ]]; then
-                echo "    Drop them from this branch: git rebase --onto ${default_branch_upstream} master"
-                echo "    Or push local master to the remote first"
+                echo "    Drop them from this branch: git rebase --onto ${default_branch_upstream} ${default_branch}"
+                echo "    Or push local ${default_branch} to the remote first"
             else
-                echo "    Push local master to the remote first"
+                echo "    Push local ${default_branch} to the remote first"
             fi
             return 1
         fi

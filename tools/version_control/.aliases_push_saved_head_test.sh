@@ -53,11 +53,9 @@ git push \
 source "${checkout}/tools/version_control/.aliases.sh" >/dev/null 2>&1 || true
 set +e
 
-# Stub the default-branch lookup the default-branch worktree mode calls, rather
-# than sourcing all of tools/bash/.aliases.sh, which ends a non-interactive shell.
-git_default_branch() {
-    echo "master"
-}
+# Load only the real default-branch lookup, rather than sourcing all of
+# tools/bash/.aliases.sh, which ends a non-interactive shell.
+eval "$(sed -n '/^git_default_branch() {$/,/^}$/p' "${checkout}/tools/bash/.aliases.sh")"
 
 # Simulate a promote or merge landing after the guard passes: commit once the
 # real guard returns, so a push that looks HEAD up again ships "sneaked in".
@@ -215,6 +213,53 @@ if git --git-dir=../origin.git log --format='%s' refs/heads/asmith/riders | grep
     fail "push after the rebase: master commit reached the pull request branch"
 else
     pass "push after the rebase: master commit left out"
+fi
+echo
+
+echo "Worktree branch carrying unpushed main commits:"
+
+# Rebuild the layout under its own directory, so `../origin.git` names this repo's remote.
+mkdir "${root}/main"
+cd "${root}/main"
+git init \
+    --quiet \
+    --bare \
+    --initial-branch=main \
+    origin.git
+git init \
+    --quiet \
+    --bare \
+    --initial-branch=main \
+    other.git
+git init \
+    --quiet \
+    --initial-branch=main \
+    repo
+cd repo
+git remote add origin ../origin.git
+commit "base"
+git push \
+    --quiet \
+    --set-upstream \
+    origin \
+    main
+commit "main only"
+
+git worktree add \
+    --quiet \
+    -b worktree-asmith+main-riders \
+    ../riders-worktree
+cd ../riders-worktree
+commit "branch work"
+
+DOTSTAR_WORKTREE_PUSH="pr-branch" expect_refused "push with main commits under HEAD"
+
+rc_push_guard_stamp
+remedy="$(rc_push_guard | grep --only-matching 'git rebase --onto .*')"
+if [[ "${remedy}" == "git rebase --onto origin/main main" ]]; then
+    pass "refusal: names the rebase off main's upstream"
+else
+    fail "refusal: remedy is '${remedy}'"
 fi
 echo
 
