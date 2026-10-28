@@ -5,6 +5,7 @@
 --   Paint each Space's bars the next color in a cycle rather than one shared color (cycle_colors, needs edge_bars).
 --   Flash a row of dots after each switch, the focused Space filled (page_dots).
 -- Toggle from the shell with `space_position_experiment`; each flag persists across reloads.
+-- Re-place the bars after a display change or a wake, which move the screens without switching Spaces.
 
 -- Apply each experiment's default until it's toggled; a saved setting wins after that.
 local DEFAULT_ENABLED = {
@@ -42,6 +43,8 @@ local DOTS_BOTTOM_MARGIN = 160
 -- Keep the dots up long enough to read after a swipe settles, short enough to be gone before typing resumes.
 local DOTS_VISIBLE_SECONDS = 1
 local DOTS_FADE_SECONDS = 0.3
+-- Wait out macOS rearranging Spaces after a display change or wake, which often runs on past the event reporting it.
+local DISPLAY_SETTLE_SECONDS = 1
 
 -- Join every Space, full-screen ones included, so one overlay serves whichever Space is focused.
 local OVERLAY_BEHAVIOR = {
@@ -62,6 +65,7 @@ local edgeBarsBySpace = {}
 local edgeBarPairsCreated = 0
 local dots = nil
 local dotsTimer = nil
+local settleTimer = nil
 
 local function isEnabled(name)
     local value = hs.settings.get(SETTINGS_PREFIX .. name)
@@ -373,6 +377,17 @@ local function render(flashDots)
     end
 end
 
+-- Redraw the bars once the displays settle; restart the wait on each event, so a burst of them redraws once.
+local function renderAfterSettle()
+    if settleTimer then
+        settleTimer:stop()
+    end
+    settleTimer = hs.timer.doAfter(DISPLAY_SETTLE_SECONDS, function()
+        settleTimer = nil
+        render(false)
+    end)
+end
+
 -- Turn an experiment on or off, or report every experiment's state when called with no name.
 function showSpacePosition.set(name, enabled)
     if name == nil then
@@ -390,9 +405,21 @@ function showSpacePosition.set(name, enabled)
     return name .. ' ' .. (enabled and 'on' or 'off')
 end
 
--- Hold the watcher in the global table so garbage collection can't stop it.
+-- Hold each watcher in the global table so garbage collection can't stop it.
 showSpacePosition.watcher = hs.spaces.watcher.new(function()
     render(true)
 end)
 showSpacePosition.watcher:start()
+showSpacePosition.screenWatcher = hs.screen.watcher.new(function()
+    renderAfterSettle()
+end)
+showSpacePosition.screenWatcher:start()
+showSpacePosition.wakeWatcher = hs.caffeinate.watcher.new(function(event)
+    if event == hs.caffeinate.watcher.systemDidWake then
+        renderAfterSettle()
+    elseif event == hs.caffeinate.watcher.screensDidWake then
+        renderAfterSettle()
+    end
+end)
+showSpacePosition.wakeWatcher:start()
 render(false)
