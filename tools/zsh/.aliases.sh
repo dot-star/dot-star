@@ -33,3 +33,15 @@ count_command_lines() {
     DOTSTAR_COMMAND_LINE_COUNT=$((${DOTSTAR_COMMAND_LINE_COUNT:-0} + 1))
 }
 add-zsh-hook preexec count_command_lines
+
+# Show version control status at a new shell's first prompt, so a tab or split
+# opened inside a repo (e.g. a worktree) skips the habitual `s`.
+status_on_first_prompt() {
+    add-zsh-hook -d precmd status_on_first_prompt
+    unfunction status_on_first_prompt
+
+    if is_git; then
+        conditional_s
+    fi
+}
+add-zsh-hook precmd status_on_first_prompt
