@@ -1511,6 +1511,7 @@ rc_push_guard() {
 
 rc_push() {
     local current_branch
+    local push_remote
     local push_status
 
     if ! rc_push_guard; then
@@ -1527,12 +1528,14 @@ rc_push() {
     # DOTSTAR_WORKTREE_PUSH="default-branch":
     #    push the commits straight onto the repo's default branch, for personal
     #    repos where work lands on master and there are no pull requests.
-    #    worktree-fix-login-redirect  ->  git push origin HEAD:master
+    #    worktree-fix-login-redirect  ->  git push origin <s HEAD>:refs/heads/master
     # DOTSTAR_WORKTREE_PUSH="pr-branch"
     #    push to the branch's upstream when set, else an <owner>/<slug> branch
     #    derived from a worktree-<owner>+<slug> name (refusing any other name),
     #    and track it, for the work WIP pull request.
-    #    worktree-asmith+add-login  ->  git push -u origin HEAD:asmith/add-login
+    #    worktree-asmith+add-login  ->  git push origin <s HEAD>:refs/heads/asmith/add-login
+    # Both modes push the HEAD `s` stamped rather than looking HEAD up again,
+    # so a promote landing after the guard can't ship an unreviewed commit.
     # pr-branch is the default so machines without an override keep the old
     # behavior.
     if [[ "${current_branch}" == worktree-* ]]; then
@@ -1546,7 +1549,8 @@ rc_push() {
                 echo "could not determine the default branch to push to"
                 return 1
             fi
-            git push origin "HEAD:${default_branch}" "$@"
+            git push origin "${DOTSTAR_STATUS_HEAD}:refs/heads/${default_branch}" "$@"
+            push_status="${?}"
         else
             # Prefer the branch's existing upstream so repeated pushes update
             # the same remote branch (and its PR) instead of forking a new
@@ -1579,11 +1583,17 @@ rc_push() {
 
                 remote_branch="${remote_branch/+//}"
             fi
-            git push -u origin "HEAD:${remote_branch}" "$@"
+
+            # Track the remote branch by hand: `-u` sets no upstream when the
+            # source is a raw hash rather than HEAD.
+            git push origin "${DOTSTAR_STATUS_HEAD}:refs/heads/${remote_branch}" "$@"
+            push_status="${?}"
+            if [[ "${push_status}" -eq 0 ]]; then
+                git branch --set-upstream-to="origin/${remote_branch}"
+            fi
         fi
 
         # Return the push's own status; the hint's `if` would mask a failure.
-        push_status="${?}"
         if [[ "${push_status}" -ne 0 ]]; then
             echo -e "\ngit push options: $(git remote show)"
         fi
@@ -1591,7 +1601,38 @@ rc_push() {
         return "${push_status}"
     fi
 
-    git push "$@"
+    # Push the HEAD `s` stamped, not HEAD looked up again, so a merge landing
+    # after the guard can't ship. Accept only the shapes that push the current
+    # branch under its own name: none, <remote>, or <remote> <current branch>.
+    if [[ "${current_branch}" == "HEAD" ]]; then
+        echo "refusing to push a detached HEAD; use plain \`git push\`"
+        return 1
+    elif [[ "$#" -eq 0 ]]; then
+        push_remote="$(git for-each-ref --format='%(push:remotename)' "refs/heads/${current_branch}")"
+    elif [[ "$#" -eq 1 ]]; then
+        push_remote="$1"
+    elif [[ "$#" -eq 2 ]]; then
+        if [[ "$2" != "${current_branch}" ]]; then
+            echo "refusing to push '$2'; \`s\` reviewed '${current_branch}'; use plain \`git push\`"
+            return 1
+        fi
+        push_remote="$1"
+    else
+        echo "usage: pus [<remote> [${current_branch}]]; use plain \`git push\` for anything else"
+        return 1
+    fi
+
+    if [[ -z "${push_remote}" ]]; then
+        echo "no push remote configured for '${current_branch}'; name one: pus <remote>"
+        echo -e "\ngit push options: $(git remote show)"
+        return 1
+    elif ! git remote get-url "${push_remote}" >/dev/null 2>&1; then
+        echo "no remote named '${push_remote}'; use plain \`git push\` for flags and refspecs"
+        echo -e "\ngit push options: $(git remote show)"
+        return 1
+    fi
+
+    git push "${push_remote}" "${DOTSTAR_STATUS_HEAD}:refs/heads/${current_branch}"
     push_status="${?}"
     if [[ "${push_status}" -ne 0 ]]; then
         echo -e "\ngit push options: $(git remote show)"
