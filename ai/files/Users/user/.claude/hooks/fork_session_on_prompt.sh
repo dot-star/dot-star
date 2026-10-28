@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# UserPromptSubmit hook: fork the session into a new Ghostty window when the
+# UserPromptSubmit hook: fork the session into a new Ghostty or Terminal.app window when the
 # prompt asks for one, then block the prompt, so the parent session spends no
 # turn on it and stays where it was. The triggers run in order and the first
 # match wins, so a prompt matching both opens one window:

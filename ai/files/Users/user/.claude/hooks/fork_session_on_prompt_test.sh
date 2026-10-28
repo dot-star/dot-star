@@ -31,7 +31,7 @@ run_test() {
     local out
     local actual
 
-    # Run outside Ghostty, so a matched prompt gets blocked before any window opens.
+    # Run outside Ghostty and Terminal.app, so a matched prompt gets blocked before any window opens.
     out=$(
         command jq \
             --null-input \

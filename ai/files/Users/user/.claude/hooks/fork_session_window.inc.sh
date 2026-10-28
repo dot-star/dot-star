@@ -1,4 +1,4 @@
-# Open a Ghostty window running a clean `claude_run` forked from another
+# Open a Ghostty or Terminal.app window running a clean `claude_run` forked from another
 # session. Source this; don't execute it. The window gets the parent's session
 # id, transcript path and SendMessage address in its environment, where
 # announce_fork_parent.sh picks them up at SessionStart.
@@ -45,11 +45,6 @@ open_fork_window() {
     local parent_address
     local error
 
-    if [ "${TERM_PROGRAM:-}" != "ghostty" ]; then
-        printf '%s' "fork opens its window through Ghostty's AppleScript, so it only works under Ghostty (TERM_PROGRAM is '${TERM_PROGRAM:-unset}')."
-        return 1
-    fi
-
     # Resolve the main checkout through the shared git dir, which every worktree points at.
     start_dir="${cwd}"
     if git_common_dir=$(git -C "${cwd}" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
@@ -68,17 +63,37 @@ open_fork_window() {
         command_line+=" $(printf '%q' "${task}")"
     fi
 
-    # Pass both strings as arguments, so nothing in the task needs AppleScript escaping.
-    if ! error=$(
-        osascript - "${start_dir}" "${command_line}"$'\n' 2>&1 <<'APPLESCRIPT'
+    # Pass every string as an argument, so nothing in the task needs AppleScript escaping.
+    if [ "${TERM_PROGRAM:-}" = "ghostty" ]; then
+        if ! error=$(
+            osascript - "${start_dir}" "${command_line}"$'\n' 2>&1 <<'APPLESCRIPT'
 on run argv
     tell application "Ghostty"
         new window with configuration {initial working directory:item 1 of argv, initial input:item 2 of argv}
     end tell
 end run
 APPLESCRIPT
-    ); then
-        printf '%s' "fork couldn't open a Ghostty window: ${error}"
+        ); then
+            printf '%s' "fork couldn't open a Ghostty window: ${error}"
+            return 1
+        fi
+    elif [ "${TERM_PROGRAM:-}" = "Apple_Terminal" ]; then
+        # Change directory in the command itself, since `do script` has no working-directory option.
+        if ! error=$(
+            osascript - "cd -- $(printf '%q' "${start_dir}") && ${command_line}" 2>&1 <<'APPLESCRIPT'
+on run argv
+    tell application "Terminal"
+        do script (item 1 of argv)
+        activate
+    end tell
+end run
+APPLESCRIPT
+        ); then
+            printf '%s' "fork couldn't open a Terminal.app window: ${error}"
+            return 1
+        fi
+    else
+        printf '%s' "fork opens its window through AppleScript, so it only works under Ghostty or Terminal.app (TERM_PROGRAM is '${TERM_PROGRAM:-unset}')."
         return 1
     fi
 
