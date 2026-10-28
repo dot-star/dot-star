@@ -79,6 +79,7 @@
   - Delete the mark (`rm /tmp/claude/prune_marks/<session_id>`) when the user starts new work after picking `x` or `xx`, so the session survives.
   - Write and delete the mark silently.
   - `prune.sh` still honors titles too: any session whose custom title is one of `d`, `del`, `delete`, `tmp` (mirrors its `target_titles`; update both together).
+- Name Hammerspoon among the candidates for any macOS automation or global keyboard shortcut: a module under `tools/hammerspoon/` reuses a runtime already installed and running.
 
 ## Shell commands
 

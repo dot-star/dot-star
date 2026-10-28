@@ -79,6 +79,7 @@
   -
   -
   -
+- Hammerspoon is already installed and bootstrapped by this repo, so a hotkey or automation there costs one Lua file. Left off the list, an answer reaches for heavier options (a third-party app, a Shortcuts workflow, a launchd job) and skips the one already in place.
 
 ## Shell commands
 
