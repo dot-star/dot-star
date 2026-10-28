@@ -396,6 +396,20 @@ git_rebase_last_two() {
 alias rbl2="git_rebase_last_two"
 alias rbl="git_rebase_last_two"
 
+# Rebase the current branch onto <remote>'s <branch>.
+git_pull_rebase() {
+    local remote="${1}"
+    local branch="${2}"
+
+    # Paint git's "Successfully" green so the outcome stands out. Keep progress on through the pipe.
+    git pull \
+        --progress \
+        --rebase \
+        "${remote}" \
+        "${branch}" 2>&1 |
+        sed $'s/Successfully/\e[97;48;5;22m&\e[0m/'
+}
+
 git_rebase_master() {
     local_branches="refs/heads/"
     branches="$(
@@ -413,13 +427,7 @@ git_rebase_master() {
         return
     fi
 
-    # Paint git's "Successfully" green so the outcome stands out. Keep progress on through the pipe.
-    git pull \
-        --progress \
-        --rebase \
-        origin \
-        "${base_branch}" 2>&1 |
-        sed $'s/Successfully/\e[97;48;5;22m&\e[0m/'
+    git_pull_rebase origin "${base_branch}"
 }
 alias rbm="git_rebase_master"
 
