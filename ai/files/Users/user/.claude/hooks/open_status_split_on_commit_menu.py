@@ -104,7 +104,7 @@ def record_window(session_id: str) -> None:
     log(f"captured window {window_id} for session {session_id}")
 
 
-def open_status_tab(event: dict[str, Any]) -> None:
+def open_status_split(event: dict[str, Any]) -> None:
     """
     Open the session window's second tab running `git status`, unless it already has one.
 
@@ -164,7 +164,7 @@ def main() -> None:
     if event_name == "SessionStart":
         record_window(event.get("session_id", ""))
     elif event_name == "Stop":
-        open_status_tab(event)
+        open_status_split(event)
 
 
 if __name__ == "__main__":
