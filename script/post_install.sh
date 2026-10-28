@@ -361,4 +361,29 @@ hammerspoon_cli="/Applications/Hammerspoon.app/Contents/Frameworks/hs/hs"
 if [ -e "${hammerspoon_cli}" ]; then
     ensure_symlink "${hammerspoon_cli}" "${HOMEBREW_PREFIX:-/usr/local}/bin/hs"
 fi
+
+# Reload a running Hammerspoon when any Lua file it loads changed since the last install, since it keeps running the old code until a manual reload.
+hammerspoon_checksum_stamp="${HOME}/.dot-star-hammerspoon-checksum"
+hammerspoon_checksum="$(
+    cat "${HOME}"/.hammerspoon/*.lua "${HOME}"/.dot-star/tools/hammerspoon/*.lua |
+        cksum
+)"
+hammerspoon_checksum_before=""
+if [ -e "${hammerspoon_checksum_stamp}" ]; then
+    hammerspoon_checksum_before="$(cat "${hammerspoon_checksum_stamp}")"
+fi
+
+if [ "${hammerspoon_checksum}" = "${hammerspoon_checksum_before}" ]; then
+    echo "Hammerspoon config unchanged; skipping reload"
+elif ! pgrep -x Hammerspoon >/dev/null; then
+    echo "Hammerspoon not running; skipping reload"
+elif [ ! -e "${hammerspoon_cli}" ]; then
+    echo "Hammerspoon CLI missing; skipping reload"
+else
+    # Silence the reload's port errors: tearing down the config also closes the port the CLI is talking through, so it always exits nonzero.
+    "${hammerspoon_cli}" -c "hs.reload()" 2>/dev/null
+    echo "Hammerspoon reload sent"
+fi
+# Stamp even when Hammerspoon isn't running: its next launch reads the current files anyway.
+echo "${hammerspoon_checksum}" >"${hammerspoon_checksum_stamp}"
 bt_pop # hammerspoon setup
