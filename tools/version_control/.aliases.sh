@@ -1469,6 +1469,24 @@ rc_pull_with_rebase() {
     git pull --rebase $@
 }
 
+# Print where HEAD's history meets local master when HEAD is off master, so a
+# caller can find the unpushed master commits a push of HEAD would carry along.
+# Return 1 on master itself, without a master branch, or without a remote.
+rc_master_base_under_head() {
+    local head_branch
+    head_branch="$(git symbolic-ref --short HEAD 2>/dev/null)"
+
+    if [[ "${head_branch}" == "master" ]]; then
+        return 1
+    elif ! git show-ref --verify --quiet refs/heads/master; then
+        return 1
+    elif [[ -z "$(git remote)" ]]; then
+        return 1
+    fi
+
+    git merge-base HEAD master
+}
+
 # Record what `s` just showed: the command line it ran on and the checkout and
 # HEAD it listed, so `rc_push_guard` can tell whether the push follows that
 # review. Keep it in shell variables, never a file, so an `s` in another tab
@@ -1480,8 +1498,9 @@ rc_push_guard_stamp() {
 }
 
 # Refuse a push that doesn't directly follow `s`, or whose HEAD moved since
-# then (an agent promoting commits in between), so nothing unreviewed ships.
-# Plain `git push` skips both checks.
+# then (an agent promoting commits in between), or that would carry unpushed
+# master commits along, so nothing unreviewed ships. Plain `git push` skips
+# every check.
 rc_push_guard() {
     local current_head
 
@@ -1506,6 +1525,29 @@ rc_push_guard() {
         git --no-pager log --format='        %C(auto)%h%d %s' "${DOTSTAR_STATUS_HEAD}..${current_head}"
         echo "    Run \`s\` again to review them"
         return 1
+    fi
+
+    # Refuse while unpushed master commits sit under HEAD: the push would ship
+    # them too, and a push from master is where they get their own review.
+    local master_base
+    local master_upstream
+    local riders
+    if master_base="$(rc_master_base_under_head)"; then
+        riders="$(git rev-list --count "${master_base}" --not --remotes)"
+        if [[ "${riders}" -gt 0 ]]; then
+            echo -e "\033[1;31mERROR:\033[0m Refusing to push as HEAD carries unpushed master commits"
+            git --no-pager log --format='        %C(auto)%h%d %s' "${master_base}" --not --remotes
+
+            # Name master's own upstream, since the remote isn't always `origin`.
+            master_upstream="$(git rev-parse --abbrev-ref 'master@{upstream}' 2>/dev/null)"
+            if [[ -n "${master_upstream}" ]]; then
+                echo "    Drop them from this branch: git rebase --onto ${master_upstream} master"
+                echo "    Or push local master to the remote first"
+            else
+                echo "    Push local master to the remote first"
+            fi
+            return 1
+        fi
     fi
 }
 

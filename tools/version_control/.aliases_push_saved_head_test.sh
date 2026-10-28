@@ -146,9 +146,16 @@ expect_refused "unknown remote" nowhere
 git branch --unset-upstream
 expect_refused "no push remote"
 
+# Publish the refused cases' leftovers, so the detached HEAD below is refused
+# for being detached rather than for unpushed master commits under it.
+git push --quiet origin master
 git checkout --quiet --detach
 expect_refused "detached HEAD" origin
 git checkout --quiet master
+
+# Publish the main-checkout cases' leftovers, so the worktree branches below
+# start with no unpushed master commits under them.
+git push --quiet origin master
 echo
 
 echo "Worktree branch, default-branch mode:"
@@ -168,6 +175,47 @@ else
 fi
 
 DOTSTAR_WORKTREE_PUSH="pr-branch" expect_pushed "repeat push via upstream" origin.git asmith/add-login
+echo
+
+echo "Worktree branch carrying unpushed master commits:"
+git checkout --quiet master
+
+# Catch local master up with the default-branch push above, which moved only the remote's.
+git fetch --quiet origin
+git merge \
+    --quiet \
+    --ff-only \
+    origin/master
+git branch --quiet --set-upstream-to=origin/master master
+commit "master only"
+
+# Run from a real linked worktree, where `master` is checked out elsewhere.
+git worktree add \
+    --quiet \
+    -b worktree-asmith+riders \
+    ../riders-worktree
+cd ../riders-worktree
+commit "branch work"
+
+DOTSTAR_WORKTREE_PUSH="pr-branch" expect_refused "push with master commits under HEAD"
+
+# Run the rebase the refusal prints, the way a protected master leaves no other way out.
+rc_push_guard_stamp
+remedy="$(rc_push_guard | grep --only-matching 'git rebase --onto .*')"
+if [[ "${remedy}" == "git rebase --onto origin/master master" ]]; then
+    pass "refusal: names the rebase off master's upstream"
+else
+    fail "refusal: remedy is '${remedy}'"
+fi
+${remedy} --quiet
+
+DOTSTAR_WORKTREE_PUSH="pr-branch" expect_pushed "push after the rebase" origin.git asmith/riders
+
+if git --git-dir=../origin.git log --format='%s' refs/heads/asmith/riders | grep --quiet --line-regexp 'master only'; then
+    fail "push after the rebase: master commit reached the pull request branch"
+else
+    pass "push after the rebase: master commit left out"
+fi
 echo
 
 if [[ "${failures}" -gt 0 ]]; then
