@@ -1472,7 +1472,7 @@ rc_pull_with_rebase() {
 # Print where HEAD's history meets local master when HEAD is off master, so a
 # caller can find the unpushed master commits a push of HEAD would carry along.
 # Return 1 on master itself, without a master branch, or without a remote.
-rc_master_base_under_head() {
+rc_default_branch_base_under_head() {
     local head_branch
     head_branch="$(git symbolic-ref --short HEAD 2>/dev/null)"
 
@@ -1529,19 +1529,19 @@ rc_push_guard() {
 
     # Refuse while unpushed master commits sit under HEAD: the push would ship
     # them too, and a push from master is where they get their own review.
-    local master_base
-    local master_upstream
+    local default_branch_base
+    local default_branch_upstream
     local riders
-    if master_base="$(rc_master_base_under_head)"; then
-        riders="$(git rev-list --count "${master_base}" --not --remotes)"
+    if default_branch_base="$(rc_default_branch_base_under_head)"; then
+        riders="$(git rev-list --count "${default_branch_base}" --not --remotes)"
         if [[ "${riders}" -gt 0 ]]; then
             echo -e "\033[1;31mERROR:\033[0m Refusing to push as HEAD carries unpushed master commits"
-            git --no-pager log --format='        %C(auto)%h%d %s' "${master_base}" --not --remotes
+            git --no-pager log --format='        %C(auto)%h%d %s' "${default_branch_base}" --not --remotes
 
             # Name master's own upstream, since the remote isn't always `origin`.
-            master_upstream="$(git rev-parse --abbrev-ref 'master@{upstream}' 2>/dev/null)"
-            if [[ -n "${master_upstream}" ]]; then
-                echo "    Drop them from this branch: git rebase --onto ${master_upstream} master"
+            default_branch_upstream="$(git rev-parse --abbrev-ref 'master@{upstream}' 2>/dev/null)"
+            if [[ -n "${default_branch_upstream}" ]]; then
+                echo "    Drop them from this branch: git rebase --onto ${default_branch_upstream} master"
                 echo "    Or push local master to the remote first"
             else
                 echo "    Push local master to the remote first"
