@@ -1599,15 +1599,15 @@ rc_push_rebase_onto_remote() {
     fi
 
     echo
-    echo "Remote \"${remote}\" has ${incoming} incoming ${noun}:"
-    git --no-pager log --format='    %h %s' HEAD..FETCH_HEAD
+    echo -e "Remote \"${remote}\" has \033[1;36m${incoming}\033[0m incoming ${noun}:"
+    git --no-pager log --format='    %C(auto)%h %s' HEAD..FETCH_HEAD
     echo "Rebasing onto ${remote}/${branch}..."
     git_pull_rebase "${remote}" "${branch}"
 
     # Judge the rebase by whether the remote tip now sits under HEAD, since the
     # helper's pipe hides git's exit status.
     if git merge-base --is-ancestor FETCH_HEAD HEAD; then
-        echo "Rebased onto ${remote}/${branch}; run \`s\` and then \`pus\` again"
+        echo -e "\033[1;32mRebased\033[0m onto ${remote}/${branch}; run \`s\` and then \`pus\` again"
     else
         echo -e "\033[1;31mERROR:\033[0m Rebase onto ${remote}/${branch} didn't finish; resolve it, then run \`s\` and \`pus\` again"
     fi

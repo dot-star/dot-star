@@ -76,6 +76,12 @@ fail() {
     failures=$((failures + 1))
 }
 
+# Strip ANSI color codes, so checks match the wording rather than the paint.
+uncolored() {
+    printf '%s' "${1}" |
+        sed $'s/\e\\[[0-9;]*m//g'
+}
+
 # Assert `rc_push <args>` pushed the stamped commit to <remote>'s <branch>.
 expect_pushed() {
     local label="${1}"
@@ -317,6 +323,7 @@ rc_push_guard_stamp
 
 output="$(rc_push public 2>&1)"
 status="${?}"
+output="$(uncolored "${output}")"
 expected_listing="Remote \"public\" has 2 incoming commits:
 ${incoming}
 Rebasing onto public/master..."
@@ -347,6 +354,7 @@ rc_push_guard_stamp
 
 output="$(rc_push public 2>&1)"
 status="${?}"
+output="$(uncolored "${output}")"
 if [[ "${status}" -eq 0 ]]; then
     fail "unfinished rebase: rc_push succeeded"
 elif [[ "${output}" != *"Remote \"public\" has 1 incoming commit:"* ]]; then
@@ -401,6 +409,7 @@ rc_push_guard_stamp
 
 output="$(DOTSTAR_WORKTREE_PUSH="default-branch" rc_push 2>&1)"
 status="${?}"
+output="$(uncolored "${output}")"
 if [[ "${status}" -eq 0 ]]; then
     fail "rejected push: rc_push succeeded"
 elif [[ "$(git --git-dir=../public.git rev-parse refs/heads/master)" != "${remote_tip}" ]]; then
