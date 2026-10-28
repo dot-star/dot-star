@@ -382,6 +382,21 @@ local function render(flashDots)
     end
 end
 
+-- Move every Space's pair onto its screen's current edges; leave visibility to the next visit, since showing an off-Space canvas can pull it onto this one.
+local function placeEveryEdgeBarSet()
+    for screenId, spaces in pairs(hs.spaces.allSpaces() or {}) do
+        local screen = hs.screen.find(screenId)
+        if screen then
+            for index, space in ipairs(spaces) do
+                local pair = edgeBarsBySpace[space]
+                if pair then
+                    placeEdgeBars(pair, index, screen)
+                end
+            end
+        end
+    end
+end
+
 -- Redraw the bars once the displays settle; restart the wait on each event, so a burst of them redraws once.
 local function renderAfterSettle()
     if settleTimer then
@@ -390,6 +405,7 @@ local function renderAfterSettle()
     settleTimer = hs.timer.doAfter(DISPLAY_SETTLE_SECONDS, function()
         settleTimer = nil
         render(false)
+        placeEveryEdgeBarSet()
     end)
 end
 
