@@ -52,6 +52,11 @@ Interpret a bare one-token reply or a short fixed phrase as shorthand. Fires onl
   - Label the handle so it explains itself wherever it lands: pasted into another session ahead of a task, a bare `dot-star-12 [abcdef]` reads as a hostname, branch or user, so the receiver misses that the task is about a peer session.
   - Copy the ref along with the name: two sessions can share a name, and the ref is what `SendMessage` uses to tell them apart.
   - Print the full id (as in the scratchpad path) beneath it, labeled, without copying it. A peer can't look that id up, since the session list shows only short refs and the ref isn't a prefix of the id.
+- `tell` means "deliver it to that session yourself": send whatever the last message set up for another Claude session (a brief, a handoff, a launch command, a reply to relay) with `SendMessage`, instead of handing it to me to paste.
+  - Send to the session the last message named. With none named, run `ListAgents` and pick the live session in the repo the work belongs to; ask whenever more than one is live there.
+  - Send the brief's full text, never a summary, with `notify_when_idle: true` so the result comes back here.
+  - Never hand over work this session was blocked from; route it back to me instead.
+  - With no live session to receive it, say so and fall back to the new-terminal launch command from Workflow in `~/.claude/CLAUDE.md`.
 - `2g`, `2nd` mean "summarize this session so far for a second opinion and put the summary on the clipboard": the reader is another model seeing only the pasted text, so write it for someone with none of the session's context. It's a handoff, so don't start new work.
 - `md`, `mds` mean "map the instruction docs loaded in this session": render a `flow` diagram from each context channel down to the files it delivered. It's a read, so don't start new work.
   - Group by channel: native memory (global `CLAUDE.md`, the project `CLAUDE.md`, any `CLAUDE.local.md` and its `@` imports, `MEMORY.md`), each `SessionStart` loader call with its `CLAUDE_*.md` files in load order, and fired `claude-mention` pointers.
