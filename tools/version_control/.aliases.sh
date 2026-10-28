@@ -1130,6 +1130,7 @@ git_with_warnings() {
     # Paint each marker by how loudly it needs to land:
     # - Show "rejected" in bright red, since a rejected push is an outright failure.
     # - Show "forced update" on a yellow background, since rewritten history deserves a second look.
+    # - Show only the "error:" and "hint:" prefixes in git's red and yellow; git paints those whole lines, but only on a terminal, which this pipe never is.
     # - Show the remaining markers in orange.
     # Leave stdout and pagers untouched.
     command git "${@}" 2> >(
@@ -1139,6 +1140,18 @@ git_with_warnings() {
             GREP_COLORS="mt=01;30;43" \
                 \grep --line-buffered --color=always --extended-regexp \
                 'forced update|$' |
+            GREP_COLORS="mt=31" \
+                \grep \
+                --line-buffered \
+                --color=always \
+                --extended-regexp \
+                '^error:|$' |
+            GREP_COLORS="mt=33" \
+                \grep \
+                --line-buffered \
+                --color=always \
+                --extended-regexp \
+                '^hint:|$' |
             GREP_COLORS="mt=01;38;5;208" \
                 \grep --line-buffered --color=always --extended-regexp \
                 'WARNING|warning|vulnerabilit(y|ies)|^remote: GitHub|$' >&2
