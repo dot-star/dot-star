@@ -37,11 +37,19 @@ add-zsh-hook preexec count_command_lines
 # Show version control status at a new shell's first prompt, so a tab or split
 # opened inside a repo (e.g. a worktree) skips the habitual `s`.
 status_on_first_prompt() {
+    local status_start="${EPOCHREALTIME}"
+
     add-zsh-hook -d precmd status_on_first_prompt
     unfunction status_on_first_prompt
 
     if is_git; then
         conditional_s
+    fi
+
+    # Credit the status run back to zsh's startup timer, so a requested `s`
+    # never reads as a slow start.
+    if [[ -n "${zsh_startup_start}" ]]; then
+        zsh_startup_start=$((zsh_startup_start + EPOCHREALTIME - status_start))
     fi
 }
 add-zsh-hook precmd status_on_first_prompt
