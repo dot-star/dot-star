@@ -1501,9 +1501,10 @@ rc_push_guard() {
 
     current_head="$(git rev-parse HEAD)"
     if [[ "${current_head}" != "${DOTSTAR_STATUS_HEAD}" ]]; then
-        echo -e "\033[1;31mError:\033[0m refusing to push; HEAD moved since the last \`s\`; commits added since:"
-        git log --oneline "${DOTSTAR_STATUS_HEAD}..${current_head}"
-        echo "run \`s\` again to review them"
+        echo -e "\033[1;31mERROR:\033[0m Refusing to push as HEAD has moved since the last \`s\`"
+        echo "    New commits added since:"
+        git --no-pager log --format='        %C(auto)%h%d %s' "${DOTSTAR_STATUS_HEAD}..${current_head}"
+        echo "    Run \`s\` again to review them"
         return 1
     fi
 }
