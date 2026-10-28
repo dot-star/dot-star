@@ -350,6 +350,7 @@ setup_bootstrap "${HOME}/.hammerspoon/init.lua" "package.path = os.getenv('HOME'
 require('add_application_open_hotkeys')
 require('add_toggle_bluetooth_hotkey')
 require('add_toggle_terminal_hotkey')
+require('display_alternate_clock')
 require('follow_closed_full_screen_space')
 require('show_space_position')
 -- Open the port the hs command-line client talks to; the Claude window hooks run Lua through it.
