@@ -1565,6 +1565,54 @@ rc_push_guard() {
     fi
 }
 
+# Return 0 when <remote>'s <branch> holds commits the reviewed HEAD lacks, read
+# from git's own state rather than the rejection text. Return 1 when the fetch
+# fails, so an auth or network failure keeps the plain failure hint.
+rc_push_remote_is_ahead() {
+    local remote="${1}"
+    local branch="${2}"
+
+    # Silence the fetch, since the failed push already printed the real error.
+    if ! git fetch --quiet "${remote}" "${branch}" 2>/dev/null; then
+        return 1
+    elif git merge-base --is-ancestor FETCH_HEAD "${DOTSTAR_STATUS_HEAD}"; then
+        return 1
+    fi
+
+    return 0
+}
+
+# Rebase onto <remote>'s <branch> after a rejected push, never pushing again:
+# the rebase moves HEAD, so the result needs its own `s` review first.
+rc_push_rebase_onto_remote() {
+    local remote="${1}"
+    local branch="${2}"
+    local incoming
+    local noun
+
+    # List what the rebase pulls in, so the next `s` review isn't the first sight of it.
+    incoming="$(git rev-list --count HEAD..FETCH_HEAD)"
+    if [[ "${incoming}" -eq 1 ]]; then
+        noun="commit"
+    else
+        noun="commits"
+    fi
+
+    echo
+    echo "Remote \"${remote}\" has ${incoming} incoming ${noun}:"
+    git --no-pager log --format='    %h %s' HEAD..FETCH_HEAD
+    echo "Rebasing onto ${remote}/${branch}..."
+    git_pull_rebase "${remote}" "${branch}"
+
+    # Judge the rebase by whether the remote tip now sits under HEAD, since the
+    # helper's pipe hides git's exit status.
+    if git merge-base --is-ancestor FETCH_HEAD HEAD; then
+        echo "Rebased onto ${remote}/${branch}; run \`s\` and then \`pus\` again"
+    else
+        echo -e "\033[1;31mERROR:\033[0m Rebase onto ${remote}/${branch} didn't finish; resolve it, then run \`s\` and \`pus\` again"
+    fi
+}
+
 rc_push() {
     local current_branch
     local push_remote
@@ -1607,6 +1655,14 @@ rc_push() {
             fi
             git push origin "${DOTSTAR_STATUS_HEAD}:refs/heads/${default_branch}" "$@"
             push_status="${?}"
+
+            # Rebase onto the default branch when it moved, in place of the failure hint below.
+            if [[ "${push_status}" -eq 0 ]]; then
+                return 0
+            elif rc_push_remote_is_ahead origin "${default_branch}"; then
+                rc_push_rebase_onto_remote origin "${default_branch}"
+                return "${push_status}"
+            fi
         else
             # Prefer the branch's existing upstream so repeated pushes update
             # the same remote branch (and its PR) instead of forking a new
@@ -1690,7 +1746,11 @@ rc_push() {
 
     git push "${push_remote}" "${DOTSTAR_STATUS_HEAD}:refs/heads/${current_branch}"
     push_status="${?}"
-    if [[ "${push_status}" -ne 0 ]]; then
+    if [[ "${push_status}" -eq 0 ]]; then
+        return 0
+    elif rc_push_remote_is_ahead "${push_remote}" "${current_branch}"; then
+        rc_push_rebase_onto_remote "${push_remote}" "${current_branch}"
+    else
         echo -e "\ngit push options: $(git remote show)"
     fi
 

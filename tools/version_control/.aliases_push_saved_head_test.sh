@@ -263,6 +263,159 @@ else
 fi
 echo
 
+echo "Main checkout, remote ahead:"
+
+# Rebuild the layout under its own directory, with a second clone standing in for another contributor.
+mkdir "${root}/ahead"
+cd "${root}/ahead"
+git init \
+    --quiet \
+    --bare \
+    --initial-branch=master \
+    public.git
+git clone --quiet public.git contributor 2>/dev/null
+git init \
+    --quiet \
+    --initial-branch=master \
+    repo
+cd repo
+git remote add public ../public.git
+
+# Give the rebase a committer identity, since it rewrites commits.
+git config user.name "test"
+git config user.email "test@example.com"
+commit "base"
+git push --quiet public master
+
+# Land a commit on the remote that HEAD lacks.
+push_contributor_commit() {
+    local label="${1}"
+
+    git -C ../contributor pull --quiet origin master
+    git \
+        -C ../contributor \
+        -c user.name="bot" \
+        -c user.email="bot@example.com" \
+        commit \
+        --quiet \
+        --allow-empty \
+        --message="${label}"
+    git -C ../contributor push --quiet origin master
+}
+
+push_contributor_commit "bot work"
+push_contributor_commit "more bot work"
+remote_tip="$(git --git-dir=../public.git rev-parse refs/heads/master)"
+incoming="$(
+    git --git-dir=../public.git log \
+        --format='    %h %s' \
+        --max-count=2 \
+        refs/heads/master
+)"
+commit "reviewed rebase"
+rc_push_guard_stamp
+
+output="$(rc_push public 2>&1)"
+status="${?}"
+expected_listing="Remote \"public\" has 2 incoming commits:
+${incoming}
+Rebasing onto public/master..."
+if [[ "${status}" -eq 0 ]]; then
+    fail "rejected push: rc_push succeeded"
+elif [[ "${output}" != *"${expected_listing}"* ]]; then
+    fail "rejected push: incoming commits not listed before the rebase: ${output}"
+elif [[ "$(git --git-dir=../public.git rev-parse refs/heads/master)" != "${remote_tip}" ]]; then
+    fail "rejected push: pushed again after the rebase"
+elif ! git merge-base --is-ancestor "${remote_tip}" HEAD; then
+    fail "rejected push: HEAD not rebased onto public/master: ${output}"
+elif [[ "${output}" != *"run \`s\` and then \`pus\` again"* ]]; then
+    fail "rejected push: no hint to review and push again: ${output}"
+else
+    pass "rejected push: rebased onto public/master without pushing again"
+fi
+
+# Leave the rebase unfinished: a dirty tracked file makes `git pull --rebase` refuse.
+echo "tracked" >tracked.txt
+git add tracked.txt
+commit "add tracked"
+git push --quiet public master
+echo "dirty" >tracked.txt
+push_contributor_commit "dirty bot work"
+remote_tip="$(git --git-dir=../public.git rev-parse refs/heads/master)"
+commit "reviewed dirty"
+rc_push_guard_stamp
+
+output="$(rc_push public 2>&1)"
+status="${?}"
+if [[ "${status}" -eq 0 ]]; then
+    fail "unfinished rebase: rc_push succeeded"
+elif [[ "${output}" != *"Remote \"public\" has 1 incoming commit:"* ]]; then
+    fail "unfinished rebase: single incoming commit not counted in the singular: ${output}"
+elif git merge-base --is-ancestor "${remote_tip}" HEAD; then
+    fail "unfinished rebase: HEAD rebased anyway"
+elif [[ "${output}" != *"didn't finish"* ]]; then
+    fail "unfinished rebase: no error naming it: ${output}"
+else
+    pass "unfinished rebase: reported as unfinished"
+fi
+git checkout --quiet -- tracked.txt
+
+# Reject for a reason other than the remote being ahead.
+git pull --quiet --rebase public master
+printf '#!/bin/sh\nexit 1\n' >../public.git/hooks/pre-receive
+\chmod +x ../public.git/hooks/pre-receive
+commit "reviewed hook"
+rc_push_guard_stamp
+
+output="$(rc_push public 2>&1)"
+status="${?}"
+if [[ "${status}" -eq 0 ]]; then
+    fail "hook rejection: rc_push succeeded"
+elif [[ "${output}" == *"incoming"* ]]; then
+    fail "hook rejection: tried to rebase: ${output}"
+elif [[ "${output}" != *"git push options:"* ]]; then
+    fail "hook rejection: plain failure hint missing: ${output}"
+else
+    pass "hook rejection: plain failure hint, no rebase"
+fi
+echo
+
+echo "Worktree branch, default-branch mode, remote ahead:"
+
+# Publish master's leftovers under the `origin` name default-branch mode pushes to,
+# so the worktree branch starts with no unpushed master commits under it.
+rm ../public.git/hooks/pre-receive
+git remote add origin ../public.git
+git push --quiet origin master
+git fetch --quiet origin
+
+git worktree add \
+    --quiet \
+    -b worktree-fix-ahead \
+    ../ahead-worktree
+cd ../ahead-worktree
+push_contributor_commit "bot work on default branch"
+remote_tip="$(git --git-dir=../public.git rev-parse refs/heads/master)"
+commit "reviewed worktree rebase"
+rc_push_guard_stamp
+
+output="$(DOTSTAR_WORKTREE_PUSH="default-branch" rc_push 2>&1)"
+status="${?}"
+if [[ "${status}" -eq 0 ]]; then
+    fail "rejected push: rc_push succeeded"
+elif [[ "$(git --git-dir=../public.git rev-parse refs/heads/master)" != "${remote_tip}" ]]; then
+    fail "rejected push: pushed again after the rebase"
+elif ! git merge-base --is-ancestor "${remote_tip}" HEAD; then
+    fail "rejected push: HEAD not rebased onto origin/master: ${output}"
+elif [[ "${output}" != *"Remote \"origin\" has 1 incoming commit:"* ]]; then
+    fail "rejected push: incoming commit not listed: ${output}"
+elif [[ "${output}" == *"git push options:"* ]]; then
+    fail "rejected push: plain failure hint printed beside the rebase: ${output}"
+else
+    pass "rejected push: rebased onto origin/master without pushing again"
+fi
+echo
+
 if [[ "${failures}" -gt 0 ]]; then
     echo "${failures} check(s) failed"
     exit 1
