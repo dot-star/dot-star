@@ -111,6 +111,7 @@ window-padding-y = 8
 # keeping the text block centered as the window resizes.
 window-padding-balance = true
 
-# TODO: Set split-divider-color once a theme is picked. Left unset, Ghostty
-# derives the divider from the active theme; a hardcoded gray here would have to
-# be kept in sync with whatever background that theme sets.
+# Draw the split divider in the inactive tint's hue, so the seam reads as the
+# edge of the inactive side rather than a separate frame. Keep it in step with
+# unfocused-split-fill above.
+split-divider-color = #6a5acd
