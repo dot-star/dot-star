@@ -237,6 +237,15 @@
           }
         ],
         "matcher": ""
+      },
+      {
+        "hooks": [
+          {
+            "command": "${HOME}/.claude/hooks/exit_session_when_marked_for_prune.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
       }
     ],
     "UserPromptSubmit": [

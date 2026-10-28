@@ -148,6 +148,11 @@ claude_run() {
     local started_marker="${TMPDIR:-/tmp}/claude_run_started.$$"
     rm --force -- "${started_marker}"
 
+    # Name a marker the prune-mark Stop hook touches before it signals claude
+    # to quit, so the cleanup below counts that kill as a clean finish.
+    local close_requested_marker="${TMPDIR:-/tmp}/claude_run_close_requested.$$"
+    rm --force -- "${close_requested_marker}"
+
     # Name a file the PostToolUse hook appends each repo the session commits in
     # to, so the cleanup below can check them all for unpushed commits.
     local committed_repos_file="${TMPDIR:-/tmp}/claude_run_committed_repos.$$"
@@ -162,6 +167,7 @@ claude_run() {
             exit
 
         export CLAUDE_RUN_STARTED_MARKER="${started_marker}"
+        export CLAUDE_RUN_CLOSE_REQUESTED_MARKER="${close_requested_marker}"
         export CLAUDE_RUN_COMMITTED_REPOS="${committed_repos_file}"
 
         # Pass an explicit `--resume <uuid>` straight through:
@@ -212,14 +218,19 @@ claude_run() {
     local claude_status=$?
 
     # Count a run as finished only when a session started and claude quit
-    # cleanly. A picker that bails (e.g. on a session from another directory)
-    # exits 0 too, and its message has to stay on screen.
+    # cleanly or on a close the session requested. A picker that bails (e.g. on
+    # a session from another directory) exits 0 too, and its message has to
+    # stay on screen.
     local session_finished=""
-    if [[ "${claude_status}" -eq 0 && -e "${started_marker}" ]]; then
+    if [[ ! -e "${started_marker}" ]]; then
+        session_finished=""
+    elif [[ "${claude_status}" -eq 0 ]]; then
+        session_finished=1
+    elif [[ -e "${close_requested_marker}" ]]; then
         session_finished=1
     fi
 
-    rm --force -- "${started_marker}"
+    rm --force -- "${started_marker}" "${close_requested_marker}"
 
     # Collect the repos holding commits no remote has, launch repo first, one
     # per line. Skip a repo with no remote, since there is nowhere to push.

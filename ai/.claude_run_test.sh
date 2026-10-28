@@ -21,6 +21,9 @@ source "${SCRIPT_DIR}/.aliases.sh"
 # start marker as the SessionStart hook would, unless STUB_PICKER_BAIL stands in
 # for a picker that exits 0 without starting a session. Record STUB_COMMITTED_REPO
 # as the commit hook would, standing in for a commit outside the launch repo.
+# Touch the close-requested marker as the prune-mark Stop hook would while
+# STUB_CLOSE_REQUESTED is set, and exit with STUB_EXIT_STATUS to stand in for a
+# signal.
 claude() {
     echo "$(pwd)|$*|${CLAUDE_OBJECTIVE:-}"
     if [[ -n "${STUB_NO_SESSION:-}" && "$1" == "--continue" ]]; then
@@ -34,6 +37,12 @@ claude() {
     if [[ -n "${STUB_COMMITTED_REPO:-}" ]]; then
         echo "${STUB_COMMITTED_REPO}" >>"${CLAUDE_RUN_COMMITTED_REPOS}"
     fi
+
+    if [[ -n "${STUB_CLOSE_REQUESTED:-}" ]]; then
+        touch -- "${CLAUDE_RUN_CLOSE_REQUESTED_MARKER}"
+    fi
+
+    return "${STUB_EXIT_STATUS:-0}"
 }
 
 # Stub the status wrapper so it logs the repo it ran in instead of clearing the
@@ -216,6 +225,16 @@ STUB_PICKER_BAIL=1
 assert_cleanup "picker exited without a session, window and shell stay open" \
     "window open, status hidden, shell kept"
 unset STUB_PICKER_BAIL
+
+# Exit as SIGTERM leaves claude, first unasked, then after the hook asked.
+STUB_EXIT_STATUS=143
+assert_cleanup "session killed unasked, window and shell stay open" \
+    "window open, status hidden, shell kept"
+STUB_CLOSE_REQUESTED=1
+assert_cleanup "session killed on its own close request, window minimized and shell closed" \
+    "window minimized, status hidden, shell exited"
+unset STUB_CLOSE_REQUESTED
+unset STUB_EXIT_STATUS
 
 STUB_COMMITTED_REPO="${OTHER_REPO}"
 assert_cleanup "committed repo with nothing unpushed still closes" \

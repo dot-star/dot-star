@@ -75,7 +75,7 @@
 -
   -
   -
-  -
+  - Close the session from a hook rather than asking for `/exit`: by the time `x` lands the user is done, so a manual exit (or Ctrl+D twice) is pure friction. The hook sends SIGTERM, which restores the terminal the same way Ctrl+D does but exits 143, so it first touches the marker `claude_run` exports; the wrapper then counts the kill as a clean finish and still minimizes and closes the tab.
   -
   -
   -
