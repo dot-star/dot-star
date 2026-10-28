@@ -287,12 +287,42 @@ end run
 EOF
 }
 
+open_status_split() {
+    # Split a Ghostty pane below the focused one at <dir>, typing the status
+    # alias into its shell and evening out the panes as Cmd+Shift+D does. Report
+    # failure, so the caller can fall back; other emulators lack the scripting.
+    local dir="$1"
+
+    if [[ "${TERM_PROGRAM}" != "ghostty" ]]; then
+        return 1
+    fi
+
+    osascript - "${dir}" >/dev/null <<'EOF'
+on run argv
+    tell application "Ghostty"
+        set surfaceConfig to new surface configuration
+        set initial working directory of surfaceConfig to item 1 of argv
+        set initial input of surfaceConfig to "s" & linefeed
+        set statusTerminal to split (focused terminal of selected tab of front window) direction down with configuration surfaceConfig
+        perform action "equalize_splits" on statusTerminal
+    end tell
+end run
+EOF
+}
+
 show_unpushed_repo_statuses() {
     # Run the status wrapper in each newline-separated repo. Land the shell in
-    # the first so its `dN` aliases stay live; give each of the rest its own
-    # Ghostty tab, or stack it below from a subshell where tabs can't be scripted.
+    # the first so its `dN` aliases stay live; give the rest Ghostty panes or
+    # tabs, or stack them below from a subshell where neither can be scripted.
     local repos="$1"
     local first_repo="${repos%%$'\n'*}"
+    local extra_repo_count="$(($(grep --count . <<<"${repos}") - 1))"
+    local open_status="open_status_tab"
+
+    # Split a lone extra repo below; give two or more a tab each, since stacked panes get too short to read.
+    if [[ "${extra_repo_count}" -eq 1 ]]; then
+        open_status="open_status_split"
+    fi
 
     cd "${first_repo}" &&
         rc_status
@@ -303,7 +333,7 @@ show_unpushed_repo_statuses() {
             continue
         elif [[ "${repo}" == "${first_repo}" ]]; then
             continue
-        elif open_status_tab "${repo}"; then
+        elif "${open_status}" "${repo}"; then
             continue
         fi
 
