@@ -248,6 +248,34 @@ local function pruneEdgeBars()
     end
 end
 
+-- Fit a pair's bars and bumper flush to the edges of `screen`, for the Space at `index` on it.
+local function placeEdgeBars(pair, index, screen)
+    local frame = screen:fullFrame()
+    -- Start the first Space's bar below the menu bar, so it doesn't cover the clock; `frame()` drops the menu bar where this screen has one.
+    local barTop
+    if index == 1 then
+        barTop = screen:frame().y
+    else
+        barTop = frame.y
+    end
+    local barFrame = { x = frame.x, y = barTop, w = frame.w, h = frame.y + frame.h - barTop }
+    -- Redraw the elements only when the bar height changes, so a plain Space switch never repaints the bars.
+    if pair.height ~= barFrame.h then
+        layoutEdgeBar(pair.left, 'left', pair.color, barFrame.h)
+        layoutEdgeBar(pair.right, 'right', pair.color, barFrame.h)
+        pair.height = barFrame.h
+    end
+    pair.left:frame(edgeBarFrame(barFrame, barFrame.x))
+    pair.right:frame(edgeBarFrame(barFrame, barFrame.x + barFrame.w - EDGE_BAR_CANVAS_WIDTH))
+    pair.bottom:frame({ x = frame.x, y = frame.y + frame.h - BOTTOM_BAR_HEIGHT, w = frame.w, h = BOTTOM_BAR_HEIGHT })
+    pair.bumper:frame({
+        x = frame.x + frame.w - BUMPER_DEPTH,
+        y = frame.y + (frame.h - BUMPER_HEIGHT) / 2,
+        w = BUMPER_DEPTH,
+        h = BUMPER_HEIGHT,
+    })
+end
+
 -- Give the focused Space its own pair on first visit; only a reorder of Spaces ever flips a pair's visibility.
 local function renderEdgeBars(index, count, screen, focused)
     if not isEnabled('edge_bars') then
@@ -288,30 +316,7 @@ local function renderEdgeBars(index, count, screen, focused)
         edgeBarsBySpace[focused] = pair
     end
 
-    local frame = screen:fullFrame()
-    -- Start the first Space's bar below the menu bar, so it doesn't cover the clock; `frame()` drops the menu bar where this screen has one.
-    local barTop
-    if index == 1 then
-        barTop = screen:frame().y
-    else
-        barTop = frame.y
-    end
-    local barFrame = { x = frame.x, y = barTop, w = frame.w, h = frame.y + frame.h - barTop }
-    -- Redraw the elements only when the bar height changes, so a plain Space switch never repaints the bars.
-    if pair.height ~= barFrame.h then
-        layoutEdgeBar(pair.left, 'left', pair.color, barFrame.h)
-        layoutEdgeBar(pair.right, 'right', pair.color, barFrame.h)
-        pair.height = barFrame.h
-    end
-    pair.left:frame(edgeBarFrame(barFrame, barFrame.x))
-    pair.right:frame(edgeBarFrame(barFrame, barFrame.x + barFrame.w - EDGE_BAR_CANVAS_WIDTH))
-    pair.bottom:frame({ x = frame.x, y = frame.y + frame.h - BOTTOM_BAR_HEIGHT, w = frame.w, h = BOTTOM_BAR_HEIGHT })
-    pair.bumper:frame({
-        x = frame.x + frame.w - BUMPER_DEPTH,
-        y = frame.y + (frame.h - BUMPER_HEIGHT) / 2,
-        w = BUMPER_DEPTH,
-        h = BUMPER_HEIGHT,
-    })
+    placeEdgeBars(pair, index, screen)
     local rightVisible = showsRightBar(focused, index, count)
     setEdgeBarVisible(pair.left, startsFullScreenRun(hs.spaces.spacesForScreen(screen) or {}, index))
     setEdgeBarVisible(pair.right, rightVisible)
