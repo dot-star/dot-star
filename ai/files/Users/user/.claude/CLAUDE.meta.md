@@ -196,6 +196,10 @@
 -
   -
   -
+- A reader counts the keys in a chord by counting the names, so every extra name adds a phantom key. The spelled-out word lands fastest, since not every reader knows the key glyphs by sight. A glyph printed on the keycap helps the reader find the key, so it rides along in parentheses without counting as a key of its own; a glyph the keyboard never shows (Shift, Return, the arrows) gives them nothing to match.
+  - Parentheses mark the glyph as a gloss on the word; set side by side with only a space, the glyph and the word parse as two keys.
+  -
+  -
 -
   -
   -

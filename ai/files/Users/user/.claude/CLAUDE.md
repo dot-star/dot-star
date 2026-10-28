@@ -196,6 +196,10 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
 - Write a date so the weekday is visible: `Wed, Sep 2`. Abbreviated weekday and month, day with no leading zero, year appended only when the date falls outside the current year. The weekday is usually the load-bearing part of a date, since which day of the week something landed on is what the reader is checking it against, so a bare `Aug 15` or `08-30` makes them go compute it.
   - Applies to prose: chat replies, drafted messages, summaries, commit bodies. A date restated from a memory file or a source document converts at write time rather than echoing the stored form.
   - Sortable and machine-read contexts keep ISO: memory-file bodies, `MEMORY.md` lines, filenames, code, config, log lines.
+- Name each key in a hotkey exactly once: spell each key as a word, add its glyph in parentheses only when the glyph is printed on the physical key, and join keys by ` + ` (`Option(⌥) + D`, `Cmd(⌘) + Shift + K`, `Cmd(⌘) + Return`).
+  - Keep the glyph inside the parentheses: a bare glyph beside its name (`⌥ Option + D`) reads as a three-key chord (⌥, Option, D) when it's really two keys.
+  - Fail: `⌥ Option + D`
+  - Pass: `Option(⌥) + D`
 - Name the referent whenever a pronoun or a bare category noun could bind to more than one thing. When the preceding clause offers two candidate nouns, repeat the noun: `it`, `this`, `that`, `theirs`, `the former`. A sentence-opening `This` pointing back at a whole clause is the most common miss.
   - Treat a generic noun (`the doc`, `the file`, `the hook`) as a pronoun once two things of that kind are in play: name the specific one (`the .md`, `the backup`) each time.
   - Binds rules in instruction docs too: their reader can't ask which one was meant.
