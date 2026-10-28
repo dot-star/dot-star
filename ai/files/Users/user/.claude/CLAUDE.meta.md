@@ -200,6 +200,14 @@
   - Parentheses mark the glyph as a gloss on the word; set side by side with only a space, the glyph and the word parse as two keys.
   -
   -
+  - A stack of long chords is where the form is most tempting to shortcut, so the example shows it holding up at length: every key named once, glyphs only where the keycap prints one.
+
+    ```
+
+    -
+    -
+    -
+    ```
 -
   -
   -

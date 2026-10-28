@@ -200,6 +200,14 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
   - Keep the glyph inside the parentheses: a bare glyph beside its name (`⌥ Option + D`) reads as a three-key chord (⌥, Option, D) when it's really two keys.
   - Fail: `⌥ Option + D`
   - Pass: `Option(⌥) + D`
+  - Pass, listed:
+
+    ```
+    🛠️ Wired the window bindings:
+    - Cmd(⌘) + Ctrl(⌃) + Option(⌥) + Left:   snap left half
+    - Cmd(⌘) + Ctrl(⌃) + Option(⌥) + Right:  snap right half
+    - Cmd(⌘) + Ctrl(⌃) + Shift     + Return: maximize
+    ```
 - Name the referent whenever a pronoun or a bare category noun could bind to more than one thing. When the preceding clause offers two candidate nouns, repeat the noun: `it`, `this`, `that`, `theirs`, `the former`. A sentence-opening `This` pointing back at a whole clause is the most common miss.
   - Treat a generic noun (`the doc`, `the file`, `the hook`) as a pronoun once two things of that kind are in play: name the specific one (`the .md`, `the backup`) each time.
   - Binds rules in instruction docs too: their reader can't ask which one was meant.
