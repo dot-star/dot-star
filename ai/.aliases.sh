@@ -100,6 +100,26 @@ claude_run() {
     # that worktree's own last session instead of starting fresh or picking.
     # A clean quit exits the calling shell too, closing its terminal window.
 
+    # Refuse to start a session that inherited a child-session marker, since
+    # claude turns transcript saving off for it. A terminal app relaunched from
+    # inside a session hands that marker to every new tab.
+    if [[ -z "${CLAUDE_CODE_CHILD_SESSION}" ]]; then
+        # Start normally; nothing leaked into this shell.
+        :
+    elif [[ -n "${CLAUDE_RUN_ALLOW_CHILD}" ]]; then
+        # Start anyway; the caller accepted a session without a transcript.
+        :
+    elif kill -0 "${CLAUDE_PID}" 2>/dev/null; then
+        echo "cl: inside claude session (pid ${CLAUDE_PID}); transcript saving would be off." >&2
+        echo "cl: override with CLAUDE_RUN_ALLOW_CHILD=1 cl" >&2
+        return 1
+    else
+        echo "cl: shell inherited a marker from dead claude session (pid ${CLAUDE_PID})." >&2
+        echo "cl: quit the terminal app (Cmd+Q) and reopen it; a new tab inherits the same marker." >&2
+        echo "cl: override with CLAUDE_RUN_ALLOW_CHILD=1 cl" >&2
+        return 1
+    fi
+
     # Note a bare invocation (no args) before --obj shifts them away. A bare `cl`
     # inside a worktree reopens that worktree's session rather than starting
     # fresh, matching `clr`.
