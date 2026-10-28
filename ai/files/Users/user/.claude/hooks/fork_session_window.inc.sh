@@ -31,6 +31,15 @@ claude_session_address() {
     return 1
 }
 
+# Echo the argument single-quoted for the shell, every byte passed through as is.
+# Replaces `printf '%q'`, whose macOS bash 3.2 build splits a multibyte character (`⌥`) into invalid UTF-8.
+shell_quote() {
+    local quote="'"
+    local escaped_quote="'\\''"
+
+    printf '%s' "'${1//${quote}/${escaped_quote}}'"
+}
+
 # Open the fork window and echo the directory it opened in; echo the reason and return 1 when it can't.
 # Usage:
 #   open_fork_window <session-id> <transcript-path> <cwd> [<task>]
@@ -51,16 +60,16 @@ open_fork_window() {
         start_dir=$(dirname -- "${git_common_dir}")
     fi
 
-    command_line="CLAUDE_FORKED_FROM=$(printf '%q' "${session_id}")"
-    command_line+=" CLAUDE_FORKED_TRANSCRIPT=$(printf '%q' "${transcript_path}")"
+    command_line="CLAUDE_FORKED_FROM=$(shell_quote "${session_id}")"
+    command_line+=" CLAUDE_FORKED_TRANSCRIPT=$(shell_quote "${transcript_path}")"
     if parent_address=$(claude_session_address); then
-        command_line+=" CLAUDE_FORKED_FROM_ADDRESS=$(printf '%q' "${parent_address}")"
+        command_line+=" CLAUDE_FORKED_FROM_ADDRESS=$(shell_quote "${parent_address}")"
     fi
     # Launch through `claude_run` rather than `claude`, so the window minimizes and
     # closes once the fork's session ends, the same as `cl`.
     command_line+=" claude_run"
     if [ -n "${task}" ]; then
-        command_line+=" $(printf '%q' "${task}")"
+        command_line+=" $(shell_quote "${task}")"
     fi
 
     # Pass every string as an argument, so nothing in the task needs AppleScript escaping.
@@ -80,7 +89,7 @@ APPLESCRIPT
     elif [ "${TERM_PROGRAM:-}" = "Apple_Terminal" ]; then
         # Change directory in the command itself, since `do script` has no working-directory option.
         if ! error=$(
-            osascript - "cd -- $(printf '%q' "${start_dir}") && ${command_line}" 2>&1 <<'APPLESCRIPT'
+            osascript - "cd -- $(shell_quote "${start_dir}") && ${command_line}" 2>&1 <<'APPLESCRIPT'
 on run argv
     tell application "Terminal"
         do script (item 1 of argv)
