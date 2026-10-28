@@ -62,6 +62,10 @@ for cleanup_script in follow_closed_full_screen_space.sh minimize_own_window.sh 
     chmod +x "${HOME}/.dot-star/ai/claude/${cleanup_script}"
 done
 
+# Clear the terminal name so the Ghostty pane and tab openers bail, keeping the
+# run from scripting the real terminal and the result from depending on it.
+export TERM_PROGRAM=""
+
 # Attach a throwaway worktree to exercise the in-worktree branches.
 WORKTREE_DIR="$(mktemp -d)/worktree"
 git -C "${MAIN_CHECKOUT}" worktree add --detach --quiet "${WORKTREE_DIR}" HEAD
