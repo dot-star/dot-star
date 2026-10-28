@@ -5,7 +5,7 @@ noop() {
 require_sass() {
     if ! which "sass" &>/dev/null; then
         set -x
-        brew install sass/sass/sass
+        brew install dart-sass
         set +x
     fi
 }
