@@ -218,6 +218,16 @@ local function showsBottomBar(focused)
     return true
 end
 
+-- Return whether the focused Space gets the bumper; desktops stay clear, the same as for the right bar.
+local function showsBumper(focused, index, count)
+    if hs.spaces.spaceType(focused) ~= 'fullscreen' then
+        return false
+    elseif index ~= count then
+        return false
+    end
+    return true
+end
+
 -- Return the color a pair paints: its own from the cycle, or the shared one while cycle_colors is off.
 local function edgeBarColor(cycleColor)
     if isEnabled('cycle_colors') then
@@ -322,7 +332,7 @@ local function renderEdgeBars(index, count, screen, focused)
     setEdgeBarVisible(pair.left, startsFullScreenRun(hs.spaces.spacesForScreen(screen) or {}, index))
     setEdgeBarVisible(pair.right, rightVisible)
     setEdgeBarVisible(pair.bottom, showsBottomBar(focused))
-    setEdgeBarVisible(pair.bumper, index == count)
+    setEdgeBarVisible(pair.bumper, showsBumper(focused, index, count))
 end
 
 local function renderPageDots(index, count, screen)
