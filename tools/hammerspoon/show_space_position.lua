@@ -6,6 +6,7 @@
 --   Flash a row of dots after each switch, the focused Space filled (page_dots).
 -- Toggle from the shell with `space_position_experiment`; each flag persists across reloads.
 -- Re-place the bars after a display change or a wake, which move the screens without switching Spaces.
+-- Redraw a beat after each Space change too, so bars of a full-screen Space that just closed get deleted.
 
 -- Apply each experiment's default until it's toggled; a saved setting wins after that.
 local DEFAULT_ENABLED = {
@@ -45,7 +46,7 @@ local DOTS_BOTTOM_MARGIN = 160
 -- Keep the dots up long enough to read after a swipe settles, short enough to be gone before typing resumes.
 local DOTS_VISIBLE_SECONDS = 1
 local DOTS_FADE_SECONDS = 0.3
--- Wait out macOS rearranging Spaces after a display change or wake, which often runs on past the event reporting it.
+-- Wait out macOS rearranging Spaces after a display change, a wake or a Space closing, which often runs on past the event reporting it.
 local SETTLE_SECONDS = 1
 
 -- Join every Space, full-screen ones included, so one overlay serves whichever Space is focused.
@@ -440,6 +441,8 @@ end
 -- Hold each watcher in the global table so garbage collection can't stop it.
 showSpacePosition.watcher = hs.spaces.watcher.new(function()
     render(true)
+    -- Redraw again once a closed full-screen Space is gone for good, so its bars don't linger on the desktop it fell back to.
+    renderAfterSettle()
 end)
 showSpacePosition.watcher:start()
 showSpacePosition.screenWatcher = hs.screen.watcher.new(function()
