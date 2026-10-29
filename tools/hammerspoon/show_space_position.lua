@@ -22,9 +22,11 @@ local EDGE_GLOW_WIDTH = 64
 local EDGE_BAR_CANVAS_WIDTH = math.max(EDGE_BAR_WIDTH, EDGE_GLOW_WIDTH)
 -- Keep the bottom band as thin as the edge strips with no glow, so it hints at the Space's color without eating into the terminal.
 local BOTTOM_BAR_HEIGHT = EDGE_BAR_WIDTH
--- Bulge a soft bumper out of the right edge's midpoint on the last Space, where there's no bar to say the swipe goes on.
+-- Block the right edge's midpoint with a bumper on the last Space, where there's no bar to say the swipe goes on.
 local BUMPER_DEPTH = 28
 local BUMPER_HEIGHT = 140
+-- Draw the bumper more opaque than the bars, so its hard edge holds up against glare outdoors.
+local BUMPER_ALPHA = 1
 -- Paint each Space's pair the next color, so pairs are told apart and a recreated pair shows up as a color change.
 local EDGE_BAR_COLORS = {
     { red = 1, green = 0.2, blue = 0.2, alpha = 0.9 },
@@ -164,15 +166,14 @@ local function layoutEdgeBar(bar, side, color, height)
     }
 end
 
--- Draw a full oval twice the canvas width, so the canvas clips it to the half that bulges in from the edge.
+-- Fill the whole canvas with a solid block flush against the edge.
 local function newBumper(color)
     local bumper = newOverlay({ x = 0, y = 0, w = BUMPER_DEPTH, h = BUMPER_HEIGHT }, EDGE_BAR_BEHAVIOR)
-    bumper:alpha(color.alpha)
+    bumper:alpha(BUMPER_ALPHA)
     bumper[1] = {
-        type = 'oval',
+        type = 'rectangle',
         action = 'fill',
         fillColor = { red = color.red, green = color.green, blue = color.blue, alpha = 1 },
-        frame = { x = 0, y = 0, w = 2 * BUMPER_DEPTH, h = BUMPER_HEIGHT },
     }
     return bumper
 end
