@@ -1014,8 +1014,12 @@ conditional_q() {
 alias q="conditional_q"
 
 alias_open() {
+    # Open this Claude session's tmp dir when run as `!o` inside Claude Code.
+    if [[ "${#}" -eq 0 && -n "${CLAUDE_CODE_SESSION_ID}" ]]; then
+        source "${HOME}/.dot-star/ai/files/Users/user/.claude/hooks/claude_session_dir.inc.sh"
+        open "$(claude_session_dir "${CLAUDE_CODE_SESSION_ID}")"
     # Open current directory when no path is specified.
-    if [[ "${#}" -eq 0 ]]; then
+    elif [[ "${#}" -eq 0 ]]; then
         open . &>/dev/null
         if [[ "${?}" -ne 0 ]]; then
             nautilus .
