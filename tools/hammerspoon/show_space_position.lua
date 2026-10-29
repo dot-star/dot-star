@@ -46,7 +46,7 @@ local DOTS_BOTTOM_MARGIN = 160
 local DOTS_VISIBLE_SECONDS = 1
 local DOTS_FADE_SECONDS = 0.3
 -- Wait out macOS rearranging Spaces after a display change or wake, which often runs on past the event reporting it.
-local DISPLAY_SETTLE_SECONDS = 1
+local SETTLE_SECONDS = 1
 
 -- Join every Space, full-screen ones included, so one overlay serves whichever Space is focused.
 local OVERLAY_BEHAVIOR = {
@@ -408,12 +408,12 @@ local function placeEveryEdgeBarSet()
     end
 end
 
--- Redraw the bars once the displays settle; restart the wait on each event, so a burst of them redraws once.
+-- Redraw the bars once macOS settles; restart the wait on each event, so a burst of them redraws once.
 local function renderAfterSettle()
     if settleTimer then
         settleTimer:stop()
     end
-    settleTimer = hs.timer.doAfter(DISPLAY_SETTLE_SECONDS, function()
+    settleTimer = hs.timer.doAfter(SETTLE_SECONDS, function()
         settleTimer = nil
         render(false)
         placeEveryEdgeBarSet()
