@@ -141,6 +141,24 @@ if [ -f "${DOT_STAR_ROOT}/.git" ]; then
     exit 1
 fi
 
+# Hold a lock for the whole run, so shells opened together after a pull don't race each other's brew and git config writes.
+# Point a symlink at this process ID: creating one is atomic and its target names the holder.
+install_lock="${HOME}/.dot-star-install.lock"
+if ! ln -s "$$" "${install_lock}" 2>/dev/null; then
+    lock_holder="$(readlink "${install_lock}")"
+    # Clear a lock whose holder died without reaching its exit trap (kill -9, a crash).
+    if ! kill -0 "${lock_holder}" 2>/dev/null; then
+        unlink "${install_lock}"
+    fi
+
+    if ! ln -s "$$" "${install_lock}" 2>/dev/null; then
+        set +x
+        echo "dot-star: install already running (process ${lock_holder}); skipping." >&2
+        exit 1
+    fi
+fi
+trap 'unlink "${install_lock}"' EXIT
+
 # Source the timer helper when profiling, else stub it out.
 if [[ -n "${DOT_STAR_PROFILE:-}" ]]; then
     source "${DOT_STAR_ROOT}/tools/bash/.timer.sh"
