@@ -74,6 +74,7 @@
 -
 -
 -
+- A single check over the whole batch hides which item failed, so each item gets its own check and its own result line.
 -
 -
 -
