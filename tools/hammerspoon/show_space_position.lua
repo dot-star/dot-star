@@ -41,8 +41,8 @@ local EDGE_BAR_COLORS = {
 }
 -- Paint every Space's bars this one color while cycle_colors is off, so the bars read as a single landmark.
 local UNIFORM_EDGE_BAR_COLOR = { red = 1, green = 0.9, blue = 0.1, alpha = 0.9 }
-local DOT_SIZE = 14
-local DOT_GAP = 12
+local DOT_SIZE = 20
+local DOT_GAP = 14
 -- Fill the native title bar Ghostty keeps for its tabs with the dots' pill, at the height it measures on a full-screen Space.
 local TITLE_BAR_HEIGHT = 40
 -- Pad the pill's ends as much as its top and bottom, so the rounded ends hug the first and last dots evenly.
