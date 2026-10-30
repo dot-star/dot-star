@@ -2567,9 +2567,9 @@ rc_status() {
             # List the Claude sessions `clr` can resume here. Retune by exporting
             # CLAUDE_SESSION_LIST_MAX_AGE_DAYS (0 keeps every age),
             # CLAUDE_SESSION_LIST_MIN_ROWS and CLAUDE_SESSION_LIST_MAX_ROWS (0
-            # caps none). Default the max to the worktree table's 10 rows.
+            # caps none).
             local claude_sessions
-            claude_sessions="$(claude_session_list_render "${current_toplevel}" "${CLAUDE_SESSION_LIST_MAX_AGE_DAYS:-7}" "${CLAUDE_SESSION_LIST_MIN_ROWS:-5}" "${CLAUDE_SESSION_LIST_MAX_ROWS:-10}")"
+            claude_sessions="$(claude_session_list_render "${current_toplevel}" "${CLAUDE_SESSION_LIST_MAX_AGE_DAYS:-7}" "${CLAUDE_SESSION_LIST_MIN_ROWS:-3}" "${CLAUDE_SESSION_LIST_MAX_ROWS:-5}")"
             if [[ -n "${claude_sessions}" ]]; then
                 echo
                 echo "${claude_sessions}"
