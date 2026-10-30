@@ -5,7 +5,9 @@
 --   Paint each Space's bars the next color in a cycle rather than one shared color (cycle_colors, needs edge_bars).
 --   Add a row of dots in the title bar's upper-right corner of every full-screen Space, the focused Space filled (page_dots, needs edge_bars).
 --   Show the dark pill behind the dots, to check where their canvas sits (page_dots_pill, needs page_dots).
+--   Show on each dot the state of the Claude session whose window sits on that Space (session_state, needs page_dots).
 -- Toggle from the shell with `space_position_experiment`; each flag persists across reloads.
+-- Pick the session dots' decision style and focus marker the same way; each style persists too.
 -- Re-place the bars after a display change or a wake, which move the screens without switching Spaces.
 -- Redraw a beat after each Space change too, so bars of a full-screen Space that just closed get deleted.
 
@@ -16,6 +18,16 @@ local DEFAULT_ENABLED = {
     edge_bars = true,
     page_dots = true,
     page_dots_pill = false,
+    session_state = false,
+}
+-- Apply each style's default until it's set; a saved choice wins after that.
+local DEFAULT_STYLES = {
+    decision_style = 'heartbeat',
+    focus_marker = 'underline',
+}
+local STYLE_CHOICES = {
+    decision_style = { 'blink', 'flash', 'heartbeat', 'nudge' },
+    focus_marker = { 'center', 'underline' },
 }
 local SETTINGS_PREFIX = 'show_space_position.'
 local EDGE_BAR_WIDTH = 7
@@ -46,6 +58,30 @@ local DOT_GAP = 14
 local TITLE_BAR_HEIGHT = require('ghostty_title_bar').HEIGHT
 -- Pad the pill's ends as much as its top and bottom, so the rounded ends hug the first and last dots evenly.
 local DOTS_PADDING = (TITLE_BAR_HEIGHT - DOT_SIZE) / 2
+-- Read each Claude session's state word and window record from where `announce_window_state.py` writes them.
+local SESSION_STATE_DIR = '/tmp/claude-state-hook/'
+-- Thicken a session dot's ring past the plain dots' hairline stroke, so its color reads at a glance.
+local RING_WIDTH = 3.5
+local RING_RADIUS = DOT_SIZE / 2 - RING_WIDTH / 2
+-- Keep the orbit slow, so a long run of tool calls doesn't tug at the eye.
+local ORBIT_SECONDS = 2
+-- Ripple the ready ping out once, long enough to catch the eye without lingering.
+local PING_SECONDS = 1
+local FRAMES_PER_SECOND = 30
+-- Color each state like a traffic light: amber busy, red decision, green ready.
+local SESSION_STATE_COLORS = {
+    busy = { red = 1, green = 0.69, blue = 0, alpha = 1 },
+    decision = { red = 1, green = 0.23, blue = 0.19, alpha = 1 },
+    ready = { red = 0.2, green = 0.78, blue = 0.35, alpha = 1 },
+    none = { white = 0.55, alpha = 1 },
+}
+-- Rank the states, so a Space shared by several sessions shows the one most in need of you.
+local SESSION_STATE_URGENCY = {
+    busy = 1,
+    ready = 2,
+    decision = 3,
+}
+local FOCUS_MARK_COLOR = { white = 1, alpha = 1 }
 -- Wait out macOS rearranging Spaces after a display change, a wake or a Space closing, which often runs on past the event reporting it.
 local SETTLE_SECONDS = 1
 
@@ -59,6 +95,11 @@ showSpacePosition = {}
 local edgeBarsBySpace = {}
 local edgeBarPairsCreated = 0
 local settleTimer = nil
+-- Map each Space id to its most urgent session state; nil until the first read, so a reload doesn't ping every ready dot.
+local sessionStates = nil
+-- Map each Space id to when its dot turned ready, to ripple its one ping.
+local pingStartedAt = {}
+local frameTimer = nil
 
 local function isEnabled(name)
     local value = hs.settings.get(SETTINGS_PREFIX .. name)
@@ -68,13 +109,36 @@ local function isEnabled(name)
     return value
 end
 
-local function experimentNames()
+local function isStyleChoice(name, value)
+    for _, choice in ipairs(STYLE_CHOICES[name]) do
+        if choice == value then
+            return true
+        end
+    end
+    return false
+end
+
+local function styleOf(name)
+    local value = hs.settings.get(SETTINGS_PREFIX .. name)
+    if value == nil then
+        return DEFAULT_STYLES[name]
+    elseif not isStyleChoice(name, value) then
+        return DEFAULT_STYLES[name]
+    end
+    return value
+end
+
+local function sortedKeys(map)
     local names = {}
-    for name in pairs(DEFAULT_ENABLED) do
+    for name in pairs(map) do
         names[#names + 1] = name
     end
     table.sort(names)
     return names
+end
+
+local function experimentNames()
+    return sortedKeys(DEFAULT_ENABLED)
 end
 
 local function newOverlay(frame, behavior)
@@ -215,6 +279,309 @@ local function layoutPageDots(dots, index, count, color, pillVisible)
     dots:replaceElements(elements)
 end
 
+local function withAlpha(color, alpha)
+    local copy = {}
+    for key, value in pairs(color) do
+        copy[key] = value
+    end
+    copy.alpha = alpha
+    return copy
+end
+
+-- Return how far through a cycle of `period` seconds the clock is, from 0 to 1.
+local function phaseOf(seconds, period)
+    return (seconds % period) / period
+end
+
+-- Rise from 0 to 1 and back once per cycle, easing at both ends.
+local function wave(phase)
+    return (1 - math.cos(2 * math.pi * phase)) / 2
+end
+
+-- Spike twice early in the cycle and rest for the remainder, like a heartbeat.
+local function heartbeat(phase)
+    local beatLength = 0.12
+    if phase < beatLength then
+        return math.sin(math.pi * phase / beatLength)
+    elseif phase < 0.2 then
+        return 0
+    elseif phase < 0.2 + beatLength then
+        return math.sin(math.pi * (phase - 0.2) / beatLength)
+    end
+    return 0
+end
+
+-- Hop three times early in the cycle and rest for the remainder, from 0 (resting) to 1 (top of a hop).
+local function nudge(phase)
+    if phase < 0.45 then
+        return math.abs(math.sin(3 * math.pi * phase / 0.45))
+    end
+    return 0
+end
+
+local function ring(center, radius, color, strokeWidth)
+    return {
+        type = 'circle',
+        action = 'stroke',
+        center = center,
+        radius = radius,
+        strokeColor = color,
+        strokeWidth = strokeWidth,
+    }
+end
+
+local function disc(center, radius, color)
+    return { type = 'circle', action = 'fill', center = center, radius = radius, fillColor = color }
+end
+
+local function line(points, color, width)
+    return {
+        type = 'segments',
+        action = 'stroke',
+        closed = false,
+        coordinates = points,
+        strokeColor = color,
+        strokeWidth = width,
+        strokeCapStyle = 'round',
+        strokeJoinStyle = 'round',
+    }
+end
+
+local function arc(center, radius, color, startAngle, endAngle)
+    return {
+        type = 'arc',
+        action = 'stroke',
+        center = center,
+        radius = radius,
+        startAngle = startAngle,
+        endAngle = endAngle,
+        arcRadii = false,
+        strokeColor = color,
+        strokeWidth = RING_WIDTH,
+        strokeCapStyle = 'round',
+    }
+end
+
+-- Circle a bright arc around a faint ring.
+local function busyElements(center, seconds)
+    local color = SESSION_STATE_COLORS.busy
+    local start = phaseOf(seconds, ORBIT_SECONDS) * 360
+    return {
+        ring(center, RING_RADIUS, withAlpha(color, 0.3), RING_WIDTH),
+        arc(center, RING_RADIUS, color, start, start + 100),
+    }
+end
+
+local function decisionElements(style, center, seconds)
+    local color = SESSION_STATE_COLORS.decision
+    if style == 'blink' then
+        local alpha = 1
+        if phaseOf(seconds, 1.2) > 0.6 then
+            alpha = 0.15
+        end
+        return { ring(center, RING_RADIUS, withAlpha(color, alpha), RING_WIDTH) }
+    elseif style == 'flash' then
+        return {
+            disc(center, RING_RADIUS, withAlpha(color, 0.7 * wave(phaseOf(seconds, 1.5)))),
+            ring(center, RING_RADIUS, color, RING_WIDTH),
+        }
+    elseif style == 'heartbeat' then
+        local beat = heartbeat(phaseOf(seconds, 1.4))
+        return { ring(center, RING_RADIUS + beat, withAlpha(color, 0.45 + 0.55 * beat), RING_WIDTH + beat) }
+    elseif style == 'nudge' then
+        local lift = 3 * nudge(phaseOf(seconds, 2.4))
+        return { ring({ x = center.x, y = center.y - lift }, RING_RADIUS, color, RING_WIDTH) }
+    end
+    error('unknown decision style: ' .. style)
+end
+
+-- Draw a check inside the ring, rippling a ping out from it while `pingProgress` runs from 0 to 1.
+local function readyElements(center, pingProgress)
+    local color = SESSION_STATE_COLORS.ready
+    local elements = {
+        ring(center, RING_RADIUS, color, RING_WIDTH),
+        line({
+            { x = center.x - 3.5, y = center.y + 0.5 },
+            { x = center.x - 1, y = center.y + 3 },
+            { x = center.x + 3.5, y = center.y - 2.5 },
+        }, color, 2),
+    }
+    if pingProgress ~= nil then
+        elements[#elements + 1] = ring(center, RING_RADIUS + pingProgress * 8, withAlpha(color, 0.8 * (1 - pingProgress)), 2)
+    end
+    return elements
+end
+
+-- Draw the plain dots' thin ring, so a Space with no session looks as it did before session states.
+local function noneElements(center)
+    return { ring(center, DOT_SIZE / 2 - 0.75, SESSION_STATE_COLORS.none, 1.5) }
+end
+
+local function stateElements(state, center, seconds, pingProgress)
+    if state == 'busy' then
+        return busyElements(center, seconds)
+    elseif state == 'decision' then
+        return decisionElements(styleOf('decision_style'), center, seconds)
+    elseif state == 'ready' then
+        return readyElements(center, pingProgress)
+    elseif state == 'none' then
+        return noneElements(center)
+    end
+    error('unknown session state: ' .. state)
+end
+
+-- Mark the dot of the Space you're on the way the focus_marker style says, on top of its state.
+local function focusedElements(state, center, seconds, pingProgress)
+    local elements = stateElements(state, center, seconds, pingProgress)
+    local marker = styleOf('focus_marker')
+    if marker == 'center' then
+        local whitened = false
+        -- Whiten a mark already inside the ring rather than stacking the dot on it, so the check stays legible.
+        for _, element in ipairs(elements) do
+            if element.type == 'segments' then
+                element.strokeColor = FOCUS_MARK_COLOR
+                whitened = true
+            end
+        end
+        if not whitened then
+            elements[#elements + 1] = disc(center, 3, FOCUS_MARK_COLOR)
+        end
+    elseif marker == 'underline' then
+        local y = center.y + DOT_SIZE / 2 + 5
+        elements[#elements + 1] = line({ { x = center.x - 6, y = y }, { x = center.x + 6, y = y } }, FOCUS_MARK_COLOR, 2.5)
+    else
+        error('unknown focus marker: ' .. marker)
+    end
+    return elements
+end
+
+local function sessionStateOf(space)
+    if sessionStates == nil then
+        return 'none'
+    end
+    return sessionStates[space] or 'none'
+end
+
+-- Return how far the Space's ready ping has rippled, from 0 to 1, or nil once it's done.
+local function pingProgressOf(space, seconds)
+    local startedAt = pingStartedAt[space]
+    if startedAt == nil then
+        return nil
+    elseif seconds - startedAt >= PING_SECONDS then
+        return nil
+    end
+    return (seconds - startedAt) / PING_SECONDS
+end
+
+-- Return whether any dot in the row moves: an orbit, a decision's beat or a ping still rippling.
+local function sessionDotsAnimate(spaces, seconds)
+    for _, space in ipairs(spaces) do
+        local state = sessionStateOf(space)
+        if state == 'busy' then
+            return true
+        elseif state == 'decision' then
+            return true
+        elseif pingProgressOf(space, seconds) ~= nil then
+            return true
+        end
+    end
+    return false
+end
+
+-- Draw one dot per Space in `spaces` showing its session's state, marking the dot at `index`; draw pings only when `animate`, since a still frame would freeze one mid-ripple.
+local function layoutSessionDots(dots, index, spaces, pillVisible, seconds, animate)
+    local elements = { pageDotsPill(pillVisible) }
+    for position, space in ipairs(spaces) do
+        local center = pageDotCenter(position)
+        local state = sessionStateOf(space)
+        local pingProgress = nil
+        if animate then
+            pingProgress = pingProgressOf(space, seconds)
+        end
+        local dotElements
+        if position == index then
+            dotElements = focusedElements(state, center, seconds, pingProgress)
+        else
+            dotElements = stateElements(state, center, seconds, pingProgress)
+        end
+        for _, element in ipairs(dotElements) do
+            elements[#elements + 1] = element
+        end
+    end
+    dots:replaceElements(elements)
+end
+
+-- Return a key that changes whenever a session row's still frame would, so an unchanged row skips its redraw.
+local function sessionDotsKey(index, spaces, pillVisible)
+    local parts = { index, tostring(pillVisible), styleOf('decision_style'), styleOf('focus_marker') }
+    for _, space in ipairs(spaces) do
+        parts[#parts + 1] = sessionStateOf(space)
+    end
+    return table.concat(parts, ' ')
+end
+
+local function readFile(filePath)
+    local file = io.open(filePath, 'r')
+    if file == nil then
+        return nil
+    end
+    local contents = file:read('a')
+    file:close()
+    return contents
+end
+
+-- Return the Spaces holding a session's recorded window; none once the window is gone, so a crashed session can't leave a stuck dot.
+local function sessionSpaces(sessionId)
+    local record = readFile(SESSION_STATE_DIR .. sessionId .. '.window')
+    if record == nil then
+        return {}
+    end
+    local windowId = tonumber(record:match('^%d+'))
+    if windowId == nil then
+        return {}
+    end
+    return hs.spaces.windowSpaces(windowId) or {}
+end
+
+-- Return each Space's most urgent session state, from the state words the hooks record.
+local function readSessionStates()
+    local states = {}
+    if hs.fs.attributes(SESSION_STATE_DIR) == nil then
+        return states
+    end
+    for fileName in hs.fs.dir(SESSION_STATE_DIR) do
+        local sessionId = fileName:match('^(.+)%.state$')
+        local state = nil
+        if sessionId ~= nil then
+            state = (readFile(SESSION_STATE_DIR .. fileName) or ''):match('%a+')
+        end
+        if SESSION_STATE_URGENCY[state] ~= nil then
+            for _, space in ipairs(sessionSpaces(sessionId)) do
+                if states[space] == nil then
+                    states[space] = state
+                elseif SESSION_STATE_URGENCY[state] > SESSION_STATE_URGENCY[states[space]] then
+                    states[space] = state
+                end
+            end
+        end
+    end
+    return states
+end
+
+-- Re-read every session's state, starting a ping on each Space that just turned ready.
+local function refreshSessionStates()
+    local states = readSessionStates()
+    if sessionStates ~= nil then
+        local now = hs.timer.secondsSinceEpoch()
+        for space, state in pairs(states) do
+            if state == 'ready' and sessionStates[space] ~= 'ready' then
+                pingStartedAt[space] = now
+            end
+        end
+    end
+    sessionStates = states
+end
+
 local function setEdgeBarVisible(bar, visible)
     if visible and not bar:isShowing() then
         bar:show()
@@ -330,13 +697,34 @@ local function placeEdgeBars(pair, index, count, screen)
     })
     -- Redraw the dots only when the Space moved, the count changed or the pill was toggled, the same as the bars' height check.
     local pillVisible = isEnabled('page_dots_pill')
-    if pair.dotsIndex ~= index or pair.dotsCount ~= count or pair.dotsPill ~= pillVisible then
+    local dotsCount = count
+    if isEnabled('session_state') then
+        -- Leave the home Space out of the row; it's where the swipe starts, not a page worth a ring.
+        local spaces = {}
+        for position, space in ipairs(hs.spaces.spacesForScreen(screen) or {}) do
+            if position > 1 then
+                spaces[#spaces + 1] = space
+            end
+        end
+        local rowIndex = index - 1
+        local key = sessionDotsKey(rowIndex, spaces, pillVisible)
+        pair.sessionIndex = rowIndex
+        pair.sessionSpaces = spaces
+        dotsCount = #spaces
+        if pair.sessionKey ~= key then
+            layoutSessionDots(pair.dots, rowIndex, spaces, pillVisible, hs.timer.secondsSinceEpoch(), false)
+            pair.sessionKey = key
+            -- Forget the plain dots, so turning session_state off redraws them.
+            pair.dotsIndex = nil
+        end
+    elseif pair.dotsIndex ~= index or pair.dotsCount ~= count or pair.dotsPill ~= pillVisible then
         layoutPageDots(pair.dots, index, count, pair.color, pillVisible)
         pair.dotsIndex = index
         pair.dotsCount = count
         pair.dotsPill = pillVisible
+        pair.sessionKey = nil
     end
-    local dotsWidth = pageDotsWidth(count)
+    local dotsWidth = pageDotsWidth(dotsCount)
     -- Sit the dots flush against the screen's right edge, over the right bar's glow.
     pair.dots:frame({
         x = frame.x + frame.w - dotsWidth,
@@ -396,9 +784,63 @@ local function renderEdgeBars(index, count, screen, focused)
     setEdgeBarVisible(pair.dots, showsPageDots(focused))
 end
 
+-- Return the focused Space's pair while its session dots are showing, the only ones worth animating.
+local function visibleSessionPair()
+    if not isEnabled('session_state') then
+        return nil
+    end
+    local pair = edgeBarsBySpace[hs.spaces.focusedSpace()]
+    if pair == nil then
+        return nil
+    elseif pair.sessionSpaces == nil then
+        return nil
+    elseif not pair.dots:isShowing() then
+        return nil
+    end
+    return pair
+end
+
+local function stopAnimating()
+    if frameTimer then
+        frameTimer:stop()
+        frameTimer = nil
+    end
+end
+
+-- Redraw the visible session dots one frame on; stop the timer on a still frame once nothing moves, so an idle machine never wakes for it.
+local function animateFrame()
+    local pair = visibleSessionPair()
+    if pair == nil then
+        stopAnimating()
+        return
+    end
+    local seconds = hs.timer.secondsSinceEpoch()
+    local animate = sessionDotsAnimate(pair.sessionSpaces, seconds)
+    layoutSessionDots(pair.dots, pair.sessionIndex, pair.sessionSpaces, isEnabled('page_dots_pill'), seconds, animate)
+    if not animate then
+        stopAnimating()
+    end
+end
+
+-- Run the frame timer while the visible session dots have something moving, and only then.
+local function updateAnimation()
+    local pair = visibleSessionPair()
+    if pair == nil then
+        stopAnimating()
+    elseif not sessionDotsAnimate(pair.sessionSpaces, hs.timer.secondsSinceEpoch()) then
+        stopAnimating()
+    elseif frameTimer == nil then
+        frameTimer = hs.timer.doEvery(1 / FRAMES_PER_SECOND, animateFrame)
+    end
+end
+
 local function render()
+    if isEnabled('session_state') then
+        refreshSessionStates()
+    end
     local index, count, screen, focused = focusedPosition()
     renderEdgeBars(index, count, screen, focused)
+    updateAnimation()
 end
 
 -- Move every Space's pair onto its screen's current edges; leave visibility to the next visit, since showing an off-Space canvas can pull it onto this one.
@@ -416,6 +858,25 @@ local function placeEveryEdgeBarSet()
     end
 end
 
+-- Redraw every Space's session dots after a hook records a state, so each row is current before it's next seen.
+local function renderSessionStates(changedPaths)
+    if not isEnabled('session_state') then
+        return
+    end
+    local stateChanged = false
+    for _, changedPath in ipairs(changedPaths) do
+        if changedPath:match('%.state$') then
+            stateChanged = true
+        end
+    end
+    if not stateChanged then
+        return
+    end
+    refreshSessionStates()
+    placeEveryEdgeBarSet()
+    updateAnimation()
+end
+
 -- Redraw the bars once macOS settles; restart the wait on each event, so a burst of them redraws once.
 local function renderAfterSettle()
     if settleTimer then
@@ -428,21 +889,37 @@ local function renderAfterSettle()
     end)
 end
 
--- Turn an experiment on or off, or report every experiment's state when called with no name.
-function showSpacePosition.set(name, enabled)
+-- Turn an experiment on or off or pick a style, or report every experiment's state and style's pick when called with no name.
+function showSpacePosition.set(name, value)
     if name == nil then
         local lines = {}
         for _, experiment in ipairs(experimentNames()) do
             lines[#lines + 1] = experiment .. ' ' .. (isEnabled(experiment) and 'on' or 'off')
         end
+        for _, style in ipairs(sortedKeys(DEFAULT_STYLES)) do
+            lines[#lines + 1] = style .. ' ' .. styleOf(style)
+        end
         return table.concat(lines, '\n')
+    elseif DEFAULT_STYLES[name] ~= nil then
+        if not isStyleChoice(name, value) then
+            return 'unknown ' .. name .. ': ' .. tostring(value) .. ' (expected one of: ' .. table.concat(STYLE_CHOICES[name], ', ') .. ')'
+        end
+        hs.settings.set(SETTINGS_PREFIX .. name, value)
+        render()
+        return name .. ' ' .. value
     elseif DEFAULT_ENABLED[name] == nil then
-        return 'unknown experiment: ' .. name .. ' (expected one of: ' .. table.concat(experimentNames(), ', ') .. ')'
+        local names = experimentNames()
+        for _, style in ipairs(sortedKeys(DEFAULT_STYLES)) do
+            names[#names + 1] = style
+        end
+        return 'unknown experiment: ' .. name .. ' (expected one of: ' .. table.concat(names, ', ') .. ')'
+    elseif type(value) ~= 'boolean' then
+        return name .. ' takes on or off, not ' .. tostring(value)
     end
 
-    hs.settings.set(SETTINGS_PREFIX .. name, enabled)
+    hs.settings.set(SETTINGS_PREFIX .. name, value)
     render()
-    return name .. ' ' .. (enabled and 'on' or 'off')
+    return name .. ' ' .. (value and 'on' or 'off')
 end
 
 -- Hold each watcher in the global table so garbage collection can't stop it.
@@ -464,4 +941,8 @@ showSpacePosition.wakeWatcher = hs.caffeinate.watcher.new(function(event)
     end
 end)
 showSpacePosition.wakeWatcher:start()
+-- Create the hooks' folder if no session has yet, so the watcher has something to watch.
+hs.fs.mkdir(SESSION_STATE_DIR)
+showSpacePosition.sessionStateWatcher = hs.pathwatcher.new(SESSION_STATE_DIR, renderSessionStates)
+showSpacePosition.sessionStateWatcher:start()
 render()
