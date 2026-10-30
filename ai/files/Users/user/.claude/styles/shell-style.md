@@ -27,6 +27,28 @@ curl --fail --silent "${url}"
 
 A single-flag command stays on one line. The rule covers commands landing in a committed file (script, CI `run:` block, Makefile, doc example), not one-off invocations typed at a terminal.
 
+## Quoted flag values
+
+Quote every string value a flag carries, the value half of a `key=value` pair included, even when it parses fine bare. Leave a number bare.
+
+```
+deploy \
+    --context stage="dev" \
+    --region="east" \
+    --retries 3
+```
+
+Not (string values left bare):
+
+```
+deploy \
+    --context stage=dev \
+    --region=east \
+    --retries 3
+```
+
+The rule covers commands landing in a committed file (script, CI `run:` block, Makefile, doc example), not one-off invocations typed at a terminal.
+
 ## Multi-line strings
 
 Build a multi-line string so its source mirrors the rendered output: one append per output line, each carrying a literal `\n`, rather than packing every `\n` into a single `$'...'`.
