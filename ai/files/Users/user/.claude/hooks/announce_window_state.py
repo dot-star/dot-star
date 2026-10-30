@@ -238,6 +238,71 @@ def record_session_state(session_id: str, state: str) -> None:
     temporary.replace(path)
 
 
+def waiting_tool_file(session_id: str) -> Path:
+    """
+    Returns the file naming the tool whose prompt waits on the user.
+
+    :param session_id: Claude session id the record is filed under.
+    :return: Path beside the session's `.state` record.
+    """
+    return STATE_DIR / f"{session_id}.waiting_tool"
+
+
+def record_waiting_tool(event: dict) -> None:
+    """
+    Mark the session as waiting on the user to answer a prompt for the event's tool.
+
+    :param event: PermissionRequest or PreToolUse payload naming the tool.
+    """
+    session_id = event.get("session_id", "")
+
+    if not session_id:
+        return
+
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    waiting_tool_file(session_id).write_text(event.get("tool_name", ""))
+    record_session_state(session_id, "decision")
+
+
+def record_tool_finished(event: dict) -> None:
+    """
+    Mark the session busy once a tool finishes, unless another tool's prompt still waits.
+
+    Parallel tool calls let a sibling finish while a prompt is up, so only the
+    waiting tool's own result ends the decision. Its name stands in for the
+    call, since its input can change once answered (e.g. `AskUserQuestion`).
+
+    :param event: PostToolUse or PostToolUseFailure payload naming the tool.
+    """
+    session_id = event.get("session_id", "")
+
+    try:
+        waiting_tool = waiting_tool_file(session_id).read_text()
+    except OSError:
+        record_session_state(session_id, "busy")
+        return
+
+    if waiting_tool != event.get("tool_name", ""):
+        return
+
+    waiting_tool_file(session_id).unlink(missing_ok=True)
+    record_session_state(session_id, "busy")
+
+
+def record_turn_state(session_id: str, state: str) -> None:
+    """
+    Record a state that ends any prompt the session was waiting on.
+
+    :param session_id: Claude session id the state is filed under.
+    :param state: "busy" on a new prompt, "ready" once the turn ends.
+    """
+    if not session_id:
+        return
+
+    waiting_tool_file(session_id).unlink(missing_ok=True)
+    record_session_state(session_id, state)
+
+
 def forget_session(session_id: str) -> None:
     """
     Delete the session's state and window records, so its page dot goes back to no session.
@@ -248,6 +313,7 @@ def forget_session(session_id: str) -> None:
         return
 
     session_state_file(session_id).unlink(missing_ok=True)
+    waiting_tool_file(session_id).unlink(missing_ok=True)
     window_file(session_id).unlink(missing_ok=True)
 
 
@@ -399,6 +465,9 @@ def record_notification_state(event: dict) -> None:
 
     if state is None:
         return
+    elif state == "ready":
+        record_turn_state(session_id, state)
+        return
 
     record_session_state(session_id, state)
 
@@ -428,18 +497,22 @@ def main() -> None:
         )
         record_notification_state(event)
         on_waiting(event)
+    elif event_name == "PermissionRequest":
+        record_waiting_tool(event)
     elif event_name == "PreToolUse":
         # Mark a tool that waits on the user's answer (wired by matcher in settings.json).
-        record_session_state(session_id, "decision")
+        record_waiting_tool(event)
     elif event_name == "PostToolUse":
         set_title("RUNNING", session_id)
-        record_session_state(session_id, "busy")
+        record_tool_finished(event)
+    elif event_name == "PostToolUseFailure":
+        record_tool_finished(event)
     elif event_name == "SessionEnd":
         forget_session(session_id)
     elif event_name == "Stop":
-        record_session_state(session_id, "ready")
+        record_turn_state(session_id, "ready")
     elif event_name == "UserPromptSubmit":
-        record_session_state(session_id, "busy")
+        record_turn_state(session_id, "busy")
 
 
 if __name__ == "__main__":

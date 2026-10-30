@@ -29,6 +29,16 @@
         ]
       }
     ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "command": "${HOME}/.claude/hooks/announce_window_state.py PermissionRequest",
+            "type": "command"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "hooks": [
@@ -99,6 +109,16 @@
         "hooks": [
           {
             "command": "${HOME}/.claude/hooks/announce_window_state.py PostToolUse",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "hooks": [
+          {
+            "command": "${HOME}/.claude/hooks/announce_window_state.py PostToolUseFailure",
             "type": "command"
           }
         ]
