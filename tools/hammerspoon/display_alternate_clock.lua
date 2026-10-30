@@ -21,7 +21,7 @@ function update_clock_position()
     h = 19
     w = 220
 
-    x = full_screen_width - w - 36
+    x = full_screen_width - w
     y = 24
     -- print(string.format('x: %s', x))
     -- print(string.format('y: %s', y))
