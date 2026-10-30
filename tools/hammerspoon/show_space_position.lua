@@ -18,7 +18,6 @@ local DEFAULT_ENABLED = {
     page_dots_pill = false,
 }
 local SETTINGS_PREFIX = 'show_space_position.'
-local COLOR = { red = 1, green = 0.6, blue = 0.1, alpha = 0.9 }
 local EDGE_BAR_WIDTH = 7
 -- Back the right strip with a wide glow that fades out toward the middle, so the edge reads from the corner of the eye.
 local EDGE_GLOW_WIDTH = 64
@@ -173,8 +172,8 @@ local function pageDotsWidth(count)
     return count * DOT_SIZE + (count - 1) * DOT_GAP + 2 * DOTS_PADDING
 end
 
--- Draw one dot per Space on a pill, filling the dot at `index`; keep the pill clear unless `pillVisible`, which shows where the canvas sits.
-local function layoutPageDots(dots, index, count, pillVisible)
+-- Draw one dot per Space in `color` on a pill, filling the dot at `index`; keep the pill clear unless `pillVisible`, which shows where the canvas sits.
+local function layoutPageDots(dots, index, count, color, pillVisible)
     local height = TITLE_BAR_HEIGHT
     local pillAlpha
     if pillVisible then
@@ -195,12 +194,12 @@ local function layoutPageDots(dots, index, count, pillVisible)
             type = 'circle',
             center = { x = DOTS_PADDING + (position - 1) * (DOT_SIZE + DOT_GAP) + DOT_SIZE / 2, y = height / 2 },
             radius = DOT_SIZE / 2,
-            strokeColor = COLOR,
+            strokeColor = color,
             strokeWidth = 1.5,
         }
         if position == index then
             dot.action = 'strokeAndFill'
-            dot.fillColor = COLOR
+            dot.fillColor = color
         else
             dot.action = 'stroke'
         end
@@ -330,7 +329,7 @@ local function placeEdgeBars(pair, index, count, screen)
     -- Redraw the dots only when the Space moved, the count changed or the pill was toggled, the same as the bars' height check.
     local pillVisible = isEnabled('page_dots_pill')
     if pair.dotsIndex ~= index or pair.dotsCount ~= count or pair.dotsPill ~= pillVisible then
-        layoutPageDots(pair.dots, index, count, pillVisible)
+        layoutPageDots(pair.dots, index, count, pair.color, pillVisible)
         pair.dotsIndex = index
         pair.dotsCount = count
         pair.dotsPill = pillVisible
