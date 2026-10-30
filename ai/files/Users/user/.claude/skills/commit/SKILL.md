@@ -44,8 +44,8 @@ Score each draft 0, 1, or 2 on every criterion, multiply by the criterion's weig
 | Weight | Criterion | 2 (full) | 0 (fail) |
 | --- | --- | --- | --- |
 | ×5 | **Self-contained** | a reader who hasn't seen the diff understands what changed from the subject alone ("Reject uploads larger than 10 MB") | opaque without the diff ("Update handler") |
-| ×4 | **Names the concrete thing** | the specific value or behavior ("Raise the upload limit to 50 MB") | a vague category ("Adjust upload settings") |
-| ×3 | **Intent over mechanism** | what changed and why | where it landed; locational filler like "in Principles" |
+| ×4 | **Names the concrete thing** | the specific behavior ("Raise the upload limit") | a vague category ("Adjust upload settings") |
+| ×3 | **Intent over mechanism** | what changed and why: the property it buys ("Draw timer in fixed-width font") | the means it picked ("Set timer font to Menlo"); where it landed, locational filler like "in Principles" |
 | ×2 | **Imperative, verb-first** | `Add`, `Prefer`, `Fix` | `Note`, `Adds` |
 | ×1 | **Tightest phrasing** | no slack left without losing specificity | padded with words the diff already carries |
 
