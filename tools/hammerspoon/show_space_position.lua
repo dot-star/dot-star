@@ -784,20 +784,32 @@ local function renderEdgeBars(index, count, screen, focused)
     setEdgeBarVisible(pair.dots, showsPageDots(focused))
 end
 
--- Return the focused Space's pair while its session dots are showing, the only ones worth animating.
-local function visibleSessionPair()
+-- Return every Space's pair whose session dots are showing, not just the focused one, so whichever Space a swipe or jump reveals is already on the current frame.
+local function shownSessionPairs()
+    local shown = {}
     if not isEnabled('session_state') then
-        return nil
+        return shown
     end
-    local pair = edgeBarsBySpace[hs.spaces.focusedSpace()]
-    if pair == nil then
-        return nil
-    elseif pair.sessionSpaces == nil then
-        return nil
-    elseif not pair.dots:isShowing() then
-        return nil
+    for _, pair in pairs(edgeBarsBySpace) do
+        if pair.sessionSpaces == nil then
+            -- Skip a pair still showing plain dots.
+        elseif not pair.dots:isShowing() then
+            -- Skip a desktop's pair, which never shows its dots.
+        else
+            shown[#shown + 1] = pair
+        end
     end
-    return pair
+    return shown
+end
+
+-- Return whether any of `sessionPairs` has a dot moving.
+local function anySessionDotsAnimate(sessionPairs, seconds)
+    for _, pair in ipairs(sessionPairs) do
+        if sessionDotsAnimate(pair.sessionSpaces, seconds) then
+            return true
+        end
+    end
+    return false
 end
 
 local function stopAnimating()
@@ -807,27 +819,26 @@ local function stopAnimating()
     end
 end
 
--- Redraw the visible session dots one frame on; stop the timer on a still frame once nothing moves, so an idle machine never wakes for it.
+-- Redraw every shown row of session dots one frame on; stop the timer on a still frame once nothing moves, so an idle machine never wakes for it.
 local function animateFrame()
-    local pair = visibleSessionPair()
-    if pair == nil then
-        stopAnimating()
-        return
-    end
     local seconds = hs.timer.secondsSinceEpoch()
-    local animate = sessionDotsAnimate(pair.sessionSpaces, seconds)
-    layoutSessionDots(pair.dots, pair.sessionIndex, pair.sessionSpaces, isEnabled('page_dots_pill'), seconds, animate)
-    if not animate then
+    local pillVisible = isEnabled('page_dots_pill')
+    local moving = false
+    for _, pair in ipairs(shownSessionPairs()) do
+        local animate = sessionDotsAnimate(pair.sessionSpaces, seconds)
+        layoutSessionDots(pair.dots, pair.sessionIndex, pair.sessionSpaces, pillVisible, seconds, animate)
+        if animate then
+            moving = true
+        end
+    end
+    if not moving then
         stopAnimating()
     end
 end
 
--- Run the frame timer while the visible session dots have something moving, and only then.
+-- Run the frame timer while any shown row of session dots has something moving, and only then.
 local function updateAnimation()
-    local pair = visibleSessionPair()
-    if pair == nil then
-        stopAnimating()
-    elseif not sessionDotsAnimate(pair.sessionSpaces, hs.timer.secondsSinceEpoch()) then
+    if not anySessionDotsAnimate(shownSessionPairs(), hs.timer.secondsSinceEpoch()) then
         stopAnimating()
     elseif frameTimer == nil then
         frameTimer = hs.timer.doEvery(1 / FRAMES_PER_SECOND, animateFrame)
