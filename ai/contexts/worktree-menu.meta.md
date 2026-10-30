@@ -74,7 +74,7 @@
   -
   - The index still holds only one commit, so staging stays limited to the first; what changed is that the later commits get drafted anyway instead of waiting for their own menu.
     -
-      -
+      - Emoji markers color-code each commit's state, so the column scans at a glance where thin glyphs (`✓`, `▸`, `·`) blur together.
       -
       -
       -

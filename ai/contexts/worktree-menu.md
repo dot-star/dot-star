@@ -74,16 +74,16 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   - Re-run the staging on every menu, since edits made after an earlier staging land unstaged.
   - **Stage only the first commit:** the index holds one commit, so a repo with several pending commits stages only the first one's paths; the later ones still get trees.
     - Replace the staged line with a vertical progress block above the menu, so the user sees what landed and what's left beside the commit the menu acts on. Render it in a fenced block, one line per commit in series order:
-      - `✓ <subject>` for each commit made.
-      - `▸ <files>: staged N files (+A -D), commit K of M` for the staged one.
-      - `· <files>` for each pending one, which has no subject yet.
+      - `✅ <subject>` for each commit made.
+      - `👉 <files>: staged N files (+A -D), commit K of M` for the staged one.
+      - `⏳ <files>` for each pending one, which has no subject yet.
       - `┌` leads the first line, `│` the middle ones and `└` the last, setting the series apart from the menu.
 
       ```
-      ┌ ✓ Add foo parser
-      │ ▸ bar.py: staged 1 file (+7 -6), commit 2 of 4
-      │ · baz.py
-      └ · README.md, todo.md
+      ┌ ✅ Add foo parser
+      │ 👉 bar.py: staged 1 file (+7 -6), commit 2 of 4
+      │ ⏳ baz.py
+      └ ⏳ README.md, todo.md
       ```
     - Name it again in every row whose parenthetical opens with `commit` (`💾 [c]ommit (commit 1 of 4, or all 4)`), so the row picked says which commits it banks; 🏁 land and 🧨 close read `commit all 4` (`commit both` for two).
     - Label each later commit's tree unstaged with `dw` (`rc_diff_unstaged`) to view it, so its subjects can be judged before its paths are staged.
@@ -164,8 +164,8 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   Series (two commits queued in one worktree, the first staged; land and close need one subject per commit):
 
   ```
-  ┌ ▸ toolbar.py: staged 1 file (+12 -4), commit 1 of 2
-  └ · search.py, toolbar.css
+  ┌ 👉 toolbar.py: staged 1 file (+12 -4), commit 1 of 2
+  └ ⏳ search.py, toolbar.css
   ```
 
   > 👉 How do you want to proceed? Pick one subject, or one per commit to bank both (e.g. `c1 c4`); land and close need one per commit:
