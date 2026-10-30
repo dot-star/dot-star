@@ -74,14 +74,16 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   - Re-run the staging on every menu, since edits made after an earlier staging land unstaged.
   - **Stage only the first commit:** the index holds one commit, so a repo with several pending commits stages only the first one's paths; the later ones still get trees.
     - Replace the staged line with a vertical progress block above the menu, so the user sees what landed and what's left beside the commit the menu acts on. Render it in a fenced block, one line per commit in series order:
+      - `Commit K of M` titles the block, K being the staged commit.
       - `✅ <subject>` for each commit made.
-      - `👉 <files>: staged N files (+A -D), commit K of M` for the staged one.
+      - `👉 <files>: staged N files (+A -D)` for the staged one.
       - `⏳ <files>` for each pending one, which has no subject yet.
-      - `┌` leads the first line, `│` the middle ones and `└` the last, setting the series apart from the menu.
+      - `│` leads every commit line but the last, which takes `└`, so the line drops straight from the title's `C`.
 
       ```
-      ┌ ✅ Add foo parser
-      │ 👉 bar.py: staged 1 file (+7 -6), commit 2 of 4
+      Commit 2 of 4
+      │ ✅ Add foo parser
+      │ 👉 bar.py: staged 1 file (+7 -6)
       │ ⏳ baz.py
       └ ⏳ README.md, todo.md
       ```
@@ -164,7 +166,8 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   Series (two commits queued in one worktree, the first staged; land and close need one subject per commit):
 
   ```
-  ┌ 👉 toolbar.py: staged 1 file (+12 -4), commit 1 of 2
+  Commit 1 of 2
+  │ 👉 toolbar.py: staged 1 file (+12 -4)
   └ ⏳ search.py, toolbar.css
   ```
 

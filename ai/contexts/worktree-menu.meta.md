@@ -74,12 +74,14 @@
   -
   - The index still holds only one commit, so staging stays limited to the first; what changed is that the later commits get drafted anyway instead of waiting for their own menu.
     -
+      - A title states the series position once, so each commit line carries only its own state and files.
       - Emoji markers color-code each commit's state, so the column scans at a glance where thin glyphs (`✓`, `▸`, `·`) blur together.
       -
       -
-      -
+      - Dropping the line from the title ties it to the commits beneath, so the block reads as one tree rather than a heading over a separate box.
 
       ```
+
 
 
 
@@ -164,6 +166,7 @@
    Shows the series shape end to end: the progress block, both labeled trees with their view commands and the stand-ins carrying one `N` per commit.
 
   ```
+
 
 
   ```
