@@ -69,8 +69,8 @@ local TITLE_BAR_HEIGHT = require('ghostty_title_bar').HEIGHT
 -- Pad the pill's ends as much as its top and bottom, so the rounded ends hug the first and last dots evenly.
 local DOTS_PADDING = (TITLE_BAR_HEIGHT - DOT_SIZE) / 2
 -- Leave room for the countdown's longest text, so it never clips against the dots.
-local COUNTDOWN_WIDTH = 120
-local COUNTDOWN_TEXT_SIZE = 13
+local COUNTDOWN_WIDTH = 60
+local COUNTDOWN_TEXT_SIZE = 22
 -- Read each Claude session's state word and window record from where `announce_window_state.py` writes them.
 local SESSION_STATE_DIR = '/tmp/claude-state-hook/'
 -- Thicken a session dot's ring past the plain dots' hairline stroke, so its color reads at a glance.
@@ -951,11 +951,11 @@ end
 local function countdownText(now)
     local phase = followPhase(now)
     if phase == 'waiting' then
-        return string.format('follow in %ds', math.ceil(numberOf('follow_idle_seconds') - hs.host.idleTime()))
+        return string.format('%d', math.ceil(numberOf('follow_idle_seconds') - hs.host.idleTime()))
     elseif phase == 'armed' then
-        return 'follow armed'
+        return '0'
     elseif phase == 'spent' then
-        return 'follow spent'
+        return '-'
     end
     error('unknown follow phase: ' .. phase)
 end
