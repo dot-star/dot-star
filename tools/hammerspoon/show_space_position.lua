@@ -71,6 +71,9 @@ local DOTS_PADDING = (TITLE_BAR_HEIGHT - DOT_SIZE) / 2
 -- Leave room for the countdown's longest text, so it never clips against the dots.
 local COUNTDOWN_WIDTH = 60
 local COUNTDOWN_TEXT_SIZE = 22
+-- Heat the countdown from calm white to red as follow_ready nears arming.
+local COUNTDOWN_CALM_COLOR = { red = 1, green = 1, blue = 1, alpha = 1 }
+local COUNTDOWN_ARMED_COLOR = { red = 1, green = 0.15, blue = 0.1, alpha = 1 }
 -- Read each Claude session's state word and window record from where `announce_window_state.py` writes them.
 local SESSION_STATE_DIR = '/tmp/claude-state-hook/'
 -- Thicken a session dot's ring past the plain dots' hairline stroke, so its color reads at a glance.
@@ -262,7 +265,7 @@ local function newCountdown()
         type = 'text',
         text = '',
         textAlignment = 'right',
-        textColor = { white = 1, alpha = 1 },
+        textColor = COUNTDOWN_CALM_COLOR,
         -- Use fixed-width digits, so the text doesn't shift as each second ticks.
         textFont = 'Menlo',
         textSize = COUNTDOWN_TEXT_SIZE,
@@ -962,11 +965,35 @@ local function countdownText(now)
     error('unknown follow phase: ' .. phase)
 end
 
+-- Return the countdown's color, hotter each second follow_ready nears arming.
+local function countdownColor(now)
+    local phase = followPhase(now)
+    local heat
+    if phase == 'waiting' then
+        local idleSeconds = numberOf('follow_idle_seconds')
+        heat = 1 - math.ceil(idleSeconds - hs.host.idleTime()) / idleSeconds
+    elseif phase == 'armed' then
+        heat = 1
+    elseif phase == 'spent' then
+        heat = 0
+    else
+        error('unknown follow phase: ' .. phase)
+    end
+    local color = {}
+    for channel, calm in pairs(COUNTDOWN_CALM_COLOR) do
+        color[channel] = calm + (COUNTDOWN_ARMED_COLOR[channel] - calm) * heat
+    end
+    return color
+end
+
 local function updateCountdowns()
-    local text = countdownText(hs.timer.secondsSinceEpoch())
+    local now = hs.timer.secondsSinceEpoch()
+    local text = countdownText(now)
+    local color = countdownColor(now)
     for _, pair in pairs(edgeBarsBySpace) do
         if pair.countdown:isShowing() then
             pair.countdown[1].text = text
+            pair.countdown[1].textColor = color
         end
     end
 end
