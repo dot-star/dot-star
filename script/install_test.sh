@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Tests for setup_bootstrap and ensure_symlink in install.sh.
+# Tests for setup_bootstrap, ensure_symlink and the run lock in install.sh.
 #
-# Sources just those functions out of install.sh (the rest of the
+# Sources just those pieces out of install.sh (the rest of the
 # script touches the real home directory) and runs them against fixtures.
 #
 # Run: bash script/install_test.sh
@@ -221,6 +221,39 @@ printf 'machine\n' >"${untracked}"
 ensure_symlink "${DOT_STAR}/untracked_rc" "${untracked}" 2>/dev/null
 check "keeps the file over an untracked repo copy" "$(cat "${untracked}")" "machine"
 check "keeps the untracked repo copy" "$(cat "${DOT_STAR}/untracked_rc")" "shared"
+
+# Build a fake installer from the real lock block, holding the lock long enough for a second run to collide.
+lock_home="${work}/lock_home"
+mkdir -p "${lock_home}"
+lock="${lock_home}/.dot-star-install.lock"
+fake_install="${work}/fake_install.sh"
+awk '/^# Hold a lock for the whole run/,/^trap .*EXIT$/' "${INSTALL}" >"${fake_install}"
+echo 'sleep 2' >>"${fake_install}"
+
+# Skip a second run while the first holds the lock.
+HOME="${lock_home}" bash "${fake_install}" 2>/dev/null &
+first=$!
+sleep 0.5
+HOME="${lock_home}" bash "${fake_install}" 2>/dev/null
+check "skips while another run holds the lock" "$?" "1"
+wait "${first}"
+check "releases the lock on a clean exit" "$(readlink "${lock}")" ""
+
+# Release the lock on Ctrl+C. Job control puts the run in its own process group with SIGINT live, like a foreground tab.
+set -m
+HOME="${lock_home}" bash "${fake_install}" &
+first=$!
+sleep 0.5
+kill -INT -- "-${first}"
+wait "${first}" 2>/dev/null
+check "exits as interrupted on Ctrl+C" "$?" "130"
+set +m
+check "releases the lock on Ctrl+C" "$(readlink "${lock}")" ""
+
+# Clear a lock left by a process that no longer runs.
+ln -s 999999 "${lock}"
+HOME="${lock_home}" bash "${fake_install}" 2>/dev/null
+check "takes over a lock from a dead process" "$?" "0"
 
 echo ""
 echo "${passes} passed, ${fails} failed"
