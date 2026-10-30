@@ -18,7 +18,7 @@ local DEFAULT_ENABLED = {
     edge_bars = true,
     page_dots = true,
     page_dots_pill = false,
-    session_state = false,
+    session_state = true,
 }
 -- Apply each style's default until it's set; a saved choice wins after that.
 local DEFAULT_STYLES = {
