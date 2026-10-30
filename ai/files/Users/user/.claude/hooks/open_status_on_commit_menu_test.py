@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Tests for open_status_split_on_commit_menu: how tall the status pane opens.
+Tests for open_status_on_commit_menu: how tall the status pane opens.
 
 Covers the row count the pane is fitted to; the Ghostty split and resize run
 through osascript against a live window, so they stay out of the suite.
@@ -8,8 +8,8 @@ through osascript against a live window, so they stay out of the suite.
 
 import unittest
 
-from open_status_split_on_commit_menu import PROMPT_ROWS
-from open_status_split_on_commit_menu import rows_needed
+from open_status_on_commit_menu import PROMPT_ROWS
+from open_status_on_commit_menu import rows_needed
 
 
 class RowsNeededTest(unittest.TestCase):

@@ -223,7 +223,7 @@
             "type": "command"
           },
           {
-            "command": "${HOME}/.claude/hooks/open_status_split_on_commit_menu.py SessionStart",
+            "command": "${HOME}/.claude/hooks/open_status_on_commit_menu.py SessionStart",
             "type": "command"
           }
         ]
@@ -269,7 +269,7 @@
       {
         "hooks": [
           {
-            "command": "${HOME}/.claude/hooks/open_status_split_on_commit_menu.py Stop",
+            "command": "${HOME}/.claude/hooks/open_status_on_commit_menu.py Stop",
             "type": "command"
           }
         ],
