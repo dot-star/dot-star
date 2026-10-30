@@ -26,19 +26,21 @@ function update_clock_position()
     -- print(string.format('x: %s', x))
     -- print(string.format('y: %s', y))
 
-    a:frame({
-        x = x,
-        y = y,
-        h = h,
-        w = w,
-    })
+    eachClockPair(function(a, b)
+        a:frame({
+            x = x,
+            y = y,
+            h = h,
+            w = w,
+        })
 
-    b:frame({
-        x = x,
-        y = y + h,
-        h = h,
-        w = w,
-    })
+        b:frame({
+            x = x,
+            y = y + h,
+            h = h,
+            w = w,
+        })
+    end)
 end
 
 h = 19
@@ -65,94 +67,80 @@ MOUSEEXIT_CANVAS_FILLCOLOR_STATE = {
 MOUSEENTER_CANVAS_FILLCOLOR_STATE = {
     alpha = 0, red = 0, green = 0, blue = 0
 }
--- Join every Space, full-screen ones included; without it the clock stays on whichever Space Hammerspoon loaded on.
+-- Stay on the Space the clock was shown on, so it slides in with that Space; macOS blanks an all-Spaces window mid-swipe.
 CLOCK_CANVAS_BEHAVIOR = {
-    'canJoinAllSpaces',
     'fullScreenAuxiliary',
     'stationary',
 }
 
-a = hs.canvas.new{
-    x = x,
-    y = y,
-    h = h,
-    w = w,
-}
-a[1] = {
-    -- Prod transparent:
-    -- action = 'build',
-    -- type = 'rectangle',
+-- Map each Space id to its own { a, b } pair of clock rows.
+clocksBySpace = {}
 
-    -- Prod semi-transparent.
-    action = 'fill',
-    type = 'rectangle',
-    fillColor = MOUSEEXIT_CANVAS_FILLCOLOR_STATE,
+-- Build one clock row at `rowY`, calling `mouseCallbackFn` as the pointer enters or leaves it.
+function newClockRow(rowY, mouseCallbackFn)
+    local row = hs.canvas.new{
+        x = x,
+        y = rowY,
+        h = h,
+        w = w,
+    }
+    row[1] = {
+        -- Prod transparent:
+        -- action = 'build',
+        -- type = 'rectangle',
 
-    -- Dev:
-    -- action = 'fill',
-    -- type = 'rectangle',
-    -- fillColor = { alpha = 0.5, green = 1.0  },
-}
-a[2] = {
-    type = 'text',
-    text = '--',
-    textAlignment = textAlignment,
-    textSize = textSize,
-    textFont = textFont,
-}
-a:behavior(CLOCK_CANVAS_BEHAVIOR)
-a:show()
+        -- Prod semi-transparent.
+        action = 'fill',
+        type = 'rectangle',
+        fillColor = MOUSEEXIT_CANVAS_FILLCOLOR_STATE,
 
-b = hs.canvas.new{
-    x = x,
-    y = y + h,
-    h = h,
-    w = w,
-}
-b[1] = {
-    -- Prod:
-    -- action = 'build',
-    -- type = 'rectangle',
+        -- Dev:
+        -- action = 'fill',
+        -- type = 'rectangle',
+        -- fillColor = { alpha = 0.5, green = 1.0  },
+    }
+    row[2] = {
+        type = 'text',
+        text = '--',
+        textAlignment = textAlignment,
+        textSize = textSize,
+        textFont = textFont,
+    }
+    row:behavior(CLOCK_CANVAS_BEHAVIOR)
+    row:canvasMouseEvents(trackMouseEventsDown, trackMouseEventsUp, trackMouseEventsEnterExit, trackMouseEventsMove)
+    -- hs.canvas:mouseCallback(mouseCallbackFn) -> canvasObject
+    row:mouseCallback(mouseCallbackFn)
+    return row
+end
 
-    -- Prod semi-transparent.
-    action = 'fill',
-    type = 'rectangle',
-    fillColor = MOUSEEXIT_CANVAS_FILLCOLOR_STATE,
-
-    -- Dev:
-    -- action = 'fill',
-    -- type = 'rectangle',
-    -- fillColor = { alpha = 0.5, red = 1.0  },
-}
-b[2] = {
-    type = 'text',
-    text = '--',
-    textAlignment = textAlignment,
-    textSize = textSize,
-    textFont = textFont,
-}
-b:behavior(CLOCK_CANVAS_BEHAVIOR)
-b:show()
+-- Call `fn` with every Space's pair of clock rows.
+function eachClockPair(fn)
+    for _, pair in pairs(clocksBySpace) do
+        fn(pair.a, pair.b)
+    end
+end
 
 aMouseEnter = false
 bMouseEnter = false
 
 function updateCanvasOnHoverStateChange()
-    if aMouseEnter or bMouseEnter then
-        -- print('yes hovered')
-        a[1].fillColor = MOUSEENTER_CANVAS_FILLCOLOR_STATE
-        b[1].fillColor = MOUSEENTER_CANVAS_FILLCOLOR_STATE
+    eachClockPair(function(a, b)
+        if aMouseEnter or bMouseEnter then
+            -- print('yes hovered')
+            a[1].fillColor = MOUSEENTER_CANVAS_FILLCOLOR_STATE
+            b[1].fillColor = MOUSEENTER_CANVAS_FILLCOLOR_STATE
 
-        a[2].text = ''
-        b[2].text = ''
-    else
-        -- print('not hovered')
-        a[1].fillColor = MOUSEEXIT_CANVAS_FILLCOLOR_STATE
-        b[1].fillColor = MOUSEEXIT_CANVAS_FILLCOLOR_STATE
+            a[2].text = ''
+            b[2].text = ''
+        else
+            -- print('not hovered')
+            a[1].fillColor = MOUSEEXIT_CANVAS_FILLCOLOR_STATE
+            b[1].fillColor = MOUSEEXIT_CANVAS_FILLCOLOR_STATE
 
-        a[2].text = pst_text
-        b[2].text = est_text
-    end
+            a[2].text = pst_text
+            b[2].text = est_text
+        end
+    end)
 end
 
 function canvasAMouseCallbackFn(canvasObject, mouseEventMessage, canvasElementId, mouseX, mouseY)
@@ -183,12 +171,6 @@ trackMouseEventsDown = false
 trackMouseEventsUp = false
 trackMouseEventsEnterExit = true
 trackMouseEventsMove = false
-a:canvasMouseEvents(trackMouseEventsDown, trackMouseEventsUp, trackMouseEventsEnterExit, trackMouseEventsMove)
-b:canvasMouseEvents(trackMouseEventsDown, trackMouseEventsUp, trackMouseEventsEnterExit, trackMouseEventsMove)
-
--- hs.canvas:mouseCallback(mouseCallbackFn) -> canvasObject
-a:mouseCallback(canvasAMouseCallbackFn)
-b:mouseCallback(canvasBMouseCallbackFn)
 
 pst_text = ''
 est_text = ''
@@ -200,12 +182,51 @@ function update_clock_time()
     pst_text = string.format(' Pacific: %s', pst_time)
     est_text = string.format(' Eastern: %s', est_time)
 
-    a[2].text = pst_text
-    b[2].text = est_text
+    eachClockPair(function(a, b)
+        a[2].text = pst_text
+        b[2].text = est_text
+    end)
+end
+
+-- Give the focused Space its own pair on first visit, and drop the pairs of Spaces that no longer exist.
+function showClockOnFocusedSpace()
+    local live = {}
+    for _, spaces in pairs(hs.spaces.allSpaces() or {}) do
+        for _, space in ipairs(spaces) do
+            live[space] = true
+        end
+    end
+    for space, pair in pairs(clocksBySpace) do
+        if not live[space] then
+            pair.a:delete()
+            pair.b:delete()
+            clocksBySpace[space] = nil
+        end
+    end
+
+    local focused = hs.spaces.focusedSpace()
+    if clocksBySpace[focused] ~= nil then
+        return
+    end
+    local pair = {
+        a = newClockRow(y, canvasAMouseCallbackFn),
+        b = newClockRow(y + h, canvasBMouseCallbackFn),
+    }
+    pair.a[2].text = pst_text
+    pair.b[2].text = est_text
+    pair.a:show()
+    pair.b:show()
+    clocksBySpace[focused] = pair
 end
 
 update_clock_position()
 update_clock_time()
+showClockOnFocusedSpace()
+
+-- Hold the watcher in a global so garbage collection can't stop it.
+spacesWatcher = hs.spaces.watcher.new(function()
+    showClockOnFocusedSpace()
+end):start()
 
 -- t = hs.timer.doEvery(.1, update_clock_time) -- High CPU.
 -- t = hs.timer.doEvery(1, update_clock_time) -- Acceptable CPU.
