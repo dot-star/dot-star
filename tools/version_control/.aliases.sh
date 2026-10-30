@@ -191,15 +191,18 @@ alias cop="git checkout --patch"
 alias create_patch_from_changes="patch_changes"
 alias create_patch_from_last="patch_last"
 alias d.="rc_diff ."
-alias d1="git diff HEAD~1"
-alias d2="git diff HEAD~2"
-alias d3="git diff HEAD~3"
-alias d4="git diff HEAD~4"
-alias d5="git diff HEAD~5"
-alias d6="git diff HEAD~6"
-alias d7="git diff HEAD~7"
-alias d8="git diff HEAD~8"
-alias d9="git diff HEAD~9"
+
+# Define `d1`..`dN` as cumulative diffs (`d3` = `git diff HEAD~3`); `git status` lists as many unpushed commits as there are aliases.
+DIFF_ALIAS_COUNT=9
+define_cumulative_diff_aliases() {
+    local i
+
+    for ((i = 1; i <= DIFF_ALIAS_COUNT; i++)); do
+        alias "d${i}=git diff HEAD~${i}"
+    done
+}
+define_cumulative_diff_aliases
+
 alias dcommit="git svn dcommit"
 alias default="rc_checkout_default_branch"
 alias delete_branch="git_delete_branch"
@@ -2445,10 +2448,8 @@ rc_status() {
         if [[ "${#}" -eq 0 ]]; then
             local i
 
-            # Reset `d1`..`d9` to their static cumulative defaults so a prior unpushed-commits override doesn't linger after pushing. The unpushed block below may then re-override the first N.
-            for i in 1 2 3 4 5 6 7 8 9; do
-                alias "d${i}=git diff HEAD~${i}"
-            done
+            # Reset the `dN` aliases to their static cumulative defaults so a prior unpushed-commits override doesn't linger after pushing. The unpushed block below may then re-override the first N.
+            define_cumulative_diff_aliases
 
             # Warn when no remote is configured.
             if [[ -z "$(git remote)" ]]; then
@@ -2466,8 +2467,8 @@ rc_status() {
                 unpushed=$(git rev-list --count HEAD --not "${exclude_refs[@]}" 2>/dev/null)
                 if [[ "${unpushed}" -gt 0 ]]; then
                     echo -e "\n\033[30;48;5;214m Warning \033[0m\033[38;5;214m:\033[0m There are unpushed commits: \033[1;36m${unpushed}\033[0m"
-                    # Cap matches the highest `dN` diff alias (`d9` = `git diff HEAD~9`).
-                    local listing_cap=9
+                    # Cap at the highest `dN` diff alias so every listed commit gets one.
+                    local listing_cap="${DIFF_ALIAS_COUNT}"
                     # Prefix each line with `[dN]` so the user knows which diff alias shows that commit (d1=HEAD~1, d2=HEAD~2, ...).
                     # `--color=always` keeps `%C(auto)` codes when piping into awk (git drops them when stdout isn't a TTY).
                     # Give the relative date its own tab-delimited column so awk can tint it by recency, the way `wt`'s worktree table does.
@@ -2496,7 +2497,7 @@ rc_status() {
                         echo -e "    \033[2m... and \033[0m\033[1;36m$((unpushed - listing_cap))\033[0m\033[2m more\033[0m"
                     fi
 
-                    # Override `d1`..`d_min` so each maps to `git show <hash>` of its listed commit, matching the `[dN]` prefix. The static cumulative defaults (restored above) stay for `d(min+1)`..`d9`.
+                    # Override `d1`..`d_min` so each maps to `git show <hash>` of its listed commit, matching the `[dN]` prefix. The static cumulative defaults (restored above) stay for the rest.
                     local hash
                     i=1
                     while IFS= read -r hash; do
