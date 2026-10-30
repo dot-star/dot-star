@@ -37,7 +37,7 @@ local STATE_COLORS = {
 -- Draw every row with these treatments, except the one each row is there to vary.
 local BASE_VARIANT = {
     decision = 'heartbeat',
-    focus = 'center',
+    focus = 'underline',
     focusOn = 1,
     none = 'thin',
     ready = 'check_ping',
@@ -46,17 +46,17 @@ local BASE_VARIANT = {
 local COLUMNS = {
     {
         { heading = 'Default set, by the Space you\'re on' },
-        { label = 'Busy', description = 'orbit with a white center dot', focusOn = 1 },
-        { label = 'Decision', description = 'heartbeat with a white center dot', focusOn = 3 },
-        { label = 'Ready', description = 'check turns white; pings on arrival', focusOn = 4 },
-        { label = 'No session', description = 'gray ring with a white center dot', focusOn = 5 },
+        { label = 'Busy', description = 'orbit with a white underline', focusOn = 1 },
+        { label = 'Decision', description = 'heartbeat with a white underline', focusOn = 3 },
+        { label = 'Ready', description = 'underlined check; pings on arrival', focusOn = 4 },
+        { label = 'No session', description = 'gray ring with a white underline', focusOn = 5 },
     },
     {
         { heading = 'Alternative settings' },
         { label = 'Blink', description = 'decision ring blinks off and on', decision = 'blink' },
         { label = 'Nudge', description = 'decision dot hops three times, then rests', decision = 'nudge' },
         { label = 'Flash', description = 'decision center floods with color and drains', decision = 'flash' },
-        { label = 'Underline', description = 'white bar marks the Space you\'re on', focus = 'underline' },
+        { label = 'Center', description = 'white center dot; a ready check turns white', focus = 'center' },
     },
 }
 
