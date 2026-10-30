@@ -55,7 +55,7 @@ Consequences for changes:
 
 `script/install.sh` only handles symlinks and bootstrap markers; the heavyweight machine setup (brew formulae/casks, `apt-get` packages, global git config, vim color/swap dirs, fzf, ipython profile, macOS `defaults write` tweaks, etc.) is in `script/post_install.sh`. When adding a new dependency, decide whether it belongs as a symlink in `install.sh` or a package install in `post_install.sh`.
 
-`tools/bash/.install_check.sh` nags at shell startup when one of those two files has changed since the last `./install.sh` run:
+`tools/bash/.install_check.sh` nags at shell startup when one of those two files (or `script/install_sudo_checks.sh`, which both source) has changed since the last `./install.sh` run:
 
 - Compares the commit stamp at `~/.dot-star-installed-commit` against `git -C ~/.dot-star rev-parse HEAD`.
 - Counts a missing stamp as stale, so a host installed before the stamp existed still gets the prompt.

@@ -32,7 +32,7 @@ bt_pop
 if [[ "${OSTYPE}" == "darwin"* ]]; then
     bt_push "darwin section"
     # Install brew.
-    if ! command -v brew >/dev/null; then
+    if dot_star_brew_missing; then
         /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     fi
 
@@ -40,15 +40,7 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     # Accept the Xcode license before brew installs anything. An unaccepted
     # license fails every formula that shells out to `xcodebuild` (macvim --HEAD,
     # in practice) with "You have not agreed to the Xcode license."
-    # Probe a tool that does real work, not `xcodebuild -version`: the version
-    # query answers whatever the license state, so it can't see the pending
-    # agreement. `xcrun --find clang` is what Homebrew's own
-    # `check_xcode_license_approved` probes.
-    xcrun_status="$(/usr/bin/xcrun --find clang 2>&1)"
-    # Escalate to sudo only on the license message, so a machine where `xcrun`
-    # fails for its own reasons (no Xcode, command line tools only) gets no
-    # password prompt.
-    if [[ "${xcrun_status}" == *license* ]]; then
+    if dot_star_xcode_license_pending; then
         if ! sudo xcodebuild -license accept; then
             warn "Xcode license is still unaccepted; formulae that build with xcodebuild will fail." "sudo xcodebuild -license accept"
         fi
@@ -224,21 +216,9 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     bt_pop # darwin section
 elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
     bt_push "linux section"
-    # Package is `bat' on Debian/Ubuntu but installs the binary as `batcat'
-    # to avoid clashing with an unrelated `bat' package.
-    apt_packages=(
-        bat
-        colordiff
-        fzf
-        git-delta
-        jq
-        python3-pip
-        tig
-    )
-
     missing_apt=()
-    for pkg in "${apt_packages[@]}"; do
-        if ! dpkg --status "${pkg}" >/dev/null 2>&1; then
+    for pkg in "${dot_star_apt_packages[@]}"; do
+        if dot_star_apt_package_missing "${pkg}"; then
             missing_apt+=("${pkg}")
         fi
     done

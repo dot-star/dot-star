@@ -29,7 +29,11 @@ dot_star_check_install_stale() {
 
     # Cheap re-source covers everything except these two; only prompt when one of them changed.
     # Count both installer files as changed when no stamp exists. A host installed before the stamp was added has nothing to diff against, and skipping it would hide every later post-install change (a git pager swap, say) from that host for good.
-    local installer_files=(script/install.sh script/post_install.sh)
+    local installer_files=(
+        script/install.sh
+        script/install_sudo_checks.sh
+        script/post_install.sh
+    )
     local changed_installer_files="${installer_files[*]}"
     if [[ -n "${installed_commit}" ]]; then
         changed_installer_files="$(git -C "${HOME}/.dot-star" diff --name-only "${installed_commit}" HEAD -- "${installer_files[@]}" 2>/dev/null)"

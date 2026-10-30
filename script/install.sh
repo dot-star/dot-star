@@ -150,6 +150,8 @@ else
     bt_comment() { :; }
 fi
 
+source "${DOT_STAR_ROOT}/script/install_sudo_checks.sh"
+
 bt_push "install.sh"
 
 bt_push "dot-star symlink"
@@ -367,7 +369,7 @@ install_ipython() {
         fi
     elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
         ipython_command="ipython3"
-        if ! command -v ipython3 >/dev/null; then
+        if dot_star_ipython3_missing; then
             sudo apt-get install -y ipython3
         fi
     fi
