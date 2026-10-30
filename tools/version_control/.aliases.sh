@@ -430,7 +430,22 @@ git_rebase_master() {
         return
     fi
 
-    git_pull_rebase origin "${base_branch}"
+    # Pick the remote: prefer origin, else the sole remote (e.g. `public`), never a guess among several.
+    remotes="$(git remote)"
+    if git remote get-url origin >/dev/null 2>&1; then
+        remote="origin"
+    elif [[ -z "${remotes}" ]]; then
+        echo "Error: No remote configured"
+        return 1
+    elif [[ "$(echo "${remotes}" | wc -l)" -eq 1 ]]; then
+        remote="${remotes}"
+    else
+        echo "Error: No origin remote and several others; pull one explicitly: git pull --rebase <remote> ${base_branch}"
+        echo -e "\ngit pull options: $(git remote show)"
+        return 1
+    fi
+
+    git_pull_rebase "${remote}" "${base_branch}"
 }
 alias rbm="git_rebase_master"
 
