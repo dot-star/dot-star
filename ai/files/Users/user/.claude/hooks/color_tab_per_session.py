@@ -67,7 +67,9 @@ from terminal_tty import write_to_terminal
 LOG_FILE = STATE_DIR / "session_color.log"
 
 MODES = ("profile", "stripe", "tint")
-DEFAULT_MODES = "tint,stripe"
+# Leave the pane background to the terminal, which marks the focused split by
+# its own color; a tint would override it in every Claude pane.
+DEFAULT_MODES = "stripe"
 
 # Wash the tab background at this saturation and value: dark enough to keep
 # light text readable, saturated enough to read as a color rather than as gray.
