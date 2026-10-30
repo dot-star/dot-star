@@ -263,6 +263,8 @@ local function newCountdown()
         text = '',
         textAlignment = 'right',
         textColor = { white = 1, alpha = 1 },
+        -- Use fixed-width digits, so the text doesn't shift as each second ticks.
+        textFont = 'Menlo',
         textSize = COUNTDOWN_TEXT_SIZE,
         frame = { x = 0, y = (TITLE_BAR_HEIGHT - textHeight) / 2, w = COUNTDOWN_WIDTH, h = textHeight },
     }
