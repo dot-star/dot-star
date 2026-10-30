@@ -49,11 +49,9 @@ local DOTS_PADDING = (TITLE_BAR_HEIGHT - DOT_SIZE) / 2
 -- Wait out macOS rearranging Spaces after a display change, a wake or a Space closing, which often runs on past the event reporting it.
 local SETTLE_SECONDS = 1
 
--- Stay on the Space the bar was shown on, so it slides in with that Space; macOS blanks an all-Spaces window mid-swipe.
-local EDGE_BAR_BEHAVIOR = {
-    'fullScreenAuxiliary',
-    'stationary',
-}
+local pinCanvasesToSpaces = require('pin_canvases_to_spaces')
+
+local EDGE_BAR_BEHAVIOR = pinCanvasesToSpaces.BEHAVIOR
 
 showSpacePosition = {}
 
@@ -286,18 +284,7 @@ end
 
 -- Drop the pairs of Spaces that no longer exist.
 local function pruneEdgeBars()
-    local live = {}
-    for _, spaces in pairs(hs.spaces.allSpaces() or {}) do
-        for _, space in ipairs(spaces) do
-            live[space] = true
-        end
-    end
-    for space, pair in pairs(edgeBarsBySpace) do
-        if not live[space] then
-            deleteEdgeBarPair(pair)
-            edgeBarsBySpace[space] = nil
-        end
-    end
+    pinCanvasesToSpaces.pruneClosedSpaces(edgeBarsBySpace, deleteEdgeBarPair)
 end
 
 -- Fit a pair's bars, bumper and dots flush to the edges of `screen`, for the Space at `index` of `count` on it.

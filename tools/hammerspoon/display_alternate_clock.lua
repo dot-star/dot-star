@@ -67,11 +67,9 @@ MOUSEEXIT_CANVAS_FILLCOLOR_STATE = {
 MOUSEENTER_CANVAS_FILLCOLOR_STATE = {
     alpha = 0, red = 0, green = 0, blue = 0
 }
--- Stay on the Space the clock was shown on, so it slides in with that Space; macOS blanks an all-Spaces window mid-swipe.
-CLOCK_CANVAS_BEHAVIOR = {
-    'fullScreenAuxiliary',
-    'stationary',
-}
+pinCanvasesToSpaces = require('pin_canvases_to_spaces')
+
+CLOCK_CANVAS_BEHAVIOR = pinCanvasesToSpaces.BEHAVIOR
 
 -- Map each Space id to its own { a, b } pair of clock rows.
 clocksBySpace = {}
@@ -190,19 +188,10 @@ end
 
 -- Give the focused Space its own pair on first visit, and drop the pairs of Spaces that no longer exist.
 function showClockOnFocusedSpace()
-    local live = {}
-    for _, spaces in pairs(hs.spaces.allSpaces() or {}) do
-        for _, space in ipairs(spaces) do
-            live[space] = true
-        end
-    end
-    for space, pair in pairs(clocksBySpace) do
-        if not live[space] then
-            pair.a:delete()
-            pair.b:delete()
-            clocksBySpace[space] = nil
-        end
-    end
+    pinCanvasesToSpaces.pruneClosedSpaces(clocksBySpace, function(pair)
+        pair.a:delete()
+        pair.b:delete()
+    end)
 
     local focused = hs.spaces.focusedSpace()
     if clocksBySpace[focused] ~= nil then
