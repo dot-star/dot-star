@@ -6,7 +6,7 @@
 --   Add a row of dots in the title bar's upper-right corner of every full-screen Space, the focused Space filled (page_dots, needs edge_bars).
 --   Show the dark pill behind the dots, to check where their canvas sits (page_dots_pill, needs page_dots).
 --   Show on each dot the state of the Claude session whose window sits on that Space (session_state, needs page_dots).
---   Switch to a Space whose session just turned ready, once you've been idle a while (follow_ready, needs session_state).
+--   Switch to a Space whose session turned ready, once you've been idle a while (follow_ready, needs session_state).
 --   Show a countdown left of the dots to when follow_ready arms, for debugging (follow_countdown, needs follow_ready).
 -- Toggle from the shell with `space_position_experiment`; each flag persists across reloads.
 -- Pick the session dots' decision style and focus marker the same way; each style persists too.
@@ -118,6 +118,11 @@ local pingStartedAt = {}
 local frameTimer = nil
 -- Remember when follow_ready last switched Spaces, so a second session turning ready in the same idle stretch leaves you on the first.
 local lastFollowAt = nil
+-- Map each Space id to when its session turned ready while follow_ready wasn't armed, so arming later still takes you there.
+local missedReadyAt = {}
+-- Map each Space id to the window of its most urgent session, from the last read.
+local sessionWindows = {}
+local catchUpTimer = nil
 local countdownTimer = nil
 
 local function isEnabled(name)
@@ -653,7 +658,46 @@ local function followTo(space, windowId, now)
     end
 end
 
--- Re-read every session's state, starting a ping on each Space that just turned ready and following it there when you're away.
+-- Follow the newest session that turned ready while you were busy, once you've been idle long enough to arm.
+local function followMissedReady()
+    local now = hs.timer.secondsSinceEpoch()
+    if followPhase(now) ~= 'armed' then
+        return
+    end
+    local newest = nil
+    for space, readyAt in pairs(missedReadyAt) do
+        if newest == nil or readyAt > missedReadyAt[newest] then
+            newest = space
+        end
+    end
+    if newest ~= nil then
+        missedReadyAt[newest] = nil
+        followTo(newest, sessionWindows[newest], now)
+    end
+end
+
+local function stopCatchUp()
+    if catchUpTimer then
+        catchUpTimer:stop()
+        catchUpTimer = nil
+    end
+end
+
+-- Watch for arming once a second while a missed ready waits, and only then.
+local function updateCatchUpTimer()
+    if not isEnabled('follow_ready') then
+        stopCatchUp()
+    elseif next(missedReadyAt) == nil then
+        stopCatchUp()
+    elseif catchUpTimer == nil then
+        catchUpTimer = hs.timer.doEvery(1, function()
+            followMissedReady()
+            updateCatchUpTimer()
+        end)
+    end
+end
+
+-- Re-read every session's state, starting a ping on each Space that just turned ready and following it there when you're away, or once you are.
 local function refreshSessionStates()
     local states, windows = readSessionStates()
     if sessionStates ~= nil then
@@ -663,11 +707,21 @@ local function refreshSessionStates()
                 pingStartedAt[space] = now
                 if shouldFollow(space, now) then
                     followTo(space, windows[space], now)
+                elseif space ~= hs.spaces.focusedSpace() then
+                    missedReadyAt[space] = now
                 end
             end
         end
     end
+    -- Forget a missed ready once its session moves on.
+    for space in pairs(missedReadyAt) do
+        if states[space] ~= 'ready' then
+            missedReadyAt[space] = nil
+        end
+    end
     sessionStates = states
+    sessionWindows = windows
+    updateCatchUpTimer()
 end
 
 local function setEdgeBarVisible(bar, visible)
@@ -1021,6 +1075,8 @@ local function render()
         refreshSessionStates()
     end
     local index, count, screen, focused = focusedPosition()
+    -- Forget a missed ready once you've seen its Space.
+    missedReadyAt[focused] = nil
     renderEdgeBars(index, count, screen, focused)
     updateAnimation()
     updateCountdownTimer()
