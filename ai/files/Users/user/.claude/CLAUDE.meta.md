@@ -27,6 +27,7 @@
 -
   -
   -
+  - A passing-checks line costs a read and tells the reader nothing they didn't already assume; the checks still run, only the report of a pass is dropped.
 -
 -
 -
