@@ -2,6 +2,8 @@
 
 
 
+Generated from this file, so the index can't drift from it; one parse per session costs far less than loading the whole doc.
+
 
 
 -

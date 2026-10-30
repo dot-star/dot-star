@@ -13,13 +13,21 @@ A bracket option offered in the last assistant message outranks the table
 that note instead of the table's meaning. Any failure injects a pointer at the
 doc rather than nothing: a silent miss would quietly break every shorthand.
 
+With `--index`, run as a SessionStart hook instead: inject a compact index of
+every token with a short meaning, so a token used mid-sentence (where the
+prompt-time match stays silent) is still recognized and its entry looked up.
+The index is also written to `shorthand_index.md` in the session tmp dir, so
+what loaded can be inspected.
+
 Usage:
-    Wired as a UserPromptSubmit hook in settings.json; reads the hook payload
-    as JSON on stdin and prints the injected context on stdout. Set
-    `CLAUDE_CONTEXTS_DIR` to read the doc from another checkout.
+    Wired as a UserPromptSubmit hook and, with `--index`, a SessionStart hook
+    in settings.json; reads the hook payload as JSON on stdin and prints the
+    injected context on stdout. Set `CLAUDE_CONTEXTS_DIR` to read the doc from
+    another checkout.
 
 Example:
     echo '{"prompt": "play"}' | inject_shorthand_meaning.py
+    echo '{"session_id": "12345678"}' | inject_shorthand_meaning.py --index
 """
 
 import json
@@ -31,7 +39,18 @@ from dataclasses import dataclass
 from dataclasses import field
 from typing import Any
 
+from claude_session_dir import claude_session_dir
+
 DOC_NAME = "shorthand.md"
+INDEX_NAME = "shorthand_index.md"
+INDEX_FLAG = "--index"
+
+# Cap each index meaning: long enough to tell tokens apart, short enough that
+# 50-odd entries stay a small fraction of the hook's 10,000-character cap.
+INDEX_MEANING_CHARS = 60
+QUOTED_MEANING_PATTERN = re.compile(r'^"([^"]+)"')
+# End an unquoted meaning at the entry's first colon or sentence break.
+MEANING_END_PATTERN = re.compile(r":|\.\s")
 
 WHOLE_MESSAGE_HEADING = "## Whole-message tokens"
 IN_MESSAGE_HEADING = "## In-message tokens"
@@ -309,8 +328,104 @@ def build_context(prompt: str, transcript_path: str, path: str) -> str:
     return "\n\n".join(sections)
 
 
+def short_meaning(entry: Entry) -> str:
+    """
+    Returns an entry's meaning, trimmed for the index.
+
+    :param entry: Parsed entry (e.g. the `play` entry).
+    :return: The quoted meaning when the entry opens with one (e.g. "play it
+        out"), else the clause after `means` up to its first colon or sentence
+        break, cut at a word boundary past `INDEX_MEANING_CHARS`.
+    """
+    first_line = entry.text.split("\n", 1)[0]
+    parts = MEAN_PATTERN.split(first_line, maxsplit=1)
+    if len(parts) < 2:
+        return ""
+    rest = parts[1].strip()
+    quoted = QUOTED_MEANING_PATTERN.match(rest)
+    if quoted:
+        meaning = quoted.group(1)
+    else:
+        meaning = MEANING_END_PATTERN.split(rest, maxsplit=1)[0].strip()
+    if len(meaning) <= INDEX_MEANING_CHARS:
+        return meaning
+    return meaning[:INDEX_MEANING_CHARS].rsplit(" ", 1)[0].rstrip(",;") + "..."
+
+
+def index_lines(entries: Iterable[Entry]) -> list[str]:
+    """
+    Renders one index line per entry.
+
+    :param entries: Entries of one section, in doc order.
+    :return: Lines like "- `play`: play it out".
+    """
+    lines = []
+    for entry in entries:
+        tokens = ", ".join(f"`{token}`" for token in entry.tokens)
+        lines.append(f"- {tokens}: {short_meaning(entry)}")
+    return lines
+
+
+def build_index(path: str) -> str:
+    """
+    Builds the session-start index of every shorthand token.
+
+    :param path: Shorthand doc path.
+    :return: Index text: a lead line stating the rule, then one line per entry
+        under a heading per section.
+    """
+    with open(path, encoding="utf-8") as doc:
+        whole_entries, in_message_entries = parse_doc(doc.read())
+    lines = [
+        f"Shorthand index: read each token below as shorthand wherever it appears in a prompt, mid-sentence included, when the words around it use it that way. When a prompt uses one and no shorthand hook context explained it, read {path} for its full entry before answering.",
+        "",
+        "Whole-message tokens (fire alone or as a `;` clause; look up a mid-sentence use):",
+        *index_lines(whole_entries),
+        "",
+        "In-message tokens (fire anywhere in a prompt):",
+        *index_lines(in_message_entries),
+    ]
+    return "\n".join(lines)
+
+
+def write_index(session_id: str, context: str) -> None:
+    """
+    Writes the injected index to the session tmp dir for inspection.
+
+    :param session_id: Raw session id from the hook payload; nothing is written
+        when it is empty.
+    :param context: Text the hook injects.
+    """
+    session_dir = claude_session_dir(session_id)
+    if session_dir is None:
+        return
+    # Create the dir here too: SessionStart hooks run in parallel, so the dir's creator may not have run yet.
+    session_dir.mkdir(parents=True, exist_ok=True)
+    (session_dir / INDEX_NAME).write_text(context + "\n", encoding="utf-8")
+
+
+def main_index() -> None:
+    """Reads the SessionStart payload, then injects and writes the shorthand index."""
+    path = doc_path()
+    payload: dict[str, Any] = json.load(sys.stdin)
+    try:
+        context = build_index(path)
+    except (OSError, ValueError, re.error) as error:
+        context = f"Shorthand index failed ({error}); read {path} for the shorthand tokens before reading a short word in a prompt as plain text."
+    try:
+        write_index(payload.get("session_id") or "", context)
+    except OSError:
+        # Inject the index even when the inspection copy can't be written.
+        pass
+    output = {"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": context}}
+    print(json.dumps(output))
+
+
 def main() -> None:
     """Reads the hook payload, then prints the context to inject, if any."""
+    if INDEX_FLAG in sys.argv[1:]:
+        main_index()
+        return
     path = doc_path()
     payload: dict[str, Any] = json.load(sys.stdin)
     try:

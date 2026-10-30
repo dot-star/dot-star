@@ -158,6 +158,8 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
 
 - Read a short reply as shorthand: the `inject_shorthand_meaning.py` hook matches every prompt against `~/.dot-star/ai/contexts/shorthand.md` and injects the entry it matches, so apply the injected meaning. Read that file for a token the hook didn't explain; add or edit tokens there, never here.
 
+  **The session-start shorthand index lists every token.** Spot a token the hook left unexplained (a mid-sentence use) there, then read that file for its full entry.
+
   **A bracket-prefix offer outranks the shorthand table.** When the previous message offered `[x]`-prefixed options, a bare reply matching one of those letters (case-insensitive) picks that option, whatever the token means below. So `n` answering a **`[n]ow`** offer means "now", not "no"; `t` answering a **`[t]ear`** offer means "tear", not "trim". Fall back to the table only when no offered option claims the letter.
 
   **A bare number indexes rendered content, never an option's position.** Bracket options are picked by their letter alone, so a number never selects one no matter where it sits in the menu. It names one of the numbered items the previous message actually rendered: a finding, a list entry, a drafted variant. A number paired with a destination or a verb (`2 to cb`, `2 as a comment`) is always content, since a destination takes a thing rather than an action.

@@ -162,6 +162,10 @@
             "type": "command"
           },
           {
+            "command": "${HOME}/.claude/hooks/inject_shorthand_meaning.py --index",
+            "type": "command"
+          },
+          {
             "command": "${HOME}/.claude/hooks/warn_when_personal_context_untracked.sh",
             "type": "command"
           },

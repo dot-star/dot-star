@@ -158,6 +158,8 @@
 
 -
 
+  The prompt-time hook matches a whole-message token only when it fills the prompt or a `;` clause, so a mid-sentence use injects nothing; the index keeps every token in view so Claude knows to look it up.
+
 
 
 

@@ -2,6 +2,8 @@
 
 Loaded on demand: the `inject_shorthand_meaning.py` hook matches every prompt against this file and injects the entry it matches, so add or edit a token here, never in `~/.claude/CLAUDE.md`. Section names below (Workflow, Output, the bracket-prefix list) refer to that file.
 
+Run with `--index`, the same hook also injects a generated index of every token at session start, so a mid-sentence token still gets recognized.
+
 The hook reads each top-level entry's backticked tokens, up to its `mean` or `means`, as the patterns to match.
 
 - Read `<N>` as a number and any other `<...>` as free text.

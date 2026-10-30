@@ -18,6 +18,7 @@ import tempfile
 import unittest
 
 from inject_shorthand_meaning import build_context
+from inject_shorthand_meaning import build_index
 from inject_shorthand_meaning import parse_doc
 
 HOOKS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -182,19 +183,34 @@ class BuildContextTest(unittest.TestCase):
         self.assertIn('mean "no"', context)
 
 
+class BuildIndexTest(unittest.TestCase):
+    """Test the `build_index` function."""
+
+    def test_lists_tokens_from_both_sections(self) -> None:
+        """Ensure build_index lists a whole-message token and an in-message token with their meanings."""
+        index = build_index(DOC_PATH)
+        self.assertIn("\n- `eg`, `egs`, `examples`: show me examples\n", index)
+        self.assertIn("\n- `wt`: worktree", index)
+
+    def test_derives_a_meaning_for_an_entry_without_quotes(self) -> None:
+        """Ensure build_index takes the clause after means when the entry has no quoted meaning."""
+        self.assertIn("\n- `vws`: `ws` weighted vertical\n", build_index(DOC_PATH))
+
+
 class HookContractTest(unittest.TestCase):
     """Test the hook's stdin/stdout contract."""
 
-    def run_hook(self, payload: dict[str, str], contexts_dir: str) -> str:
+    def run_hook(self, payload: dict[str, str], contexts_dir: str, *args: str) -> str:
         """
         Runs the hook as Claude Code would and returns its stdout.
 
-        :param payload: UserPromptSubmit payload (e.g. {"prompt": "play"}).
+        :param payload: Hook payload (e.g. {"prompt": "play"}).
         :param contexts_dir: Directory the hook reads `shorthand.md` from.
+        :param args: Extra hook arguments (e.g. "--index").
         :return: Hook stdout.
         """
         result = subprocess.run(
-            [sys.executable, HOOK_PATH],
+            [sys.executable, HOOK_PATH, *args],
             input=json.dumps(payload),
             capture_output=True,
             text=True,
@@ -218,6 +234,20 @@ class HookContractTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             output = json.loads(self.run_hook({"prompt": "play"}, directory))
         self.assertIn("Shorthand hook failed", output["hookSpecificOutput"]["additionalContext"])
+
+    def test_emits_the_index_at_session_start(self) -> None:
+        """Ensure the hook prints a SessionStart additionalContext payload carrying the index when run with --index."""
+        output = json.loads(self.run_hook({}, CONTEXTS_DIR, "--index"))
+        self.assertEqual(output["hookSpecificOutput"]["hookEventName"], "SessionStart")
+        self.assertIn("Shorthand index:", output["hookSpecificOutput"]["additionalContext"])
+
+    def test_points_at_the_doc_when_the_index_cannot_be_built(self) -> None:
+        """Ensure the hook injects a failure pointer instead of staying silent when the doc is missing at session start."""
+        with tempfile.TemporaryDirectory() as directory:
+            output = json.loads(self.run_hook({}, directory, "--index"))
+        context = output["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("Shorthand index failed", context)
+        self.assertIn(os.path.join(os.path.realpath(directory), "shorthand.md"), context)
 
 
 if __name__ == "__main__":
