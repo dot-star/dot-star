@@ -18,7 +18,7 @@ space_position_experiment() {
     elif [[ "${state}" == "off" ]]; then
         "${hammerspoon_cli}" -c "return showSpacePosition.set('${name}', false)"
     else
-        echo "Usage: space_position_experiment [<bottom_bar|cycle_colors|edge_bars|page_dots> <on|off>]"
+        echo "Usage: space_position_experiment [<bottom_bar|cycle_colors|edge_bars|page_dots|page_dots_pill> <on|off>]"
         return 1
     fi
 }

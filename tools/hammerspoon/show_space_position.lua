@@ -3,7 +3,8 @@
 --   Add a strip on the left edge of the first full-screen Space, where swiping left leaves the full-screen apps (edge_bars).
 --   Add a thin band along the bottom edge of every full-screen Space in that Space's strip color (bottom_bar, needs edge_bars).
 --   Paint each Space's bars the next color in a cycle rather than one shared color (cycle_colors, needs edge_bars).
---   Flash a row of dots after each switch, the focused Space filled (page_dots).
+--   Add a row of dots in the title bar's upper-right corner of every full-screen Space, the focused Space filled (page_dots, needs edge_bars).
+--   Show the dark pill behind the dots, to check where their canvas sits (page_dots_pill, needs page_dots).
 -- Toggle from the shell with `space_position_experiment`; each flag persists across reloads.
 -- Re-place the bars after a display change or a wake, which move the screens without switching Spaces.
 -- Redraw a beat after each Space change too, so bars of a full-screen Space that just closed get deleted.
@@ -13,7 +14,8 @@ local DEFAULT_ENABLED = {
     bottom_bar = true,
     cycle_colors = false,
     edge_bars = true,
-    page_dots = false,
+    page_dots = true,
+    page_dots_pill = false,
 }
 local SETTINGS_PREFIX = 'show_space_position.'
 local COLOR = { red = 1, green = 0.6, blue = 0.1, alpha = 0.9 }
@@ -39,22 +41,15 @@ local EDGE_BAR_COLORS = {
 }
 -- Paint every Space's bars this one color while cycle_colors is off, so the bars read as a single landmark.
 local UNIFORM_EDGE_BAR_COLOR = { red = 1, green = 0.9, blue = 0.1, alpha = 0.9 }
-local DOT_SIZE = 10
-local DOT_GAP = 10
--- Clear the terminal's prompt and status lines at the bottom of the screen.
-local DOTS_BOTTOM_MARGIN = 160
--- Keep the dots up long enough to read after a swipe settles, short enough to be gone before typing resumes.
-local DOTS_VISIBLE_SECONDS = 1
-local DOTS_FADE_SECONDS = 0.3
+local DOT_SIZE = 14
+local DOT_GAP = 12
+-- Fill the native title bar Ghostty keeps for its tabs with the dots' pill, at the height it measures on a full-screen Space.
+local TITLE_BAR_HEIGHT = 40
+-- Pad the pill's ends as much as its top and bottom, so the rounded ends hug the first and last dots evenly.
+local DOTS_PADDING = (TITLE_BAR_HEIGHT - DOT_SIZE) / 2
 -- Wait out macOS rearranging Spaces after a display change, a wake or a Space closing, which often runs on past the event reporting it.
 local SETTLE_SECONDS = 1
 
--- Join every Space, full-screen ones included, so one overlay serves whichever Space is focused.
-local OVERLAY_BEHAVIOR = {
-    'canJoinAllSpaces',
-    'fullScreenAuxiliary',
-    'stationary',
-}
 -- Stay on the Space the bar was shown on, so it slides in with that Space; macOS blanks an all-Spaces window mid-swipe.
 local EDGE_BAR_BEHAVIOR = {
     'fullScreenAuxiliary',
@@ -63,11 +58,9 @@ local EDGE_BAR_BEHAVIOR = {
 
 showSpacePosition = {}
 
--- Map each Space id to its own { left, right, bottom, bumper } set of bars and bumper.
+-- Map each Space id to its own { left, right, bottom, bumper, dots } set of bars, bumper and dots.
 local edgeBarsBySpace = {}
 local edgeBarPairsCreated = 0
-local dots = nil
-local dotsTimer = nil
 local settleTimer = nil
 
 local function isEnabled(name)
@@ -92,13 +85,6 @@ local function newOverlay(frame, behavior)
     overlay:level(hs.canvas.windowLevels.overlay)
     overlay:behavior(behavior)
     return overlay
-end
-
-local function deleteOverlay(overlay)
-    if overlay then
-        overlay:delete()
-    end
-    return nil
 end
 
 -- Return the focused Space's 1-based position, the Space count, the screen holding them and the focused Space's id.
@@ -179,6 +165,50 @@ local function newBumper(color)
     return bumper
 end
 
+local function newPageDots()
+    return newOverlay({ x = 0, y = 0, w = 1, h = TITLE_BAR_HEIGHT }, EDGE_BAR_BEHAVIOR)
+end
+
+local function pageDotsWidth(count)
+    return count * DOT_SIZE + (count - 1) * DOT_GAP + 2 * DOTS_PADDING
+end
+
+-- Draw one dot per Space on a pill, filling the dot at `index`; keep the pill clear unless `pillVisible`, which shows where the canvas sits.
+local function layoutPageDots(dots, index, count, pillVisible)
+    local height = TITLE_BAR_HEIGHT
+    local pillAlpha
+    if pillVisible then
+        pillAlpha = 0.6
+    else
+        pillAlpha = 0
+    end
+    local elements = {
+        {
+            type = 'rectangle',
+            action = 'fill',
+            fillColor = { white = 0, alpha = pillAlpha },
+            roundedRectRadii = { xRadius = height / 2, yRadius = height / 2 },
+        },
+    }
+    for position = 1, count do
+        local dot = {
+            type = 'circle',
+            center = { x = DOTS_PADDING + (position - 1) * (DOT_SIZE + DOT_GAP) + DOT_SIZE / 2, y = height / 2 },
+            radius = DOT_SIZE / 2,
+            strokeColor = COLOR,
+            strokeWidth = 1.5,
+        }
+        if position == index then
+            dot.action = 'strokeAndFill'
+            dot.fillColor = COLOR
+        else
+            dot.action = 'stroke'
+        end
+        elements[#elements + 1] = dot
+    end
+    dots:replaceElements(elements)
+end
+
 local function setEdgeBarVisible(bar, visible)
     if visible and not bar:isShowing() then
         bar:show()
@@ -229,6 +259,16 @@ local function showsBumper(focused, index, count)
     return true
 end
 
+-- Return whether the focused Space gets the dots; desktops stay clear, the same as for the right bar.
+local function showsPageDots(focused)
+    if not isEnabled('page_dots') then
+        return false
+    elseif hs.spaces.spaceType(focused) ~= 'fullscreen' then
+        return false
+    end
+    return true
+end
+
 -- Return the color a pair paints: its own from the cycle, or the shared one while cycle_colors is off.
 local function edgeBarColor(cycleColor)
     if isEnabled('cycle_colors') then
@@ -242,6 +282,7 @@ local function deleteEdgeBarPair(pair)
     pair.right:delete()
     pair.bottom:delete()
     pair.bumper:delete()
+    pair.dots:delete()
 end
 
 -- Drop the pairs of Spaces that no longer exist.
@@ -260,8 +301,8 @@ local function pruneEdgeBars()
     end
 end
 
--- Fit a pair's bars and bumper flush to the edges of `screen`, for the Space at `index` on it.
-local function placeEdgeBars(pair, index, screen)
+-- Fit a pair's bars, bumper and dots flush to the edges of `screen`, for the Space at `index` of `count` on it.
+local function placeEdgeBars(pair, index, count, screen)
     local frame = screen:fullFrame()
     -- Start the first Space's bar below the menu bar, so it doesn't cover the clock; `frame()` drops the menu bar where this screen has one.
     local barTop
@@ -285,6 +326,22 @@ local function placeEdgeBars(pair, index, screen)
         y = frame.y + (frame.h - BUMPER_HEIGHT) / 2,
         w = BUMPER_DEPTH,
         h = BUMPER_HEIGHT,
+    })
+    -- Redraw the dots only when the Space moved, the count changed or the pill was toggled, the same as the bars' height check.
+    local pillVisible = isEnabled('page_dots_pill')
+    if pair.dotsIndex ~= index or pair.dotsCount ~= count or pair.dotsPill ~= pillVisible then
+        layoutPageDots(pair.dots, index, count, pillVisible)
+        pair.dotsIndex = index
+        pair.dotsCount = count
+        pair.dotsPill = pillVisible
+    end
+    local dotsWidth = pageDotsWidth(count)
+    -- Sit the dots just inside the right glow, so the strip doesn't wash them out.
+    pair.dots:frame({
+        x = frame.x + frame.w - EDGE_BAR_CANVAS_WIDTH - dotsWidth,
+        y = frame.y,
+        w = dotsWidth,
+        h = TITLE_BAR_HEIGHT,
     })
 end
 
@@ -322,76 +379,25 @@ local function renderEdgeBars(index, count, screen, focused)
             right = newEdgeBar(color),
             bottom = newBottomBar(color),
             bumper = newBumper(color),
+            dots = newPageDots(),
             color = color,
             cycleColor = cycleColor,
         }
         edgeBarsBySpace[focused] = pair
     end
 
-    placeEdgeBars(pair, index, screen)
+    placeEdgeBars(pair, index, count, screen)
     local rightVisible = showsRightBar(focused, index, count)
     setEdgeBarVisible(pair.left, startsFullScreenRun(hs.spaces.spacesForScreen(screen) or {}, index))
     setEdgeBarVisible(pair.right, rightVisible)
     setEdgeBarVisible(pair.bottom, showsBottomBar(focused))
     setEdgeBarVisible(pair.bumper, showsBumper(focused, index, count))
+    setEdgeBarVisible(pair.dots, showsPageDots(focused))
 end
 
-local function renderPageDots(index, count, screen)
-    if dotsTimer then
-        dotsTimer:stop()
-        dotsTimer = nil
-    end
-    dots = deleteOverlay(dots)
-
-    if not isEnabled('page_dots') or index == nil then
-        return
-    end
-
-    local frame = screen:fullFrame()
-    local padding = DOT_GAP
-    local width = count * DOT_SIZE + (count - 1) * DOT_GAP + 2 * padding
-    local height = DOT_SIZE + 2 * padding
-    dots = newOverlay({
-        x = frame.x + (frame.w - width) / 2,
-        y = frame.y + frame.h - height - DOTS_BOTTOM_MARGIN,
-        w = width,
-        h = height,
-    }, OVERLAY_BEHAVIOR)
-    dots[1] = {
-        type = 'rectangle',
-        action = 'fill',
-        fillColor = { white = 0, alpha = 0.6 },
-        roundedRectRadii = { xRadius = height / 2, yRadius = height / 2 },
-    }
-    for position = 1, count do
-        local dot = {
-            type = 'circle',
-            center = { x = padding + (position - 1) * (DOT_SIZE + DOT_GAP) + DOT_SIZE / 2, y = height / 2 },
-            radius = DOT_SIZE / 2,
-            strokeColor = COLOR,
-            strokeWidth = 1.5,
-        }
-        if position == index then
-            dot.action = 'strokeAndFill'
-            dot.fillColor = COLOR
-        else
-            dot.action = 'stroke'
-        end
-        dots[#dots + 1] = dot
-    end
-    dots:show()
-    dotsTimer = hs.timer.doAfter(DOTS_VISIBLE_SECONDS, function()
-        dots:hide(DOTS_FADE_SECONDS)
-    end)
-end
-
--- Redraw both edge bars and flash the dots; `flashDots` false redraws the bars alone.
-local function render(flashDots)
+local function render()
     local index, count, screen, focused = focusedPosition()
     renderEdgeBars(index, count, screen, focused)
-    if flashDots then
-        renderPageDots(index, count, screen)
-    end
 end
 
 -- Move every Space's pair onto its screen's current edges; leave visibility to the next visit, since showing an off-Space canvas can pull it onto this one.
@@ -402,7 +408,7 @@ local function placeEveryEdgeBarSet()
             for index, space in ipairs(spaces) do
                 local pair = edgeBarsBySpace[space]
                 if pair then
-                    placeEdgeBars(pair, index, screen)
+                    placeEdgeBars(pair, index, #spaces, screen)
                 end
             end
         end
@@ -416,7 +422,7 @@ local function renderAfterSettle()
     end
     settleTimer = hs.timer.doAfter(SETTLE_SECONDS, function()
         settleTimer = nil
-        render(false)
+        render()
         placeEveryEdgeBarSet()
     end)
 end
@@ -434,13 +440,13 @@ function showSpacePosition.set(name, enabled)
     end
 
     hs.settings.set(SETTINGS_PREFIX .. name, enabled)
-    render(name == 'page_dots')
+    render()
     return name .. ' ' .. (enabled and 'on' or 'off')
 end
 
 -- Hold each watcher in the global table so garbage collection can't stop it.
 showSpacePosition.watcher = hs.spaces.watcher.new(function()
-    render(true)
+    render()
     -- Redraw again once a closed full-screen Space is gone for good, so its bars don't linger on the desktop it fell back to.
     renderAfterSettle()
 end)
@@ -457,4 +463,4 @@ showSpacePosition.wakeWatcher = hs.caffeinate.watcher.new(function(event)
     end
 end)
 showSpacePosition.wakeWatcher:start()
-render(false)
+render()
