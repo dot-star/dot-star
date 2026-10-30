@@ -29,7 +29,9 @@ Example:
 
 import json
 import re
+import subprocess
 import sys
+from pathlib import Path
 
 # Whitelist acronyms a reader skims without expansion. Extend as needed; the
 # dictionary check below already covers all-caps English words, so list only
@@ -217,6 +219,14 @@ def main() -> int:
         "\n┌─ 🤖 for Claude ───────────────────────────────────────────────────────"
         "\n│ Reply with only the CLAUDE.md acronym table or whitelist [wl] them."
         "\n└───────────────────────────────────────────────────────────────────────"
+    )
+    # Mark the session busy for the page dots; no hook fires when Claude goes back to work.
+    subprocess.run(
+        [str(Path(__file__).with_name("announce_window_state.py")), "StopBlocked"],
+        input=json.dumps(data),
+        capture_output=True,
+        text=True,
+        check=False,
     )
     print(json.dumps({"decision": "block", "reason": reason}))
     return 0

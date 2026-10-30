@@ -28,6 +28,9 @@ prose=$(printf '%s\n' "${msg}" |
 # Emit the Stop-hook payload that hands the feedback back to Claude.
 block() {
     local reason="$1"
+    # Mark the session busy for the page dots; no hook fires when Claude goes back to work.
+    printf '%s' "${input}" |
+        "$(dirname "${BASH_SOURCE[0]}")/announce_window_state.py" StopBlocked >/dev/null 2>&1 || true
     command jq --null-input --compact-output \
         --arg reason "${reason}" \
         '{decision: "block", reason: $reason}'

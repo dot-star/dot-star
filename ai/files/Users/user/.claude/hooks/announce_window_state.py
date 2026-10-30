@@ -44,10 +44,14 @@ than a machine without Hammerspoon. Tail the log while debugging "nothing happen
   tail -f /tmp/claude-state-hook/announce_window_state.log
 """
 
+import fcntl
+import hashlib
 import json
 import os
 import subprocess
 import sys
+from collections.abc import Generator
+from contextlib import contextmanager
 from pathlib import Path
 
 from claude_session_dir import claude_session_dir
@@ -303,6 +307,93 @@ def record_turn_state(session_id: str, state: str) -> None:
     record_session_state(session_id, state)
 
 
+def stop_blocked_file(session_id: str) -> Path:
+    """
+    Returns the file fingerprinting the last stop a sibling Stop hook blocked.
+
+    :param session_id: Claude session id the record is filed under.
+    :return: Path beside the session's `.state` record.
+    """
+    return STATE_DIR / f"{session_id}.stop_blocked"
+
+
+def session_lock_file(session_id: str) -> Path:
+    """
+    Returns the file the session's state writes lock on.
+
+    :param session_id: Claude session id the lock is filed under.
+    :return: Path beside the session's `.state` record.
+    """
+    return STATE_DIR / f"{session_id}.lock"
+
+
+@contextmanager
+def session_lock(session_id: str) -> Generator[None]:
+    """
+    Hold the session's lock, so Stop hooks running in parallel can't interleave their state writes.
+
+    :param session_id: Claude session id whose lock to hold.
+    """
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+
+    with open(session_lock_file(session_id), "w") as handle:
+        fcntl.flock(handle, fcntl.LOCK_EX)
+        yield
+
+
+def stop_fingerprint(event: dict) -> str:
+    """
+    Returns a fingerprint of the stop, the same for every Stop hook that sees it.
+
+    :param event: Stop hook payload, which each parallel Stop hook receives unchanged.
+    :return: Hex digest of the stopping message.
+    """
+    return hashlib.sha256((event.get("last_assistant_message") or "").encode()).hexdigest()
+
+
+def record_stop(event: dict) -> None:
+    """
+    Mark the session ready once its turn ends, unless a sibling Stop hook blocked this stop.
+
+    :param event: Stop hook payload.
+    """
+    session_id = event.get("session_id", "")
+
+    if not session_id:
+        return
+
+    with session_lock(session_id):
+        try:
+            blocked = stop_blocked_file(session_id).read_text()
+        except OSError:
+            blocked = ""
+
+        if blocked == stop_fingerprint(event):
+            return
+
+        record_turn_state(session_id, "ready")
+
+
+def record_stop_blocked(event: dict) -> None:
+    """
+    Mark the session busy again when a Stop hook sends Claude back to work.
+
+    The blocking hooks call this themselves (event "StopBlocked"), since no
+    event fires when Claude resumes. The fingerprint stops this session's own
+    Stop handler, running in parallel, from writing "ready" after it.
+
+    :param event: The Stop hook payload the blocking hook received.
+    """
+    session_id = event.get("session_id", "")
+
+    if not session_id:
+        return
+
+    with session_lock(session_id):
+        stop_blocked_file(session_id).write_text(stop_fingerprint(event))
+        record_session_state(session_id, "busy")
+
+
 def forget_session(session_id: str) -> None:
     """
     Delete the session's state and window records, so its page dot goes back to no session.
@@ -314,6 +405,8 @@ def forget_session(session_id: str) -> None:
 
     session_state_file(session_id).unlink(missing_ok=True)
     waiting_tool_file(session_id).unlink(missing_ok=True)
+    stop_blocked_file(session_id).unlink(missing_ok=True)
+    session_lock_file(session_id).unlink(missing_ok=True)
     window_file(session_id).unlink(missing_ok=True)
 
 
@@ -510,7 +603,9 @@ def main() -> None:
     elif event_name == "SessionEnd":
         forget_session(session_id)
     elif event_name == "Stop":
-        record_turn_state(session_id, "ready")
+        record_stop(event)
+    elif event_name == "StopBlocked":
+        record_stop_blocked(event)
     elif event_name == "UserPromptSubmit":
         record_turn_state(session_id, "busy")
 
