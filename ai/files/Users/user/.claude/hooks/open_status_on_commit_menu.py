@@ -1,36 +1,41 @@
 #!/usr/bin/env python3
 """
-Split a shell pane listing the staged files below the session when a commit menu shows.
+Open a shell listing the staged files beside the session when a commit menu shows.
 
-The session's first tab keeps claude in its top pane and a shell in an optional
-second pane, where `s` and `d` review what a commit menu offers to bank. When a
-reply renders a commit menu and that second pane is missing, this splits it off
-below, as Cmd+Shift+D would, and lists the staged files in it. A tab that already
-has a second pane is left alone, so the shell there keeps whatever the user was running.
+The session's window keeps claude in its first tab, top pane, and a shell in an
+optional second view, where `s` and `d` review what a commit menu offers to bank.
+When a reply renders a commit menu and that second view is missing, this opens it
+and lists the staged files in it, leaving focus on claude. `STATUS_VIEW` picks
+the view:
 
-The pane opens only as tall as the listing plus its prompt, capped at half the
-tab, and focus goes back to claude's pane. Ghostty can't split at a given size or
-report a pane's rows, so this nudges the divider and re-reads claude's own tty
-until the top pane leaves the right number of rows below it.
+  "split" -> a pane split off below claude's, as Cmd+Shift+D would, sized to
+             the listing plus its prompt and capped at half the tab. Left alone
+             when claude's tab already has a second pane.
+  "tab"   -> a background tab, as Cmd+T would, after which the tab selected
+             before is reselected. Left alone when the window already has a
+             second tab.
+
+Ghostty can't split at a given size or report a pane's rows, so the split mode
+nudges the divider and re-reads claude's own tty until the top pane leaves the
+right number of rows below it.
 
 Wired in settings.json so each event runs this script with the event name as
 argv[1] and the event's JSON payload on stdin:
 
   SessionStart -> record the id of Ghostty's front window, the one the session
                   launched in; Ghostty's AppleScript has no tty to match on.
-  Stop         -> on a reply carrying commit subject drafts (`[c1]`), count
-                  the panes in that window's first tab and split off the
-                  second one if missing.
+  Stop         -> on a reply carrying commit subject drafts (`[c1]`), open the
+                  second view if missing.
 
-The pane opens in the directory `report_cwd_for_new_tabs.py` reports for new
+The view opens in the directory `report_cwd_for_new_tabs.py` reports for new
 tabs (the repo the session last worked in), so `s` reads the worktree rather
 than wherever claude launched.
 
-Ghostty only: other emulators lack the scripting to count and split panes. A
-missing window record or osascript failure must never break Claude, so each
-fails soft and is recorded to a log instead:
+Ghostty only: other emulators lack the scripting to count and open panes or
+tabs. A missing window record or osascript failure must never break Claude, so
+each fails soft and is recorded to a log instead:
 
-  tail -f /tmp/claude-state-hook/open_status_split.log
+  tail -f /tmp/claude-state-hook/open_status.log
 """
 
 import json
@@ -49,15 +54,18 @@ from terminal_tty import STATE_DIR
 from terminal_tty import append_log
 from terminal_tty import controlling_tty
 
-LOG_FILE = STATE_DIR / "open_status_split.log"
+LOG_FILE = STATE_DIR / "open_status.log"
+
+# Pick where the listing opens: "split" keeps it in view under claude, "tab" keeps claude's pane full height.
+STATUS_VIEW = "tab"
 
 # Match the commit row's subject drafts (`[c1]`), which a commit menu renders only over a dirty tree.
 COMMIT_DRAFT = re.compile(r"`\[c\d+\]`")
 
-# List what the commit would bank, one path per line, so the pane stays a few rows tall.
+# List what the commit would bank, one path per line, so a split pane stays a few rows tall.
 STAGED_COMMAND = ["git", "diff", "--cached", "--name-status"]
 
-# Clear the first-prompt `s` (tools/zsh/.aliases.sh) so the pane holds only the listing and its prompt.
+# Clear the first-prompt `s` (tools/zsh/.aliases.sh) so the view holds only the listing and its prompt.
 STAGED_INPUT = "clear; " + shlex.join(STAGED_COMMAND) + "\n"
 
 # Leave a row for the prompt under the listing; dot-star's zsh prompt is one line.
@@ -139,7 +147,7 @@ def staged_listing(directory: str) -> list[str]:
     """
     Returns the lines `STAGED_COMMAND` prints in a directory, or none when git fails there.
 
-    :param directory: Directory the pane opens in (e.g. a worktree root).
+    :param directory: Directory the view opens in (e.g. a worktree root).
     :return: One line per staged path (e.g. `"M\\tai/foo.md"`).
     """
     result = subprocess.run(
@@ -258,25 +266,15 @@ def fit_status_pane(terminal_id: str, tty: str, top_rows: int, top_rows_wanted: 
     log(f"status pane still {top_rows_wanted - top_rows} rows off after {MAX_RESIZE_STEPS} nudges")
 
 
-def open_status_split(event: dict[str, Any]) -> None:
+def open_status_split(window_id: str, directory: str, staged: list[str]) -> None:
     """
     Split a pane listing the staged files below claude's, unless claude's tab already has a second pane.
 
-    :param event: Stop payload parsed from stdin JSON, so its values are untyped (e.g. `{"session_id": "...", "last_assistant_message": "..."}`).
+    :param window_id: Ghostty id of the session's window.
+    :param directory: Directory the pane opens in (e.g. a worktree root).
+    :param staged: Lines `STAGED_COMMAND` printed there (e.g. `["M\\tai/foo.md"]`).
     """
-    if not COMMIT_DRAFT.search(event.get("last_assistant_message") or ""):
-        return
-
-    session_id = event.get("session_id", "")
-    path = window_file(session_id)
-
-    if not path.exists():
-        log(f"no window id on file for session {session_id}; cannot split status pane (was SessionStart blocked?)")
-        return
-
-    directory = tab_dir(event) or os.path.expanduser("~")
     tty = controlling_tty()
-    staged = staged_listing(directory)
 
     # Read the tab's size while claude's pane still fills it.
     tab = tty_size(tty) if tty else None
@@ -310,7 +308,7 @@ def open_status_split(event: dict[str, Any]) -> None:
             end tell
         end run
         """,
-        [path.read_text().strip(), directory, initial_input],
+        [window_id, directory, initial_input],
         "split status pane",
     )
 
@@ -321,7 +319,7 @@ def open_status_split(event: dict[str, Any]) -> None:
         return
 
     terminal_id = outcome.removeprefix(SPLIT_PREFIX)
-    log(f"split status pane {terminal_id} in window {path.read_text().strip()}")
+    log(f"split status pane {terminal_id} in window {window_id}")
 
     if not staged:
         return
@@ -333,6 +331,78 @@ def open_status_split(event: dict[str, Any]) -> None:
     status_rows = min(rows_needed(staged, tab.columns), (tab.lines - DIVIDER_ROWS) // 2)
     top_rows = wait_for_rows_change(tty, tab.lines)
     fit_status_pane(terminal_id, tty, top_rows, tab.lines - DIVIDER_ROWS - status_rows)
+
+
+def open_status_tab(window_id: str, directory: str, staged: list[str]) -> None:
+    """
+    Open a background tab listing the staged files, unless the session window already has a second tab.
+
+    :param window_id: Ghostty id of the session's window.
+    :param directory: Directory the tab opens in (e.g. a worktree root).
+    :param staged: Lines `STAGED_COMMAND` printed there (e.g. `["M\\tai/foo.md"]`).
+    """
+    # Type nothing when nothing is staged, so the tab keeps the first-prompt `s`.
+    initial_input = STAGED_INPUT if staged else ""
+    outcome = run_osascript(
+        """
+        on run argv
+            set windowId to item 1 of argv
+            tell application "Ghostty"
+                set targetWindows to (every window whose id is windowId)
+                if (count of targetWindows) is 0 then
+                    return "window " & windowId & " gone; nothing opened"
+                end if
+                set targetWindow to item 1 of targetWindows
+                if (count of tabs of targetWindow) > 1 then
+                    return "window " & windowId & " already has a second tab; left alone"
+                end if
+                set previousTab to selected tab of targetWindow
+                set surfaceConfig to new surface configuration
+                set initial working directory of surfaceConfig to item 2 of argv
+                if item 3 of argv is not "" then
+                    set initial input of surfaceConfig to item 3 of argv
+                end if
+                set statusTab to new tab in targetWindow with configuration surfaceConfig
+                -- Hand focus back to the tab the new one took it from.
+                select tab previousTab
+                return "opened background status tab " & (id of statusTab) & " in window " & windowId
+            end tell
+        end run
+        """,
+        [window_id, directory, initial_input],
+        "open status tab",
+    )
+
+    if outcome:
+        log(outcome)
+
+
+def open_status_view(event: dict[str, Any]) -> None:
+    """
+    Open the `STATUS_VIEW` listing the staged files when the reply renders a commit menu.
+
+    :param event: Stop payload parsed from stdin JSON, so its values are untyped (e.g. `{"session_id": "...", "last_assistant_message": "..."}`).
+    """
+    if not COMMIT_DRAFT.search(event.get("last_assistant_message") or ""):
+        return
+
+    session_id = event.get("session_id", "")
+    path = window_file(session_id)
+
+    if not path.exists():
+        log(f"no window id on file for session {session_id}; cannot open status view (was SessionStart blocked?)")
+        return
+
+    window_id = path.read_text().strip()
+    directory = tab_dir(event) or os.path.expanduser("~")
+    staged = staged_listing(directory)
+
+    if STATUS_VIEW == "split":
+        open_status_split(window_id, directory, staged)
+    elif STATUS_VIEW == "tab":
+        open_status_tab(window_id, directory, staged)
+    else:
+        log(f"unknown STATUS_VIEW {STATUS_VIEW!r}; nothing opened")
 
 
 def main() -> None:
@@ -349,7 +419,7 @@ def main() -> None:
     if event_name == "SessionStart":
         record_window(event.get("session_id", ""))
     elif event_name == "Stop":
-        open_status_split(event)
+        open_status_view(event)
 
 
 if __name__ == "__main__":
