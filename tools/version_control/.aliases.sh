@@ -1888,9 +1888,10 @@ git_worktree_list_sorted() {
     fi
 
     # Absolute path: zsh's PATH lookup gets confused inside a nested $(...)
-    # once dot-star aliases load.
+    # once dot-star aliases load. Let a test pin the clock through
+    # WORKTREE_LIST_NOW, so ages a second shy of a tier boundary can't tick over.
     local now
-    now="$(/bin/date +%s)"
+    now="${WORKTREE_LIST_NOW:-$(/bin/date +%s)}"
 
     awk \
         -F'\t' \
@@ -2171,8 +2172,9 @@ git_worktree_list_render() {
             git_worktree_list_triage
     )"
 
+    # Read the clock a test may pin, as `git_worktree_list_sorted` does.
     local now
-    now="$(/bin/date +%s)"
+    now="${WORKTREE_LIST_NOW:-$(/bin/date +%s)}"
 
     awk \
         -F'\t' \

@@ -28,14 +28,19 @@ samples=(
     "seconds:30"
 )
 
+# Pin one clock for the backdating and the render, so an edge row a second shy
+# of its boundary can't tick over while the test runs.
+export WORKTREE_LIST_NOW
+WORKTREE_LIST_NOW="$(command date +%s)"
+
 backdate() {
-    # Set a file's mtime to N seconds ago. Go through perl rather than `touch`,
-    # whose backdating flags differ between BSD and GNU.
+    # Set a file's mtime to N seconds before the pinned clock. Go through perl
+    # rather than `touch`, whose backdating flags differ between BSD and GNU.
     local file="${1}"
     local seconds_ago="${2}"
 
     local epoch
-    epoch=$(($(command date +%s) - seconds_ago))
+    epoch=$((WORKTREE_LIST_NOW - seconds_ago))
 
     perl -e 'utime $ARGV[0], $ARGV[0], $ARGV[1]' "${epoch}" "${file}"
 }
