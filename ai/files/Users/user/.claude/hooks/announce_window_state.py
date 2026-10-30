@@ -192,7 +192,7 @@ def set_title(state: str, session_id: str) -> None:
     write_to_own_tab(f"\033]0;[{state}] {objective(session_id)}\007")
 
 
-def state_file(session_id: str) -> Path:
+def window_file(session_id: str) -> Path:
     return STATE_DIR / f"{session_id}.window"
 
 
@@ -233,7 +233,7 @@ def capture_window_id(session_id: str) -> None:
             log(f"no focused window at launch; cannot record one for session {session_id}")
             return
 
-    state_file(session_id).write_text(record)
+    window_file(session_id).write_text(record)
     log(f"captured window {record} for session {session_id}")
 
 
@@ -243,7 +243,7 @@ def focus_window(session_id: str) -> None:
 
     :param session_id: Claude session id whose window record to raise.
     """
-    path = state_file(session_id)
+    path = window_file(session_id)
 
     if not path.exists():
         log(f"no window id on file for session {session_id}; cannot raise (was SessionStart blocked?)")
