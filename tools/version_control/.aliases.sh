@@ -2549,10 +2549,11 @@ rc_status() {
                 fi
             fi
 
-            # List the Claude sessions `clr` can resume here. Cap the rows by
-            # exporting CLAUDE_SESSION_LIST_LIMIT; 0 lists every session.
+            # List the Claude sessions `clr` can resume here. Retune by exporting
+            # CLAUDE_SESSION_LIST_MAX_AGE_DAYS (0 keeps every age) and
+            # CLAUDE_SESSION_LIST_MIN_ROWS.
             local claude_sessions
-            claude_sessions="$(claude_session_list_render "${current_toplevel}" "${CLAUDE_SESSION_LIST_LIMIT:-0}")"
+            claude_sessions="$(claude_session_list_render "${current_toplevel}" "${CLAUDE_SESSION_LIST_MAX_AGE_DAYS:-7}" "${CLAUDE_SESSION_LIST_MIN_ROWS:-5}")"
             if [[ -n "${claude_sessions}" ]]; then
                 echo
                 echo "${claude_sessions}"

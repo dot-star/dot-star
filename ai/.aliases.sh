@@ -89,16 +89,18 @@ newest_moved_in_session() {
 
 claude_session_list_render() {
     # Render the sessions `clr` can resume from <dir> under a "<count> claude
-    # sessions:" header, each titled and aged. Show at most <max_rows> of the
-    # newest; 0 shows every row. Rows print oldest-first so the newest lands
-    # closest to the prompt, the way `s`'s worktree table orders.
+    # sessions:" header, each titled and aged. Hide sessions older than
+    # <max_age_days> (0 hides none), but always show the <min_rows> newest.
+    # Rows print oldest-first so the newest lands closest to the prompt, the
+    # way `s`'s worktree table orders.
     # Example output:
     #     Fix login redirect           (3 days ago)
     #     Add quoted flag values rule  (2 hours ago)
     # Usage:
-    #   $ claude_session_list_render "$(git rev-parse --show-toplevel)" 0
+    #   $ claude_session_list_render "$(git rev-parse --show-toplevel)" 7 5
     local dir="$1"
-    local max_rows="$2"
+    local max_age_days="$2"
+    local min_rows="$3"
     local transcript
     local -a transcripts=()
     local -a stat_mtime=(stat -c '%Y %n')
@@ -176,7 +178,8 @@ claude_session_list_render() {
         command sort -n |
         awk \
             -F'\t' \
-            -v max_rows="${max_rows}" \
+            -v max_age_days="${max_age_days}" \
+            -v min_rows="${min_rows}" \
             -v now="${now}" \
             "$(relative_age_awk)$(relative_age_color_awk)"'
                 {
@@ -187,10 +190,21 @@ claude_session_list_render() {
                     label = (NR > 1) ? "claude sessions" : "claude session"
                     printf "\033[1;36m%d\033[0m \033[2m%s:\033[0m\n", NR, label
 
+                    # Skip the rows past the age cutoff, then pull back in enough of the newest to reach the minimum.
                     first = 1
-                    if (max_rows > 0 && NR > max_rows) {
-                        first = NR - max_rows + 1
-                        printf "    \033[2m... and \033[0m\033[1;36m%d\033[0m\033[2m more\033[0m\n", NR - max_rows
+                    if (max_age_days > 0) {
+                        cutoff = now - max_age_days * 86400
+                        while (first <= NR && row_mtime[first] < cutoff) {
+                            first++
+                        }
+                    }
+                    if (NR - first + 1 < min_rows) {
+                        first = (NR > min_rows) ? NR - min_rows + 1 : 1
+                    }
+
+                    if (first > 1) {
+                        day_label = (max_age_days > 1) ? "days" : "day"
+                        printf "    \033[2m... and \033[0m\033[1;36m%d\033[0m\033[2m older than %d %s\033[0m\n", first - 1, max_age_days, day_label
                     }
 
                     # Pad titles to the widest shown, so the ages line up in a column of their own.
