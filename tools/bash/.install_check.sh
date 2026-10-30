@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-# Prompt to re-install if script/install.sh or script/post_install.sh has
-# changed since the last `./install.sh` run, since the cheap re-source on
-# shell startup misses those two.
+# Re-install if script/install.sh or script/post_install.sh has changed since
+# the last `./install.sh` run, since the cheap re-source on shell startup misses
+# those two.
 dot_star_check_install_stale() {
     local stamp_file="${HOME}/.dot-star-installed-commit"
     local checked_file="${HOME}/.dot-star-install-checked-commit"
@@ -44,14 +44,19 @@ dot_star_check_install_stale() {
         return 0
     fi
 
-    # Skip in non-interactive shells and when stdin isn't a tty; otherwise a script that sources the rc file would hang on `read`.
+    # Skip in non-interactive shells and when stdin isn't a tty, so a script that sources the rc file neither starts an install nor hangs on `read`.
     if [[ "$-" != *i* ]] || [[ ! -t 0 ]]; then
         return 0
     fi
 
-    local answer
-    answer="$(display_confirm_prompt_caution "dot-star: installer changed since last install. Run \`~/.dot-star/install.sh\` now? This will take a minute. [y/N]")"
-    echo >&2
+    # Ask only when a step would stop at a sudo password prompt; otherwise install unattended.
+    local answer="y"
+    source "${HOME}/.dot-star/script/install_sudo_checks.sh"
+    if dot_star_install_needs_sudo; then
+        answer="$(display_confirm_prompt_caution "dot-star: installer changed since last install and a step needs sudo. Run \`~/.dot-star/install.sh\` now? This will take a minute. [y/N]")"
+        echo >&2
+    fi
+
     if [[ "${answer}" = "y" ]] || [[ "${answer}" = "Y" ]]; then
         DOT_STAR_PROFILE=1 "${HOME}/.dot-star/install.sh"
     fi
