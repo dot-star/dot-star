@@ -100,6 +100,14 @@ fi
 
 source $ZSH/oh-my-zsh.sh
 
+# Drop the hostname from the window title; oh-my-zsh resets it on load, so set it after the source.
+# Drop the user name too when it's the generic "user", which tells tabs nothing.
+if [[ "${USER}" == "user" ]]; then
+    ZSH_THEME_TERM_TITLE_IDLE="%~"
+else
+    ZSH_THEME_TERM_TITLE_IDLE="%n@%~"
+fi
+
 # User configuration
 
 # export MANPATH="/usr/local/man:$MANPATH"
