@@ -90,17 +90,19 @@ newest_moved_in_session() {
 claude_session_list_render() {
     # Render the sessions `clr` can resume from <dir> under a "<count> claude
     # sessions:" header, each titled and aged. Hide sessions older than
-    # <max_age_days> (0 hides none), but always show the <min_rows> newest.
+    # <max_age_days> (0 hides none), but always show the <min_rows> newest and
+    # never more than <max_rows> (0 caps none); the max wins a conflict.
     # Rows print oldest-first so the newest lands closest to the prompt, the
     # way `s`'s worktree table orders.
     # Example output:
     #     Fix login redirect           (3 days ago)
     #     Add quoted flag values rule  (2 hours ago)
     # Usage:
-    #   $ claude_session_list_render "$(git rev-parse --show-toplevel)" 7 5
+    #   $ claude_session_list_render "$(git rev-parse --show-toplevel)" 7 5 10
     local dir="$1"
     local max_age_days="$2"
     local min_rows="$3"
+    local max_rows="$4"
     local transcript
     local -a transcripts=()
     local -a stat_mtime=(stat -c '%Y %n')
@@ -180,6 +182,7 @@ claude_session_list_render() {
             -F'\t' \
             -v max_age_days="${max_age_days}" \
             -v min_rows="${min_rows}" \
+            -v max_rows="${max_rows}" \
             -v now="${now}" \
             "$(relative_age_awk)$(relative_age_color_awk)"'
                 {
@@ -201,10 +204,25 @@ claude_session_list_render() {
                     if (NR - first + 1 < min_rows) {
                         first = (NR > min_rows) ? NR - min_rows + 1 : 1
                     }
+                    aged_out = first - 1
 
-                    if (first > 1) {
+                    # Trim to the newest rows past the cap, last so it overrides the minimum.
+                    if (max_rows > 0 && NR - first + 1 > max_rows) {
+                        first = NR - max_rows + 1
+                    }
+
+                    # Say "older than" only while the age cutoff alone hid every hidden row.
+                    if (first == 1) {
+                        hidden_label = ""
+                    } else if (first - 1 == aged_out) {
                         day_label = (max_age_days > 1) ? "days" : "day"
-                        printf "    \033[2m... and \033[0m\033[1;36m%d\033[0m\033[2m older than %d %s\033[0m\n", first - 1, max_age_days, day_label
+                        hidden_label = sprintf("older than %d %s", max_age_days, day_label)
+                    } else {
+                        hidden_label = "more"
+                    }
+
+                    if (hidden_label != "") {
+                        printf "    \033[2m... and \033[0m\033[1;36m%d\033[0m\033[2m %s\033[0m\n", first - 1, hidden_label
                     }
 
                     # Pad titles to the widest shown, so the ages line up in a column of their own.
