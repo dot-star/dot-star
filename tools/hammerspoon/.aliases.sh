@@ -26,7 +26,7 @@ space_position_experiment() {
     elif [[ "${name}" == "follow_idle_seconds" && "${state}" =~ ^[0-9]+$ ]]; then
         "${hammerspoon_cli}" -c "return showSpacePosition.set('${name}', ${state})"
     else
-        echo "Usage: space_position_experiment [<bottom_bar|cycle_colors|edge_bars|follow_ready|page_dots|page_dots_pill|session_state> <on|off>]"
+        echo "Usage: space_position_experiment [<bottom_bar|cycle_colors|edge_bars|follow_countdown|follow_ready|page_dots|page_dots_pill|session_state> <on|off>]"
         echo "       space_position_experiment decision_style <blink|flash|heartbeat|nudge>"
         echo "       space_position_experiment focus_marker <center|underline>"
         echo "       space_position_experiment follow_idle_seconds <seconds>"

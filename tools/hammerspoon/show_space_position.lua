@@ -7,6 +7,7 @@
 --   Show the dark pill behind the dots, to check where their canvas sits (page_dots_pill, needs page_dots).
 --   Show on each dot the state of the Claude session whose window sits on that Space (session_state, needs page_dots).
 --   Switch to a Space whose session just turned ready, once you've been idle a while (follow_ready, needs session_state).
+--   Show a countdown left of the dots to when follow_ready arms, for debugging (follow_countdown, needs follow_ready).
 -- Toggle from the shell with `space_position_experiment`; each flag persists across reloads.
 -- Pick the session dots' decision style and focus marker the same way; each style persists too.
 -- Set how long you must be idle before follow_ready switches Spaces the same way, with follow_idle_seconds.
@@ -18,6 +19,7 @@ local DEFAULT_ENABLED = {
     bottom_bar = true,
     cycle_colors = false,
     edge_bars = true,
+    follow_countdown = true,
     follow_ready = true,
     page_dots = true,
     page_dots_pill = false,
@@ -66,6 +68,9 @@ local DOT_GAP = 14
 local TITLE_BAR_HEIGHT = require('ghostty_title_bar').HEIGHT
 -- Pad the pill's ends as much as its top and bottom, so the rounded ends hug the first and last dots evenly.
 local DOTS_PADDING = (TITLE_BAR_HEIGHT - DOT_SIZE) / 2
+-- Leave room for the countdown's longest text, so it never clips against the dots.
+local COUNTDOWN_WIDTH = 120
+local COUNTDOWN_TEXT_SIZE = 13
 -- Read each Claude session's state word and window record from where `announce_window_state.py` writes them.
 local SESSION_STATE_DIR = '/tmp/claude-state-hook/'
 -- Thicken a session dot's ring past the plain dots' hairline stroke, so its color reads at a glance.
@@ -110,6 +115,7 @@ local pingStartedAt = {}
 local frameTimer = nil
 -- Remember when follow_ready last switched Spaces, so a second session turning ready in the same idle stretch leaves you on the first.
 local lastFollowAt = nil
+local countdownTimer = nil
 
 local function isEnabled(name)
     local value = hs.settings.get(SETTINGS_PREFIX .. name)
@@ -246,6 +252,21 @@ end
 
 local function newPageDots()
     return newOverlay({ x = 0, y = 0, w = 1, h = TITLE_BAR_HEIGHT }, EDGE_BAR_BEHAVIOR)
+end
+
+-- Right-align the text, so it hugs the dots however long it runs.
+local function newCountdown()
+    local countdown = newOverlay({ x = 0, y = 0, w = COUNTDOWN_WIDTH, h = TITLE_BAR_HEIGHT }, EDGE_BAR_BEHAVIOR)
+    local textHeight = COUNTDOWN_TEXT_SIZE + 4
+    countdown[1] = {
+        type = 'text',
+        text = '',
+        textAlignment = 'right',
+        textColor = { white = 1, alpha = 1 },
+        textSize = COUNTDOWN_TEXT_SIZE,
+        frame = { x = 0, y = (TITLE_BAR_HEIGHT - textHeight) / 2, w = COUNTDOWN_WIDTH, h = textHeight },
+    }
+    return countdown
 end
 
 local function pageDotsWidth(count)
@@ -704,6 +725,16 @@ local function showsPageDots(focused)
     return true
 end
 
+-- Return whether the focused Space gets the countdown, which rides along with the dots.
+local function showsCountdown(focused)
+    if not isEnabled('follow_countdown') then
+        return false
+    elseif not isEnabled('follow_ready') then
+        return false
+    end
+    return showsPageDots(focused)
+end
+
 -- Return the color a pair paints: its own from the cycle, or the shared one while cycle_colors is off.
 local function edgeBarColor(cycleColor)
     if isEnabled('cycle_colors') then
@@ -718,6 +749,7 @@ local function deleteEdgeBarPair(pair)
     pair.bottom:delete()
     pair.bumper:delete()
     pair.dots:delete()
+    pair.countdown:delete()
 end
 
 -- Drop the pairs of Spaces that no longer exist.
@@ -794,6 +826,12 @@ local function placeEdgeBars(pair, index, count, screen)
         w = dotsWidth,
         h = TITLE_BAR_HEIGHT,
     })
+    pair.countdown:frame({
+        x = frame.x + frame.w - dotsWidth - COUNTDOWN_WIDTH,
+        y = frame.y,
+        w = COUNTDOWN_WIDTH,
+        h = TITLE_BAR_HEIGHT,
+    })
 end
 
 -- Give the focused Space its own pair on first visit; only a reorder of Spaces ever flips a pair's visibility.
@@ -831,6 +869,7 @@ local function renderEdgeBars(index, count, screen, focused)
             bottom = newBottomBar(color),
             bumper = newBumper(color),
             dots = newPageDots(),
+            countdown = newCountdown(),
             color = color,
             cycleColor = cycleColor,
         }
@@ -844,6 +883,7 @@ local function renderEdgeBars(index, count, screen, focused)
     setEdgeBarVisible(pair.bottom, showsBottomBar(focused))
     setEdgeBarVisible(pair.bumper, showsBumper(focused, index, count))
     setEdgeBarVisible(pair.dots, showsPageDots(focused))
+    setEdgeBarVisible(pair.countdown, showsCountdown(focused))
 end
 
 -- Return every Space's pair whose session dots are showing, not just the focused one, so whichever Space a swipe or jump reveals is already on the current frame.
@@ -907,6 +947,46 @@ local function updateAnimation()
     end
 end
 
+-- Return what follow_ready would do if a session turned ready now.
+local function countdownText(now)
+    local phase = followPhase(now)
+    if phase == 'waiting' then
+        return string.format('follow in %ds', math.ceil(numberOf('follow_idle_seconds') - hs.host.idleTime()))
+    elseif phase == 'armed' then
+        return 'follow armed'
+    elseif phase == 'spent' then
+        return 'follow spent'
+    end
+    error('unknown follow phase: ' .. phase)
+end
+
+local function updateCountdowns()
+    local text = countdownText(hs.timer.secondsSinceEpoch())
+    for _, pair in pairs(edgeBarsBySpace) do
+        if pair.countdown:isShowing() then
+            pair.countdown[1].text = text
+        end
+    end
+end
+
+local function stopCountdowns()
+    if countdownTimer then
+        countdownTimer:stop()
+        countdownTimer = nil
+    end
+end
+
+-- Tick the countdowns once a second while follow_countdown is on, and only then.
+local function updateCountdownTimer()
+    if not isEnabled('follow_countdown') then
+        stopCountdowns()
+    elseif not isEnabled('follow_ready') then
+        stopCountdowns()
+    elseif countdownTimer == nil then
+        countdownTimer = hs.timer.doEvery(1, updateCountdowns)
+    end
+end
+
 local function render()
     if isEnabled('session_state') then
         refreshSessionStates()
@@ -914,6 +994,8 @@ local function render()
     local index, count, screen, focused = focusedPosition()
     renderEdgeBars(index, count, screen, focused)
     updateAnimation()
+    updateCountdownTimer()
+    updateCountdowns()
 end
 
 -- Move every Space's pair onto its screen's current edges; leave visibility to the next visit, since showing an off-Space canvas can pull it onto this one.
