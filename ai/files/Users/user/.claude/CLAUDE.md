@@ -27,7 +27,8 @@
 - Don't nag over nothing. A warning, badge, or alert fires only when the state it reports actually costs the reader something; detectable but harmless stays silent.
   - Set the threshold where the problem starts to bite, never where it first becomes measurable.
   - An indicator that cries wolf over a healthy state doesn't merely fail to inform. It trains the reader to ignore it, so it costs them the one time it is real.
-  - Report a check (formatter, linter, type checker, tests) only when it fails, gets skipped or rewrites something; a pass is the expected state, so `Both commits pass shfmt and ty` is noise.
+- Report the surprise, not the expected. Tell the reader only what they couldn't have assumed: a failure, a skip, a deviation from the plan. An outcome that went as intended stays silent.
+  - Report a check (formatter, linter, type checker, tests) only when it fails, gets skipped or rewrites something; `Both commits pass shfmt and ty` is noise.
 - Touched code self-heals, ratcheting toward the preferred style. When a documented preference (in `CLAUDE.md` or memory) conflicts with the local style, the lines your edit modifies must end in the preferred form; untouched lines nearby stay as-is. Land the style swap as a separate atomic commit; order relative to the feature commit doesn't matter.
 - Upgrade early, upgrade often. Small frequent upgrades are cheap; deferred ones compound in difficulty, risk, and security exposure.
 - Pin the floor, not the ceiling. When one dependency's upper bound would drag another package backwards, state the requirement as a floor on the package to protect (`wanted>=2.12`), not a cap on the blocker (`blocker<5.2`). Comment the floor with the blocker it dodges. The resolver then backtracks the blocker on its own and picks up its fix release with no manual bump, where a cap sits until a human remembers to delete it. Cap only when the blocker's newer release is itself the problem.

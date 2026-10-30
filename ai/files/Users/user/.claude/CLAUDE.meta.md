@@ -27,7 +27,8 @@
 -
   -
   -
-  - A passing-checks line costs a read and tells the reader nothing they didn't already assume; the checks still run, only the report of a pass is dropped.
+- An expected outcome costs the reader a read and tells them nothing they didn't already assume; the work still runs, only the report of it is dropped.
+  - A passing check is the commonest case of an expected outcome reported anyway.
 -
 -
 -
