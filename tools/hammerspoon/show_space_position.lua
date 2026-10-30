@@ -175,7 +175,7 @@ local function layoutPageDots(dots, index, count, color, pillVisible)
     local height = TITLE_BAR_HEIGHT
     local pillAlpha
     if pillVisible then
-        pillAlpha = 0.6
+        pillAlpha = 1
     else
         pillAlpha = 0
     end
@@ -187,17 +187,19 @@ local function layoutPageDots(dots, index, count, color, pillVisible)
             roundedRectRadii = { xRadius = height / 2, yRadius = height / 2 },
         },
     }
+    -- Draw the dots fully opaque, the same as the bumper, so they hold up against glare.
+    local opaque = { red = color.red, green = color.green, blue = color.blue, alpha = 1 }
     for position = 1, count do
         local dot = {
             type = 'circle',
             center = { x = DOTS_PADDING + (position - 1) * (DOT_SIZE + DOT_GAP) + DOT_SIZE / 2, y = height / 2 },
             radius = DOT_SIZE / 2,
-            strokeColor = color,
+            strokeColor = opaque,
             strokeWidth = 1.5,
         }
         if position == index then
             dot.action = 'strokeAndFill'
-            dot.fillColor = color
+            dot.fillColor = opaque
         else
             dot.action = 'stroke'
         end
