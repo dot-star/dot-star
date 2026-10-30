@@ -11,6 +11,10 @@ argv[1] and the event's JSON payload on stdin:
   PostToolUse  -> a tool finished (including one you just approved): reset to
                   `[RUNNING]`.
 
+Each event also records the session's state word (busy, decision or ready) to
+/tmp/claude-state-hook/<session_id>.state for Hammerspoon's page dots, which
+watch that folder; SessionEnd deletes it along with the window record.
+
 No wrapper process sits in the I/O path. The script reaches the Terminal tab by
 writing OSC/bell bytes straight to the claude process's controlling tty, and
 focuses the window via the id captured at launch. The objective in the title is
@@ -59,6 +63,14 @@ WINDOW_OBJECTIVE = os.environ.get("CLAUDE_OBJECTIVE", "Claude Code")
 # Reach Hammerspoon through the client shipped inside its bundle rather than a
 # PATH lookup, since hooks run with claude's environment, not the login shell's.
 HAMMERSPOON_CLI = "/Applications/Hammerspoon.app/Contents/Frameworks/hs/hs"
+
+# Map each notification type to the session state it signals; leave the rest (e.g. "auth_success") unmapped.
+NOTIFICATION_STATES = {
+    "elicitation_dialog": "decision",
+    "elicitation_url_dialog": "decision",
+    "idle_prompt": "ready",
+    "permission_prompt": "decision",
+}
 
 
 def log(message: str) -> None:
@@ -196,6 +208,49 @@ def window_file(session_id: str) -> Path:
     return STATE_DIR / f"{session_id}.window"
 
 
+def session_state_file(session_id: str) -> Path:
+    """
+    Returns the file holding the session's state word for Hammerspoon's page dots.
+
+    :param session_id: Claude session id the state is filed under.
+    :return: Path beside the session's `.window` record.
+    """
+    return STATE_DIR / f"{session_id}.state"
+
+
+def record_session_state(session_id: str, state: str) -> None:
+    """
+    Record the session's state word for Hammerspoon's page dots to read.
+
+    Writes through a temp file and a rename, so the folder watcher never reads
+    a half-written word.
+
+    :param session_id: Claude session id the state is filed under.
+    :param state: One of "busy", "decision" or "ready".
+    """
+    if not session_id:
+        return
+
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    path = session_state_file(session_id)
+    temporary = path.with_name(f"{path.name}.tmp")
+    temporary.write_text(state)
+    temporary.replace(path)
+
+
+def forget_session(session_id: str) -> None:
+    """
+    Delete the session's state and window records, so its page dot goes back to no session.
+
+    :param session_id: Claude session id whose records to delete.
+    """
+    if not session_id:
+        return
+
+    session_state_file(session_id).unlink(missing_ok=True)
+    window_file(session_id).unlink(missing_ok=True)
+
+
 def capture_window_id(session_id: str) -> None:
     """
     Record the frontmost window at session launch.
@@ -330,6 +385,24 @@ def on_waiting(event: dict) -> None:
     focus_window(session_id)
 
 
+def record_notification_state(event: dict) -> None:
+    """
+    Record the state a notification puts the session in, by its `notification_type`.
+
+    A prompt the user has to answer is a decision; the idle notice only means
+    the turn is over. Other notifications (e.g. "auth_success") leave the state alone.
+
+    :param event: Notification hook payload.
+    """
+    session_id = event.get("session_id", "")
+    state = NOTIFICATION_STATES.get(event.get("notification_type", ""))
+
+    if state is None:
+        return
+
+    record_session_state(session_id, state)
+
+
 def main() -> None:
     event_name = sys.argv[1] if len(sys.argv) > 1 else ""
 
@@ -344,11 +417,29 @@ def main() -> None:
         log(f"SessionStart: objective={objective(session_id)!r}")
         capture_window_id(session_id)
         set_title("RUNNING", session_id)
+        # Skip a compaction's restart, which can land mid-turn while the session is still busy.
+        if event.get("source") != "compact":
+            record_session_state(session_id, "ready")
     elif event_name == "Notification":
-        log("Notification: objective={!r} message={!r}".format(objective(session_id), event.get("message")))
+        log(
+            "Notification: objective={!r} type={!r} message={!r}".format(
+                objective(session_id), event.get("notification_type"), event.get("message")
+            )
+        )
+        record_notification_state(event)
         on_waiting(event)
+    elif event_name == "PreToolUse":
+        # Mark a tool that waits on the user's answer (wired by matcher in settings.json).
+        record_session_state(session_id, "decision")
     elif event_name == "PostToolUse":
         set_title("RUNNING", session_id)
+        record_session_state(session_id, "busy")
+    elif event_name == "SessionEnd":
+        forget_session(session_id)
+    elif event_name == "Stop":
+        record_session_state(session_id, "ready")
+    elif event_name == "UserPromptSubmit":
+        record_session_state(session_id, "busy")
 
 
 if __name__ == "__main__":

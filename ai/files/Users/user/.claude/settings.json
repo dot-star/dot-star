@@ -134,6 +134,15 @@
           }
         ],
         "matcher": "Write|Edit"
+      },
+      {
+        "hooks": [
+          {
+            "command": "${HOME}/.claude/hooks/announce_window_state.py PreToolUse",
+            "type": "command"
+          }
+        ],
+        "matcher": "AskUserQuestion|ExitPlanMode"
       }
     ],
     "SessionEnd": [
@@ -141,6 +150,10 @@
         "hooks": [
           {
             "command": "${HOME}/.claude/hooks/color_tab_per_session.py SessionEnd",
+            "type": "command"
+          },
+          {
+            "command": "${HOME}/.claude/hooks/announce_window_state.py SessionEnd",
             "type": "command"
           }
         ]
@@ -250,6 +263,15 @@
           }
         ],
         "matcher": ""
+      },
+      {
+        "hooks": [
+          {
+            "command": "${HOME}/.claude/hooks/announce_window_state.py Stop",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
       }
     ],
     "UserPromptSubmit": [
@@ -269,6 +291,10 @@
           },
           {
             "command": "${HOME}/.claude/hooks/fork_session_on_prompt.sh",
+            "type": "command"
+          },
+          {
+            "command": "${HOME}/.claude/hooks/announce_window_state.py UserPromptSubmit",
             "type": "command"
           }
         ]
