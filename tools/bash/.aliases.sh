@@ -1071,7 +1071,20 @@ du() {
 }
 
 large_files() {
-    du --human-readable --summarize --total .[!.]* * | sort --human-numeric-sort
+    # Install dust on first use, so hosts like servers get it without a post-install step.
+    if ! which dust &>/dev/null; then
+        if [[ "${OSTYPE}" == "darwin"* ]]; then
+            set -x
+            brew install dust
+            set +x
+        else
+            set -x
+            sudo apt-get install --yes du-dust
+            set +x
+        fi
+    fi
+
+    dust "${@}"
 }
 alias large="large_files"
 
