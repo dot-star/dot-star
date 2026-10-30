@@ -590,19 +590,27 @@ local function readSessionStates()
     return states, windows
 end
 
+-- Return where your idle stretch stands: 'waiting' until it's long enough to follow, 'armed' once it is, 'spent' after a follow in it.
+local function followPhase(now)
+    local idle = hs.host.idleTime()
+    if idle < numberOf('follow_idle_seconds') then
+        return 'waiting'
+    elseif lastFollowAt == nil then
+        return 'armed'
+    elseif now - lastFollowAt < idle then
+        -- Spend the stretch once a follow ran since your last input.
+        return 'spent'
+    end
+    return 'armed'
+end
+
 -- Return whether follow_ready should switch you to `space`, which just turned ready.
 local function shouldFollow(space, now)
-    local idle = hs.host.idleTime()
     if not isEnabled('follow_ready') then
         return false
     elseif space == hs.spaces.focusedSpace() then
         return false
-    elseif idle < numberOf('follow_idle_seconds') then
-        return false
-    elseif lastFollowAt == nil then
-        return true
-    elseif now - lastFollowAt < idle then
-        -- Stay put when a follow already ran since your last input.
+    elseif followPhase(now) ~= 'armed' then
         return false
     end
     return true
