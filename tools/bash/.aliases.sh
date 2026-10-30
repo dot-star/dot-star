@@ -213,7 +213,7 @@ alias_ls() {
             --ignore=".swp" \
             --ignore="__pycache__" \
             --literal \
-            --time-style=local \
+            --time-style=locale \
             -X \
             -l \
             -v \
