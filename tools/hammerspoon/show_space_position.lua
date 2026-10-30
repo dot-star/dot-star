@@ -42,8 +42,8 @@ local EDGE_BAR_COLORS = {
 local UNIFORM_EDGE_BAR_COLOR = { red = 1, green = 0.9, blue = 0.1, alpha = 0.9 }
 local DOT_SIZE = 20
 local DOT_GAP = 14
--- Fill the native title bar Ghostty keeps for its tabs with the dots' pill, at the height it measures on a full-screen Space.
-local TITLE_BAR_HEIGHT = 40
+-- Fill the native title bar Ghostty keeps for its tabs with the dots' pill.
+local TITLE_BAR_HEIGHT = require('ghostty_title_bar').HEIGHT
 -- Pad the pill's ends as much as its top and bottom, so the rounded ends hug the first and last dots evenly.
 local DOTS_PADDING = (TITLE_BAR_HEIGHT - DOT_SIZE) / 2
 -- Wait out macOS rearranging Spaces after a display change, a wake or a Space closing, which often runs on past the event reporting it.
