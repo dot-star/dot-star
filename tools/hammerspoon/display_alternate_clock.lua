@@ -65,6 +65,12 @@ MOUSEEXIT_CANVAS_FILLCOLOR_STATE = {
 MOUSEENTER_CANVAS_FILLCOLOR_STATE = {
     alpha = 0, red = 0, green = 0, blue = 0
 }
+-- Join every Space, full-screen ones included; without it the clock stays on whichever Space Hammerspoon loaded on.
+CLOCK_CANVAS_BEHAVIOR = {
+    'canJoinAllSpaces',
+    'fullScreenAuxiliary',
+    'stationary',
+}
 
 a = hs.canvas.new{
     x = x,
@@ -94,6 +100,7 @@ a[2] = {
     textSize = textSize,
     textFont = textFont,
 }
+a:behavior(CLOCK_CANVAS_BEHAVIOR)
 a:show()
 
 b = hs.canvas.new{
@@ -124,6 +131,7 @@ b[2] = {
     textSize = textSize,
     textFont = textFont,
 }
+b:behavior(CLOCK_CANVAS_BEHAVIOR)
 b:show()
 
 aMouseEnter = false
