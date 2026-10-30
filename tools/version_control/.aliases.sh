@@ -193,7 +193,7 @@ alias create_patch_from_last="patch_last"
 alias d.="rc_diff ."
 
 # Define `d1`..`dN` as cumulative diffs (`d3` = `git diff HEAD~3`); `git status` lists as many unpushed commits as there are aliases.
-DIFF_ALIAS_COUNT=9
+DIFF_ALIAS_COUNT=20
 define_cumulative_diff_aliases() {
     local i
 
