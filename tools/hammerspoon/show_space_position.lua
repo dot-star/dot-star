@@ -322,9 +322,9 @@ local function placeEdgeBars(pair, index, count, screen)
         pair.dotsPill = pillVisible
     end
     local dotsWidth = pageDotsWidth(count)
-    -- Sit the dots just inside the right glow, so the strip doesn't wash them out.
+    -- Sit the dots flush against the screen's right edge, over the right bar's glow.
     pair.dots:frame({
-        x = frame.x + frame.w - EDGE_BAR_CANVAS_WIDTH - dotsWidth,
+        x = frame.x + frame.w - dotsWidth,
         y = frame.y,
         w = dotsWidth,
         h = TITLE_BAR_HEIGHT,
