@@ -2403,6 +2403,60 @@ stack_renamed_paths() {
     '
 }
 
+fold_status_branch_line() {
+    # Fold `git status`'s first section header into the "On branch" line above
+    # it and drop trailing blank lines, so the status spends no lines on
+    # framing. Run it last, since the other filters key on the bare headers.
+    # Example output:
+    #   On branch master, changes to be committed:
+    #           modified:   foo.sh
+    awk '
+        BEGIN {
+            headers["Changes to be committed:"] = 1
+            headers["Changes not staged for commit:"] = 1
+            headers["Ignored files:"] = 1
+            headers["Unmerged paths:"] = 1
+            headers["Untracked files:"] = 1
+        }
+        {
+            bare = $0
+            gsub(/\033\[[0-9;]*m/, "", bare)
+        }
+
+        # Hold the branch line until the next line shows whether a header follows it.
+        NR == 1 && bare ~ /^On branch / {
+            branch_line = $0
+            next
+        }
+        NR == 2 && branch_line != "" {
+            if (bare in headers) {
+                $0 = branch_line ", " tolower(substr(bare, 1, 1)) substr(bare, 2)
+            } else {
+                print branch_line
+            }
+            branch_line = ""
+        }
+
+        # Hold blank lines until a later line shows they are not trailing.
+        bare == "" {
+            blank_count++
+            next
+        }
+        {
+            for (; blank_count > 0; blank_count--) {
+                print ""
+            }
+            print
+        }
+
+        END {
+            if (branch_line != "") {
+                print branch_line
+            }
+        }
+    '
+}
+
 label_untracked_paths() {
     # Label each `git status` untracked path "untracked:", padded so the path
     # lines up under the labeled paths above it. Read the column from the output
@@ -2460,13 +2514,13 @@ rc_status() {
     clear
 
     if is_git; then
-        echo "git status"
         # Show untracked files individually instead of letting git collapse them under a parent dir.
         # Pass before "$@" so an explicit `--untracked-files=...` from the caller still wins.
         # Force color so the rename stacker's pipe keeps git's status coloring.
         git -c color.status=always status --untracked-files=all "$@" |
             label_untracked_paths |
-            stack_renamed_paths
+            stack_renamed_paths |
+            fold_status_branch_line
 
         # Run extra checks only when called with no args, to avoid noise on `s -s` etc.
         if [[ "${#}" -eq 0 ]]; then
