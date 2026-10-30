@@ -93,8 +93,8 @@ claude_session_list_render() {
     # newest; 0 shows every row. Rows print oldest-first so the newest lands
     # closest to the prompt, the way `s`'s worktree table orders.
     # Example output:
-    #     Fix login redirect (3 days ago)
-    #     Add quoted flag values rule (2 hours ago)
+    #     Fix login redirect           (3 days ago)
+    #     Add quoted flag values rule  (2 hours ago)
     # Usage:
     #   $ claude_session_list_render "$(git rev-parse --show-toplevel)" 0
     local dir="$1"
@@ -193,6 +193,15 @@ claude_session_list_render() {
                         printf "    \033[2m... and \033[0m\033[1;36m%d\033[0m\033[2m more\033[0m\n", NR - max_rows
                     }
 
+                    # Pad titles to the widest shown, so the ages line up in a column of their own.
+                    width = 0
+                    for (i = first; i <= NR; i++) {
+                        if (length(row_title[i]) > width) {
+                            width = length(row_title[i])
+                        }
+                    }
+                    row_format = "    %-" width "s  %s(%s)\033[0m\n"
+
                     for (i = first; i <= NR; i++) {
                         rel = relative_age(row_mtime[i])
 
@@ -202,7 +211,7 @@ claude_session_list_render() {
                             color = "\033[2m"
                         }
 
-                        printf "    %s %s(%s)\033[0m\n", row_title[i], color, rel
+                        printf row_format, row_title[i], color, rel
                     }
                 }
             '
