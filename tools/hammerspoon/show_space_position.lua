@@ -298,14 +298,20 @@ local function placeEdgeBars(pair, index, count, screen)
         barTop = frame.y
     end
     local barFrame = { x = frame.x, y = barTop, w = frame.w, h = frame.y + frame.h - barTop }
-    -- Redraw the elements only when the bar height changes, so a plain Space switch never repaints the bars.
-    if pair.height ~= barFrame.h then
+    -- Start the right bar below the title bar, level with the top of the alternate clock that sits there on a full-screen Space.
+    local rightBarTop = frame.y + TITLE_BAR_HEIGHT
+    local rightBarFrame = { x = frame.x, y = rightBarTop, w = frame.w, h = frame.y + frame.h - rightBarTop }
+    -- Redraw the elements only when a bar's height changes, so a plain Space switch never repaints the bars.
+    if pair.leftHeight ~= barFrame.h then
         layoutEdgeBar(pair.left, 'left', pair.color, barFrame.h)
-        layoutEdgeBar(pair.right, 'right', pair.color, barFrame.h)
-        pair.height = barFrame.h
+        pair.leftHeight = barFrame.h
+    end
+    if pair.rightHeight ~= rightBarFrame.h then
+        layoutEdgeBar(pair.right, 'right', pair.color, rightBarFrame.h)
+        pair.rightHeight = rightBarFrame.h
     end
     pair.left:frame(edgeBarFrame(barFrame, barFrame.x))
-    pair.right:frame(edgeBarFrame(barFrame, barFrame.x + barFrame.w - EDGE_BAR_CANVAS_WIDTH))
+    pair.right:frame(edgeBarFrame(rightBarFrame, rightBarFrame.x + rightBarFrame.w - EDGE_BAR_CANVAS_WIDTH))
     pair.bottom:frame({ x = frame.x, y = frame.y + frame.h - BOTTOM_BAR_HEIGHT, w = frame.w, h = BOTTOM_BAR_HEIGHT })
     pair.bumper:frame({
         x = frame.x + frame.w - BUMPER_DEPTH,
