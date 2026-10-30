@@ -47,6 +47,7 @@
 
 
   -
+    -
   -
     - The stand-in is the only place promote, land and close show their reply shape, so it has to show one number per tree or it understates the pick.
   - Dropped `staged` because a series' later commits are unstaged yet still get trees.
