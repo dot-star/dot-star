@@ -2548,6 +2548,15 @@ rc_status() {
                         git_worktree_list_render 10
                 fi
             fi
+
+            # List the Claude sessions `clr` can resume here. Cap the rows by
+            # exporting CLAUDE_SESSION_LIST_LIMIT; 0 lists every session.
+            local claude_sessions
+            claude_sessions="$(claude_session_list_render "${current_toplevel}" "${CLAUDE_SESSION_LIST_LIMIT:-0}")"
+            if [[ -n "${claude_sessions}" ]]; then
+                echo
+                echo "${claude_sessions}"
+            fi
         fi
     elif is_g; then
         pending

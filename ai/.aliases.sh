@@ -87,6 +87,127 @@ newest_moved_in_session() {
     basename "${newest}" .jsonl
 }
 
+claude_session_list_render() {
+    # Render the sessions `clr` can resume from <dir> under a "<count> claude
+    # sessions:" header, each titled and aged. Show at most <max_rows> of the
+    # newest; 0 shows every row. Rows print oldest-first so the newest lands
+    # closest to the prompt, the way `s`'s worktree table orders.
+    # Example output:
+    #     Fix login redirect (3 days ago)
+    #     Add quoted flag values rule (2 hours ago)
+    # Usage:
+    #   $ claude_session_list_render "$(git rev-parse --show-toplevel)" 0
+    local dir="$1"
+    local max_rows="$2"
+    local transcript
+    local -a transcripts=()
+    local -a stat_mtime=(stat -c '%Y %n')
+    local now
+
+    while IFS= read -r transcript; do
+        transcripts+=("${transcript}")
+    done < <(list_session_transcripts "${dir}")
+
+    if [[ "${#transcripts[@]}" -eq 0 ]]; then
+        return 0
+    fi
+
+    if [[ "${OSTYPE}" == "darwin"* ]]; then
+        # Call BSD stat directly, as `git_worktree_list_sorted` does.
+        stat_mtime=(/usr/bin/stat -f '%m %N')
+    fi
+
+    now="$(/bin/date +%s)"
+
+    # Join each transcript's mtime to its title, preferring a `/rename` title
+    # over the one claude generates. Fall back to the session id when neither
+    # was written yet.
+    awk \
+        -F'\t' \
+        '
+            FILENAME == ARGV[1] {
+                pos = index($0, " ")
+                mtime[substr($0, pos + 1)] = substr($0, 1, pos - 1)
+                next
+            }
+            {
+                pos = index($0, ":")
+                file = substr($0, 1, pos - 1)
+                title = substr($0, pos + 1)
+                is_custom = (title ~ /^"type":"custom-title"/)
+                sub(/^.*Title":"/, "", title)
+                sub(/"$/, "", title)
+                gsub(/\\"/, "\"", title)
+                gsub(/\\\\/, "\\", title)
+                if (is_custom) {
+                    custom[file] = title
+                } else {
+                    generated[file] = title
+                }
+            }
+            END {
+                for (file in mtime) {
+                    title = custom[file]
+                    if (title == "") {
+                        title = generated[file]
+                    }
+                    if (title == "") {
+                        id = file
+                        sub(/.*\//, "", id)
+                        sub(/\.jsonl$/, "", id)
+                        title = "untitled " id
+                    }
+                    gsub(/\t/, " ", title)
+                    printf "%s\t%s\n", mtime[file], title
+                }
+            }
+        ' \
+        <("${stat_mtime[@]}" "${transcripts[@]}" 2>/dev/null) \
+        <(
+            command grep \
+                --extended-regexp \
+                --only-matching \
+                --with-filename \
+                '"type":"(custom-title|ai-title)","(customTitle|aiTitle)":"([^"\\]|\\.)*"' \
+                -- \
+                "${transcripts[@]}" \
+                2>/dev/null
+        ) |
+        command sort -n |
+        awk \
+            -F'\t' \
+            -v max_rows="${max_rows}" \
+            -v now="${now}" \
+            "$(relative_age_awk)$(relative_age_color_awk)"'
+                {
+                    row_mtime[NR] = $1
+                    row_title[NR] = $2
+                }
+                END {
+                    label = (NR > 1) ? "claude sessions" : "claude session"
+                    printf "\033[1;36m%d\033[0m \033[2m%s:\033[0m\n", NR, label
+
+                    first = 1
+                    if (max_rows > 0 && NR > max_rows) {
+                        first = NR - max_rows + 1
+                        printf "    \033[2m... and \033[0m\033[1;36m%d\033[0m\033[2m more\033[0m\n", NR - max_rows
+                    }
+
+                    for (i = first; i <= NR; i++) {
+                        rel = relative_age(row_mtime[i])
+
+                        # Rest at dim for an age too old for a recency tint.
+                        color = age_color(rel)
+                        if (color == "") {
+                            color = "\033[2m"
+                        }
+
+                        printf "    %s %s(%s)\033[0m\n", row_title[i], color, rel
+                    }
+                }
+            '
+}
+
 claude_run() {
     # Run claude, optionally resuming a session and/or labeling the window.
     # Usage:
