@@ -26,17 +26,17 @@ function update_clock_position()
     -- print(string.format('x: %s', x))
     -- print(string.format('y: %s', y))
 
-    eachClockPair(function(a, b)
+    eachClockPair(function(a, b, pair)
         a:frame({
             x = x,
-            y = y,
+            y = clockTop(pair),
             h = h,
             w = w,
         })
 
         b:frame({
             x = x,
-            y = y + h,
+            y = clockTop(pair) + h,
             h = h,
             w = w,
         })
@@ -114,8 +114,19 @@ end
 -- Call `fn` with every Space's pair of clock rows.
 function eachClockPair(fn)
     for _, pair in pairs(clocksBySpace) do
-        fn(pair.a, pair.b)
+        fn(pair.a, pair.b, pair)
     end
+end
+
+-- Drop the clock below the title bar Ghostty keeps on a full-screen Space, so it clears the page dots there.
+FULL_SCREEN_CLOCK_TOP = require('ghostty_title_bar').HEIGHT
+
+-- Return the top of `pair`'s first row: under the menu bar on a desktop, under the title bar on a full-screen Space.
+function clockTop(pair)
+    if pair.fullScreen then
+        return FULL_SCREEN_CLOCK_TOP
+    end
+    return y
 end
 
 aMouseEnter = false
@@ -198,9 +209,10 @@ function showClockOnFocusedSpace()
         return
     end
     local pair = {
-        a = newClockRow(y, canvasAMouseCallbackFn),
-        b = newClockRow(y + h, canvasBMouseCallbackFn),
+        fullScreen = hs.spaces.spaceType(focused) == 'fullscreen',
     }
+    pair.a = newClockRow(clockTop(pair), canvasAMouseCallbackFn)
+    pair.b = newClockRow(clockTop(pair) + h, canvasBMouseCallbackFn)
     pair.a[2].text = pst_text
     pair.b[2].text = est_text
     pair.a:show()
