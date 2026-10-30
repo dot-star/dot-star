@@ -6,8 +6,10 @@
 --   Add a row of dots in the title bar's upper-right corner of every full-screen Space, the focused Space filled (page_dots, needs edge_bars).
 --   Show the dark pill behind the dots, to check where their canvas sits (page_dots_pill, needs page_dots).
 --   Show on each dot the state of the Claude session whose window sits on that Space (session_state, needs page_dots).
+--   Switch to a Space whose session just turned ready, once you've been idle a while (follow_ready, needs session_state).
 -- Toggle from the shell with `space_position_experiment`; each flag persists across reloads.
 -- Pick the session dots' decision style and focus marker the same way; each style persists too.
+-- Set how long you must be idle before follow_ready switches Spaces the same way, with follow_idle_seconds.
 -- Re-place the bars after a display change or a wake, which move the screens without switching Spaces.
 -- Redraw a beat after each Space change too, so bars of a full-screen Space that just closed get deleted.
 
@@ -16,6 +18,7 @@ local DEFAULT_ENABLED = {
     bottom_bar = true,
     cycle_colors = false,
     edge_bars = true,
+    follow_ready = true,
     page_dots = true,
     page_dots_pill = false,
     session_state = true,
@@ -28,6 +31,11 @@ local DEFAULT_STYLES = {
 local STYLE_CHOICES = {
     decision_style = { 'blink', 'flash', 'heartbeat', 'nudge' },
     focus_marker = { 'center', 'underline' },
+}
+-- Apply each number's default until it's set; a saved value wins after that.
+local DEFAULT_NUMBERS = {
+    -- Wait out a pause for thought, so a session finishing while you're mid-task never pulls you off it.
+    follow_idle_seconds = 30,
 }
 local SETTINGS_PREFIX = 'show_space_position.'
 local EDGE_BAR_WIDTH = 7
@@ -100,6 +108,8 @@ local sessionStates = nil
 -- Map each Space id to when its dot turned ready, to ripple its one ping.
 local pingStartedAt = {}
 local frameTimer = nil
+-- Remember when follow_ready last switched Spaces, so a second session turning ready in the same idle stretch leaves you on the first.
+local lastFollowAt = nil
 
 local function isEnabled(name)
     local value = hs.settings.get(SETTINGS_PREFIX .. name)
@@ -124,6 +134,14 @@ local function styleOf(name)
         return DEFAULT_STYLES[name]
     elseif not isStyleChoice(name, value) then
         return DEFAULT_STYLES[name]
+    end
+    return value
+end
+
+local function numberOf(name)
+    local value = hs.settings.get(SETTINGS_PREFIX .. name)
+    if type(value) ~= 'number' then
+        return DEFAULT_NUMBERS[name]
     end
     return value
 end
@@ -530,7 +548,7 @@ local function readFile(filePath)
     return contents
 end
 
--- Return the Spaces holding a session's recorded window; none once the window is gone, so a crashed session can't leave a stuck dot.
+-- Return the Spaces holding a session's recorded window and that window's id; no Spaces once the window is gone, so a crashed session can't leave a stuck dot.
 local function sessionSpaces(sessionId)
     local record = readFile(SESSION_STATE_DIR .. sessionId .. '.window')
     if record == nil then
@@ -540,14 +558,15 @@ local function sessionSpaces(sessionId)
     if windowId == nil then
         return {}
     end
-    return hs.spaces.windowSpaces(windowId) or {}
+    return hs.spaces.windowSpaces(windowId) or {}, windowId
 end
 
--- Return each Space's most urgent session state, from the state words the hooks record.
+-- Return each Space's most urgent session state, from the state words the hooks record, and the window of the session it came from.
 local function readSessionStates()
     local states = {}
+    local windows = {}
     if hs.fs.attributes(SESSION_STATE_DIR) == nil then
-        return states
+        return states, windows
     end
     for fileName in hs.fs.dir(SESSION_STATE_DIR) do
         local sessionId = fileName:match('^(.+)%.state$')
@@ -556,26 +575,61 @@ local function readSessionStates()
             state = (readFile(SESSION_STATE_DIR .. fileName) or ''):match('%a+')
         end
         if SESSION_STATE_URGENCY[state] ~= nil then
-            for _, space in ipairs(sessionSpaces(sessionId)) do
+            local spaces, windowId = sessionSpaces(sessionId)
+            for _, space in ipairs(spaces) do
                 if states[space] == nil then
                     states[space] = state
+                    windows[space] = windowId
                 elseif SESSION_STATE_URGENCY[state] > SESSION_STATE_URGENCY[states[space]] then
                     states[space] = state
+                    windows[space] = windowId
                 end
             end
         end
     end
-    return states
+    return states, windows
 end
 
--- Re-read every session's state, starting a ping on each Space that just turned ready.
+-- Return whether follow_ready should switch you to `space`, which just turned ready.
+local function shouldFollow(space, now)
+    local idle = hs.host.idleTime()
+    if not isEnabled('follow_ready') then
+        return false
+    elseif space == hs.spaces.focusedSpace() then
+        return false
+    elseif idle < numberOf('follow_idle_seconds') then
+        return false
+    elseif lastFollowAt == nil then
+        return true
+    elseif now - lastFollowAt < idle then
+        -- Stay put when a follow already ran since your last input.
+        return false
+    end
+    return true
+end
+
+-- Switch to `space` by focusing its session's window, falling back to the Space itself when that window isn't reachable from here.
+local function followTo(space, windowId, now)
+    lastFollowAt = now
+    local window = hs.window.get(windowId)
+    if window then
+        window:focus()
+    else
+        hs.spaces.gotoSpace(space)
+    end
+end
+
+-- Re-read every session's state, starting a ping on each Space that just turned ready and following it there when you're away.
 local function refreshSessionStates()
-    local states = readSessionStates()
+    local states, windows = readSessionStates()
     if sessionStates ~= nil then
         local now = hs.timer.secondsSinceEpoch()
         for space, state in pairs(states) do
             if state == 'ready' and sessionStates[space] ~= 'ready' then
                 pingStartedAt[space] = now
+                if shouldFollow(space, now) then
+                    followTo(space, windows[space], now)
+                end
             end
         end
     end
@@ -900,7 +954,7 @@ local function renderAfterSettle()
     end)
 end
 
--- Turn an experiment on or off or pick a style, or report every experiment's state and style's pick when called with no name.
+-- Turn an experiment on or off, pick a style or set a number, or report every one's current value when called with no name.
 function showSpacePosition.set(name, value)
     if name == nil then
         local lines = {}
@@ -910,7 +964,18 @@ function showSpacePosition.set(name, value)
         for _, style in ipairs(sortedKeys(DEFAULT_STYLES)) do
             lines[#lines + 1] = style .. ' ' .. styleOf(style)
         end
+        for _, number in ipairs(sortedKeys(DEFAULT_NUMBERS)) do
+            lines[#lines + 1] = number .. ' ' .. numberOf(number)
+        end
         return table.concat(lines, '\n')
+    elseif DEFAULT_NUMBERS[name] ~= nil then
+        if type(value) ~= 'number' then
+            return name .. ' takes a number of seconds, not ' .. tostring(value)
+        elseif value < 0 then
+            return name .. ' takes a number of seconds, not ' .. tostring(value)
+        end
+        hs.settings.set(SETTINGS_PREFIX .. name, value)
+        return name .. ' ' .. value
     elseif DEFAULT_STYLES[name] ~= nil then
         if not isStyleChoice(name, value) then
             return 'unknown ' .. name .. ': ' .. tostring(value) .. ' (expected one of: ' .. table.concat(STYLE_CHOICES[name], ', ') .. ')'
@@ -922,6 +987,9 @@ function showSpacePosition.set(name, value)
         local names = experimentNames()
         for _, style in ipairs(sortedKeys(DEFAULT_STYLES)) do
             names[#names + 1] = style
+        end
+        for _, number in ipairs(sortedKeys(DEFAULT_NUMBERS)) do
+            names[#names + 1] = number
         end
         return 'unknown experiment: ' .. name .. ' (expected one of: ' .. table.concat(names, ', ') .. ')'
     elseif type(value) ~= 'boolean' then
