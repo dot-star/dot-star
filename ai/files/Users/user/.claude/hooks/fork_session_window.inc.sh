@@ -7,6 +7,8 @@
 # shares the parent's worktree; it makes its own. A window rather than a tab
 # keeps the fork's separate objective out of the parent's tab bar.
 
+source "$(dirname -- "${BASH_SOURCE[0]}")/claude_session_dir.inc.sh"
+
 # Echo the SendMessage address of the `claude` process running this hook; return 1 when none is found.
 # Each session listens on /tmp/cc-socks/<its claude pid>.sock, and SendMessage takes that path as `uds:<path>`.
 claude_session_address() {
@@ -40,6 +42,20 @@ shell_quote() {
     printf '%s' "'${1//${quote}/${escaped_quote}}'"
 }
 
+# Save the task to a unique file in the directory and echo the shell argument that reads it back.
+# Keeps the task's non-ASCII text off the typed command line, since Ghostty's `initial input` re-encodes each UTF-8 byte as its own character.
+fork_task_argument() {
+    local task_dir="${1}"
+    local task="${2}"
+    local task_file
+
+    if ! task_file=$(mktemp "${task_dir}/fork_task.XXXXXX"); then
+        return 1
+    fi
+    printf '%s' "${task}" >"${task_file}"
+    printf '%s' "\"\$(cat $(shell_quote "${task_file}"))\""
+}
+
 # Open the fork window and echo the directory it opened in; echo the reason and return 1 when it can't.
 # Usage:
 #   open_fork_window <session-id> <transcript-path> <cwd> [<task>]
@@ -52,6 +68,7 @@ open_fork_window() {
     local git_common_dir
     local command_line
     local parent_address
+    local task_argument
     local error
 
     # Resolve the main checkout through the shared git dir, which every worktree points at.
@@ -69,7 +86,11 @@ open_fork_window() {
     # closes once the fork's session ends, the same as `cl`.
     command_line+=" claude_run"
     if [ -n "${task}" ]; then
-        command_line+=" $(shell_quote "${task}")"
+        if ! task_argument=$(fork_task_argument "$(claude_session_dir "${session_id}")" "${task}"); then
+            printf '%s' "fork couldn't save the task to the session tmp dir."
+            return 1
+        fi
+        command_line+=" ${task_argument}"
     fi
 
     # Pass every string as an argument, so nothing in the task needs AppleScript escaping.
