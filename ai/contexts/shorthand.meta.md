@@ -104,6 +104,7 @@ Generated from this file, so the index can't drift from it; one parse per sessio
   -
 
 -
+- Sits beside `cs` because the two letters swap: `cs` commits what's staged as one commit, `sc` splits the pending work into atomic commits per the one-intent-per-commit principle.
 -
 -
   -

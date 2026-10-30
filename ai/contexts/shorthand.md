@@ -104,6 +104,7 @@ Interpret a bare one-token reply or a short fixed phrase as shorthand. Fires onl
   - `c<N> iter` is the `<N> iter` form: refine draft N, no commit yet.
   <!-- shorthand-match: ^((c|f|p|l|x)\d+|\d+(c|f|p|l|x))( ((c|f|p|l|x)\d+|\d+(c|f|p|l|x)))*( iter)?$ -->
 - `cs` means "commit only the already-staged changes": like `c` (the `commit` skill), but never auto-stage; if nothing is staged, stop.
+- `sc` means "separate commit(s)": split the pending changes into one commit per logical change, staging each by path and running the `commit` skill once per commit.
 - `🚢` means "ship it" (land the work)
 - `split`, `sp`, `prs` mean "propose splitting the current change into separate PRs": offer the unsplit PR first, then a split into 2, into 3 and so on while each PR still carries one intent, with line counts beside every PR. It's a plan, so don't branch, commit or push.
   - Count from `git diff --numstat <merge-base>`, summing each file's adds and deletes into the PR that would carry it.
