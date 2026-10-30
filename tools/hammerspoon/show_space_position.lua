@@ -170,8 +170,8 @@ local function pageDotsWidth(count)
     return count * DOT_SIZE + (count - 1) * DOT_GAP + 2 * DOTS_PADDING
 end
 
--- Draw one dot per Space in `color` on a pill, filling the dot at `index`; keep the pill clear unless `pillVisible`, which shows where the canvas sits.
-local function layoutPageDots(dots, index, count, color, pillVisible)
+-- Keep the pill clear unless `pillVisible`, which shows where the canvas sits.
+local function pageDotsPill(pillVisible)
     local height = TITLE_BAR_HEIGHT
     local pillAlpha
     if pillVisible then
@@ -179,20 +179,27 @@ local function layoutPageDots(dots, index, count, color, pillVisible)
     else
         pillAlpha = 0
     end
-    local elements = {
-        {
-            type = 'rectangle',
-            action = 'fill',
-            fillColor = { white = 0, alpha = pillAlpha },
-            roundedRectRadii = { xRadius = height / 2, yRadius = height / 2 },
-        },
+    return {
+        type = 'rectangle',
+        action = 'fill',
+        fillColor = { white = 0, alpha = pillAlpha },
+        roundedRectRadii = { xRadius = height / 2, yRadius = height / 2 },
     }
+end
+
+local function pageDotCenter(position)
+    return { x = DOTS_PADDING + (position - 1) * (DOT_SIZE + DOT_GAP) + DOT_SIZE / 2, y = TITLE_BAR_HEIGHT / 2 }
+end
+
+-- Draw one dot per Space in `color` on a pill, filling the dot at `index`.
+local function layoutPageDots(dots, index, count, color, pillVisible)
+    local elements = { pageDotsPill(pillVisible) }
     -- Draw the dots fully opaque, the same as the bumper, so they hold up against glare.
     local opaque = { red = color.red, green = color.green, blue = color.blue, alpha = 1 }
     for position = 1, count do
         local dot = {
             type = 'circle',
-            center = { x = DOTS_PADDING + (position - 1) * (DOT_SIZE + DOT_GAP) + DOT_SIZE / 2, y = height / 2 },
+            center = pageDotCenter(position),
             radius = DOT_SIZE / 2,
             strokeColor = opaque,
             strokeWidth = 1.5,
