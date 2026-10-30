@@ -1880,40 +1880,7 @@ git_worktree_list_sorted() {
     awk \
         -F'\t' \
         -v now="${now}" \
-        '
-            # Spell an mtime as "X units ago", the way `git log --relative-date`
-            # reads. Truncate toward zero, so 90 minutes reads "1 hour ago".
-            function relative_age(mtime,    diff, value, unit) {
-                diff = now - mtime
-                if (diff < 60) {
-                    value = diff
-                    unit = "second"
-                } else if (diff < 3600) {
-                    value = int(diff / 60)
-                    unit = "minute"
-                } else if (diff < 86400) {
-                    value = int(diff / 3600)
-                    unit = "hour"
-                } else if (diff < 604800) {
-                    value = int(diff / 86400)
-                    unit = "day"
-                } else if (diff < 2592000) {
-                    value = int(diff / 604800)
-                    unit = "week"
-                } else if (diff < 31536000) {
-                    value = int(diff / 2592000)
-                    unit = "month"
-                } else {
-                    value = int(diff / 31536000)
-                    unit = "year"
-                }
-
-                if (value == 1) {
-                    return value " " unit " ago"
-                }
-                return value " " unit "s ago"
-            }
-
+        "$(relative_age_awk)"'
             # Index the first file, `stat`s output, by path. Split on the first
             # space only: a path may hold spaces of its own, an mtime cannot.
             NR == FNR {
@@ -1938,6 +1905,48 @@ git_worktree_list_sorted() {
         <(printf '%s\n' "${mtimes}") \
         <(printf '%s' "${rows}") |
         sort -t $'\t' -k1,1 -rn
+}
+
+relative_age_awk() {
+    # Emit the awk source for `relative_age`, spelling an mtime as "X units ago"
+    # against the awk variable `now`. Concatenate it ahead of an awk program so
+    # every listing that shows an age words it the same way:
+    #   awk -v now="$(/bin/date +%s)" "$(relative_age_awk)"'{ print relative_age($1) }'
+
+    cat <<'AWK'
+        # Spell an mtime as "X units ago", the way `git log --relative-date`
+        # reads. Truncate toward zero, so 90 minutes reads "1 hour ago".
+        function relative_age(mtime,    diff, value, unit) {
+            diff = now - mtime
+            if (diff < 60) {
+                value = diff
+                unit = "second"
+            } else if (diff < 3600) {
+                value = int(diff / 60)
+                unit = "minute"
+            } else if (diff < 86400) {
+                value = int(diff / 3600)
+                unit = "hour"
+            } else if (diff < 604800) {
+                value = int(diff / 86400)
+                unit = "day"
+            } else if (diff < 2592000) {
+                value = int(diff / 604800)
+                unit = "week"
+            } else if (diff < 31536000) {
+                value = int(diff / 2592000)
+                unit = "month"
+            } else {
+                value = int(diff / 31536000)
+                unit = "year"
+            }
+
+            if (value == 1) {
+                return value " " unit " ago"
+            }
+            return value " " unit "s ago"
+        }
+AWK
 }
 
 relative_age_color_awk() {
