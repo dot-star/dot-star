@@ -37,7 +37,7 @@ local STYLE_CHOICES = {
 -- Apply each number's default until it's set; a saved value wins after that.
 local DEFAULT_NUMBERS = {
     -- Wait out a pause for thought, so a session finishing while you're mid-task never pulls you off it.
-    follow_idle_seconds = 30,
+    follow_idle_seconds = 10,
 }
 local SETTINGS_PREFIX = 'show_space_position.'
 local EDGE_BAR_WIDTH = 7
