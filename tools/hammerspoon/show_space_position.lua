@@ -46,8 +46,8 @@ local EDGE_BAR_WIDTH = 7
 -- Back the right strip with a wide glow that fades out toward the middle, so the edge reads from the corner of the eye.
 local EDGE_GLOW_WIDTH = 64
 local EDGE_BAR_CANVAS_WIDTH = math.max(EDGE_BAR_WIDTH, EDGE_GLOW_WIDTH)
--- Keep the top and bottom bands as thin as the edge strips with no glow, so it hints at the Space's color without eating into the terminal.
-local BAND_HEIGHT = EDGE_BAR_WIDTH
+-- Keep the top and bottom bands thinner than the edge strips with no glow, so they hint at the Space's color without eating into the terminal.
+local BAND_HEIGHT = 5
 -- Block the right edge's midpoint with a bumper on the last Space, where there's no bar to say the swipe goes on.
 local BUMPER_DEPTH = 28
 local BUMPER_HEIGHT = 140
