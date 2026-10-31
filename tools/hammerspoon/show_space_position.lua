@@ -45,7 +45,7 @@ local EDGE_BAR_WIDTH = 7
 local EDGE_GLOW_WIDTH = 64
 local EDGE_BAR_CANVAS_WIDTH = math.max(EDGE_BAR_WIDTH, EDGE_GLOW_WIDTH)
 -- Keep the bottom band as thin as the edge strips with no glow, so it hints at the Space's color without eating into the terminal.
-local BOTTOM_BAR_HEIGHT = EDGE_BAR_WIDTH
+local BAND_HEIGHT = EDGE_BAR_WIDTH
 -- Block the right edge's midpoint with a bumper on the last Space, where there's no bar to say the swipe goes on.
 local BUMPER_DEPTH = 28
 local BUMPER_HEIGHT = 140
@@ -209,8 +209,8 @@ local function newEdgeBar(color)
 end
 
 -- Fill the whole canvas, so resizing the band to a new screen width needs no redraw.
-local function newBottomBar(color)
-    local bar = newOverlay({ x = 0, y = 0, w = 1, h = BOTTOM_BAR_HEIGHT }, EDGE_BAR_BEHAVIOR)
+local function newBand(color)
+    local bar = newOverlay({ x = 0, y = 0, w = 1, h = BAND_HEIGHT }, EDGE_BAR_BEHAVIOR)
     bar:alpha(color.alpha)
     bar[1] = {
         type = 'rectangle',
@@ -875,7 +875,7 @@ local function placeEdgeBars(pair, index, count, screen)
     end
     pair.left:frame(edgeBarFrame(barFrame, barFrame.x))
     pair.right:frame(edgeBarFrame(rightBarFrame, rightBarFrame.x + rightBarFrame.w - EDGE_BAR_CANVAS_WIDTH))
-    pair.bottom:frame({ x = frame.x, y = frame.y + frame.h - BOTTOM_BAR_HEIGHT, w = frame.w, h = BOTTOM_BAR_HEIGHT })
+    pair.bottom:frame({ x = frame.x, y = frame.y + frame.h - BAND_HEIGHT, w = frame.w, h = BAND_HEIGHT })
     pair.bumper:frame({
         x = frame.x + frame.w - BUMPER_DEPTH,
         y = frame.y + (frame.h - BUMPER_HEIGHT) / 2,
@@ -954,7 +954,7 @@ local function renderEdgeBars(index, count, screen, focused)
         pair = {
             left = newEdgeBar(color),
             right = newEdgeBar(color),
-            bottom = newBottomBar(color),
+            bottom = newBand(color),
             bumper = newBumper(color),
             dots = newPageDots(),
             countdown = newCountdown(),
