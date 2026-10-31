@@ -51,30 +51,39 @@ local function disarm()
     end
 end
 
--- Arm the hop for the focused Space when it holds a full-screen window of `bundleId`; return what happened for the log.
-function followClosedFullScreenSpace.arm(bundleId)
-    disarm()
-
+-- Return the focused Space and the Space to follow it to when it holds a full-screen window of `bundleId`, else nil and why not.
+local function closingAndTarget(bundleId)
     local window = hs.window.focusedWindow()
     local closing = hs.spaces.focusedSpace()
     if window == nil then
-        return 'skipped: no focused window'
+        return nil, nil, 'skipped: no focused window'
     elseif window:application():bundleID() ~= bundleId then
-        return 'skipped: focused window belongs to another app'
+        return nil, nil, 'skipped: focused window belongs to another app'
     elseif hs.spaces.spaceType(closing) ~= 'fullscreen' then
-        return 'skipped: focused Space is not full screen'
+        return nil, nil, 'skipped: focused Space is not full screen'
     end
 
     local screen = hs.screen.find(hs.spaces.spaceDisplay(closing)) or hs.screen.mainScreen()
     local spaces = hs.spaces.spacesForScreen(screen) or {}
     local index = indexOf(spaces, closing)
     if index == nil then
-        return 'skipped: focused Space not found on its screen'
+        return nil, nil, 'skipped: focused Space not found on its screen'
     end
 
     local target = neighborFullScreenSpace(spaces, index)
     if target == nil then
-        return 'skipped: no other full-screen Space'
+        return nil, nil, 'skipped: no other full-screen Space'
+    end
+    return closing, target, nil
+end
+
+-- Arm the hop for the focused Space when it holds a full-screen window of `bundleId`; return what happened for the log.
+function followClosedFullScreenSpace.arm(bundleId)
+    disarm()
+
+    local closing, target, skipped = closingAndTarget(bundleId)
+    if skipped then
+        return skipped
     end
 
     local deadline = hs.timer.secondsSinceEpoch() + GIVE_UP_SECONDS
