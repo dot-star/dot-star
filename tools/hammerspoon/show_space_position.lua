@@ -1201,12 +1201,22 @@ function showSpacePosition.set(name, value)
     return name .. ' ' .. (value and 'on' or 'off')
 end
 
--- Name `space` by its swipe-order position on its screen (Space #2), since the id hs.spaces hands out means nothing to a person.
+-- Return which session ring stands for `space` on `screen`, the numbering the dots row shows.
+local function ringLabel(space, screen)
+    for ring, candidate in ipairs(sessionDotSpaces(screen)) do
+        if candidate == space then
+            return 'ring ' .. ring
+        end
+    end
+    return 'home, no ring'
+end
+
+-- Name `space` by its swipe-order position and its session ring (Space #3 (ring 2)), since the id hs.spaces hands out means nothing to a person.
 function showSpacePosition.spaceNumber(space)
-    for _, spaces in pairs(hs.spaces.allSpaces() or {}) do
+    for screen, spaces in pairs(hs.spaces.allSpaces() or {}) do
         for index, candidate in ipairs(spaces) do
             if candidate == space then
-                return 'Space #' .. index
+                return 'Space #' .. index .. ' (' .. ringLabel(space, screen) .. ')'
             end
         end
     end
