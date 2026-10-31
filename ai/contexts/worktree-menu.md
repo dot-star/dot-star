@@ -52,7 +52,7 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
     - Repeat the `N` once per commit when the menu banks several (`[pN pN] ...`), showing a pick takes one subject per tree.
   - **One tree per commit:**
     - A menu covering two or more commits renders a draft tree under each one, whether they're staged in separate repos or worktrees or queued as a series in one.
-    - Hang each commit's tree off its own label row under the commit row, naming the commit (what it holds, plus the repo or worktree, or in a series whether it's staged with `d` to view it or unstaged with `dw`), with that commit's drafts nested one level deeper. A flat run of six drafts under one row reads as six candidates for a single commit, however the numbers split.
+    - Hang each commit's tree off its own label row under the commit row, naming the commit (what it holds, plus the repo or worktree, or in a series whether it's staged or unstaged and its `cN` to view it), with that commit's drafts nested one level deeper. A flat run of six drafts under one row reads as six candidates for a single commit, however the numbers split.
       - Nest with a `│` + 1 U+3000 continuation under every label row but the last, and 1 U+3000 + 1 regular space under the last, so each draft glyph lands under its label's first letter.
     - Number the drafts globally unique across the message (`[c1]`-`[c3]` for the first commit, `[c4]`-`[c6]` for the second), so a single `c<N>` names one draft of one commit.
     - Never float a commit's subject in prose beside another commit's tree; a subject with no token can't be picked, so it reads as decided when it isn't.
@@ -77,8 +77,8 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
     - Replace the staged line with the series position, so the user sees what landed and what's left beside the subjects that would bank the rest:
       - ``✅ K of M: <subject>`` per commit made, in series order, as menu rows directly under the question.
       - A `│` rail drops from under the question (below any ✅ rows) past a blank `│` line and down every row to the commit row's last draft, which takes `└` in its place; rows below sit outside. Draw it even before a commit lands: the renderer strips leading spaces, so each row needs the `│` first.
-      - ``├─ 👉 K of M: <what it holds>`` labels the staged commit, with ``│  <files>: staged N files (+A -D; `d` to view)`` beneath it.
-      - ``⏳ K of M: <what it holds>`` labels each later commit, with ``│  <files> (unstaged, `dw <path> [<path> ...]` to view)`` beneath it (`dw` is `rc_diff_unstaged`), naming that commit's own paths, so its subjects can be judged before its paths are staged. When two later commits share a file, say the file's diff covers both.
+      - ``├─ 👉 K of M: <what it holds>`` labels the staged commit, with ``│  <files>: staged N files (+A -D; `cK` to view)`` beneath it.
+      - ``⏳ K of M: <what it holds>`` labels each later commit, with ``│  <files> (unstaged, `cK` to view)`` beneath it, so its subjects can be judged before its paths are staged. `cK` is `git_series_diff K`, run from any terminal: write `/tmp/claude/<session_id>/series/<K>` for every commit first, holding `staged` or `unstaged`, the worktree's absolute path, then that commit's paths, one per line. When two commits share a file, say the file's diff covers both.
       - Indent with plain spaces only: each label's glyph under its parent row's `[`, each file line's and draft's glyph under the label's emoji.
       - No separate `Commit K of M` title: every row already carries its position, so a title says it twice.
 
@@ -88,12 +88,12 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
       >    │ 🛠️ **`[i]terate`** (no commit + keep iterating)
       >    │ 💾 **`[c]ommit`**  (commit 2 of 3, or both + keep iterating)
       >    │    ├─ 👉 2 of 3: Bar cleanup
-      >    │    │  │  `bar.py`: staged 1 file (+7 -6; `d` to view)
+      >    │    │  │  `bar.py`: staged 1 file (+7 -6; `c2` to view)
       >    │    │  ├─ **`[c1]`** Drop unused bar helpers
       >    │    │  ├─ **`[c2]`** Remove dead code from bar
       >    │    │  └─ **`[c3]`** Trim bar to what callers use
       >    │    └─ ⏳ 3 of 3: Baz config
-      >    │       │  `baz.py` (unstaged, `dw baz.py` to view)
+      >    │       │  `baz.py` (unstaged, `c3` to view)
       >    │       ├─ **`[c4]`** Read baz settings from config
       >    │       ├─ **`[c5]`** Move baz settings into config
       >    └       └─ **`[c6]`** Load baz options from config file
@@ -179,12 +179,12 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   >    │ 🛠️ **`[i]terate`** (no commit + keep iterating)
   >    │ 💾 **`[c]ommit`**  (commit 1 of 2, or both + keep iterating)
   >    │    ├─ 👉 1 of 2: Toolbar layout refactor
-  >    │    │  │  `toolbar.py`: staged 1 file (+12 -4; `d` to view)
+  >    │    │  │  `toolbar.py`: staged 1 file (+12 -4; `c1` to view)
   >    │    │  ├─ **`[c1]`** Extract toolbar slot layout
   >    │    │  ├─ **`[c2]`** Split toolbar layout into slots
   >    │    │  └─ **`[c3]`** Move toolbar sizing into slot helper
   >    │    └─ ⏳ 2 of 2: Search box
-  >    │       │  `search.py`, `toolbar.css` (unstaged, `dw search.py toolbar.css` to view)
+  >    │       │  `search.py`, `toolbar.css` (unstaged, `c2` to view)
   >    │       ├─ **`[c4]`** Add search box to toolbar
   >    │       ├─ **`[c5]`** Add toolbar search box
   >    └       └─ **`[c6]`** Show search box in toolbar

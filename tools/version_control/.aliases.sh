@@ -1465,6 +1465,67 @@ rc_diff_unstaged() {
     git_diff_announced "${full_diff}" diff "${diff_args[@]}"
 }
 
+git_series_diff() {
+    # Show commit N of the series a Claude commit menu queued, from any
+    # directory. The menu writes /tmp/claude/<session_id>/series/<N> as a mode
+    # line (staged or unstaged), the worktree path, then one path per line; the
+    # newest file for N wins.
+    local commit_number="${1}"
+    local series_file=""
+    local candidate
+    local mode
+    local worktree
+    local -a paths
+    local series_path
+
+    while IFS= read -r candidate; do
+        if [[ -z "${series_file}" ]]; then
+            series_file="${candidate}"
+        elif [[ "${candidate}" -nt "${series_file}" ]]; then
+            series_file="${candidate}"
+        fi
+    done < <(
+        find \
+            /tmp/claude \
+            -mindepth 3 \
+            -maxdepth 3 \
+            -path "*/series/${commit_number}" \
+            2>/dev/null
+    )
+
+    if [[ -z "${series_file}" ]]; then
+        echo "No commit ${commit_number} in any queued series under /tmp/claude." >&2
+        return 1
+    fi
+
+    {
+        IFS= read -r mode
+        IFS= read -r worktree
+        while IFS= read -r series_path; do
+            paths+=("${series_path}")
+        done
+    } <"${series_file}"
+
+    clear
+    (
+        cd "${worktree}" || exit 1
+        if [[ "${mode}" == "staged" ]]; then
+            git_diff_announced false diff --cached -- "${paths[@]}"
+        else
+            git_diff_announced false diff -- "${paths[@]}"
+        fi
+    )
+}
+alias c1="git_series_diff 1"
+alias c2="git_series_diff 2"
+alias c3="git_series_diff 3"
+alias c4="git_series_diff 4"
+alias c5="git_series_diff 5"
+alias c6="git_series_diff 6"
+alias c7="git_series_diff 7"
+alias c8="git_series_diff 8"
+alias c9="git_series_diff 9"
+
 rc_fetch_tags() {
     git fetch --tags $@
 }

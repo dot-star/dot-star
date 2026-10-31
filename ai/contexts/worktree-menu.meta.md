@@ -52,7 +52,7 @@
     - The stand-in is the only place promote, land and close show their reply shape, so it has to show one number per tree or it understates the pick.
   - Dropped `staged` because a series' later commits are unstaged yet still get trees.
     - A series in one worktree is the same problem as commits spread over several: more than one commit is on the table, so each needs its own subjects. Showing only the staged one hid that a second commit was coming and left no way to name it in the same reply.
-    - The label has to say how to see each commit's diff, since only the first one is in the index: `d` shows the staged diff, `dw` the unstaged one the later commit will hold.
+    - The label has to say how to see each commit's diff, since only the first one is in the index: `cN` shows commit N's diff, staged or not.
       -
     -
     -
@@ -78,7 +78,7 @@
       - Listing what landed under the question keeps the whole series inside the menu the reader already scans.
       - The rail ties the landed commits to the pending ones so the series reads as one tree; drawn from the first menu, it keeps one shape across the series and gives every plain-space row a first character the renderer can't strip.
       - The marker emoji color-code each commit's state so the column scans at a glance; the files drop to their own line so the label stays short enough to scan.
-      - Replaces the old reason for withholding later trees (subjects you can't `d`): `dw` shows the unstaged diff, so the later commit's subjects can be judged in place. A bare `dw` shows every unstaged commit at once, so two later trees would carry the same hint for different diffs; the paths narrow it to one, since `rc_diff_unstaged` passes them through to `git diff`. A file split by hunk between two commits can't be narrowed by path, so the label says so rather than implying an isolated view.
+      - Replaces the old reason for withholding later trees (subjects you can't `d`): `dw` shows the unstaged diff, so the later commit's subjects can be judged in place. A bare `dw` shows every unstaged commit at once, so two later trees would carry the same hint for different diffs; `cK` narrows it to that commit's paths. The paths live in a file because only the session knows the split, and under `/tmp/claude` rather than the worktree's git dir because a new terminal tab opens outside the worktree; the newest file for K wins, so the latest menu is the one shown. A file split by hunk between two commits can't be narrowed by path, so the label says so rather than implying an isolated view.
       - Wide spaces mixed with plain ones throw the columns off, so one kind of space keeps every glyph where the rule puts it.
       - A title over position-labeled rows repeats the position each row already states.
 
