@@ -537,11 +537,29 @@ local function sessionDotsAnimate(spaces, seconds)
     return false
 end
 
--- Draw one dot per Space in `spaces` showing its session's state, marking the dot at `index`; draw pings only when `animate`, since a still frame would freeze one mid-ripple.
+-- Draw the home Space's triangle, so the row starts where the swipe does without the home Space reading as a session.
+local function homeElements(center)
+    local half = DOT_SIZE / 2 - 1
+    local triangle = line({
+        { x = center.x, y = center.y - half },
+        { x = center.x + half, y = center.y + half * 0.8 },
+        { x = center.x - half, y = center.y + half * 0.8 },
+        -- Retrace the first side, so the closing corner gets the same round join as the others.
+        { x = center.x, y = center.y - half },
+        { x = center.x + half, y = center.y + half * 0.8 },
+    }, SESSION_STATE_COLORS.none, 1.5)
+    return { triangle }
+end
+
+-- Draw the home triangle, then one ring per Space in `spaces` showing its session's state, marking the ring at `index`; draw pings only when `animate`, since a still frame would freeze one mid-ripple.
 local function layoutSessionDots(dots, index, spaces, pillVisible, seconds, animate)
     local elements = { pageDotsPill(pillVisible) }
+    for _, element in ipairs(homeElements(pageDotCenter(1))) do
+        elements[#elements + 1] = element
+    end
     for position, space in ipairs(spaces) do
-        local center = pageDotCenter(position)
+        -- Shift each ring one slot right of the home triangle.
+        local center = pageDotCenter(position + 1)
         local state = sessionStateOf(space)
         local pingProgress = nil
         if animate then
@@ -818,7 +836,7 @@ end
 
 -- Return the Spaces on `screen` that get a session ring, in row order.
 local function sessionDotSpaces(screen)
-    -- Leave the home Space out of the row; it's where the swipe starts, not a page worth a ring.
+    -- Leave the home Space out; it's where the swipe starts, not a page worth a ring, so it gets the home triangle instead.
     local spaces = {}
     for position, space in ipairs(hs.spaces.spacesForScreen(screen) or {}) do
         if position > 1 then
@@ -869,7 +887,8 @@ local function placeEdgeBars(pair, index, count, screen)
         local key = sessionDotsKey(rowIndex, spaces, pillVisible)
         pair.sessionIndex = rowIndex
         pair.sessionSpaces = spaces
-        dotsCount = #spaces
+        -- Count the home triangle too.
+        dotsCount = #spaces + 1
         if pair.sessionKey ~= key then
             layoutSessionDots(pair.dots, rowIndex, spaces, pillVisible, hs.timer.secondsSinceEpoch(), false)
             pair.sessionKey = key
