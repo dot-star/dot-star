@@ -89,7 +89,7 @@
 
       ```
     - The parenthetical has to say the row can bank more than the staged commit, or `c1 c4` looks like it does more than the row promised.
-    - Replaces the old reason for withholding later trees (subjects you can't `d`): `dw` shows the unstaged diff, so the later commit's subjects can be judged in place.
+    - Replaces the old reason for withholding later trees (subjects you can't `d`): `dw` shows the unstaged diff, so the later commit's subjects can be judged in place. A bare `dw` shows every unstaged commit at once, so two later trees would carry the same hint for different diffs; the paths narrow it to one, since `rc_diff_unstaged` passes them through to `git diff`. A file split by hunk between two commits can't be narrowed by path, so the label says so rather than implying an isolated view.
     - Land and close came back mid-series once every commit has a subject on screen. A pick that names only some commits would still strand the rest in a worktree about to be deleted, so the refusal keeps that failure impossible rather than merely unlikely.
     - The one case the old mid-series drop still covers: a change set aside behind a refactor-first split isn't on disk, so `dw` can't show it and a land can't commit it.
   -

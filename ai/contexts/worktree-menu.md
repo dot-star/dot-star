@@ -89,7 +89,7 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
       └ ⏳ README.md, todo.md
       ```
     - Name it again in every row whose parenthetical opens with `commit` (`💾 [c]ommit (commit 1 of 4, or all 4)`), so the row picked says which commits it banks; 🏁 land and 🧨 close read `commit all 4` (`commit both` for two).
-    - Label each later commit's tree unstaged with `dw` (`rc_diff_unstaged`) to view it, so its subjects can be judged before its paths are staged.
+    - Label each later commit's tree unstaged with `dw <path> [<path> ...]` (`rc_diff_unstaged`) to view it, naming that commit's own paths, so its subjects can be judged before its paths are staged. When two later commits share a file, say the file's diff covers both.
     - **Land and close bank the whole series:** both tear the worktree down, so they need one subject per commit (`L1 L4`). Refuse a pick naming fewer and commit nothing: banking only the staged commit strands the rest in a deleted worktree. Say which commit lacks a subject.
     - **A change set aside off disk gets no tree** (one held back behind a 🪚 refactor-first split): there's no diff to `dw`, so draft it on the menu after it's restored. Until then drop 🏁 `[L]and` and 🧨 `[x]`, since neither could bank it.
   - **Fold gets the same staging**, since both `git commit --amend` and `git commit --fixup` commit the index too.
@@ -179,7 +179,7 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   > 　　 │　├─ **`[c1]`** Extract toolbar slot layout
   > 　　 │　├─ **`[c2]`** Split toolbar layout into slots
   > 　　 │　└─ **`[c3]`** Move toolbar sizing into slot helper
-  > 　　 └─ Search box (unstaged; `dw` to view)
+  > 　　 └─ Search box (unstaged; `dw search.py toolbar.css` to view)
   > 　　 　 ├─ **`[c4]`** Add search box to toolbar
   > 　　 　 ├─ **`[c5]`** Add toolbar search box
   > 　　 　 └─ **`[c6]`** Show search box in toolbar
