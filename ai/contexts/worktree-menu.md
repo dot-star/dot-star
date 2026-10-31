@@ -74,22 +74,30 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   - Carry the staged line counts in that line, summed from `git diff --cached --numstat`, so the user knows how big a diff the drafts describe before opening it.
   - Re-run the staging on every menu, since edits made after an earlier staging land unstaged.
   - **Stage only the first commit:** the index holds one commit, so a repo with several pending commits stages only the first one's paths; the later ones still get trees.
-    - Replace the staged line with a vertical progress block above the menu, so the user sees what landed and what's left beside the commit the menu acts on. Render it in a fenced block, one line per commit in series order:
-      - `Commit K of M` titles the block, K being the staged commit.
-      - `✅ <subject>` for each commit made.
-      - `👉 <files>: staged N files (+A -D)` for the staged one.
-      - `⏳ <files>` for each pending one, which has no subject yet.
-      - `│` leads every commit line but the last, which takes `└`, so the line drops straight from the title's `C`.
+    - Replace the staged line with the series position, so the user sees what landed and what's left beside the subjects that would bank the rest:
+      - ``✅ K of M: <subject>`` per commit made, in series order, as menu rows directly under the question.
+      - A `│` rail drops from under the question (below any ✅ rows) past a blank `│` line and down every row to the commit row's last draft, which takes `└` in its place; rows below sit outside. Draw it even before a commit lands: the renderer strips leading spaces, so each row needs the `│` first.
+      - ``├─ 👉 K of M: <what it holds>`` labels the staged commit, with ``│  <files>: staged N files (+A -D; `d` to view)`` beneath it.
+      - ``⏳ K of M: <what it holds>`` labels each later commit, with ``│  <files> (unstaged, `dw <path> [<path> ...]` to view)`` beneath it (`dw` is `rc_diff_unstaged`), naming that commit's own paths, so its subjects can be judged before its paths are staged. When two later commits share a file, say the file's diff covers both.
+      - Indent with plain spaces only: each label's glyph under its parent row's `[`, each file line's and draft's glyph under the label's emoji.
+      - No separate `Commit K of M` title: every row already carries its position, so a title says it twice.
 
-      ```
-      Commit 2 of 4
-      │ ✅ Add foo parser
-      │ 👉 bar.py: staged 1 file (+7 -6)
-      │ ⏳ baz.py
-      └ ⏳ README.md, todo.md
-      ```
-    - Name it again in every row whose parenthetical opens with `commit` (`💾 [c]ommit (commit 1 of 4, or all 4)`), so the row picked says which commits it banks; 🏁 land and 🧨 close read `commit all 4` (`commit both` for two).
-    - Label each later commit's tree unstaged with `dw <path> [<path> ...]` (`rc_diff_unstaged`) to view it, naming that commit's own paths, so its subjects can be judged before its paths are staged. When two later commits share a file, say the file's diff covers both.
+      > 👉 How do you want to proceed? Pick one subject, or one per commit to bank both (e.g. `c1 c4`):
+      >   ✅ 1 of 3: Add foo parser
+      >    │
+      >    │ 🛠️ **`[i]terate`** (no commit + keep iterating)
+      >    │ 💾 **`[c]ommit`**  (commit 2 of 3, or both + keep iterating)
+      >    │    ├─ 👉 2 of 3: Bar cleanup
+      >    │    │  │  `bar.py`: staged 1 file (+7 -6; `d` to view)
+      >    │    │  ├─ **`[c1]`** Drop unused bar helpers
+      >    │    │  ├─ **`[c2]`** Remove dead code from bar
+      >    │    │  └─ **`[c3]`** Trim bar to what callers use
+      >    │    └─ ⏳ 3 of 3: Baz config
+      >    │       │  `baz.py` (unstaged, `dw baz.py` to view)
+      >    │       ├─ **`[c4]`** Read baz settings from config
+      >    │       ├─ **`[c5]`** Move baz settings into config
+      >    └       └─ **`[c6]`** Load baz options from config file
+    - Name the span in every row whose parenthetical opens with `commit` (`💾 [c]ommit (commit 1 of 4, or all 4)`), so the row picked says which commits it banks; 🏁 land and 🧨 close read `commit all 4` (`commit both` for two).
     - **Land and close bank the whole series:** both tear the worktree down, so they need one subject per commit (`L1 L4`). Refuse a pick naming fewer and commit nothing: banking only the staged commit strands the rest in a deleted worktree. Say which commit lacks a subject.
     - **A change set aside off disk gets no tree** (one held back behind a 🪚 refactor-first split): there's no diff to `dw`, so draft it on the menu after it's restored. Until then drop 🏁 `[L]and` and 🧨 `[x]`, since neither could bank it.
   - **Fold gets the same staging**, since both `git commit --amend` and `git commit --fixup` commit the index too.
@@ -166,23 +174,20 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
 
   Series (two commits queued in one worktree, the first staged; land and close need one subject per commit):
 
-  ```
-  Commit 1 of 2
-  │ 👉 toolbar.py: staged 1 file (+12 -4)
-  └ ⏳ search.py, toolbar.css
-  ```
-
   > 👉 How do you want to proceed? Pick one subject, or one per commit to bank both (e.g. `c1 c4`); land and close need one per commit:
-  >   🛠️ **`[i]terate`** (no commit + keep iterating)
-  >   💾 **`[c]ommit`**  (commit 1 of 2, or both + keep iterating)
-  > 　　 ├─ Toolbar layout refactor (staged; `d` to view)
-  > 　　 │　├─ **`[c1]`** Extract toolbar slot layout
-  > 　　 │　├─ **`[c2]`** Split toolbar layout into slots
-  > 　　 │　└─ **`[c3]`** Move toolbar sizing into slot helper
-  > 　　 └─ Search box (unstaged; `dw search.py toolbar.css` to view)
-  > 　　 　 ├─ **`[c4]`** Add search box to toolbar
-  > 　　 　 ├─ **`[c5]`** Add toolbar search box
-  > 　　 　 └─ **`[c6]`** Show search box in toolbar
+  >    │
+  >    │ 🛠️ **`[i]terate`** (no commit + keep iterating)
+  >    │ 💾 **`[c]ommit`**  (commit 1 of 2, or both + keep iterating)
+  >    │    ├─ 👉 1 of 2: Toolbar layout refactor
+  >    │    │  │  `toolbar.py`: staged 1 file (+12 -4; `d` to view)
+  >    │    │  ├─ **`[c1]`** Extract toolbar slot layout
+  >    │    │  ├─ **`[c2]`** Split toolbar layout into slots
+  >    │    │  └─ **`[c3]`** Move toolbar sizing into slot helper
+  >    │    └─ ⏳ 2 of 2: Search box
+  >    │       │  `search.py`, `toolbar.css` (unstaged, `dw search.py toolbar.css` to view)
+  >    │       ├─ **`[c4]`** Add search box to toolbar
+  >    │       ├─ **`[c5]`** Add toolbar search box
+  >    └       └─ **`[c6]`** Show search box in toolbar
   >   ⬆️ **`[p]romote`** (commit 1 of 2, or both + ✅ promote to master)
   > 　　 └─ **`[pN pN]`** ...
   >   🏁 **`[L]and`**    (commit both + ✅ promote to master + 🪓 tear down worktree)
