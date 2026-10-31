@@ -1,6 +1,7 @@
 -- Follow a closing full-screen Space to the next full-screen app, rather than the desktop macOS falls back to.
 -- Arm it from the shell just before the window closes, passing the terminal's bundle id:
 --   hs -c "require('follow_closed_full_screen_space'); return followClosedFullScreenSpace.arm('com.mitchellh.ghostty')"
+-- Call `leave` instead to go right away, once the window is sure to close.
 
 -- Give up on a Space still open this long after arming, so a window that never closed can't yank focus later.
 local GIVE_UP_SECONDS = 60
@@ -101,4 +102,17 @@ function followClosedFullScreenSpace.arm(bundleId)
         end
     end)
     return 'armed'
+end
+
+-- Go now to the Space `arm` would follow to, for a window known to be closing; return what happened for the log.
+function followClosedFullScreenSpace.leave(bundleId)
+    disarm()
+
+    local _, target, skipped = closingAndTarget(bundleId)
+    if skipped then
+        return skipped
+    end
+
+    hs.spaces.gotoSpace(target)
+    return 'left'
 end

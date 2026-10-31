@@ -4,15 +4,25 @@
 # the window closes, to the next full-screen app rather than the desktop macOS
 # falls back to, so the next terminal waiting on input lands in view.
 #
-# Arms the hop and returns at once; Hammerspoon waits for the Space to go away.
-# Acts only when the focused window belongs to the terminal app this shell runs
-# in and sits in a full-screen Space.
+# Usage:
+#   follow_closed_full_screen_space.sh arm    # hop once the Space goes away
+#   follow_closed_full_screen_space.sh leave  # hop now, for a window sure to close
+#
+# Returns at once either way; after `arm`, Hammerspoon waits for the Space to go
+# away. Acts only when the focused window belongs to the terminal app this shell
+# runs in and sits in a full-screen Space.
 #
 # Skips silently where it can't apply (no Hammerspoon installed, no terminal app
 # to match). Fails loudly when Hammerspoon is installed but can't run the hop,
 # since that is a missing `hs.ipc`, a stopped app or a missing bootstrap block.
 
 set -euo pipefail
+
+mode="$1"
+if [[ "${mode}" != "arm" && "${mode}" != "leave" ]]; then
+    echo "Usage: $(basename "$0") arm|leave" >&2
+    exit 2
+fi
 
 hammerspoon_cli="/Applications/Hammerspoon.app/Contents/Frameworks/hs/hs"
 
@@ -29,7 +39,7 @@ if [[ -z "${terminal_bundle_id}" ]]; then
 fi
 
 # Load the module on demand, so a Hammerspoon still running a config from before the module shipped can arm it anyway.
-if ! "${hammerspoon_cli}" -c "require('follow_closed_full_screen_space'); return followClosedFullScreenSpace.arm('${terminal_bundle_id}')" >/dev/null; then
+if ! "${hammerspoon_cli}" -c "require('follow_closed_full_screen_space'); return followClosedFullScreenSpace.${mode}('${terminal_bundle_id}')" >/dev/null; then
     echo "Couldn't arm the full-screen follow through Hammerspoon. Check it's running with the dot-star bootstrap block and require('hs.ipc') in ~/.hammerspoon/init.lua (./install.sh adds both), then reload its config." >&2
     exit 1
 fi

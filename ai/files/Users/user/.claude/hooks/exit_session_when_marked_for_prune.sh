@@ -43,5 +43,12 @@ if [[ -n "${CLAUDE_RUN_CLOSE_REQUESTED_MARKER:-}" ]]; then
     touch -- "${CLAUDE_RUN_CLOSE_REQUESTED_MARKER}"
 fi
 
+# Leave the full-screen Space now rather than once the window closes, since the
+# page is done; claude_run skips its own follow after a requested close.
+if ! "${HOME}/.dot-star/ai/claude/follow_closed_full_screen_space.sh" leave; then
+    # Close the session anyway; the script already printed why the hop failed.
+    true
+fi
+
 # TODO: Minimize the window while the tab finishes closing (see ai/claude/minimize_own_window.sh).
 nohup sh -c "sleep 1; kill -TERM ${claude_pid}" </dev/null >/dev/null 2>&1 &

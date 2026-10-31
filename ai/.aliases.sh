@@ -7,19 +7,20 @@ strip_terminal_codes() {
 }
 
 run_claude_cleanup_step() {
-    # Run one post-session cleanup script, opening an investigation window when it fails.
+    # Run one post-session cleanup script with any remaining args, opening an investigation window when it fails.
     # Hand the failure off rather than leave it on screen; claude_run closes the window right after.
     local script="${1}"
     local name="${script##*/}"
     local log_dir
     local exit_status
     local task
+    shift
 
     log_dir="$(mktemp -d)"
 
     # Tee the output so it still shows; the status rides a file, since a pipeline reports tee's.
     {
-        "${script}"
+        "${script}" "$@"
         echo "$?" >"${log_dir}/status"
     } 2>&1 |
         tee "${log_dir}/output"
@@ -403,12 +404,17 @@ claude_run() {
     # cleanly or on a close the session requested. A picker that bails (e.g. on
     # a session from another directory) exits 0 too, and its message has to
     # stay on screen.
+    local close_requested=""
+    if [[ -e "${close_requested_marker}" ]]; then
+        close_requested=1
+    fi
+
     local session_finished=""
     if [[ ! -e "${started_marker}" ]]; then
         session_finished=""
     elif [[ "${claude_status}" -eq 0 ]]; then
         session_finished=1
-    elif [[ -e "${close_requested_marker}" ]]; then
+    elif [[ -n "${close_requested}" ]]; then
         session_finished=1
     fi
 
@@ -438,10 +444,11 @@ claude_run() {
 
     # Minimize the window out of the way during the cleanup when the session
     # finished with nothing left to push, since the shell then closes it
-    # anyway. Leave anything else on screen.
-    if [[ -n "${session_finished}" && -z "${unpushed_repos}" ]]; then
+    # anyway. Leave anything else on screen. Skip both after a requested close,
+    # since the Stop hook already left the Space and focus sits on another window.
+    if [[ -n "${session_finished}" && -z "${unpushed_repos}" && -z "${close_requested}" ]]; then
         # Arm before the minimize, while the window still holds its full-screen Space.
-        run_claude_cleanup_step ~/.dot-star/ai/claude/follow_closed_full_screen_space.sh
+        run_claude_cleanup_step ~/.dot-star/ai/claude/follow_closed_full_screen_space.sh arm
         run_claude_cleanup_step ~/.dot-star/ai/claude/minimize_own_window.sh
     fi
 

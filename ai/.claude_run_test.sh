@@ -235,8 +235,8 @@ STUB_EXIT_STATUS=143
 assert_cleanup "session killed unasked, window and shell stay open" \
     "window open, status hidden, shell kept"
 STUB_CLOSE_REQUESTED=1
-assert_cleanup "session killed on its own close request, window minimized and shell closed" \
-    "window minimized, status hidden, shell exited"
+assert_cleanup "session killed on its own close request, window left to the Stop hook and shell closed" \
+    "window open, status hidden, shell exited"
 unset STUB_CLOSE_REQUESTED
 unset STUB_EXIT_STATUS
 
