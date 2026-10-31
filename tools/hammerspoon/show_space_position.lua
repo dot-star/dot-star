@@ -2,6 +2,7 @@
 --   Keep a strip on a full-screen Space's right edge while another Space lies beyond it, a bumper once none does (edge_bars).
 --   Add a strip on the left edge of the first full-screen Space, where swiping left leaves the full-screen apps (edge_bars).
 --   Add a thin band along the bottom edge of every full-screen Space in that Space's strip color (bottom_bar, needs edge_bars).
+--   Add a matching band along the top edge of every full-screen Space (top_bar, needs edge_bars).
 --   Paint each Space's bars the next color in a cycle rather than one shared color (cycle_colors, needs edge_bars).
 --   Add a row of dots in the title bar's upper-right corner of every full-screen Space, the focused Space filled (page_dots, needs edge_bars).
 --   Show the dark pill behind the dots, to check where their canvas sits (page_dots_pill, needs page_dots).
@@ -24,6 +25,7 @@ local DEFAULT_ENABLED = {
     page_dots = true,
     page_dots_pill = false,
     session_state = true,
+    top_bar = true,
 }
 -- Apply each style's default until it's set; a saved choice wins after that.
 local DEFAULT_STYLES = {
@@ -44,7 +46,7 @@ local EDGE_BAR_WIDTH = 7
 -- Back the right strip with a wide glow that fades out toward the middle, so the edge reads from the corner of the eye.
 local EDGE_GLOW_WIDTH = 64
 local EDGE_BAR_CANVAS_WIDTH = math.max(EDGE_BAR_WIDTH, EDGE_GLOW_WIDTH)
--- Keep the bottom band as thin as the edge strips with no glow, so it hints at the Space's color without eating into the terminal.
+-- Keep the top and bottom bands as thin as the edge strips with no glow, so it hints at the Space's color without eating into the terminal.
 local BAND_HEIGHT = EDGE_BAR_WIDTH
 -- Block the right edge's midpoint with a bumper on the last Space, where there's no bar to say the swipe goes on.
 local BUMPER_DEPTH = 28
@@ -111,7 +113,7 @@ local EDGE_BAR_BEHAVIOR = pinCanvasesToSpaces.BEHAVIOR
 
 showSpacePosition = {}
 
--- Map each Space id to its own { left, right, bottom, bumper, dots } set of bars, bumper and dots.
+-- Map each Space id to its own { left, right, top, bottom, bumper, dots } set of bars, bumper and dots.
 local edgeBarsBySpace = {}
 local edgeBarPairsCreated = 0
 local settleTimer = nil
@@ -786,6 +788,16 @@ local function showsBottomBar(focused)
     return true
 end
 
+-- Return whether the focused Space gets a top band; desktops stay clear, the same as for the right bar.
+local function showsTopBar(focused)
+    if not isEnabled('top_bar') then
+        return false
+    elseif hs.spaces.spaceType(focused) ~= 'fullscreen' then
+        return false
+    end
+    return true
+end
+
 -- Return whether the focused Space gets the bumper; desktops stay clear, the same as for the right bar.
 local function showsBumper(focused, index, count)
     if hs.spaces.spaceType(focused) ~= 'fullscreen' then
@@ -827,6 +839,7 @@ end
 local function deleteEdgeBarPair(pair)
     pair.left:delete()
     pair.right:delete()
+    pair.top:delete()
     pair.bottom:delete()
     pair.bumper:delete()
     pair.dots:delete()
@@ -875,6 +888,7 @@ local function placeEdgeBars(pair, index, count, screen)
     end
     pair.left:frame(edgeBarFrame(barFrame, barFrame.x))
     pair.right:frame(edgeBarFrame(rightBarFrame, rightBarFrame.x + rightBarFrame.w - EDGE_BAR_CANVAS_WIDTH))
+    pair.top:frame({ x = frame.x, y = frame.y, w = frame.w, h = BAND_HEIGHT })
     pair.bottom:frame({ x = frame.x, y = frame.y + frame.h - BAND_HEIGHT, w = frame.w, h = BAND_HEIGHT })
     pair.bumper:frame({
         x = frame.x + frame.w - BUMPER_DEPTH,
@@ -954,6 +968,7 @@ local function renderEdgeBars(index, count, screen, focused)
         pair = {
             left = newEdgeBar(color),
             right = newEdgeBar(color),
+            top = newBand(color),
             bottom = newBand(color),
             bumper = newBumper(color),
             dots = newPageDots(),
@@ -968,6 +983,7 @@ local function renderEdgeBars(index, count, screen, focused)
     local rightVisible = showsRightBar(focused, index, count)
     setEdgeBarVisible(pair.left, startsFullScreenRun(hs.spaces.spacesForScreen(screen) or {}, index))
     setEdgeBarVisible(pair.right, rightVisible)
+    setEdgeBarVisible(pair.top, showsTopBar(focused))
     setEdgeBarVisible(pair.bottom, showsBottomBar(focused))
     setEdgeBarVisible(pair.bumper, showsBumper(focused, index, count))
     setEdgeBarVisible(pair.dots, showsPageDots(focused))
