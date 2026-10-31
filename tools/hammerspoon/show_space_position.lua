@@ -816,6 +816,18 @@ local function pruneEdgeBars()
     pinCanvasesToSpaces.pruneClosedSpaces(edgeBarsBySpace, deleteEdgeBarPair)
 end
 
+-- Return the Spaces on `screen` that get a session ring, in row order.
+local function sessionDotSpaces(screen)
+    -- Leave the home Space out of the row; it's where the swipe starts, not a page worth a ring.
+    local spaces = {}
+    for position, space in ipairs(hs.spaces.spacesForScreen(screen) or {}) do
+        if position > 1 then
+            spaces[#spaces + 1] = space
+        end
+    end
+    return spaces
+end
+
 -- Fit a pair's bars, bumper and dots flush to the edges of `screen`, for the Space at `index` of `count` on it.
 local function placeEdgeBars(pair, index, count, screen)
     local frame = screen:fullFrame()
@@ -852,13 +864,7 @@ local function placeEdgeBars(pair, index, count, screen)
     local pillVisible = isEnabled('page_dots_pill')
     local dotsCount = count
     if isEnabled('session_state') then
-        -- Leave the home Space out of the row; it's where the swipe starts, not a page worth a ring.
-        local spaces = {}
-        for position, space in ipairs(hs.spaces.spacesForScreen(screen) or {}) do
-            if position > 1 then
-                spaces[#spaces + 1] = space
-            end
-        end
+        local spaces = sessionDotSpaces(screen)
         local rowIndex = index - 1
         local key = sessionDotsKey(rowIndex, spaces, pillVisible)
         pair.sessionIndex = rowIndex
