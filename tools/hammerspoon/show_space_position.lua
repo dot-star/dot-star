@@ -1176,6 +1176,18 @@ function showSpacePosition.set(name, value)
     return name .. ' ' .. (value and 'on' or 'off')
 end
 
+-- Name `space` by its swipe-order position on its screen (Space #2), since the id hs.spaces hands out means nothing to a person.
+function showSpacePosition.spaceNumber(space)
+    for _, spaces in pairs(hs.spaces.allSpaces() or {}) do
+        for index, candidate in ipairs(spaces) do
+            if candidate == space then
+                return 'Space #' .. index
+            end
+        end
+    end
+    return 'unknown Space ' .. tostring(space)
+end
+
 -- Hold each watcher in the global table so garbage collection can't stop it.
 showSpacePosition.watcher = hs.spaces.watcher.new(function()
     render()
