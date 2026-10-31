@@ -37,7 +37,7 @@ local STYLE_CHOICES = {
 -- Apply each number's default until it's set; a saved value wins after that.
 local DEFAULT_NUMBERS = {
     -- Wait out a pause for thought, so a session finishing while you're mid-task never pulls you off it.
-    follow_idle_seconds = 10,
+    follow_idle_seconds = 30,
 }
 local SETTINGS_PREFIX = 'show_space_position.'
 local EDGE_BAR_WIDTH = 7
@@ -71,9 +71,13 @@ local DOTS_PADDING = (TITLE_BAR_HEIGHT - DOT_SIZE) / 2
 -- Leave room for the countdown's longest text, so it never clips against the dots.
 local COUNTDOWN_WIDTH = 60
 local COUNTDOWN_TEXT_SIZE = 22
--- Heat the countdown from calm white to red as follow_ready nears arming.
-local COUNTDOWN_CALM_COLOR = { red = 1, green = 1, blue = 1, alpha = 1 }
-local COUNTDOWN_ARMED_COLOR = { red = 1, green = 0.15, blue = 0.1, alpha = 1 }
+-- Heat the countdown from dim gray up to white a third of the way in, then on to red as follow_ready nears arming.
+-- Keep the early seconds dim, so a countdown that resets on every keystroke stays out of the way.
+local COUNTDOWN_COLOR_STOPS = {
+    { heat = 0, color = { red = 0.3, green = 0.3, blue = 0.3, alpha = 1 } },
+    { heat = 1 / 3, color = { red = 1, green = 1, blue = 1, alpha = 1 } },
+    { heat = 1, color = { red = 1, green = 0.15, blue = 0.1, alpha = 1 } },
+}
 -- Read each Claude session's state word and window record from where `announce_window_state.py` writes them.
 local SESSION_STATE_DIR = '/tmp/claude-state-hook/'
 -- Thicken a session dot's ring past the plain dots' hairline stroke, so its color reads at a glance.
@@ -1058,11 +1062,18 @@ local function countdownColor(now)
     else
         error('unknown follow phase: ' .. phase)
     end
-    local color = {}
-    for channel, calm in pairs(COUNTDOWN_CALM_COLOR) do
-        color[channel] = calm + (COUNTDOWN_ARMED_COLOR[channel] - calm) * heat
+    for i = 2, #COUNTDOWN_COLOR_STOPS do
+        local from, to = COUNTDOWN_COLOR_STOPS[i - 1], COUNTDOWN_COLOR_STOPS[i]
+        if heat <= to.heat then
+            local progress = (heat - from.heat) / (to.heat - from.heat)
+            local color = {}
+            for channel, start in pairs(from.color) do
+                color[channel] = start + (to.color[channel] - start) * progress
+            end
+            return color
+        end
     end
-    return color
+    error('heat past the last color stop: ' .. heat)
 end
 
 local function updateCountdowns()
