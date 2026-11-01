@@ -27,9 +27,13 @@ curl --fail --silent "${url}"
 
 A single-flag command stays on one line. The rule covers commands landing in a committed file (script, CI `run:` block, Makefile, doc example), not one-off invocations typed at a terminal.
 
-## Quoted flag values
+## Quoted string arguments
 
-Quote every string value a flag carries, the value half of a `key=value` pair included, even when it parses fine bare. Leave a number bare.
+Quote every literal string a command takes, whether a positional word (a subcommand, a mode), a flag's value or the value half of a `key=value` pair, even when it parses fine bare. Leave the command name itself and a number bare.
+
+```
+deploy.sh "rollback"
+```
 
 ```
 deploy \
@@ -38,7 +42,11 @@ deploy \
     --retries 3
 ```
 
-Not (string values left bare):
+Not (string arguments left bare):
+
+```
+deploy.sh rollback
+```
 
 ```
 deploy \
