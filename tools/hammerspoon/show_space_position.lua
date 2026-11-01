@@ -9,6 +9,7 @@
 --   Show on each dot the state of the Claude session whose window sits on that Space (session_state, needs page_dots).
 --   Switch to a Space whose session turned ready, once you've been idle a while (follow_ready, needs session_state).
 --   Show a countdown left of the dots to when follow_ready arms, for debugging (follow_countdown, needs follow_ready).
+-- Hand follow_closed_full_screen_space the ready Spaces with readySessionWindows, so a closing session hops to the next green check.
 -- Toggle from the shell with `space_position_experiment`; each flag persists across reloads.
 -- Pick the session dots' decision style and focus marker the same way; each style persists too.
 -- Set how long you must be idle before follow_ready switches Spaces the same way, with follow_idle_seconds.
@@ -1248,6 +1249,18 @@ function showSpacePosition.spaceNumber(space)
         end
     end
     return 'unknown Space ' .. tostring(space)
+end
+
+-- Return the window of each Space whose dot shows the green check, read fresh so a state the watcher hasn't drawn yet still counts.
+function showSpacePosition.readySessionWindows()
+    local states, windows = readSessionStates()
+    local readyWindows = {}
+    for space, state in pairs(states) do
+        if state == 'ready' then
+            readyWindows[space] = windows[space]
+        end
+    end
+    return readyWindows
 end
 
 -- Hold each watcher in the global table so garbage collection can't stop it.

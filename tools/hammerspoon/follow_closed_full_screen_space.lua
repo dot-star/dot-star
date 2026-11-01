@@ -1,4 +1,4 @@
--- Follow a closing full-screen Space to the next full-screen app, rather than the desktop macOS falls back to.
+-- Follow a closing full-screen Space to the next session showing the green check, else the next full-screen app, rather than the desktop macOS falls back to.
 -- Arm it from the shell just before the window closes, passing the terminal's bundle id:
 --   hs -c "require('follow_closed_full_screen_space'); return followClosedFullScreenSpace.arm('com.mitchellh.ghostty')"
 -- Call `leave` instead to go right away, once the window is sure to close.
@@ -10,6 +10,8 @@ local POLL_SECONDS = 0.2
 -- Share the folder the claude hooks log to, so one `tail -f` covers every window step.
 local LOG_DIR = '/tmp/claude-state-hook'
 local LOG_FILE = LOG_DIR .. '/follow_closed_full_screen_space.log'
+
+require('show_space_position')
 
 followClosedFullScreenSpace = {}
 
@@ -60,6 +62,35 @@ local function neighborFullScreenSpace(spaces, index)
     return nil
 end
 
+-- Return the nearest Space holding a ready session, scanning the same way as neighborFullScreenSpace, and that session's window.
+local function neighborReadySpace(spaces, index)
+    local readyWindows = showSpacePosition.readySessionWindows()
+    for position = index + 1, #spaces do
+        if readyWindows[spaces[position]] ~= nil then
+            return spaces[position], readyWindows[spaces[position]]
+        end
+    end
+    for position = index - 1, 1, -1 do
+        if readyWindows[spaces[position]] ~= nil then
+            return spaces[position], readyWindows[spaces[position]]
+        end
+    end
+    return nil, nil
+end
+
+-- Switch to `target`, focusing its ready session's window when there is one so that session's tab lands in front.
+local function goTo(target, windowId)
+    local window = nil
+    if windowId ~= nil then
+        window = hs.window.get(windowId)
+    end
+    if window ~= nil then
+        window:focus()
+    else
+        hs.spaces.gotoSpace(target)
+    end
+end
+
 local function disarm()
     if followClosedFullScreenSpace.timer then
         followClosedFullScreenSpace.timer:stop()
@@ -67,37 +98,42 @@ local function disarm()
     end
 end
 
--- Return the focused Space and the Space to follow it to when it holds a full-screen window of `bundleId`, else nil and why not.
+-- Return the focused Space, the Space to follow it to, the target's ready window (nil when it has none) and how the target was picked; a skip returns nil for each and why.
 local function closingAndTarget(bundleId)
     local window = hs.window.focusedWindow()
     local closing = hs.spaces.focusedSpace()
     if window == nil then
-        return nil, nil, 'skipped: no focused window'
+        return nil, nil, nil, nil, 'skipped: no focused window'
     elseif window:application():bundleID() ~= bundleId then
-        return nil, nil, 'skipped: focused window belongs to another app (' .. tostring(window:application():bundleID()) .. ')'
+        return nil, nil, nil, nil, 'skipped: focused window belongs to another app (' .. tostring(window:application():bundleID()) .. ')'
     elseif hs.spaces.spaceType(closing) ~= 'fullscreen' then
-        return nil, nil, 'skipped: focused Space ' .. tostring(closing) .. ' is ' .. tostring(hs.spaces.spaceType(closing)) .. ', not full screen'
+        return nil, nil, nil, nil, 'skipped: focused Space ' .. tostring(closing) .. ' is ' .. tostring(hs.spaces.spaceType(closing)) .. ', not full screen'
     end
 
     local screen = hs.screen.find(hs.spaces.spaceDisplay(closing)) or hs.screen.mainScreen()
     local spaces = hs.spaces.spacesForScreen(screen) or {}
     local index = indexOf(spaces, closing)
     if index == nil then
-        return nil, nil, 'skipped: focused Space ' .. tostring(closing) .. ' not found on its screen'
+        return nil, nil, nil, nil, 'skipped: focused Space ' .. tostring(closing) .. ' not found on its screen'
+    end
+
+    local readyTarget, readyWindowId = neighborReadySpace(spaces, index)
+    if readyTarget ~= nil then
+        return closing, readyTarget, readyWindowId, 'ready session', nil
     end
 
     local target = neighborFullScreenSpace(spaces, index)
     if target == nil then
-        return nil, nil, 'skipped: no other full-screen Space beside ' .. tostring(closing) .. ' (position ' .. index .. ' of ' .. #spaces .. ')'
+        return nil, nil, nil, nil, 'skipped: no ready session and no other full-screen Space beside ' .. tostring(closing) .. ' (position ' .. index .. ' of ' .. #spaces .. ')'
     end
-    return closing, target, nil
+    return closing, target, nil, 'nearest full screen', nil
 end
 
 -- Arm the hop for the focused Space when it holds a full-screen window of `bundleId`; return what happened for the log.
 function followClosedFullScreenSpace.arm(bundleId)
     disarm()
 
-    local closing, target, skipped = closingAndTarget(bundleId)
+    local closing, target, windowId, pickedBy, skipped = closingAndTarget(bundleId)
     if skipped then
         log('arm ' .. bundleId .. ': ' .. skipped)
         return skipped
@@ -114,14 +150,14 @@ function followClosedFullScreenSpace.arm(bundleId)
         else
             disarm()
             if spaceExists(target) then
-                log('arm: Space ' .. closing .. ' closed, following to ' .. target)
-                hs.spaces.gotoSpace(target)
+                log('arm: Space ' .. closing .. ' closed, following to ' .. target .. ' (' .. pickedBy .. ')')
+                goTo(target, windowId)
             else
                 log('arm: Space ' .. closing .. ' closed, but target ' .. target .. ' is gone too')
             end
         end
     end)
-    log('arm ' .. bundleId .. ': armed, Space ' .. closing .. ' -> ' .. target)
+    log('arm ' .. bundleId .. ': armed, Space ' .. closing .. ' -> ' .. target .. ' (' .. pickedBy .. ')')
     return 'armed'
 end
 
@@ -129,13 +165,13 @@ end
 function followClosedFullScreenSpace.leave(bundleId)
     disarm()
 
-    local closing, target, skipped = closingAndTarget(bundleId)
+    local closing, target, windowId, pickedBy, skipped = closingAndTarget(bundleId)
     if skipped then
         log('leave ' .. bundleId .. ': ' .. skipped)
         return skipped
     end
 
-    log('leave ' .. bundleId .. ': Space ' .. closing .. ' -> ' .. target)
-    hs.spaces.gotoSpace(target)
+    log('leave ' .. bundleId .. ': Space ' .. closing .. ' -> ' .. target .. ' (' .. pickedBy .. ')')
+    goTo(target, windowId)
     return 'left'
 end

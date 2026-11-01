@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
 # Have Hammerspoon follow a finished claude session's full-screen Space, once
-# the window closes, to the next full-screen app rather than the desktop macOS
-# falls back to, so the next terminal waiting on input lands in view.
+# the window closes, to the next session showing the green check (else the next
+# full-screen app) rather than the desktop macOS falls back to, so the next
+# terminal waiting on input lands in view.
 #
 # Usage:
 #   follow_closed_full_screen_space.sh arm    # hop once the Space goes away
