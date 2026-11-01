@@ -14,7 +14,7 @@ local LOG_FILE = LOG_DIR .. '/follow_closed_full_screen_space.log'
 local DEFAULT_NUMBERS = {
     -- Keep the received pill up long enough to register across the Space switch, short enough not to linger on the next session.
     received_seconds = 0.8,
-    received_fade_seconds = 0.2,
+    received_fade_seconds = 1.2,
 }
 local SETTINGS_PREFIX = 'follow_closed_full_screen_space.'
 local RECEIVED_SIZE = { w = 220, h = 56 }
