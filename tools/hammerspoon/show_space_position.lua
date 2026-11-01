@@ -9,7 +9,7 @@
 --   Show on each dot the state of the Claude session whose window sits on that Space (session_state, needs page_dots).
 --   Switch to a Space whose session turned ready, once you've been idle a while (follow_ready, needs session_state).
 --   Show a countdown left of the dots to when follow_ready arms, for debugging (follow_countdown, needs follow_ready).
---   Number the green dots in the order a closing session hops to them, for debugging (follow_order, needs session_state).
+--   Number the dots in the order a closing session hops to them, green ones first, else the nearest full screen, for debugging (follow_order, needs session_state).
 -- Hand follow_closed_full_screen_space the ready Spaces with readySessionsByRecency, so a closing session hops to a green check.
 -- Toggle from the shell with `space_position_experiment`; each flag persists across reloads.
 -- Pick the session dots' decision style and focus marker the same way; each style persists too.
@@ -955,9 +955,7 @@ local function followOrderOf(spaces, closing)
         return order
     end
     for rank, next in ipairs(showSpacePosition.hopOrder(spaces, closing)) do
-        if next.pickedBy == 'ready session' then
-            order[next.space] = rank
-        end
+        order[next.space] = rank
     end
     return order
 end
