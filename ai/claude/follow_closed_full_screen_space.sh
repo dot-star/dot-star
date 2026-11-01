@@ -15,6 +15,9 @@
 # Skips silently where it can't apply (no Hammerspoon installed, no terminal app
 # to match). Fails loudly when Hammerspoon is installed but can't run the hop,
 # since that is a missing `hs.ipc`, a stopped app or a missing bootstrap block.
+#
+# Logs every skip and hop, this script's and Hammerspoon's, to one file:
+#   tail -f /tmp/claude-state-hook/follow_closed_full_screen_space.log
 
 set -euo pipefail
 
@@ -25,8 +28,18 @@ if [[ "${mode}" != "arm" && "${mode}" != "leave" ]]; then
 fi
 
 hammerspoon_cli="/Applications/Hammerspoon.app/Contents/Frameworks/hs/hs"
+log_dir="/tmp/claude-state-hook"
 
-if [[ "${OSTYPE}" != "darwin"* || ! -x "${hammerspoon_cli}" ]]; then
+# Append a timestamped line to the log the Hammerspoon module writes too.
+log() {
+    mkdir -p -- "${log_dir}"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') $1" >>"${log_dir}/follow_closed_full_screen_space.log"
+}
+
+if [[ "${OSTYPE}" != "darwin"* ]]; then
+    exit 0
+elif [[ ! -x "${hammerspoon_cli}" ]]; then
+    log "${mode}: skipped: no Hammerspoon client at ${hammerspoon_cli}"
     exit 0
 fi
 
@@ -35,11 +48,13 @@ fi
 terminal_bundle_id="${__CFBundleIdentifier:-}"
 
 if [[ -z "${terminal_bundle_id}" ]]; then
+    log "${mode}: skipped: no __CFBundleIdentifier to name the terminal app"
     exit 0
 fi
 
 # Load the module on demand, so a Hammerspoon still running a config from before the module shipped can arm it anyway.
 if ! "${hammerspoon_cli}" -c "require('follow_closed_full_screen_space'); return followClosedFullScreenSpace.${mode}('${terminal_bundle_id}')" >/dev/null; then
+    log "${mode} ${terminal_bundle_id}: failed: Hammerspoon couldn't run the hop"
     echo "Couldn't arm the full-screen follow through Hammerspoon. Check it's running with the dot-star bootstrap block and require('hs.ipc') in ~/.hammerspoon/init.lua (./install.sh adds both), then reload its config." >&2
     exit 1
 fi
