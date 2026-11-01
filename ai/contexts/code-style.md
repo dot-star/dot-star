@@ -41,6 +41,14 @@ Loaded on demand: the Writing style section of `~/.claude/CLAUDE.md` points here
       "ANN",
   ]
   ```
+- Write a function's parameters one per line with a trailing comma once it takes two or more (`self` counts): the opening paren ends the signature's first line, each parameter takes its own line and the closing paren sits alone before the return type. Adding or removing a parameter then diffs as one line instead of rewriting the signature. A function with one parameter or none stays on one line (`def close(self) -> None:`). Rendered example:
+
+  ```python
+  def render(
+      theme: str,
+      width: int,
+  ) -> None:
+  ```
 - Pretty-print every JSON sample in markdown, even a two-key object: two-space indent, one key per line, keys in code-point order (`jq --sort-keys`), so adding a key diffs as one line. Rendered example:
 
   ```json
