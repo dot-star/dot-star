@@ -137,37 +137,6 @@ local function indexOf(spaces, space)
     return nil
 end
 
--- Return the nearest full-screen Space to the right of `index`, else the nearest to its left.
-local function neighborFullScreenSpace(spaces, index)
-    for position = index + 1, #spaces do
-        if hs.spaces.spaceType(spaces[position]) == 'fullscreen' then
-            return spaces[position]
-        end
-    end
-    for position = index - 1, 1, -1 do
-        if hs.spaces.spaceType(spaces[position]) == 'fullscreen' then
-            return spaces[position]
-        end
-    end
-    return nil
-end
-
--- Pick the green session you were on most recently, not the nearest one, so a switch lands where your context for its objective is freshest.
--- Rank by last seen rather than by turning green: a session started long ago that just finished is already stale in your head.
--- Return that Space on the closing Space's screen and its session's window, else nil.
-local function mostRecentReadySpace(spaces, closing)
-    for _, ready in ipairs(showSpacePosition.readySessionsByRecency()) do
-        if ready.space == closing then
-            -- Skip the session that's closing.
-            goto continue
-        elseif indexOf(spaces, ready.space) ~= nil then
-            return ready.space, ready.windowId
-        end
-        ::continue::
-    end
-    return nil, nil
-end
-
 -- Switch to `target`, focusing its ready session's window when there is one so that session's tab lands in front.
 local function goTo(target, windowId)
     local window = nil
@@ -207,16 +176,11 @@ local function closingAndTarget(bundleId)
         return nil, nil, nil, nil, 'skipped: focused Space ' .. tostring(closing) .. ' not found on its screen'
     end
 
-    local readyTarget, readyWindowId = mostRecentReadySpace(spaces, closing)
-    if readyTarget ~= nil then
-        return closing, readyTarget, readyWindowId, 'ready session', nil
-    end
-
-    local target = neighborFullScreenSpace(spaces, index)
-    if target == nil then
+    local next = showSpacePosition.hopOrder(spaces, closing)[1]
+    if next == nil then
         return nil, nil, nil, nil, 'skipped: no ready session and no other full-screen Space beside ' .. tostring(closing) .. ' (position ' .. index .. ' of ' .. #spaces .. ')'
     end
-    return closing, target, nil, 'nearest full screen', nil
+    return closing, next.space, next.windowId, next.pickedBy, nil
 end
 
 -- Hop once the focused Space closes, when it holds a full-screen window of `bundleId`; return what happened for the log.

@@ -954,17 +954,9 @@ local function followOrderOf(spaces, closing)
     if not isEnabled('follow_order') then
         return order
     end
-    local inRow = {}
-    for _, space in ipairs(spaces) do
-        inRow[space] = true
-    end
-    local rank = 0
-    for _, ready in ipairs(showSpacePosition.readySessionsByRecency()) do
-        if ready.space == closing then
-            -- Skip the Space being left, the same as the hop does.
-        elseif inRow[ready.space] then
-            rank = rank + 1
-            order[ready.space] = rank
+    for rank, next in ipairs(showSpacePosition.hopOrder(spaces, closing)) do
+        if next.pickedBy == 'ready session' then
+            order[next.space] = rank
         end
     end
     return order
@@ -1009,7 +1001,8 @@ local function placeEdgeBars(pair, index, count, screen)
     if isEnabled('session_state') then
         local spaces = sessionDotSpaces(screen)
         local rowIndex = index - 1
-        local followOrder = followOrderOf(spaces, spaces[rowIndex])
+        local screenSpaces = hs.spaces.spacesForScreen(screen) or {}
+        local followOrder = followOrderOf(screenSpaces, screenSpaces[index])
         local key = sessionDotsKey(rowIndex, spaces, followOrder, pillVisible)
         pair.sessionIndex = rowIndex
         pair.sessionSpaces = spaces
@@ -1382,6 +1375,58 @@ function showSpacePosition.readySessionsByRecency()
         return a.recency > b.recency
     end)
     return ready
+end
+
+local function indexOf(spaces, space)
+    for index, candidate in ipairs(spaces) do
+        if candidate == space then
+            return index
+        end
+    end
+    return nil
+end
+
+-- Return the nearest full-screen Space to the right of `index`, else the nearest to its left.
+local function neighborFullScreenSpace(spaces, index)
+    for position = index + 1, #spaces do
+        if hs.spaces.spaceType(spaces[position]) == 'fullscreen' then
+            return spaces[position]
+        end
+    end
+    for position = index - 1, 1, -1 do
+        if hs.spaces.spaceType(spaces[position]) == 'fullscreen' then
+            return spaces[position]
+        end
+    end
+    return nil
+end
+
+-- Return where a hop off `closing` goes, first choice first, as { space, windowId, pickedBy } among `spaces`, the closing Space's screen.
+-- Pick the green session you were on most recently, not the nearest one, so a switch lands where your context for its objective is freshest.
+-- Rank by last seen rather than by turning green: a session started long ago that just finished is already stale in your head.
+-- Fall back to the nearest full-screen Space only when no session is green.
+function showSpacePosition.hopOrder(spaces, closing)
+    local order = {}
+    for _, ready in ipairs(showSpacePosition.readySessionsByRecency()) do
+        if ready.space == closing then
+            -- Skip the session that's closing.
+        elseif indexOf(spaces, ready.space) ~= nil then
+            order[#order + 1] = { space = ready.space, windowId = ready.windowId, pickedBy = 'ready session' }
+        end
+    end
+    if #order > 0 then
+        return order
+    end
+
+    local index = indexOf(spaces, closing)
+    if index == nil then
+        return order
+    end
+    local neighbor = neighborFullScreenSpace(spaces, index)
+    if neighbor ~= nil then
+        order[#order + 1] = { space = neighbor, windowId = nil, pickedBy = 'nearest full screen' }
+    end
+    return order
 end
 
 -- Stamp the Space you're leaving and the one you land on, so last seen means the last moment you were on it.
