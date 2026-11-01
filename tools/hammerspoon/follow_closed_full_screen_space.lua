@@ -10,9 +10,13 @@ local POLL_SECONDS = 0.2
 -- Share the folder the claude hooks log to, so one `tail -f` covers every window step.
 local LOG_DIR = '/tmp/claude-state-hook'
 local LOG_FILE = LOG_DIR .. '/follow_closed_full_screen_space.log'
--- Keep the received indicator up long enough to register across the Space switch, short enough not to linger on the next session.
-local RECEIVED_SECONDS = 0.8
-local RECEIVED_FADE_SECONDS = 0.2
+-- Apply each number's default until it's set; a saved value wins after that.
+local DEFAULT_NUMBERS = {
+    -- Keep the received pill up long enough to register across the Space switch, short enough not to linger on the next session.
+    received_seconds = 0.8,
+    received_fade_seconds = 0.2,
+}
+local SETTINGS_PREFIX = 'follow_closed_full_screen_space.'
 local RECEIVED_SIZE = { w = 220, h = 56 }
 
 require('show_space_position')
@@ -29,6 +33,43 @@ local function log(message)
     end
     handle:write(os.date('%Y-%m-%d %H:%M:%S') .. ' ' .. message .. '\n')
     handle:close()
+end
+
+local function numberOf(name)
+    local value = hs.settings.get(SETTINGS_PREFIX .. name)
+    if type(value) ~= 'number' then
+        return DEFAULT_NUMBERS[name]
+    end
+    return value
+end
+
+local function sortedKeys(map)
+    local names = {}
+    for name in pairs(map) do
+        names[#names + 1] = name
+    end
+    table.sort(names)
+    return names
+end
+
+-- Set a number, or report every one's current value when called with no name.
+function followClosedFullScreenSpace.set(name, value)
+    if name == nil then
+        local lines = {}
+        for _, number in ipairs(sortedKeys(DEFAULT_NUMBERS)) do
+            lines[#lines + 1] = number .. ' ' .. numberOf(number)
+        end
+        return table.concat(lines, '\n')
+    elseif DEFAULT_NUMBERS[name] == nil then
+        return 'unknown setting: ' .. name .. ' (expected one of: ' .. table.concat(sortedKeys(DEFAULT_NUMBERS), ', ') .. ')'
+    elseif type(value) ~= 'number' then
+        return name .. ' takes a number of seconds, not ' .. tostring(value)
+    elseif value < 0 then
+        return name .. ' takes a number of seconds, not ' .. tostring(value)
+    end
+
+    hs.settings.set(SETTINGS_PREFIX .. name, value)
+    return name .. ' ' .. value
 end
 
 -- Flash a pill on the focused screen the moment a hop is asked for, so a slow lookup after it never reads as a missed keypress.
@@ -69,8 +110,8 @@ local function showReceived()
     pill:show()
     -- Hold the canvas and its timer in the global table: garbage collection drops an unreferenced timer before it fires, stranding the pill.
     followClosedFullScreenSpace.received = pill
-    followClosedFullScreenSpace.receivedTimer = hs.timer.doAfter(RECEIVED_SECONDS, function()
-        pill:delete(RECEIVED_FADE_SECONDS)
+    followClosedFullScreenSpace.receivedTimer = hs.timer.doAfter(numberOf('received_seconds'), function()
+        pill:delete(numberOf('received_fade_seconds'))
         followClosedFullScreenSpace.received = nil
         followClosedFullScreenSpace.receivedTimer = nil
     end)
