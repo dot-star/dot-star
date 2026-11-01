@@ -12,8 +12,9 @@ the view:
              the listing plus its prompt and capped at half the tab. Left alone
              when claude's tab already has a second pane.
   "tab"   -> a background tab, as Cmd+T would, after which the tab selected
-             before is reselected. Left alone when the window already has a
-             second tab.
+             before is reselected. Shows the first-prompt `s` in place of the
+             listing, since a full-height tab has room for it. Left alone when
+             the window already has a second tab.
 
 Ghostty can't split at a given size or report a pane's rows, so the split mode
 nudges the divider and re-reads claude's own tty until the top pane leaves the
@@ -333,16 +334,15 @@ def open_status_split(window_id: str, directory: str, staged: list[str]) -> None
     fit_status_pane(terminal_id, tty, top_rows, tab.lines - DIVIDER_ROWS - status_rows)
 
 
-def open_status_tab(window_id: str, directory: str, staged: list[str]) -> None:
+def open_status_tab(window_id: str, directory: str) -> None:
     """
-    Open a background tab listing the staged files, unless the session window already has a second tab.
+    Open a background tab showing `s`, unless the session window already has a second tab.
 
     :param window_id: Ghostty id of the session's window.
     :param directory: Directory the tab opens in (e.g. a worktree root).
-    :param staged: Lines `STAGED_COMMAND` printed there (e.g. `["M\\tai/foo.md"]`).
     """
-    # Type nothing when nothing is staged, so the tab keeps the first-prompt `s`.
-    initial_input = STAGED_INPUT if staged else ""
+    # Type nothing, so the tab shows the first-prompt `s` (tools/zsh/.aliases.sh).
+    initial_input = ""
     outcome = run_osascript(
         """
         on run argv
@@ -395,12 +395,11 @@ def open_status_view(event: dict[str, Any]) -> None:
 
     window_id = path.read_text().strip()
     directory = tab_dir(event) or os.path.expanduser("~")
-    staged = staged_listing(directory)
 
     if STATUS_VIEW == "split":
-        open_status_split(window_id, directory, staged)
+        open_status_split(window_id, directory, staged_listing(directory))
     elif STATUS_VIEW == "tab":
-        open_status_tab(window_id, directory, staged)
+        open_status_tab(window_id, directory)
     else:
         log(f"unknown STATUS_VIEW {STATUS_VIEW!r}; nothing opened")
 
