@@ -47,6 +47,7 @@
 
 ## Workflow
 
+- Do the work in this session; hand it to the user (a command to paste, a terminal to open) or to another session only when this session can't do it. Every handoff below is a fallback, so try the in-session route first and name what blocked it when handing off.
 - For temporary files, write only to the session-scoped directory `/tmp/claude/<session_id>/` (surfaced via SessionStart). Don't write directly under `/tmp/` or `/tmp/claude/`.
 - Capture every generated screenshot at full quality: render at the screen's Retina density and save lossless. A 1x capture reads as blurry on the user's display, so a visual comparison built on it can't be judged.
   - Set `deviceScaleFactor: 2` on the viewport in Puppeteer (`page.setViewport`) or Playwright (`browser.newPage`/`newContext`); the default of 1 is the blur.
@@ -58,7 +59,8 @@
   - Subagents: pass `isolation: "worktree"`.
   - Direct edits: call `EnterWorktree` first, `ExitWorktree` with `action: "remove"` when done.
   - Never hand-make a worktree (`git worktree add`); `EnterWorktree` keeps every worktree under the ignored `.claude/worktrees/`.
-    - Hand an edit in another repo to a session in that repo: message a live one there (`ListAgents`, then `SendMessage`), else (or when the user wants a fresh one) copy a launch command for a new terminal that starts it with the task already written: `cd <repo> && claude "$(cat <brief>)"`, the brief saved to the session tmp dir so its quotes and `!` never touch the shell.
+    - Edit another repo's files in place by absolute path, on its checked-out branch as with an `nw` edit.
+    - Hand an edit in another repo that needs a worktree of its own (several commits, a branch to review, that repo's tests) to a session in that repo: message a live one there (`ListAgents`, then `SendMessage`), else (or when the user wants a fresh one) copy a launch command for a new terminal that starts it with the task already written: `cd <repo> && claude "$(cat <brief>)"`, the brief saved to the session tmp dir so its quotes and `!` never touch the shell.
   - `nw` or `nwt` ("no worktree") anywhere in a user message waives that default: edit in the main checkout. The waiver covers that work and its follow-ups; a later unrelated request re-defaults to a worktree.
   - Branch from whichever of the local default branch and a freshly fetched `origin/<default>` is newer: lands and promotes stay local, so `origin/<default>` lags until the next push.
     - `fast_forward_new_worktree_to_local_default.sh` does this for an `EnterWorktree` worktree, moving it onto the local branch when that branch already contains origin's.
@@ -373,7 +375,8 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
   - **Default to `!` so Claude sees the output:** hand the command as `! <command>` for this session's prompt. Send it to a new terminal only when it can't run at that prompt: it reads the keyboard (a `read` prompt, a password, a full-screen program like `vim`) or never exits (`wf`).
     - Pre-answer a prompt whose only job is a check the user already did (`printf 'y\n' | bash <script>.sh` once its dry run was reviewed), so the command stays at this prompt.
   - **Copy the form the user will paste:** keep the `!` prefix when the destination is this session's own prompt, drop it when they'll paste into a terminal.
-  - **Hand a blocked command over as a script:** when a permission rule, hook or the auto-mode classifier blocks a command, write the command into a script in the session tmp dir and copy the one-line invocation of that script (`! ssh -i <key> <user>@<host> 'bash -s' < /tmp/claude/<session_id>/<script>.sh`, or `! bash <script>.sh` locally), never the raw command.
+  - **Hand a blocked command over as a script:** when a permission rule, hook or the auto-mode classifier blocks a command with no allowed route around it, write the command into a script in the session tmp dir and copy the one-line invocation of that script (`! ssh -i <key> <user>@<host> 'bash -s' < /tmp/claude/<session_id>/<script>.sh`, or `! bash <script>.sh` locally), never the raw command.
+    - Retry through an allowed route first: the `Edit`/`Write`/`Read` tool, an absolute path in place of a leading `cd`, a native flag in place of a pipeline.
     - Open the script with `set -x` under the shebang, so the pasted output shows which line did what.
     - The script keeps the steps reviewable in one file; the paste stays one line.
   - **Flag the copy so it stands out:** once the command is on the clipboard, lead the line above its block with 📎 and bold the notice (`📎 **Copied to your clipboard:**`). A plain-prose notice blends into the reply, so the user retypes a command that was already waiting for them.

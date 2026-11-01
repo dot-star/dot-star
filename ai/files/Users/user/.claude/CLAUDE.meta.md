@@ -47,6 +47,7 @@
 
 ## Workflow
 
+- A handoff costs the user a context switch: they copy, paste, open a terminal, then relay the result back. This session loses sight of the outcome too. Rules that describe how to hand off read as permission to, so without a stated default sessions reach for the handoff the moment one is described, even when a direct route was open.
 -
 -
   -
@@ -58,7 +59,8 @@
   -
   -
   - Repos ignore `.claude/worktrees/` because `EnterWorktree` writes there; a hand-picked path lands where no ignore rule covers it (a session in one repo once made `worktrees/<name>` in another), so every later status check lists it.
-    - Cross-repo edits are what tempt a hand-made worktree: `EnterWorktree` creates only in the launch repo (or one nested inside it). Routing the edit to a session in its own repo also loads that repo's `CLAUDE.md`. One paste opens the session already briefed, so the user never retypes or relays the context; a bare "start a session there" leaves them writing the brief. Reading the brief from a file sidesteps zsh quoting: the task text often holds quotes, backticks or `!`, any of which breaks an inline single-quoted prompt.
+    - Most cross-repo edits are a line or two in a context doc, which this session can write directly at the absolute path; routing every one to another session turned a one-line fix into a terminal round trip.
+    - The handoff earns its cost only when the work needs that repo's worktree. Cross-repo edits are what tempt a hand-made worktree: `EnterWorktree` creates only in the launch repo (or one nested inside it). Routing the edit to a session in its own repo also loads that repo's `CLAUDE.md`. One paste opens the session already briefed, so the user never retypes or relays the context; a bare "start a session there" leaves them writing the brief. Reading the brief from a file sidesteps zsh quoting: the task text often holds quotes, backticks or `!`, any of which breaks an inline single-quoted prompt.
   -
   -
     -
@@ -374,6 +376,7 @@
     - A confirmation prompt guarding a dry run exists only so a human reviews the dry run. Once the user has reviewed it in the conversation, the prompt has done its job, and answering it ahead of time keeps the run visible instead of exiling it to a terminal just to type one letter.
   -
   -
+    - Most blocks target the command's shape, not its goal: a shell redirect where `Write` is allowlisted, a `cd` prefix or a pipeline that drags an allowlisted command into a prompt. Reshaping the call finishes the work in-session; jumping to the script on the first block hands the user a paste for work this session could have done.
     -
     -
   -
