@@ -43,8 +43,8 @@ personal_context_problem() {
 }
 
 # Echo "unlinked: <doc>" for each private-*.md beside a linked target that no
-# link in the contexts dir resolves to. Take the newline-separated targets as
-# the one argument.
+# link in the contexts dir resolves to, skipping .meta.md companions. Take the
+# newline-separated targets as the one argument.
 unlinked_source_docs() {
     local linked_targets="$1"
     local source_dir
@@ -58,6 +58,9 @@ unlinked_source_docs() {
         for doc in "${source_dir}"/private-*.md; do
             if [ ! -e "${doc}" ]; then
                 # Skip the literal glob when the directory holds no private-*.md.
+                continue
+            elif [[ "${doc}" == *.meta.md ]]; then
+                # Skip a .meta.md companion; it explains its doc to humans and never loads as context.
                 continue
             elif ! grep --quiet --fixed-strings --line-regexp -- "${doc}" <<<"${linked_targets}"; then
                 echo "unlinked: ${doc} (ln -s '${doc}' '${contexts_dir}/${doc##*/}')"
