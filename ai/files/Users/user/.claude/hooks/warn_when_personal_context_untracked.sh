@@ -59,7 +59,7 @@ unlinked_source_docs() {
             if [ ! -e "${doc}" ]; then
                 # Skip the literal glob when the directory holds no private-*.md.
                 continue
-            elif [[ "${doc}" == *.meta.md ]]; then
+            elif [[ "${doc}" == *".meta.md" ]]; then
                 # Skip a .meta.md companion; it explains its doc to humans and never loads as context.
                 continue
             elif ! grep --quiet --fixed-strings --line-regexp -- "${doc}" <<<"${linked_targets}"; then
