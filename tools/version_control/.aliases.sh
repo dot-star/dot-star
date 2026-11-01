@@ -2502,6 +2502,12 @@ drop_status_branch_line() {
     '
 }
 
+indent_status_paths() {
+    # Swap the tab git leads each path with for spaces, which the terminal
+    # would otherwise widen to a full 8-column tab stop.
+    awk '{ sub(/^\t/, "    "); print }'
+}
+
 label_untracked_paths() {
     # Label each `git status` untracked path "untracked:", padded so the path
     # lines up under the labeled paths above it. Read the column from the output
@@ -2565,6 +2571,7 @@ rc_status() {
         git -c color.status=always status --untracked-files=all "$@" |
             label_untracked_paths |
             stack_renamed_paths |
+            indent_status_paths |
             drop_status_branch_line
 
         # Run extra checks only when called with no args, to avoid noise on `s -s` etc.
