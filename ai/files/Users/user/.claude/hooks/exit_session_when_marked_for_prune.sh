@@ -45,7 +45,7 @@ fi
 
 # Leave the full-screen Space now rather than once the window closes, since the
 # page is done; claude_run skips its own follow after a requested close.
-if ! "${HOME}/.dot-star/ai/claude/follow_closed_full_screen_space.sh" leave; then
+if ! "${HOME}/.dot-star/ai/claude/follow_closed_full_screen_space.sh" "now"; then
     # Close the session anyway; the script already printed why the hop failed.
     true
 fi

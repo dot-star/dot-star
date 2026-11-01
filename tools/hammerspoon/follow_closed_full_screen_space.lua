@@ -1,9 +1,9 @@
 -- Follow a closing full-screen Space to the session showing the green check you were on last, else the next full-screen app, rather than the desktop macOS falls back to.
--- Arm it from the shell just before the window closes, passing the terminal's bundle id:
---   hs -c "require('follow_closed_full_screen_space'); return followClosedFullScreenSpace.arm('com.mitchellh.ghostty')"
--- Call `leave` instead to go right away, once the window is sure to close.
+-- Call `onClose` from the shell just before the window closes, passing the terminal's bundle id:
+--   hs -c "require('follow_closed_full_screen_space'); return followClosedFullScreenSpace.onClose('com.mitchellh.ghostty')"
+-- Call `now` instead to go right away, once the window is sure to close.
 
--- Give up on a Space still open this long after arming, so a window that never closed can't yank focus later.
+-- Give up on a Space still open this long after `onClose`, so a window that never closed can't yank focus later.
 local GIVE_UP_SECONDS = 60
 -- Poll often enough that the hop follows the close before the desktop gets used.
 local POLL_SECONDS = 0.2
@@ -91,7 +91,7 @@ local function goTo(target, windowId)
     end
 end
 
-local function disarm()
+local function cancelWait()
     if followClosedFullScreenSpace.timer then
         followClosedFullScreenSpace.timer:stop()
         followClosedFullScreenSpace.timer = nil
@@ -129,13 +129,13 @@ local function closingAndTarget(bundleId)
     return closing, target, nil, 'nearest full screen', nil
 end
 
--- Arm the hop for the focused Space when it holds a full-screen window of `bundleId`; return what happened for the log.
-function followClosedFullScreenSpace.arm(bundleId)
-    disarm()
+-- Hop once the focused Space closes, when it holds a full-screen window of `bundleId`; return what happened for the log.
+function followClosedFullScreenSpace.onClose(bundleId)
+    cancelWait()
 
     local closing, target, windowId, pickedBy, skipped = closingAndTarget(bundleId)
     if skipped then
-        log('arm ' .. bundleId .. ': ' .. skipped)
+        log('on-close ' .. bundleId .. ': ' .. skipped)
         return skipped
     end
 
@@ -143,35 +143,35 @@ function followClosedFullScreenSpace.arm(bundleId)
     -- Hold the timer in the global table so garbage collection can't stop it.
     followClosedFullScreenSpace.timer = hs.timer.doEvery(POLL_SECONDS, function()
         if hs.timer.secondsSinceEpoch() > deadline then
-            disarm()
-            log('arm: gave up, Space ' .. closing .. ' still open after ' .. GIVE_UP_SECONDS .. 's')
+            cancelWait()
+            log('on-close: gave up, Space ' .. closing .. ' still open after ' .. GIVE_UP_SECONDS .. 's')
         elseif spaceExists(closing) then
             return
         else
-            disarm()
+            cancelWait()
             if spaceExists(target) then
-                log('arm: Space ' .. closing .. ' closed, following to ' .. target .. ' (' .. pickedBy .. ')')
+                log('on-close: Space ' .. closing .. ' closed, following to ' .. target .. ' (' .. pickedBy .. ')')
                 goTo(target, windowId)
             else
-                log('arm: Space ' .. closing .. ' closed, but target ' .. target .. ' is gone too')
+                log('on-close: Space ' .. closing .. ' closed, but target ' .. target .. ' is gone too')
             end
         end
     end)
-    log('arm ' .. bundleId .. ': armed, Space ' .. closing .. ' -> ' .. target .. ' (' .. pickedBy .. ')')
-    return 'armed'
+    log('on-close ' .. bundleId .. ': waiting, Space ' .. closing .. ' -> ' .. target .. ' (' .. pickedBy .. ')')
+    return 'waiting'
 end
 
--- Go now to the Space `arm` would follow to, for a window known to be closing; return what happened for the log.
-function followClosedFullScreenSpace.leave(bundleId)
-    disarm()
+-- Go now to the Space `onClose` would follow to, for a window known to be closing; return what happened for the log.
+function followClosedFullScreenSpace.now(bundleId)
+    cancelWait()
 
     local closing, target, windowId, pickedBy, skipped = closingAndTarget(bundleId)
     if skipped then
-        log('leave ' .. bundleId .. ': ' .. skipped)
+        log('now ' .. bundleId .. ': ' .. skipped)
         return skipped
     end
 
-    log('leave ' .. bundleId .. ': Space ' .. closing .. ' -> ' .. target .. ' (' .. pickedBy .. ')')
+    log('now ' .. bundleId .. ': Space ' .. closing .. ' -> ' .. target .. ' (' .. pickedBy .. ')')
     goTo(target, windowId)
-    return 'left'
+    return 'moved'
 end

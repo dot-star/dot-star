@@ -980,7 +980,7 @@ quit() {
 conditional_x() {
     if [[ "${#}" -eq 0 ]]; then
         # Hop to the next session in line once this window's full-screen Space closes, rather than the desktop.
-        ~/.dot-star/ai/claude/follow_closed_full_screen_space.sh "arm"
+        ~/.dot-star/ai/claude/follow_closed_full_screen_space.sh "on-close"
 
         # Quit as no parameters were passed.
         quit

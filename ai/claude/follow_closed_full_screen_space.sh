@@ -6,10 +6,10 @@
 # terminal waiting on input lands in view.
 #
 # Usage:
-#   follow_closed_full_screen_space.sh arm    # hop once the Space goes away
-#   follow_closed_full_screen_space.sh leave  # hop now, for a window sure to close
+#   follow_closed_full_screen_space.sh on-close  # hop once the Space goes away
+#   follow_closed_full_screen_space.sh now       # hop now, for a window sure to close
 #
-# Returns at once either way; after `arm`, Hammerspoon waits for the Space to go
+# Returns at once either way; after `on-close`, Hammerspoon waits for the Space to go
 # away. Acts only when the focused window belongs to the terminal app this shell
 # runs in and sits in a full-screen Space.
 #
@@ -23,8 +23,12 @@
 set -euo pipefail
 
 mode="$1"
-if [[ "${mode}" != "arm" && "${mode}" != "leave" ]]; then
-    echo "Usage: $(basename "$0") arm|leave" >&2
+if [[ "${mode}" == "on-close" ]]; then
+    lua_function="onClose"
+elif [[ "${mode}" == "now" ]]; then
+    lua_function="now"
+else
+    echo "Usage: $(basename "$0") on-close|now" >&2
     exit 2
 fi
 
@@ -53,9 +57,9 @@ if [[ -z "${terminal_bundle_id}" ]]; then
     exit 0
 fi
 
-# Load the module on demand, so a Hammerspoon still running a config from before the module shipped can arm it anyway.
-if ! "${hammerspoon_cli}" -c "require('follow_closed_full_screen_space'); return followClosedFullScreenSpace.${mode}('${terminal_bundle_id}')" >/dev/null; then
+# Load the module on demand, so a Hammerspoon still running a config from before the module shipped can run it anyway.
+if ! "${hammerspoon_cli}" -c "require('follow_closed_full_screen_space'); return followClosedFullScreenSpace.${lua_function}('${terminal_bundle_id}')" >/dev/null; then
     log "${mode} ${terminal_bundle_id}: failed: Hammerspoon couldn't run the hop"
-    echo "Couldn't arm the full-screen follow through Hammerspoon. Check it's running with the dot-star bootstrap block and require('hs.ipc') in ~/.hammerspoon/init.lua (./install.sh adds both), then reload its config." >&2
+    echo "Couldn't run the full-screen follow through Hammerspoon. Check it's running with the dot-star bootstrap block and require('hs.ipc') in ~/.hammerspoon/init.lua (./install.sh adds both), then reload its config." >&2
     exit 1
 fi

@@ -447,8 +447,8 @@ claude_run() {
     # anyway. Leave anything else on screen. Skip both after a requested close,
     # since the Stop hook already left the Space and focus sits on another window.
     if [[ -n "${session_finished}" && -z "${unpushed_repos}" && -z "${close_requested}" ]]; then
-        # Arm before the minimize, while the window still holds its full-screen Space.
-        run_claude_cleanup_step ~/.dot-star/ai/claude/follow_closed_full_screen_space.sh arm
+        # Set up the hop before the minimize, while the window still holds its full-screen Space.
+        run_claude_cleanup_step ~/.dot-star/ai/claude/follow_closed_full_screen_space.sh "on-close"
         run_claude_cleanup_step ~/.dot-star/ai/claude/minimize_own_window.sh
     fi
 
