@@ -1,4 +1,4 @@
--- Follow a closing full-screen Space to the next session showing the green check, else the next full-screen app, rather than the desktop macOS falls back to.
+-- Follow a closing full-screen Space to the session showing the green check you were on last, else the next full-screen app, rather than the desktop macOS falls back to.
 -- Arm it from the shell just before the window closes, passing the terminal's bundle id:
 --   hs -c "require('follow_closed_full_screen_space'); return followClosedFullScreenSpace.arm('com.mitchellh.ghostty')"
 -- Call `leave` instead to go right away, once the window is sure to close.
@@ -62,18 +62,18 @@ local function neighborFullScreenSpace(spaces, index)
     return nil
 end
 
--- Return the nearest Space holding a ready session, scanning the same way as neighborFullScreenSpace, and that session's window.
-local function neighborReadySpace(spaces, index)
-    local readyWindows = showSpacePosition.readySessionWindows()
-    for position = index + 1, #spaces do
-        if readyWindows[spaces[position]] ~= nil then
-            return spaces[position], readyWindows[spaces[position]]
+-- Pick the green session you were on most recently, not the nearest one, so a switch lands where your context for its objective is freshest.
+-- Rank by last seen rather than by turning green: a session started long ago that just finished is already stale in your head.
+-- Return that Space on the closing Space's screen and its session's window, else nil.
+local function mostRecentReadySpace(spaces, closing)
+    for _, ready in ipairs(showSpacePosition.readySessionsByRecency()) do
+        if ready.space == closing then
+            -- Skip the session that's closing.
+            goto continue
+        elseif indexOf(spaces, ready.space) ~= nil then
+            return ready.space, ready.windowId
         end
-    end
-    for position = index - 1, 1, -1 do
-        if readyWindows[spaces[position]] ~= nil then
-            return spaces[position], readyWindows[spaces[position]]
-        end
+        ::continue::
     end
     return nil, nil
 end
@@ -117,7 +117,7 @@ local function closingAndTarget(bundleId)
         return nil, nil, nil, nil, 'skipped: focused Space ' .. tostring(closing) .. ' not found on its screen'
     end
 
-    local readyTarget, readyWindowId = neighborReadySpace(spaces, index)
+    local readyTarget, readyWindowId = mostRecentReadySpace(spaces, closing)
     if readyTarget ~= nil then
         return closing, readyTarget, readyWindowId, 'ready session', nil
     end

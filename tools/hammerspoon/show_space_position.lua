@@ -9,7 +9,7 @@
 --   Show on each dot the state of the Claude session whose window sits on that Space (session_state, needs page_dots).
 --   Switch to a Space whose session turned ready, once you've been idle a while (follow_ready, needs session_state).
 --   Show a countdown left of the dots to when follow_ready arms, for debugging (follow_countdown, needs follow_ready).
--- Hand follow_closed_full_screen_space the ready Spaces with readySessionWindows, so a closing session hops to the next green check.
+-- Hand follow_closed_full_screen_space the ready Spaces with readySessionsByRecency, so a closing session hops to a green check.
 -- Toggle from the shell with `space_position_experiment`; each flag persists across reloads.
 -- Pick the session dots' decision style and focus marker the same way; each style persists too.
 -- Set how long you must be idle before follow_ready switches Spaces the same way, with follow_idle_seconds.
@@ -129,6 +129,9 @@ local lastFollowAt = nil
 local missedReadyAt = {}
 -- Map each Space id to the window of its most urgent session, from the last read.
 local sessionWindows = {}
+-- Map each Space id to when you were last on it, so the green checks can be ranked by how fresh each is in your head.
+local lastSeenAt = {}
+local currentSpace = nil
 local catchUpTimer = nil
 local countdownTimer = nil
 
@@ -617,12 +620,13 @@ local function sessionSpaces(sessionId)
     return hs.spaces.windowSpaces(windowId) or {}, windowId
 end
 
--- Return each Space's most urgent session state, from the state words the hooks record, and the window of the session it came from.
+-- Return each Space's most urgent session state, from the state words the hooks record, the window of the session it came from and when that state was recorded.
 local function readSessionStates()
     local states = {}
     local windows = {}
+    local changedAt = {}
     if hs.fs.attributes(SESSION_STATE_DIR) == nil then
-        return states, windows
+        return states, windows, changedAt
     end
     for fileName in hs.fs.dir(SESSION_STATE_DIR) do
         local sessionId = fileName:match('^(.+)%.state$')
@@ -636,14 +640,16 @@ local function readSessionStates()
                 if states[space] == nil then
                     states[space] = state
                     windows[space] = windowId
+                    changedAt[space] = hs.fs.attributes(SESSION_STATE_DIR .. fileName, 'modification')
                 elseif SESSION_STATE_URGENCY[state] > SESSION_STATE_URGENCY[states[space]] then
                     states[space] = state
                     windows[space] = windowId
+                    changedAt[space] = hs.fs.attributes(SESSION_STATE_DIR .. fileName, 'modification')
                 end
             end
         end
     end
-    return states, windows
+    return states, windows, changedAt
 end
 
 -- Return where your idle stretch stands: 'waiting' until it's long enough to follow, 'armed' once it is, 'spent' after a follow in it.
@@ -1251,20 +1257,35 @@ function showSpacePosition.spaceNumber(space)
     return 'unknown Space ' .. tostring(space)
 end
 
--- Return the window of each Space whose dot shows the green check, read fresh so a state the watcher hasn't drawn yet still counts.
-function showSpacePosition.readySessionWindows()
-    local states, windows = readSessionStates()
-    local readyWindows = {}
+-- Return each Space whose dot shows the green check as { space, windowId }, the one you were on most recently first.
+-- Rank a Space not seen since the last reload by when it turned green instead; read fresh so a state the watcher hasn't drawn yet still counts.
+function showSpacePosition.readySessionsByRecency()
+    local states, windows, changedAt = readSessionStates()
+    local ready = {}
     for space, state in pairs(states) do
         if state == 'ready' then
-            readyWindows[space] = windows[space]
+            ready[#ready + 1] = { space = space, windowId = windows[space], recency = lastSeenAt[space] or changedAt[space] or 0 }
         end
     end
-    return readyWindows
+    table.sort(ready, function(a, b)
+        return a.recency > b.recency
+    end)
+    return ready
+end
+
+-- Stamp the Space you're leaving and the one you land on, so last seen means the last moment you were on it.
+local function recordSpaceSeen()
+    local now = hs.timer.secondsSinceEpoch()
+    if currentSpace ~= nil then
+        lastSeenAt[currentSpace] = now
+    end
+    currentSpace = hs.spaces.focusedSpace()
+    lastSeenAt[currentSpace] = now
 end
 
 -- Hold each watcher in the global table so garbage collection can't stop it.
 showSpacePosition.watcher = hs.spaces.watcher.new(function()
+    recordSpaceSeen()
     render()
     -- Redraw again once a closed full-screen Space is gone for good, so its bars don't linger on the desktop it fell back to.
     renderAfterSettle()
@@ -1286,4 +1307,5 @@ showSpacePosition.wakeWatcher:start()
 hs.fs.mkdir(SESSION_STATE_DIR)
 showSpacePosition.sessionStateWatcher = hs.pathwatcher.new(SESSION_STATE_DIR, renderSessionStates)
 showSpacePosition.sessionStateWatcher:start()
+recordSpaceSeen()
 render()
