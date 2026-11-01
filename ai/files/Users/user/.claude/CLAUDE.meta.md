@@ -400,7 +400,7 @@
   -
   -
   -
--
+- A partial read looks like a full one: the subject-draft tree shape sits past the first few thousand bytes, so a capped read misses it and the menu gets drafts in a fence, missing their `[cN]` tokens and tree glyphs.
 -
 
 
