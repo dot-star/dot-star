@@ -2470,6 +2470,7 @@ drop_status_framing_lines() {
     # Drop `git status`'s "On branch" line and trailing blank lines, so the
     # status spends no lines on framing. The shell prompt printed right after
     # the status already names the branch.
+    # Drop closing lines that repeat a section header too.
     # Example output:
     #   Changes to be committed:
     #           modified:   foo.sh
@@ -2481,6 +2482,16 @@ drop_status_framing_lines() {
 
         # Drop only "On branch"; a "HEAD detached at" line says more than the prompt.
         NR == 1 && bare ~ /^On branch / {
+            next
+        }
+
+        # Drop closing lines that restate the "Changes not staged" or "Untracked
+        # files" header above; keep "working tree clean", the only line a clean
+        # status prints.
+        bare ~ /^no changes added to commit/ {
+            next
+        }
+        bare ~ /^nothing added to commit but untracked files present/ {
             next
         }
 
