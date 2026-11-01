@@ -9,6 +9,7 @@
 --   Show on each dot the state of the Claude session whose window sits on that Space (session_state, needs page_dots).
 --   Switch to a Space whose session turned ready, once you've been idle a while (follow_ready, needs session_state).
 --   Show a countdown left of the dots to when follow_ready arms, for debugging (follow_countdown, needs follow_ready).
+--   Number the green dots in the order a closing session hops to them, for debugging (follow_order, needs session_state).
 -- Hand follow_closed_full_screen_space the ready Spaces with readySessionsByRecency, so a closing session hops to a green check.
 -- Toggle from the shell with `space_position_experiment`; each flag persists across reloads.
 -- Pick the session dots' decision style and focus marker the same way; each style persists too.
@@ -22,6 +23,7 @@ local DEFAULT_ENABLED = {
     cycle_colors = false,
     edge_bars = true,
     follow_countdown = true,
+    follow_order = true,
     follow_ready = true,
     page_dots = true,
     page_dots_pill = false,
@@ -107,6 +109,8 @@ local SESSION_STATE_URGENCY = {
     decision = 3,
 }
 local FOCUS_MARK_COLOR = { white = 1, alpha = 1 }
+-- Size the follow-order number to fit the strip between a dot and the title bar's bottom edge.
+local FOLLOW_ORDER_TEXT_SIZE = 10
 -- Wait out macOS rearranging Spaces after a display change, a wake or a Space closing, which often runs on past the event reporting it.
 local SETTLE_SECONDS = 1
 
@@ -568,8 +572,22 @@ local function homeElements(center)
     return { triangle }
 end
 
--- Draw the home triangle, then one ring per Space in `spaces` showing its session's state, marking the ring at `index`; draw pings only when `animate`, since a still frame would freeze one mid-ripple.
-local function layoutSessionDots(dots, index, spaces, pillVisible, seconds, animate)
+-- Write a dot's place in the follow order centered beneath it, in the slot the focus underline uses; the focused dot is never ranked, so the two never meet.
+local function followOrderElement(center, rank)
+    local textHeight = FOLLOW_ORDER_TEXT_SIZE + 2
+    return {
+        type = 'text',
+        text = tostring(rank),
+        textColor = FOCUS_MARK_COLOR,
+        textFont = 'Menlo-Bold',
+        textSize = FOLLOW_ORDER_TEXT_SIZE,
+        textAlignment = 'center',
+        frame = { x = center.x - DOT_SIZE / 2, y = center.y + DOT_SIZE / 2, w = DOT_SIZE, h = textHeight },
+    }
+end
+
+-- Draw the home triangle, then one ring per Space in `spaces` showing its session's state, marking the ring at `index` and badging each ranked in `followOrder`; draw pings only when `animate`, since a still frame would freeze one mid-ripple.
+local function layoutSessionDots(dots, index, spaces, followOrder, pillVisible, seconds, animate)
     local elements = { pageDotsPill(pillVisible) }
     for _, element in ipairs(homeElements(pageDotCenter(1))) do
         elements[#elements + 1] = element
@@ -591,15 +609,18 @@ local function layoutSessionDots(dots, index, spaces, pillVisible, seconds, anim
         for _, element in ipairs(dotElements) do
             elements[#elements + 1] = element
         end
+        if followOrder[space] ~= nil then
+            elements[#elements + 1] = followOrderElement(center, followOrder[space])
+        end
     end
     dots:replaceElements(elements)
 end
 
 -- Return a key that changes whenever a session row's still frame would, so an unchanged row skips its redraw.
-local function sessionDotsKey(index, spaces, pillVisible)
+local function sessionDotsKey(index, spaces, followOrder, pillVisible)
     local parts = { index, tostring(pillVisible), styleOf('decision_style'), styleOf('focus_marker') }
     for _, space in ipairs(spaces) do
-        parts[#parts + 1] = sessionStateOf(space)
+        parts[#parts + 1] = sessionStateOf(space) .. ':' .. tostring(followOrder[space])
     end
     return table.concat(parts, ' ')
 end
@@ -927,6 +948,28 @@ local function sessionDotSpaces(screen)
     return spaces
 end
 
+-- Return each of `spaces` mapped to its place in line for a hop off `closing`, the order follow_closed_full_screen_space walks; empty while follow_order is off.
+local function followOrderOf(spaces, closing)
+    local order = {}
+    if not isEnabled('follow_order') then
+        return order
+    end
+    local inRow = {}
+    for _, space in ipairs(spaces) do
+        inRow[space] = true
+    end
+    local rank = 0
+    for _, ready in ipairs(showSpacePosition.readySessionsByRecency()) do
+        if ready.space == closing then
+            -- Skip the Space being left, the same as the hop does.
+        elseif inRow[ready.space] then
+            rank = rank + 1
+            order[ready.space] = rank
+        end
+    end
+    return order
+end
+
 -- Fit a pair's bars, bumper and dots flush to the edges of `screen`, for the Space at `index` of `count` on it.
 local function placeEdgeBars(pair, index, count, screen)
     local frame = screen:fullFrame()
@@ -966,13 +1009,15 @@ local function placeEdgeBars(pair, index, count, screen)
     if isEnabled('session_state') then
         local spaces = sessionDotSpaces(screen)
         local rowIndex = index - 1
-        local key = sessionDotsKey(rowIndex, spaces, pillVisible)
+        local followOrder = followOrderOf(spaces, spaces[rowIndex])
+        local key = sessionDotsKey(rowIndex, spaces, followOrder, pillVisible)
         pair.sessionIndex = rowIndex
         pair.sessionSpaces = spaces
+        pair.followOrder = followOrder
         -- Count the home triangle too.
         dotsCount = #spaces + 1
         if pair.sessionKey ~= key then
-            layoutSessionDots(pair.dots, rowIndex, spaces, pillVisible, hs.timer.secondsSinceEpoch(), false)
+            layoutSessionDots(pair.dots, rowIndex, spaces, followOrder, pillVisible, hs.timer.secondsSinceEpoch(), false)
             pair.sessionKey = key
             -- Forget the plain dots, so turning session_state off redraws them.
             pair.dotsIndex = nil
@@ -1096,7 +1141,7 @@ local function animateFrame()
     local moving = false
     for _, pair in ipairs(shownSessionPairs()) do
         local animate = sessionDotsAnimate(pair.sessionSpaces, seconds)
-        layoutSessionDots(pair.dots, pair.sessionIndex, pair.sessionSpaces, pillVisible, seconds, animate)
+        layoutSessionDots(pair.dots, pair.sessionIndex, pair.sessionSpaces, pair.followOrder, pillVisible, seconds, animate)
         if animate then
             moving = true
         end
