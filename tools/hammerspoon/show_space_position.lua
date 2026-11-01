@@ -9,8 +9,8 @@
 --   Show on each dot the state of the Claude session whose window sits on that Space (session_state, needs page_dots).
 --   Switch to a Space whose session turned ready, once you've been idle a while (follow_ready, needs session_state).
 --   Show a countdown left of the dots to when follow_ready arms, for debugging (follow_countdown, needs follow_ready).
---   Number the dots in the order a closing session hops to them, green ones first, else the nearest full screen, for debugging (follow_order, needs session_state).
--- Hand follow_closed_full_screen_space the ready Spaces with readySessionsByRecency, so a closing session hops to a green check.
+--   Number the dots in the order a closing session hops to them, by state then last seen, for debugging (follow_order, needs session_state).
+-- Hand follow_closed_full_screen_space the ranked Spaces with hopOrder, so a closing session hops to the one most in need of you.
 -- Toggle from the shell with `space_position_experiment`; each flag persists across reloads.
 -- Pick the session dots' decision style and focus marker the same way; each style persists too.
 -- Set how long you must be idle before follow_ready switches Spaces the same way, with follow_idle_seconds.
@@ -107,6 +107,13 @@ local SESSION_STATE_URGENCY = {
     busy = 1,
     ready = 2,
     decision = 3,
+}
+-- Rank where a hop off a closing session lands: a decision blocks you, a finished session waits on you, and an empty Space beats one still working.
+local HOP_STATE_PRIORITY = {
+    decision = 1,
+    ready = 2,
+    none = 3,
+    busy = 4,
 }
 local FOCUS_MARK_COLOR = { white = 1, alpha = 1 }
 -- Size the follow-order number to fit the strip between a dot and the title bar's bottom edge.
@@ -1359,22 +1366,6 @@ function showSpacePosition.spaceNumber(space)
     return 'unknown Space ' .. tostring(space)
 end
 
--- Return each Space whose dot shows the green check as { space, windowId }, the one you were on most recently first.
--- Rank a Space not seen since the last reload by when it turned green instead; read fresh so a state the watcher hasn't drawn yet still counts.
-function showSpacePosition.readySessionsByRecency()
-    local states, windows, changedAt = readSessionStates()
-    local ready = {}
-    for space, state in pairs(states) do
-        if state == 'ready' then
-            ready[#ready + 1] = { space = space, windowId = windows[space], recency = lastSeenAt[space] or changedAt[space] or 0 }
-        end
-    end
-    table.sort(ready, function(a, b)
-        return a.recency > b.recency
-    end)
-    return ready
-end
-
 local function indexOf(spaces, space)
     for index, candidate in ipairs(spaces) do
         if candidate == space then
@@ -1384,46 +1375,72 @@ local function indexOf(spaces, space)
     return nil
 end
 
--- Return the nearest full-screen Space to the right of `index`, else the nearest to its left.
-local function neighborFullScreenSpace(spaces, index)
-    for position = index + 1, #spaces do
-        if hs.spaces.spaceType(spaces[position]) == 'fullscreen' then
-            return spaces[position]
-        end
+-- Return whether a hop off `closing` may land on `space`, whose session shows `state`.
+local function isHopTarget(
+    space,
+    state,
+    closing
+)
+    if space == closing then
+        return false
+    elseif state ~= 'none' then
+        return true
+    -- Land on an empty Space only when it's full screen, never the desktop the swipe starts from.
+    elseif hs.spaces.spaceType(space) == 'fullscreen' then
+        return true
     end
-    for position = index - 1, 1, -1 do
-        if hs.spaces.spaceType(spaces[position]) == 'fullscreen' then
-            return spaces[position]
-        end
+    return false
+end
+
+-- Return how a hop picked a Space showing `state`, for the follow log.
+local function hopPickedBy(state)
+    if state == 'none' then
+        return 'empty full screen'
     end
-    return nil
+    return state .. ' session'
+end
+
+-- Return how far `position` sits from the closing Space at `closingIndex`, counting every Space to its right before any to its left.
+local function hopDistance(
+    position,
+    closingIndex,
+    count
+)
+    if position > closingIndex then
+        return position - closingIndex
+    end
+    return count + closingIndex - position
 end
 
 -- Return where a hop off `closing` goes, first choice first, as { space, windowId, pickedBy } among `spaces`, the closing Space's screen.
--- Pick the green session you were on most recently, not the nearest one, so a switch lands where your context for its objective is freshest.
--- Rank by last seen rather than by turning green: a session started long ago that just finished is already stale in your head.
--- Fall back to the nearest full-screen Space only when no session is green.
+-- Rank by HOP_STATE_PRIORITY, then by last seen, so a switch lands where your context for its objective is freshest.
+-- Rank by last seen rather than by state change: a session started long ago that just finished is already stale in your head.
 function showSpacePosition.hopOrder(spaces, closing)
+    -- Read fresh, so a state the watcher hasn't drawn yet still counts.
+    local states, windows, changedAt = readSessionStates()
+    local closingIndex = indexOf(spaces, closing) or 0
     local order = {}
-    for _, ready in ipairs(showSpacePosition.readySessionsByRecency()) do
-        if ready.space == closing then
-            -- Skip the session that's closing.
-        elseif indexOf(spaces, ready.space) ~= nil then
-            order[#order + 1] = { space = ready.space, windowId = ready.windowId, pickedBy = 'ready session' }
+    for position, space in ipairs(spaces) do
+        local state = states[space] or 'none'
+        if isHopTarget(space, state, closing) then
+            order[#order + 1] = {
+                space = space,
+                windowId = windows[space],
+                pickedBy = hopPickedBy(state),
+                priority = HOP_STATE_PRIORITY[state],
+                recency = lastSeenAt[space] or changedAt[space] or 0,
+                distance = hopDistance(position, closingIndex, #spaces),
+            }
         end
     end
-    if #order > 0 then
-        return order
-    end
-
-    local index = indexOf(spaces, closing)
-    if index == nil then
-        return order
-    end
-    local neighbor = neighborFullScreenSpace(spaces, index)
-    if neighbor ~= nil then
-        order[#order + 1] = { space = neighbor, windowId = nil, pickedBy = 'nearest full screen' }
-    end
+    table.sort(order, function(a, b)
+        if a.priority ~= b.priority then
+            return a.priority < b.priority
+        elseif a.recency ~= b.recency then
+            return a.recency > b.recency
+        end
+        return a.distance < b.distance
+    end)
     return order
 end
 

@@ -181,7 +181,7 @@ local function closingAndTarget(bundleId)
 
     local next = showSpacePosition.hopOrder(spaces, closing)[1]
     if next == nil then
-        return nil, nil, nil, nil, 'skipped: no ready session and no other full-screen Space beside ' .. tostring(closing) .. ' (position ' .. index .. ' of ' .. #spaces .. ')'
+        return nil, nil, nil, nil, 'skipped: no other session or full-screen Space beside ' .. tostring(closing) .. ' (position ' .. index .. ' of ' .. #spaces .. ')'
     end
     return closing, next.space, next.windowId, next.pickedBy, nil
 end
