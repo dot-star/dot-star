@@ -37,6 +37,7 @@
        -
        -
        - A lone `N` under promote, land or close read as a single pick even when the commit row above offered two trees; the repeated `N` makes the shape match what the reply has to carry.
+       - Menu drafts are written straight into chat, so the style guide's `Write`/`Edit` reminder hook never fires for them and its rules went unread; the diff-carried value is the cut that slipped through (a retention number and the setting's own name landed in drafts while the diff already showed both).
     8.
     9.
        -
