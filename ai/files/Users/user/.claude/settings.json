@@ -3,6 +3,7 @@
     "commit": "",
     "pr": ""
   },
+  "cleanupPeriodDays": 3,
   "editorMode": "vim",
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": false
