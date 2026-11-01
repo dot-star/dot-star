@@ -2466,7 +2466,7 @@ stack_renamed_paths() {
     '
 }
 
-drop_status_branch_line() {
+drop_status_framing_lines() {
     # Drop `git status`'s "On branch" line and trailing blank lines, so the
     # status spends no lines on framing. The shell prompt printed right after
     # the status already names the branch.
@@ -2572,7 +2572,7 @@ rc_status() {
             label_untracked_paths |
             stack_renamed_paths |
             indent_status_paths |
-            drop_status_branch_line
+            drop_status_framing_lines
 
         # Run extra checks only when called with no args, to avoid noise on `s -s` etc.
         if [[ "${#}" -eq 0 ]]; then
