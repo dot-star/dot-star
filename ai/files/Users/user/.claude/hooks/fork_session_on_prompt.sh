@@ -23,13 +23,15 @@ session_id=$(command jq --raw-output '.session_id // empty' <<<"${input}")
 transcript_path=$(command jq --raw-output '.transcript_path // empty' <<<"${input}")
 cwd=$(command jq --raw-output '.cwd // empty' <<<"${input}")
 
-# Block the prompt with a message shown to the user, never to the model.
+# Stop the prompt with a message shown to the user, never to the model. Use
+# `continue: false` over `decision: "block"`, since a block puts the typed
+# prompt back in the input field.
 block() {
     command jq \
         --null-input \
         --compact-output \
         --arg reason "$1" \
-        '{decision: "block", reason: $reason}'
+        '{continue: false, stopReason: $reason}'
     exit 0
 }
 
