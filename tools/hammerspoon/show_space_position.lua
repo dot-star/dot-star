@@ -90,6 +90,8 @@ local RING_RADIUS = DOT_SIZE / 2 - RING_WIDTH / 2
 local ORBIT_SECONDS = 2
 -- Ripple the ready ping out once, long enough to catch the eye without lingering.
 local PING_SECONDS = 1
+-- Hold a session's ready back until it lasts this long, outlasting a Stop hook that blocks the stop and sends Claude back to work.
+local READY_SETTLE_SECONDS = 3
 local FRAMES_PER_SECOND = 30
 -- Color each state like a traffic light: amber busy, red decision, green ready.
 local SESSION_STATE_COLORS = {
@@ -127,6 +129,11 @@ local frameTimer = nil
 local lastFollowAt = nil
 -- Map each Space id to when its session turned ready while follow_ready wasn't armed, so arming later still takes you there.
 local missedReadyAt = {}
+-- Map each Space id to when its session's ready was first read, so the dot shows it only once it has settled.
+local readySince = {}
+local readySettleTimer = nil
+-- Redraw every Space's session dots; assigned once the drawing functions below exist.
+local redrawSessionDots
 -- Map each Space id to the window of its most urgent session, from the last read.
 local sessionWindows = {}
 -- Map each Space id to when you were last on it, so the green checks can be ranked by how fresh each is in your head.
@@ -728,11 +735,60 @@ local function updateCatchUpTimer()
     end
 end
 
+-- Show a ready not yet settled as busy, so a stop a Stop hook blocks never draws a check, pings or follows.
+local function settleReadyStates(states, now)
+    for space, state in pairs(states) do
+        if state ~= 'ready' then
+            readySince[space] = nil
+        elseif readySince[space] == nil and sessionStates == nil then
+            -- Count a ready already there at reload as settled, so a reload doesn't replay every check's ping.
+            readySince[space] = now - READY_SETTLE_SECONDS
+        elseif readySince[space] == nil then
+            readySince[space] = now
+            states[space] = 'busy'
+        elseif now - readySince[space] < READY_SETTLE_SECONDS then
+            states[space] = 'busy'
+        end
+    end
+    -- Forget the Spaces whose session went away.
+    for space in pairs(readySince) do
+        if states[space] == nil then
+            readySince[space] = nil
+        end
+    end
+end
+
+-- Redraw when the soonest held-back ready settles, since no state file write marks that moment.
+local function scheduleReadySettle(now)
+    if readySettleTimer then
+        readySettleTimer:stop()
+        readySettleTimer = nil
+    end
+    local soonest = nil
+    for _, since in pairs(readySince) do
+        local remaining = since + READY_SETTLE_SECONDS - now
+        if remaining <= 0 then
+            -- Skip a ready that already settled.
+        elseif soonest == nil then
+            soonest = remaining
+        elseif remaining < soonest then
+            soonest = remaining
+        end
+    end
+    if soonest ~= nil then
+        readySettleTimer = hs.timer.doAfter(soonest, function()
+            readySettleTimer = nil
+            redrawSessionDots()
+        end)
+    end
+end
+
 -- Re-read every session's state, starting a ping on each Space that just turned ready and following it there when you're away, or once you are.
 local function refreshSessionStates()
     local states, windows = readSessionStates()
+    local now = hs.timer.secondsSinceEpoch()
+    settleReadyStates(states, now)
     if sessionStates ~= nil then
-        local now = hs.timer.secondsSinceEpoch()
         for space, state in pairs(states) do
             if state == 'ready' and sessionStates[space] ~= 'ready' then
                 pingStartedAt[space] = now
@@ -753,6 +809,7 @@ local function refreshSessionStates()
     sessionStates = states
     sessionWindows = windows
     updateCatchUpTimer()
+    scheduleReadySettle(now)
 end
 
 local function setEdgeBarVisible(bar, visible)
@@ -1155,6 +1212,15 @@ local function placeEveryEdgeBarSet()
             end
         end
     end
+end
+
+redrawSessionDots = function()
+    if not isEnabled('session_state') then
+        return
+    end
+    refreshSessionStates()
+    placeEveryEdgeBarSet()
+    updateAnimation()
 end
 
 -- Redraw every Space's session dots after a hook records a state, so each row is current before it's next seen.
