@@ -382,6 +382,7 @@
     -
     -
     -
+  - The user copies other things between turns, so a copy from an earlier turn may be gone; a claim made from memory of the `pbcopy` sends them to paste the wrong thing. Copying again on a mismatch makes the claim true rather than only checked.
   -
   -
   -
