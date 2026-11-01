@@ -10,6 +10,10 @@ local POLL_SECONDS = 0.2
 -- Share the folder the claude hooks log to, so one `tail -f` covers every window step.
 local LOG_DIR = '/tmp/claude-state-hook'
 local LOG_FILE = LOG_DIR .. '/follow_closed_full_screen_space.log'
+-- Keep the received indicator up long enough to register across the Space switch, short enough not to linger on the next session.
+local RECEIVED_SECONDS = 0.8
+local RECEIVED_FADE_SECONDS = 0.2
+local RECEIVED_SIZE = { w = 220, h = 56 }
 
 require('show_space_position')
 
@@ -25,6 +29,49 @@ local function log(message)
     end
     handle:write(os.date('%Y-%m-%d %H:%M:%S') .. ' ' .. message .. '\n')
     handle:close()
+end
+
+-- Flash a pill on the focused screen the moment a hop is asked for, so a slow lookup after it never reads as a missed keypress.
+-- Join every Space so the pill rides along with the switch instead of staying behind on the closing one.
+local function showReceived()
+    if followClosedFullScreenSpace.received then
+        followClosedFullScreenSpace.received:delete()
+    end
+
+    local screenFrame = hs.screen.mainScreen():frame()
+    local pill = hs.canvas.new({
+        x = screenFrame.x + (screenFrame.w - RECEIVED_SIZE.w) / 2,
+        y = screenFrame.y + (screenFrame.h - RECEIVED_SIZE.h) / 2,
+        w = RECEIVED_SIZE.w,
+        h = RECEIVED_SIZE.h,
+    })
+    pill:level(hs.canvas.windowLevels.overlay)
+    pill:behavior({ 'canJoinAllSpaces', 'stationary' })
+    pill:appendElements({
+        type = 'rectangle',
+        action = 'strokeAndFill',
+        -- Fill with a saturated color and outline it, so the pill reads on a black terminal and a white page alike.
+        fillColor = { red = 0.15, green = 0.45, blue = 0.95, alpha = 0.95 },
+        strokeColor = { white = 1, alpha = 0.9 },
+        strokeWidth = 2,
+        roundedRectRadii = { xRadius = RECEIVED_SIZE.h / 2, yRadius = RECEIVED_SIZE.h / 2 },
+    }, {
+        type = 'text',
+        text = '→ next session',
+        textColor = { white = 1 },
+        textSize = 22,
+        textAlignment = 'center',
+        frame = { x = 0, y = '22%', w = '100%', h = '100%' },
+    })
+    pill:show()
+    -- Hold the canvas in the global table so garbage collection can't drop it mid-display.
+    followClosedFullScreenSpace.received = pill
+    hs.timer.doAfter(RECEIVED_SECONDS, function()
+        pill:delete(RECEIVED_FADE_SECONDS)
+        if followClosedFullScreenSpace.received == pill then
+            followClosedFullScreenSpace.received = nil
+        end
+    end)
 end
 
 local function spaceExists(space)
@@ -163,6 +210,7 @@ end
 
 -- Go now to the Space `onClose` would follow to, for a window known to be closing; return what happened for the log.
 function followClosedFullScreenSpace.now(bundleId)
+    showReceived()
     cancelWait()
 
     local closing, target, windowId, pickedBy, skipped = closingAndTarget(bundleId)
