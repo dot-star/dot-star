@@ -57,6 +57,20 @@ Quotes mark the value as data, so it reads the way the same call reads from Pyth
 
 Matches the multi-flag rule's scope: a typed one-off is never reread, so the quotes buy nothing there.
 
+## Quoted glob literals
+
+The quotes split the pattern at a glance into the part that matches itself and the wildcard doing the matching; a bare `*.meta.md` makes the reader check each character, since `.` is a wildcard in regex and a later `?` or `[` would silently start matching. It's the quoted-string rule above applied to patterns: the literal is data, so it gets the quotes data gets.
+
+```
+
+```
+
+
+
+```
+
+```
+
 ## Multi-line strings
 
 

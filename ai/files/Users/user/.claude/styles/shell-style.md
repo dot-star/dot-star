@@ -57,6 +57,20 @@ deploy \
 
 The rule covers commands landing in a committed file (script, CI `run:` block, Makefile, doc example), not one-off invocations typed at a terminal.
 
+## Quoted glob literals
+
+Quote the literal part of a glob pattern (a `[[ == ]]` test, a `case` arm) and leave only the wildcards bare.
+
+```
+[[ "${file}" == *".meta.md" ]]
+```
+
+Not (the literal left bare):
+
+```
+[[ "${file}" == *.meta.md ]]
+```
+
 ## Multi-line strings
 
 Build a multi-line string so its source mirrors the rendered output: one append per output line, each carrying a literal `\n`, rather than packing every `\n` into a single `$'...'`.
