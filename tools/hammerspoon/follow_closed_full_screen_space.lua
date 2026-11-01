@@ -167,6 +167,9 @@ local function closingAndTarget(bundleId)
         return nil, nil, nil, nil, 'skipped: focused window belongs to another app (' .. tostring(window:application():bundleID()) .. ')'
     elseif hs.spaces.spaceType(closing) ~= 'fullscreen' then
         return nil, nil, nil, nil, 'skipped: focused Space ' .. tostring(closing) .. ' is ' .. tostring(hs.spaces.spaceType(closing)) .. ', not full screen'
+    -- Stay put when the window has sibling tabs: closing one keeps the Space open and the terminal lands on the next tab itself.
+    elseif window:tabCount() > 1 then
+        return nil, nil, nil, nil, 'skipped: focused window has ' .. window:tabCount() .. ' tabs, so closing one leaves its Space open'
     end
 
     local screen = hs.screen.find(hs.spaces.spaceDisplay(closing)) or hs.screen.mainScreen()

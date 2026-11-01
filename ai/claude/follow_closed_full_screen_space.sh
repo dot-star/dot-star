@@ -11,7 +11,8 @@
 #
 # Returns at once either way; after `on-close`, Hammerspoon waits for the Space to go
 # away. Acts only when the focused window belongs to the terminal app this shell
-# runs in and sits in a full-screen Space.
+# runs in, sits in a full-screen Space and holds no other tabs (closing one of
+# several tabs leaves the Space open, so the terminal shows the next tab itself).
 #
 # Skips silently where it can't apply (no Hammerspoon installed, no terminal app
 # to match). Fails loudly when Hammerspoon is installed but can't run the hop,
