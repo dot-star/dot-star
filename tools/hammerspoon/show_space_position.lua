@@ -118,6 +118,8 @@ local HOP_STATE_PRIORITY = {
 local FOCUS_MARK_COLOR = { white = 1, alpha = 1 }
 -- Size the follow-order number to fit the strip between a dot and the title bar's bottom edge.
 local FOLLOW_ORDER_TEXT_SIZE = 10
+-- Number only the first few picks in the follow order, so the row shows where a close lands next without badging every dot.
+local FOLLOW_ORDER_LIMIT = 3
 -- Wait out macOS rearranging Spaces after a display change, a wake or a Space closing, which often runs on past the event reporting it.
 local SETTLE_SECONDS = 1
 
@@ -962,6 +964,9 @@ local function followOrderOf(spaces, closing)
         return order
     end
     for rank, next in ipairs(showSpacePosition.hopOrder(spaces, closing)) do
+        if rank > FOLLOW_ORDER_LIMIT then
+            break
+        end
         order[next.space] = rank
     end
     return order
