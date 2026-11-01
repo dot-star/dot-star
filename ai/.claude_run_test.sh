@@ -15,6 +15,9 @@ MAIN_CHECKOUT="$(cd "$(dirname "${GIT_COMMON_DIR}")" && pwd -P)"
 
 source "${SCRIPT_DIR}/.aliases.sh"
 
+# Drop the child-session guard's marker, so the test passes when run from inside a claude session; the stub below saves no transcript to protect.
+unset CLAUDE_CODE_CHILD_SESSION
+
 # Stub claude so nothing launches; report the launch dir, the args it would get,
 # and the objective claude_run exported. Fail `--continue` while STUB_NO_SESSION
 # is set, standing in for a worktree that has hosted no session yet. Touch the
