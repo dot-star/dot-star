@@ -34,6 +34,9 @@ end
 -- Flash a pill on the focused screen the moment a hop is asked for, so a slow lookup after it never reads as a missed keypress.
 -- Join every Space so the pill rides along with the switch instead of staying behind on the closing one.
 local function showReceived()
+    if followClosedFullScreenSpace.receivedTimer then
+        followClosedFullScreenSpace.receivedTimer:stop()
+    end
     if followClosedFullScreenSpace.received then
         followClosedFullScreenSpace.received:delete()
     end
@@ -64,13 +67,12 @@ local function showReceived()
         frame = { x = 0, y = '22%', w = '100%', h = '100%' },
     })
     pill:show()
-    -- Hold the canvas in the global table so garbage collection can't drop it mid-display.
+    -- Hold the canvas and its timer in the global table: garbage collection drops an unreferenced timer before it fires, stranding the pill.
     followClosedFullScreenSpace.received = pill
-    hs.timer.doAfter(RECEIVED_SECONDS, function()
+    followClosedFullScreenSpace.receivedTimer = hs.timer.doAfter(RECEIVED_SECONDS, function()
         pill:delete(RECEIVED_FADE_SECONDS)
-        if followClosedFullScreenSpace.received == pill then
-            followClosedFullScreenSpace.received = nil
-        end
+        followClosedFullScreenSpace.received = nil
+        followClosedFullScreenSpace.receivedTimer = nil
     end)
 end
 
