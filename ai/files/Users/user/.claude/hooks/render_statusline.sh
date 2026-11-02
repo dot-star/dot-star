@@ -66,6 +66,11 @@ CONTEXT_WARN_TOKENS=170000
 CONTEXT_ALERT_TOKENS=250000
 CONTEXT_CRITICAL_TOKENS=400000
 
+# Scan this much of the transcript's end for the context size: enough to hold
+# the last assistant turn and the tool results logged after it in nearly every
+# case, while a redraw stays cheap however long the session runs.
+CONTEXT_SCAN_BYTES=262144
+
 flatten() {
     local s="$1"
     s="${s//$'\n'/ }"
@@ -213,20 +218,35 @@ if [ -n "${title}" ] && [ "${title}" = "${objective}" ]; then
     objective=""
 fi
 
-# Read the current context size from the last main-chain assistant turn's prompt
-# tokens (input + cache creation + cache read). Reverse the transcript so the
-# newest turn lands first, then stop at the first match.
-context_tokens=""
-if [ -n "${transcript}" ] && [ -f "${transcript}" ]; then
-    context_tokens=$({ tail -r "${transcript}" 2>/dev/null || tac "${transcript}"; } |
+# Print the prompt tokens (input + cache creation + cache read) of the newest
+# main-chain assistant turn among the transcript lines on stdin. Reverse them so
+# the newest turn lands first, then stop at the first match.
+newest_prompt_tokens() {
+    local reverse=(tac)
+    if ! command -v tac >/dev/null; then
+        reverse=(tail -r)
+    fi
+
+    "${reverse[@]}" |
         command jq --raw-output 'select(.isSidechain == false and .message.usage != null)
                                    | .message.usage
                                    | (.input_tokens // 0)
                                        + (.cache_creation_input_tokens // 0)
                                        + (.cache_read_input_tokens // 0)' \
             2>/dev/null |
-        head -n 1 ||
-        true)
+        head -n 1
+}
+
+# Read the current context size from the end of the transcript only, since the
+# bar redraws often and the transcript grows to megabytes. Fall back to the whole
+# file when that end holds no assistant turn, as after a huge tool result.
+context_tokens=""
+if [ -n "${transcript}" ] && [ -f "${transcript}" ]; then
+    # Use -c, since BSD tail has no --bytes.
+    context_tokens=$(tail -c "${CONTEXT_SCAN_BYTES}" "${transcript}" | newest_prompt_tokens || true)
+    if [ -z "${context_tokens}" ]; then
+        context_tokens=$(newest_prompt_tokens <"${transcript}" || true)
+    fi
 fi
 
 # Format the context size, bare until it needs attention: below the warn mark it
