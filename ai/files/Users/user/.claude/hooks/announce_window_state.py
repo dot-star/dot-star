@@ -227,7 +227,8 @@ def record_session_state(session_id: str, state: str) -> None:
     Record the session's state word for Hammerspoon's page dots to read.
 
     Writes through a temp file and a rename, so the folder watcher never reads
-    a half-written word.
+    a half-written word. Skips the write when the file already holds the word,
+    since every write sets off a full page-dots refresh in Hammerspoon.
 
     :param session_id: Claude session id the state is filed under.
     :param state: One of "busy", "decision" or "ready".
@@ -237,6 +238,15 @@ def record_session_state(session_id: str, state: str) -> None:
 
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     path = session_state_file(session_id)
+
+    try:
+        recorded = path.read_text()
+    except OSError:
+        recorded = None
+
+    if recorded == state:
+        return
+
     temporary = path.with_name(f"{path.name}.tmp")
     temporary.write_text(state)
     temporary.replace(path)
