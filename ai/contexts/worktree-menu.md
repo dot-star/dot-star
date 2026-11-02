@@ -77,10 +77,10 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   - **Stage only the first commit:** the index holds one commit, so a repo with several pending commits stages only the first one's paths; the later ones still get trees.
     - Replace the staged line with the series position, so the user sees what landed and what's left beside the subjects that would bank the rest:
       - ``✅ K of M: <subject>`` per commit made, in series order, as menu rows directly under the question.
-      - A `│` rail drops from under the question (below any ✅ rows) past a blank `│` line and down every row to the commit row's last draft, which takes `└` in its place; rows below sit outside. Draw it even before a commit lands: the renderer strips leading spaces, so each row needs the `│` first.
+      - A `│` rail drops from under the question (below any ✅ rows) past a blank `│` line and down every row to the menu's last row, close rows included, where it turns `└` and runs `─` across to that row's glyph, which becomes `┴─` (`└────┴─`); a last row with no glyph of its own (a bare 🧨🧨 **`[xx]`**) takes `└─` in place of its `│ `. Draw it even before a commit lands: the renderer strips leading spaces, so each row needs the `│` first.
       - ``├─ 👉 K of M: <what it holds>`` labels the staged commit, with ``│  <files>: staged N files (+A -D; `cK` to view)`` beneath it.
       - ``⏳ K of M: <what it holds>`` labels each later commit, with ``│  <files> (unstaged, `cK` to view)`` beneath it, so its subjects can be judged before its paths are staged. `cK` is `git_series_diff K`, run from any terminal: write `/tmp/claude/<session_id>/series/<K>` for every commit first, holding `staged` or `unstaged`, the worktree's absolute path, then that commit's paths, one per line. When two commits share a file, say the file's diff covers both.
-      - Indent with plain spaces only: each label's glyph under its parent row's `[`, each file line's and draft's glyph under the label's emoji.
+      - Indent with plain spaces only: each label's and stand-in's glyph under its parent row's `[`, each file line's and draft's glyph under the label's emoji.
       - No separate `Commit K of M` title: every row already carries its position, so a title says it twice.
 
       > 👉 How do you want to proceed? Pick one subject, or one per commit to bank both (e.g. `c1 c4`):
@@ -97,7 +97,7 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
       >    │       │  `baz.py` (unstaged, `c3` to view)
       >    │       ├─ **`[c4]`** Read baz settings from config
       >    │       ├─ **`[c5]`** Move baz settings into config
-      >    └       └─ **`[c6]`** Load baz options from config file
+      >    └───────┴─ **`[c6]`** Load baz options from config file
     - Name the span in every row whose parenthetical opens with `commit` (`💾 [c]ommit (commit 1 of 4, or all 4)`), so the row picked says which commits it banks; 🏁 land and 🧨 close read `commit all 4` (`commit both` for two).
     - **Land and close bank the whole series:** both tear the worktree down, so they need one subject per commit (`L1 L4`). Refuse a pick naming fewer and commit nothing: banking only the staged commit strands the rest in a deleted worktree. Say which commit lacks a subject.
     - **A change set aside off disk gets no tree** (one held back behind a 🪚 refactor-first split): there's no diff to `dw`, so draft it on the menu after it's restored. Until then drop 🏁 `[L]and` and 🧨 `[x]`, since neither could bank it.
@@ -188,14 +188,14 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   >    │       │  `search.py`, `toolbar.css` (unstaged, `c2` to view)
   >    │       ├─ **`[c4]`** Add search box to toolbar
   >    │       ├─ **`[c5]`** Add toolbar search box
-  >    └       └─ **`[c6]`** Show search box in toolbar
-  >   ⬆️ **`[p]romote`** (commit 1 of 2, or both + ✅ promote to master)
-  > 　　 └─ **`[pN pN]`** ...
-  >   🏁 **`[L]and`**    (commit both + ✅ promote to master + 🪓 tear down worktree)
-  > 　　 └─ **`[LN LN]`** ...
-  >   🧨 **`[x]`**       (commit both + ✅ promote to master + 🪓 tear down worktree + 🧨 close session)
-  > 　　 └─ **`[xN xN]`** ...
-  >   🧨🧨 **`[xx]`**    (no commit + worktree left as-is + 🧨🧨 close session)
+  >    │       └─ **`[c6]`** Show search box in toolbar
+  >    │ ⬆️ **`[p]romote`** (commit 1 of 2, or both + ✅ promote to master)
+  >    │    └─ **`[pN pN]`** ...
+  >    │ 🏁 **`[L]and`**    (commit both + ✅ promote to master + 🪓 tear down worktree)
+  >    │    └─ **`[LN LN]`** ...
+  >    │ 🧨 **`[x]`**       (commit both + ✅ promote to master + 🪓 tear down worktree + 🧨 close session)
+  >    │    └─ **`[xN xN]`** ...
+  >    └─🧨🧨 **`[xx]`**    (no commit + worktree left as-is + 🧨🧨 close session)
 
   Subset (e.g. nothing worth keeping uncommitted, so no iterate slot):
 
