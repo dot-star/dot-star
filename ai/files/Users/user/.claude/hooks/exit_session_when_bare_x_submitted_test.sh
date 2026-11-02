@@ -84,8 +84,9 @@ assert_close() {
         mark_state="marked"
     fi
 
+    # Require the claude pid the hook already found, so the hop skips its own walk.
     local hop_state="stayed"
-    if [[ "$(cat -- "${HOP_RECORD}" 2>/dev/null)" == "now ${SESSION_ID}" ]]; then
+    if [[ "$(cat -- "${HOP_RECORD}" 2>/dev/null)" =~ ^now\ ${SESSION_ID}\ [0-9]+$ ]]; then
         hop_state="hopped"
     fi
 

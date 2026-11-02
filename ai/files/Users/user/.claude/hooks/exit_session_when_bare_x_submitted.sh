@@ -25,19 +25,25 @@ source "$(dirname -- "${BASH_SOURCE[0]}")/exit_session.inc.sh"
 # Succeed when the session sits in a linked worktree, whose git dir differs
 # from the repo's common one.
 is_inside_worktree() {
+    local git_dirs
     local git_dir
     local common_dir
 
     # Treat a missing or non-repo cwd as outside, e.g. a worktree a land already tore down.
-    if ! git_dir=$(git -C "${cwd}" rev-parse --absolute-git-dir 2>/dev/null); then
+    if ! git_dirs=$(
+        git -C "${cwd}" rev-parse \
+            --path-format="absolute" \
+            --absolute-git-dir \
+            --git-common-dir \
+            2>/dev/null
+    ); then
         return 1
     fi
 
-    common_dir=$(
-        git -C "${cwd}" rev-parse \
-            --path-format="absolute" \
-            --git-common-dir
-    )
+    {
+        read -r git_dir
+        read -r common_dir
+    } <<<"${git_dirs}"
     [[ "${git_dir}" != "${common_dir}" ]]
 }
 
@@ -77,7 +83,7 @@ fi
 mkdir --parents -- "${prune_marks_dir}"
 : >"${prune_marks_dir}/${session_id}"
 mark_close_requested
-leave_full_screen_space "${session_id}"
+leave_full_screen_space "${session_id}" "${claude_pid}"
 
 # Stop the prompt before it reaches the model. Use `continue: false` over
 # `decision: "block"`, since a block puts the typed prompt back in the input.

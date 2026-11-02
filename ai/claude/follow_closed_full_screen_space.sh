@@ -6,8 +6,8 @@
 # terminal waiting on input lands in view.
 #
 # Usage:
-#   follow_closed_full_screen_space.sh on-close [<session_id>]  # hop once the Space goes away
-#   follow_closed_full_screen_space.sh now [<session_id>]       # hop now, for a window sure to close
+#   follow_closed_full_screen_space.sh on-close [<session_id> [<claude_pid>]]  # hop once the Space goes away
+#   follow_closed_full_screen_space.sh now [<session_id> [<claude_pid>]]       # hop now, for a window sure to close
 #
 # Returns at once either way; after `on-close`, Hammerspoon waits for the Space to go
 # away. Acts only when the focused window belongs to the terminal app this shell
@@ -31,12 +31,14 @@ set -euo pipefail
 
 mode="$1"
 session_id="${2:-}"
+# Take the claude pid from a caller that already found it, so the log tag skips the ancestor walk.
+claude_pid="${3:-}"
 if [[ "${mode}" == "on-close" ]]; then
     lua_function="onClose"
 elif [[ "${mode}" == "now" ]]; then
     lua_function="now"
 else
-    echo "Usage: $(basename "$0") on-close|now [<session_id>]" >&2
+    echo "Usage: $(basename "$0") on-close|now [<session_id> [<claude_pid>]]" >&2
     exit 2
 fi
 
@@ -87,7 +89,10 @@ claude_ancestor_pid() {
 }
 
 caller="caller: $(caller_name)"
-claude_pid=$(claude_ancestor_pid)
+if [[ -z "${claude_pid}" ]]; then
+    claude_pid=$(claude_ancestor_pid)
+fi
+
 if [[ -n "${claude_pid}" ]]; then
     caller+=", claude ${claude_pid}"
 fi

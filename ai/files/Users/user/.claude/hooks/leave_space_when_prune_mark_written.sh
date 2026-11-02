@@ -19,4 +19,5 @@ elif [[ "${file_path}" != "${prune_marks_dir}/${session_id}" ]]; then
     exit 0
 fi
 
-leave_full_screen_space "${session_id}"
+# Pass no claude pid, since this hook never looks one up; the hop walks for it.
+leave_full_screen_space "${session_id}" ""

@@ -36,8 +36,9 @@ assert_hop() {
         '{session_id: $sid, tool_name: "Write", tool_input: {file_path: $path}}' |
         bash "${HOOK}"
 
+    # Expect an empty claude pid, which the stub's `$*` renders as a trailing space.
     local actual="stayed"
-    if [[ "$(cat -- "${HOP_RECORD}" 2>/dev/null)" == "now ${SESSION_ID}" ]]; then
+    if [[ "$(cat -- "${HOP_RECORD}" 2>/dev/null)" == "now ${SESSION_ID} " ]]; then
         actual="hopped"
     fi
 
