@@ -185,6 +185,10 @@
           {
             "command": "${HOME}/.claude/hooks/announce_window_state.py SessionEnd",
             "type": "command"
+          },
+          {
+            "command": "${HOME}/.claude/hooks/open_status_on_commit_menu.py SessionEnd",
+            "type": "command"
           }
         ]
       }

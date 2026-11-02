@@ -27,6 +27,7 @@ argv[1] and the event's JSON payload on stdin:
                   launched in; Ghostty's AppleScript has no tty to match on.
   Stop         -> on a reply carrying commit subject drafts (`[c1]`), open the
                   second view if missing.
+  SessionEnd   -> delete the window record, so ended sessions leave none behind.
 
 The view opens in the directory `report_cwd_for_new_tabs.py` reports for new
 tabs (the repo the session last worked in), so `s` reads the worktree rather
@@ -377,6 +378,18 @@ def open_status_tab(window_id: str, directory: str) -> None:
         log(outcome)
 
 
+def forget_window(session_id: str) -> None:
+    """
+    Delete the session's window record, which nothing reads once the session ends.
+
+    :param session_id: Claude session id whose record to delete.
+    """
+    if not session_id:
+        return
+
+    window_file(session_id).unlink(missing_ok=True)
+
+
 def open_status_view(event: dict[str, Any]) -> None:
     """
     Open the `STATUS_VIEW` listing the staged files when the reply renders a commit menu.
@@ -419,6 +432,8 @@ def main() -> None:
         record_window(event.get("session_id", ""))
     elif event_name == "Stop":
         open_status_view(event)
+    elif event_name == "SessionEnd":
+        forget_window(event.get("session_id", ""))
 
 
 if __name__ == "__main__":
