@@ -151,6 +151,8 @@ local readySettleTimer = nil
 local redrawSessionDots
 -- Map each Space id to the window of its most urgent session, from the last read.
 local sessionWindows = {}
+-- Hold the last read's states before ready-settling, with their windows and change times, so the follow-order badges rank what hopOrder ranks without re-reading the folder per Space.
+local sessionReading = nil
 -- Map each Space id to when you were last on it, so the green checks can be ranked by how fresh each is in your head.
 local lastSeenAt = {}
 local currentSpace = nil
@@ -831,6 +833,11 @@ end
 -- Re-read every session's state, starting a ping on each Space that just turned ready and following it there when you're away, or once you are.
 local function refreshSessionStates()
     local states, windows, changedAt = readSessionStates()
+    local rawStates = {}
+    for space, state in pairs(states) do
+        rawStates[space] = state
+    end
+    sessionReading = { states = rawStates, windows = windows, changedAt = changedAt }
     local now = hs.timer.secondsSinceEpoch()
     settleReadyStates(states, changedAt, now)
     if sessionStates ~= nil then
@@ -972,13 +979,22 @@ local function sessionDotSpaces(screen)
     return spaces
 end
 
+-- Rank hop targets from a given read; assigned beside hopOrder below, which ranks a fresh one.
+local hopOrderFrom
+
 -- Return each of `spaces` mapped to its place in line for a hop off `closing`, the order follow_closed_full_screen_space walks; empty while follow_order is off.
 local function followOrderOf(spaces, closing)
     local order = {}
     if not isEnabled('follow_order') then
         return order
     end
-    for rank, next in ipairs(showSpacePosition.hopOrder(spaces, closing)) do
+    -- Rank the refresh's read rather than a fresh one per Space; fall back to reading when no refresh has run yet.
+    local reading = sessionReading
+    if reading == nil then
+        local states, windows, changedAt = readSessionStates()
+        reading = { states = states, windows = windows, changedAt = changedAt }
+    end
+    for rank, next in ipairs(hopOrderFrom(reading, spaces, closing)) do
         if rank > FOLLOW_ORDER_LIMIT then
             break
         end
@@ -1435,9 +1451,10 @@ end
 -- Return where a hop off `closing` goes, first choice first, as { space, windowId, pickedBy } among `spaces`, the closing Space's screen.
 -- Rank by HOP_STATE_PRIORITY, then by last seen, so a switch lands where your context for its objective is freshest.
 -- Rank by last seen rather than by state change: a session started long ago that just finished is already stale in your head.
-function showSpacePosition.hopOrder(spaces, closing)
-    -- Read fresh, so a state the watcher hasn't drawn yet still counts.
-    local states, windows, changedAt = readSessionStates()
+hopOrderFrom = function(reading, spaces, closing)
+    local states = reading.states
+    local windows = reading.windows
+    local changedAt = reading.changedAt
     local closingIndex = indexOf(spaces, closing) or 0
     local order = {}
     for position, space in ipairs(spaces) do
@@ -1462,6 +1479,12 @@ function showSpacePosition.hopOrder(spaces, closing)
         return a.distance < b.distance
     end)
     return order
+end
+
+-- Return where a hop off `closing` goes, as hopOrderFrom ranks it, from a fresh read so a state the watcher hasn't drawn yet still counts.
+function showSpacePosition.hopOrder(spaces, closing)
+    local states, windows, changedAt = readSessionStates()
+    return hopOrderFrom({ states = states, windows = windows, changedAt = changedAt }, spaces, closing)
 end
 
 -- Stamp the Space you're leaving and the one you land on, so last seen means the last moment you were on it.
