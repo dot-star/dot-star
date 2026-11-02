@@ -59,7 +59,7 @@
   - Subagents: pass `isolation: "worktree"`.
   - Direct edits: call `EnterWorktree` first, `ExitWorktree` with `action: "remove"` when done.
   - Never hand-make a worktree (`git worktree add`); `EnterWorktree` keeps every worktree under the ignored `.claude/worktrees/`.
-    - Edit another repo's files in place by absolute path, on its checked-out branch as with an `nw` edit.
+    - Edit another repo's files in place by absolute path, on its checked-out branch as with an `nw` edit. Read that repo's `CLAUDE.md` first.
     - Hand an edit in another repo that needs a worktree of its own (several commits, a branch to review, that repo's tests) to a session in that repo: message a live one there (`ListAgents`, then `SendMessage`), else (or when the user wants a fresh one) copy a launch command for a new terminal that starts it with the task already written: `cd <repo> && claude "$(cat <brief>)"`, the brief saved to the session tmp dir so its quotes and `!` never touch the shell.
   - `nw` or `nwt` ("no worktree") anywhere in a user message waives that default: edit in the main checkout. The waiver covers that work and its follow-ups; a later unrelated request re-defaults to a worktree.
   - Branch from whichever of the local default branch and a freshly fetched `origin/<default>` is newer: lands and promotes stay local, so `origin/<default>` lags until the next push.
