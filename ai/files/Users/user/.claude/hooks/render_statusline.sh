@@ -141,11 +141,25 @@ shrink() {
     printf '%s' "${s}"
 }
 
-data=$(cat)
+# Read every input field in one jq call, since the bar redraws often. Keep the
+# fields empty when the input won't parse, so the bar still renders what it can.
+session_id=""
+cwd=""
+transcript=""
+{
+    IFS= read -r -d '' session_id
+    IFS= read -r -d '' cwd
+    IFS= read -r -d '' transcript
+} < <(
+    command jq \
+        --raw-output0 \
+        '.session_id // "", .cwd // .workspace.current_dir // "", .transcript_path // ""' \
+        2>/dev/null
+) || true
 
 worktree_name=""
 
-sid_dir=$(claude_session_dir "$(printf '%s' "${data}" | command jq --raw-output '.session_id // empty')")
+sid_dir=$(claude_session_dir "${session_id}")
 marker="${sid_dir}/worktree"
 if [ -n "${sid_dir}" ] && [ -f "${marker}" ]; then
     path=$(head -n 1 "${marker}")
@@ -155,7 +169,6 @@ if [ -n "${sid_dir}" ] && [ -f "${marker}" ]; then
 fi
 
 if [ -z "${worktree_name}" ]; then
-    cwd=$(printf '%s' "${data}" | command jq --raw-output '.cwd // .workspace.current_dir // empty')
     if [ -n "${cwd}" ]; then
         gitdir=$(cd "${cwd}" 2>/dev/null && git rev-parse --absolute-git-dir 2>/dev/null || true)
         case "${gitdir}" in
@@ -189,7 +202,6 @@ if [ -n "${sid_dir}" ] && [ -f "${obj_marker}" ]; then
     objective=$(head -n 1 "${obj_marker}")
 fi
 
-transcript=$(printf '%s' "${data}" | command jq --raw-output '.transcript_path // empty')
 if [ -n "${transcript}" ] && [ -f "${transcript}" ]; then
     title=$(grep --fixed-strings '"type":"custom-title"' "${transcript}" |
         tail -n 1 |
