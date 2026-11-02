@@ -88,6 +88,8 @@ local SESSION_STATE_DIR = '/tmp/claude-state-hook/'
 -- Thicken a session dot's ring past the plain dots' hairline stroke, so its color reads at a glance.
 local RING_WIDTH = 3.5
 local RING_RADIUS = DOT_SIZE / 2 - RING_WIDTH / 2
+-- Thicken the home triangle past the plain dots' hairline, tuned by eye apart from the rings since its corners read differently from a ring's even line.
+local HOME_TRIANGLE_WIDTH = 3
 -- Keep the orbit slow, so a long run of tool calls doesn't tug at the eye.
 local ORBIT_SECONDS = 2
 -- Ripple the ready ping out once, long enough to catch the eye without lingering.
@@ -569,7 +571,8 @@ end
 
 -- Draw the home Space's triangle, so the row starts where the swipe does without the home Space reading as a session.
 local function homeElements(center)
-    local half = DOT_SIZE / 2 - 1
+    -- Inset the corners by half the stroke, so the thick line stays inside the dot's slot.
+    local half = DOT_SIZE / 2 - HOME_TRIANGLE_WIDTH / 2
     local triangle = line({
         { x = center.x, y = center.y - half },
         { x = center.x + half, y = center.y + half * 0.8 },
@@ -577,7 +580,7 @@ local function homeElements(center)
         -- Retrace the first side, so the closing corner gets the same round join as the others.
         { x = center.x, y = center.y - half },
         { x = center.x + half, y = center.y + half * 0.8 },
-    }, SESSION_STATE_COLORS.none, 1.5)
+    }, SESSION_STATE_COLORS.none, HOME_TRIANGLE_WIDTH)
     return { triangle }
 end
 
