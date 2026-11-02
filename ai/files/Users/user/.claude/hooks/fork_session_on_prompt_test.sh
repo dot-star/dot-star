@@ -55,11 +55,12 @@ run_test() {
     fi
 }
 
-# Read one compact case per line, since a prompt may hold a tab or newline that TSV would split.
-while IFS= read -r case_json; do
-    name=$(command jq --raw-output '.name' <<<"${case_json}")
-    prompt=$(command jq --raw-output '.prompt' <<<"${case_json}")
-    expected=$(command jq --raw-output '.expected' <<<"${case_json}")
+# Read every case's fields from one jq call, split on NUL, since a prompt may hold a tab or newline that TSV would split.
+while
+    IFS= read -r -d '' name &&
+        IFS= read -r -d '' prompt &&
+        IFS= read -r -d '' expected
+do
 
     if [[ "${expected}" != "${last_section}" ]]; then
         if [[ -n "${last_section}" ]]; then
@@ -76,7 +77,12 @@ while IFS= read -r case_json; do
     fi
 
     run_test "${name}" "${prompt}" "${expected}"
-done < <(command jq --compact-output '.[]' "${CASES}")
+done < <(
+    command jq \
+        --raw-output0 \
+        '.[] | .name, .prompt, .expected' \
+        "${CASES}"
+)
 
 echo ""
 echo "== Summary: ${passes} passed, ${fails} failed =="

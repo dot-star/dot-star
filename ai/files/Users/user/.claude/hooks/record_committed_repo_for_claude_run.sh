@@ -10,9 +10,16 @@ if [[ -z "${CLAUDE_RUN_COMMITTED_REPOS:-}" ]]; then
     exit 0
 fi
 
-input="$(cat)"
-cmd="$(jq --raw-output '.tool_input.command // empty' <<<"${input}")"
-cwd="$(jq --raw-output '.cwd // empty' <<<"${input}")"
+# Read every field in one jq call, since the hook runs after every Bash call.
+# Split on NUL so a multi-line command survives.
+{
+    IFS= read -r -d '' cmd
+    IFS= read -r -d '' cwd
+} < <(
+    jq \
+        --raw-output0 \
+        '.tool_input.command // "", .cwd // ""'
+)
 
 # Pass over anything but a git command mentioning commit. A loose match only
 # costs one extra repo checked on exit.

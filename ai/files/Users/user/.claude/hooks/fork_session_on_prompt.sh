@@ -17,11 +17,18 @@ set -euo pipefail
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/fork_session_window.inc.sh"
 
-input=$(cat)
-prompt=$(command jq --raw-output '.prompt // empty' <<<"${input}")
-session_id=$(command jq --raw-output '.session_id // empty' <<<"${input}")
-transcript_path=$(command jq --raw-output '.transcript_path // empty' <<<"${input}")
-cwd=$(command jq --raw-output '.cwd // empty' <<<"${input}")
+# Read every field in one jq call, since the hook runs on every prompt. Split
+# on NUL so a multi-line prompt survives.
+{
+    IFS= read -r -d '' prompt
+    IFS= read -r -d '' session_id
+    IFS= read -r -d '' transcript_path
+    IFS= read -r -d '' cwd
+} < <(
+    command jq \
+        --raw-output0 \
+        '.prompt // "", .session_id // "", .transcript_path // "", .cwd // ""'
+)
 
 # Stop the prompt with a message shown to the user, never to the model. Use
 # `continue: false` over `decision: "block"`, since a block puts the typed

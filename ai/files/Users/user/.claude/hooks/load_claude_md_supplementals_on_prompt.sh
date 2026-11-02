@@ -11,14 +11,22 @@ set -euo pipefail
 source "$(dirname -- "${BASH_SOURCE[0]}")/load_claude_md_supplementals.inc.sh"
 source "$(dirname -- "${BASH_SOURCE[0]}")/claude_session_dir.inc.sh"
 
-input=$(cat)
-prompt=$(command jq --raw-output '.prompt // empty' <<<"${input}")
+# Read every field in one jq call, since the hook runs on every prompt. Split
+# on NUL so a multi-line prompt survives.
+{
+    IFS= read -r -d '' prompt
+    IFS= read -r -d '' session_id
+} < <(
+    command jq \
+        --raw-output0 \
+        '.prompt // "", .session_id // ""'
+)
 
 if [ -z "${prompt}" ]; then
     exit 0
 fi
 
-sentinel_dir=$(claude_session_dir "$(command jq --raw-output '.session_id // empty' <<<"${input}")")
+sentinel_dir=$(claude_session_dir "${session_id}")
 if [ -z "${sentinel_dir}" ]; then
     exit 0
 fi
