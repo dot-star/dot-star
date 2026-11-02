@@ -331,6 +331,7 @@ mkdir -p "${HOME}/.hammerspoon"
 setup_bootstrap "${HOME}/.hammerspoon/init.lua" "package.path = os.getenv('HOME') .. '/.dot-star/tools/hammerspoon/?.lua;' .. package.path
 require('add_application_open_hotkeys')
 require('add_new_claude_session_hotkey')
+require('add_next_space_hotkey')
 require('add_toggle_bluetooth_hotkey')
 require('add_toggle_terminal_hotkey')
 require('add_window_movement_hotkeys')
