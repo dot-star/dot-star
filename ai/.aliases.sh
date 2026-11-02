@@ -326,8 +326,9 @@ claude_run() {
         main_checkout="$(dirname "${git_common_dir}")"
     fi
 
-    # Name a marker the SessionStart hook touches, so the cleanup below can tell
-    # a session that ran from a picker that exited 0 without starting one.
+    # Name a marker the SessionStart hook writes the session id into, so the
+    # cleanup below can tell a session that ran from a picker that exited 0
+    # without starting one, and hand the follow that session's window.
     local started_marker="${TMPDIR:-/tmp}/claude_run_started.$$"
     rm --force -- "${started_marker}"
 
@@ -418,6 +419,13 @@ claude_run() {
         session_finished=1
     fi
 
+    # Read the id of the last session that started, so the follow below can
+    # check focus is still on that session's window.
+    local session_id=""
+    if [[ -e "${started_marker}" ]]; then
+        session_id="$(<"${started_marker}")"
+    fi
+
     rm --force -- "${started_marker}" "${close_requested_marker}"
 
     # Collect the repos holding commits no remote has, launch repo first, one
@@ -448,7 +456,7 @@ claude_run() {
     # since the Stop hook already left the Space and focus sits on another window.
     if [[ -n "${session_finished}" && -z "${unpushed_repos}" && -z "${close_requested}" ]]; then
         # Set up the hop before the minimize, while the window still holds its full-screen Space.
-        run_claude_cleanup_step ~/.dot-star/ai/claude/follow_closed_full_screen_space.sh "on-close"
+        run_claude_cleanup_step ~/.dot-star/ai/claude/follow_closed_full_screen_space.sh "on-close" "${session_id}"
         run_claude_cleanup_step ~/.dot-star/ai/claude/minimize_own_window.sh
     fi
 

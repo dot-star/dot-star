@@ -20,8 +20,8 @@ unset CLAUDE_CODE_CHILD_SESSION
 
 # Stub claude so nothing launches; report the launch dir, the args it would get,
 # and the objective claude_run exported. Fail `--continue` while STUB_NO_SESSION
-# is set, standing in for a worktree that has hosted no session yet. Touch the
-# start marker as the SessionStart hook would, unless STUB_PICKER_BAIL stands in
+# is set, standing in for a worktree that has hosted no session yet. Write
+# STUB_SESSION_ID into the start marker as the SessionStart hook would, unless STUB_PICKER_BAIL stands in
 # for a picker that exits 0 without starting a session. Record STUB_COMMITTED_REPO
 # as the commit hook would, standing in for a commit outside the launch repo.
 # Touch the close-requested marker as the prune-mark Stop hook would while
@@ -34,7 +34,7 @@ claude() {
     fi
 
     if [[ -z "${STUB_PICKER_BAIL:-}" ]]; then
-        touch -- "${CLAUDE_RUN_STARTED_MARKER}"
+        echo "${STUB_SESSION_ID:-}" >"${CLAUDE_RUN_STARTED_MARKER}"
     fi
 
     if [[ -n "${STUB_COMMITTED_REPO:-}" ]]; then
@@ -226,8 +226,32 @@ assert_cleanup() {
 # Have the minimize stub leave a trace, so assert_cleanup can see whether it ran.
 echo 'touch -- "${HOME}/minimized"' >>"${HOME}/.dot-star/ai/claude/minimize_own_window.sh"
 
+# Have the follow stub record its args, so the session id handed to it can be checked.
+echo 'echo "$*" >"${HOME}/followed"' >>"${HOME}/.dot-star/ai/claude/follow_closed_full_screen_space.sh"
+
+assert_followed() {
+    # Compare the args the last cleanup handed the full-screen follow against <expected>.
+    local label="$1"
+    local expected="$2"
+    local actual
+
+    actual="$(cat -- "${HOME}/followed" 2>/dev/null)"
+    if [[ "${actual}" == "${expected}" ]]; then
+        echo "✓ ${label}"
+    else
+        echo "✗ ${label}"
+        echo "    expected: ${expected}"
+        echo "    actual:   ${actual}"
+        failures=$((failures + 1))
+    fi
+}
+
+STUB_SESSION_ID="${uuid}"
 assert_cleanup "session ran, window minimized and shell closed" \
     "window minimized, status hidden, shell exited"
+assert_followed "session ran, follow handed its session id" \
+    "on-close ${uuid}"
+unset STUB_SESSION_ID
 STUB_PICKER_BAIL=1
 assert_cleanup "picker exited without a session, window and shell stay open" \
     "window open, status hidden, shell kept"

@@ -1,6 +1,6 @@
 -- Follow a closing full-screen Space to the session showing the green check you were on last, else the next full-screen app, rather than the desktop macOS falls back to.
--- Call `onClose` from the shell just before the window closes, passing the terminal's bundle id:
---   hs -c "require('follow_closed_full_screen_space'); return followClosedFullScreenSpace.onClose('com.mitchellh.ghostty')"
+-- Call `onClose` from the shell just before the window closes, passing the terminal's bundle id and the closing session's window id (nil when there is none to compare against):
+--   hs -c "require('follow_closed_full_screen_space'); return followClosedFullScreenSpace.onClose('com.mitchellh.ghostty', 12345)"
 -- Call `now` instead to go right away, once the window is sure to close.
 
 -- Give up on a Space still open this long after `onClose`, so a window that never closed can't yank focus later.
@@ -157,6 +157,23 @@ local function cancelWait()
     end
 end
 
+-- Log the focused window against the closing session's, returning why to skip once focus has moved on to another window, else nil.
+-- Run it before anything with a visible effect, so a session closing in the background can't touch the window you're in.
+local function focusMovedOn(label, closingWindowId)
+    local window = hs.window.focusedWindow()
+    if window == nil then
+        return nil
+    elseif closingWindowId == nil then
+        log(label .. ': focused window ' .. tostring(window:id()) .. ' has no closing window to compare against')
+        return nil
+    elseif window:id() == closingWindowId then
+        log(label .. ': focused window ' .. window:id() .. ' matches closing session window ' .. closingWindowId)
+        return nil
+    end
+
+    return 'focused window ' .. tostring(window:id()) .. ' no longer matches closing session window ' .. closingWindowId .. '; skipped'
+end
+
 -- Return the focused Space, the Space to follow it to, the target's ready window (nil when it has none) and how the target was picked; a skip returns nil for each and why.
 local function closingAndTarget(bundleId)
     local window = hs.window.focusedWindow()
@@ -186,8 +203,14 @@ local function closingAndTarget(bundleId)
     return closing, next.space, next.windowId, next.pickedBy, nil
 end
 
--- Hop once the focused Space closes, when it holds a full-screen window of `bundleId`; return what happened for the log.
-function followClosedFullScreenSpace.onClose(bundleId)
+-- Hop once the focused Space closes, when it holds a full-screen window of `bundleId` that is still `closingWindowId`; return what happened for the log.
+function followClosedFullScreenSpace.onClose(bundleId, closingWindowId)
+    local movedOn = focusMovedOn('on-close ' .. bundleId, closingWindowId)
+    if movedOn then
+        log('on-close ' .. bundleId .. ': ' .. movedOn)
+        return movedOn
+    end
+
     cancelWait()
 
     local closing, target, windowId, pickedBy, skipped = closingAndTarget(bundleId)
@@ -218,8 +241,14 @@ function followClosedFullScreenSpace.onClose(bundleId)
     return 'waiting'
 end
 
--- Go now to the Space `onClose` would follow to, for a window known to be closing; return what happened for the log.
-function followClosedFullScreenSpace.now(bundleId)
+-- Go now to the Space `onClose` would follow to, for a window known to be closing that is still `closingWindowId`; return what happened for the log.
+function followClosedFullScreenSpace.now(bundleId, closingWindowId)
+    local movedOn = focusMovedOn('now ' .. bundleId, closingWindowId)
+    if movedOn then
+        log('now ' .. bundleId .. ': ' .. movedOn)
+        return movedOn
+    end
+
     showReceived()
     cancelWait()
 
