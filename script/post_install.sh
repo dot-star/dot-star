@@ -340,6 +340,7 @@ require('follow_closed_full_screen_space')
 require('show_space_position')
 -- Open the port the hs command-line client talks to; the Claude window hooks run Lua through it.
 require('hs.ipc')" '--'
+drop_requires_shadowing_block "${HOME}/.hammerspoon/init.lua" "bootstrap"
 
 # Put the hs client on PATH, the link `hs.ipc.cliInstall()` would make, without needing Hammerspoon running.
 hammerspoon_cli="/Applications/Hammerspoon.app/Contents/Frameworks/hs/hs"

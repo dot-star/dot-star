@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for setup_bootstrap, ensure_symlink and the run lock in install.sh.
+# Tests for setup_bootstrap, drop_requires_shadowing_block, ensure_symlink and the run lock in install.sh.
 #
 # Sources just those pieces out of install.sh (the rest of the
 # script touches the real home directory) and runs them against fixtures.
@@ -130,6 +130,33 @@ check "takes a comment leader for the markers" "$(cat "${lua}")" "require('funct
 -- Begin dot-star bootstrap.
 require('fresh')
 -- End dot-star bootstrap."
+
+# Pull drop_requires_shadowing_block out of install.sh.
+awk '/^drop_requires_shadowing_block\(\) \{$/,/^}$/' "${INSTALL}" >"${work}/drop_requires_shadowing_block.sh"
+source "${work}/drop_requires_shadowing_block.sh"
+
+# Drop a require above the block that the block also makes, keeping the machine's own lines.
+shadowed="${work}/shadowed_init.lua"
+cat >"${shadowed}" <<'EOF'
+require('functions')
+require('clock')
+greeting = 'hello'
+-- Begin dot-star bootstrap.
+package.path = '/dot-star/?.lua;' .. package.path
+require('clock')
+-- End dot-star bootstrap.
+EOF
+drop_requires_shadowing_block "${shadowed}" "bootstrap" 2>/dev/null
+check "drops a require the block shadows" "$(cat "${shadowed}")" "require('functions')
+greeting = 'hello'
+-- Begin dot-star bootstrap.
+package.path = '/dot-star/?.lua;' .. package.path
+require('clock')
+-- End dot-star bootstrap."
+
+shadowed_before="$(cat "${shadowed}")"
+drop_requires_shadowing_block "${shadowed}" "bootstrap" 2>/dev/null
+check "leaves a healed file alone" "$(cat "${shadowed}")" "${shadowed_before}"
 
 # Insert a first-time block above the anchor rather than at the end of the file.
 ANCHOR='^[[:space:]]*(source|\.)[[:space:]]+.*oh-my-zsh\.sh'

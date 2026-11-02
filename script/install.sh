@@ -332,6 +332,54 @@ ${footer}"
     fi
 }
 
+# Drop each line outside a Lua file's dot-star block that repeats a `require` the block makes.
+# Lua loads a module name once, so an earlier require loads a stale machine copy and the block gets that copy back.
+drop_requires_shadowing_block() {
+    local filename="${1}"
+    local block_name="${2}"
+    local header="-- Begin dot-star ${block_name}."
+    local footer="-- End dot-star ${block_name}."
+    local tmp="${filename}.dotstar.tmp"
+
+    if [ ! -e "${filename}" ]; then
+        return
+    fi
+
+    # Read the file twice: the first pass collects the block's requires, the second drops their repeats outside it.
+    awk \
+        -v header="${header}" \
+        -v footer="${footer}" \
+        -v filename="${filename}" \
+        '
+        NR == FNR {
+            if ($0 == header) {
+                collecting = 1
+            } else if ($0 == footer) {
+                collecting = 0
+            } else if (collecting && $0 ~ /^require\(/) {
+                required[$0] = 1
+            }
+            next
+        }
+        $0 == header {
+            inside = 1
+        }
+        $0 == footer {
+            inside = 0
+        }
+        !inside && ($0 in required) {
+            print "Dropped from " filename ", since the dot-star block loads it: " $0 >"/dev/stderr"
+            next
+        }
+        {
+            print
+        }
+        ' "${filename}" "${filename}" >"${tmp}"
+    # Write back through a redirect, as setup_bootstrap does, so a symlinked init.lua stays a symlink.
+    cat "${tmp}" >"${filename}"
+    rm -f "${tmp}"
+}
+
 setup_bootstrap "${HOME}/.bash_profile" 'if shopt -q login_shell; then
     [[ -r ~/.bashrc ]] && source ~/.bashrc
 fi'
