@@ -10,10 +10,17 @@ set -euo pipefail
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/exit_session.inc.sh"
 
-input=$(cat)
-prompt=$(command jq --raw-output '.prompt // empty' <<<"${input}")
-session_id=$(command jq --raw-output '.session_id // empty' <<<"${input}")
-cwd=$(command jq --raw-output '.cwd // empty' <<<"${input}")
+# Read every field in one jq call, since the hook runs on every prompt. Split
+# on NUL so a multi-line prompt survives.
+{
+    IFS= read -r -d '' prompt
+    IFS= read -r -d '' session_id
+    IFS= read -r -d '' cwd
+} < <(
+    command jq \
+        --raw-output0 \
+        '.prompt // "", .session_id // "", .cwd // ""'
+)
 
 # Succeed when the session sits in a linked worktree, whose git dir differs
 # from the repo's common one.
