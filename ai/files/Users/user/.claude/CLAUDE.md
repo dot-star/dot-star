@@ -16,7 +16,7 @@
   - Avoid a hardcoded value that must stay in sync with another; derive it or restructure so the coupling disappears.
   - Derive only from what actually drives the value, though. When a number encodes a judgment about the world outside the program (how fast weather moves, how long a person waits before giving up), a commented absolute is its correct form.
   - Deriving that one from a nearby constant that happened to be in scope is worse than a magic number: it reads as principled, so nobody re-examines it.
-- Fix the cause, not the symptom.
+- Fix at the source (the cause), not the symptom, whether a bug, a checker warning or bad generated output.
   - When a bug traces back to a fragile approach (parsing output meant for people, special-casing the input that broke), replace the approach; a patch fixes today's input and leaves the next one waiting.
   - Answer "is this the right fix?" against the cause: a symptom patch is "works, but a patch", then name the real fix.
   - Count a bigger diff or an output change as the fix's price, never a reason to keep the patch; flag an output change for sign-off per the refactor rule.

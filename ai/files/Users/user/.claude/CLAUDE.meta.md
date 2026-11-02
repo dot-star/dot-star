@@ -16,7 +16,7 @@
   -
   -
   -
--
+- Naming the source carries the rule past bugs: a warning silenced in config or output corrected by hand is the same patch in another form; the problem returns on the next run.
   -
   -
   -
