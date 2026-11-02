@@ -9,9 +9,15 @@ set -euo pipefail
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/exit_session.inc.sh"
 
-input=$(cat)
-session_id=$(command jq --raw-output '.session_id // empty' <<<"${input}")
-file_path=$(command jq --raw-output '.tool_input.file_path // empty' <<<"${input}")
+# Read every field in one jq call, since the hook runs on every Write.
+{
+    IFS= read -r -d '' session_id
+    IFS= read -r -d '' file_path
+} < <(
+    command jq \
+        --raw-output0 \
+        '.session_id // "", .tool_input.file_path // ""'
+)
 
 if [[ -z "${session_id}" ]]; then
     exit 0
