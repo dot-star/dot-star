@@ -138,7 +138,7 @@ local function indexOf(spaces, space)
 end
 
 -- Switch to `target`, focusing its ready session's window when there is one so that session's tab lands in front.
-local function goTo(target, windowId)
+function followClosedFullScreenSpace.goTo(target, windowId)
     local window = nil
     if windowId ~= nil then
         window = hs.window.get(windowId)
@@ -208,7 +208,7 @@ function followClosedFullScreenSpace.onClose(bundleId)
             cancelWait()
             if spaceExists(target) then
                 log('on-close: Space ' .. closing .. ' closed, following to ' .. target .. ' (' .. pickedBy .. ')')
-                goTo(target, windowId)
+                followClosedFullScreenSpace.goTo(target, windowId)
             else
                 log('on-close: Space ' .. closing .. ' closed, but target ' .. target .. ' is gone too')
             end
@@ -230,6 +230,6 @@ function followClosedFullScreenSpace.now(bundleId)
     end
 
     log('now ' .. bundleId .. ': Space ' .. closing .. ' -> ' .. target .. ' (' .. pickedBy .. ')')
-    goTo(target, windowId)
+    followClosedFullScreenSpace.goTo(target, windowId)
     return 'moved'
 end
