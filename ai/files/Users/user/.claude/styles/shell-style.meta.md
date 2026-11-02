@@ -138,6 +138,33 @@ The quotes split the pattern at a glance into the part that matches itself and t
 
 
 
+## One `jq` call per JSON input
+
+Every `jq` call spawns a process and re-parses the whole payload, about 8 ms apiece measured on this laptop. A hook pays that on every event it fires on, so three reads where one would do cost every prompt about 16 ms for nothing. One call also reads stdin directly, which drops the `input=$(cat)` copy that per-field calls need because a pipe can only be read once.
+
+```
+
+
+
+
+
+
+
+
+```
+
+
+
+```
+
+
+
+```
+
+- NUL is the only separator no value can collide with: a JSON string carries it only as an escaped `\u0000`, which `--raw-output0` refuses with an error rather than printing, so a field can never split in two. `--raw-output0` needs jq 1.7 or later.
+- `// empty` is the natural default for a single read, which is why it survives a merge by copy-paste and silently shifts every field after a missing one.
+- A chain spawns one process per stage for a transform jq can already compose inside one filter, the same fold as the `gh api --jq` rule in `CLAUDE.md`.
+
 ## Self-documenting command variables
 
 

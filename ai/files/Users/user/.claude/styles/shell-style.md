@@ -138,6 +138,33 @@ git log --pretty=format:'%h %s' |
 
 Single-stage commands stay on one line; this only kicks in once a `|` is involved.
 
+## One `jq` call per JSON input
+
+Pull every field a script needs from one JSON input with a single `jq` call, never one call per field.
+
+```
+{
+    IFS= read -r -d '' prompt
+    IFS= read -r -d '' session_id
+} < <(
+    command jq \
+        --raw-output0 \
+        '.prompt // "", .session_id // ""'
+)
+```
+
+Not (one `jq` per field):
+
+```
+input=$(cat)
+prompt=$(command jq --raw-output '.prompt // empty' <<<"${input}")
+session_id=$(command jq --raw-output '.session_id // empty' <<<"${input}")
+```
+
+- Split on NUL (`--raw-output0` feeding `read -d ''`) so a multi-line value survives; `@tsv` feeding `read` fits only fields that can never hold a tab or newline.
+- Default each field with `// ""`, never `// empty`: `empty` drops the field from the output, so every later `read` lands on the wrong variable.
+- Fold a chain (`jq '.a' | jq '.b'`) into one filter too (`jq '.a | .b'`).
+
 ## Self-documenting command variables
 
 When a command's or test's intent isn't obvious from its literal text, bind it to a descriptively-named local variable or predicate function so the call site reads as prose.
