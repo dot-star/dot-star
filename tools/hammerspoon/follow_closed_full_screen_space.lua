@@ -205,9 +205,10 @@ end
 
 -- Hop once the focused Space closes, when it holds a full-screen window of `bundleId` that is still `closingWindowId`; return what happened for the log.
 function followClosedFullScreenSpace.onClose(bundleId, closingWindowId)
-    local movedOn = focusMovedOn('on-close ' .. bundleId, closingWindowId)
+    local label = 'on-close ' .. bundleId
+    local movedOn = focusMovedOn(label, closingWindowId)
     if movedOn then
-        log('on-close ' .. bundleId .. ': ' .. movedOn)
+        log(label .. ': ' .. movedOn)
         return movedOn
     end
 
@@ -215,7 +216,7 @@ function followClosedFullScreenSpace.onClose(bundleId, closingWindowId)
 
     local closing, target, windowId, pickedBy, skipped = closingAndTarget(bundleId)
     if skipped then
-        log('on-close ' .. bundleId .. ': ' .. skipped)
+        log(label .. ': ' .. skipped)
         return skipped
     end
 
@@ -237,15 +238,16 @@ function followClosedFullScreenSpace.onClose(bundleId, closingWindowId)
             end
         end
     end)
-    log('on-close ' .. bundleId .. ': waiting, Space ' .. closing .. ' -> ' .. target .. ' (' .. pickedBy .. ')')
+    log(label .. ': waiting, Space ' .. closing .. ' -> ' .. target .. ' (' .. pickedBy .. ')')
     return 'waiting'
 end
 
 -- Go now to the Space `onClose` would follow to, for a window known to be closing that is still `closingWindowId`; return what happened for the log.
 function followClosedFullScreenSpace.now(bundleId, closingWindowId)
-    local movedOn = focusMovedOn('now ' .. bundleId, closingWindowId)
+    local label = 'now ' .. bundleId
+    local movedOn = focusMovedOn(label, closingWindowId)
     if movedOn then
-        log('now ' .. bundleId .. ': ' .. movedOn)
+        log(label .. ': ' .. movedOn)
         return movedOn
     end
 
@@ -254,11 +256,11 @@ function followClosedFullScreenSpace.now(bundleId, closingWindowId)
 
     local closing, target, windowId, pickedBy, skipped = closingAndTarget(bundleId)
     if skipped then
-        log('now ' .. bundleId .. ': ' .. skipped)
+        log(label .. ': ' .. skipped)
         return skipped
     end
 
-    log('now ' .. bundleId .. ': Space ' .. closing .. ' -> ' .. target .. ' (' .. pickedBy .. ')')
+    log(label .. ': Space ' .. closing .. ' -> ' .. target .. ' (' .. pickedBy .. ')')
     followClosedFullScreenSpace.goTo(target, windowId)
     return 'moved'
 end
