@@ -46,13 +46,34 @@ worktree_path_in() {
         true)
 }
 
+# Write path $2 into marker $1, skipping a write that would leave the marker
+# unchanged, since this hook runs on nearly every tool call. Count a missing or
+# unreadable marker as a change.
+write_marker() {
+    local file="$1"
+    local path="$2"
+    local recorded=""
+
+    if [ ! -f "${file}" ]; then
+        recorded=""
+    elif ! recorded=$(cat -- "${file}" 2>/dev/null); then
+        recorded=""
+    fi
+
+    if [ "${recorded}" = "${path}" ]; then
+        return 0
+    fi
+
+    mkdir -p "${dir}"
+    printf '%s\n' "${path}" >"${file}"
+}
+
 # Record $1 as the session's worktree, skipping a path that doesn't exist.
 record_worktree() {
     local path="$1"
 
     if [ -n "${path}" ] && [ -d "${path}" ]; then
-        mkdir -p "${dir}"
-        printf '%s\n' "${path}" >"${marker}"
+        write_marker "${marker}" "${path}"
     fi
 }
 
@@ -61,8 +82,7 @@ record_last_repo() {
     local path="$1"
 
     if [ -n "${path}" ] && [ -d "${path}" ]; then
-        mkdir -p "${dir}"
-        printf '%s\n' "${path}" >"${last_repo_marker}"
+        write_marker "${last_repo_marker}" "${path}"
     fi
 }
 

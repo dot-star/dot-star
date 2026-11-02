@@ -107,6 +107,45 @@ assert_last_repo "edit in a worktree records the worktree" \
 assert_last_repo "edit outside any repo records nothing" \
     "${SANDBOX}/loose/notes.md" ""
 
+assert_marker_rewrite() {
+    # Feed the hook a Bash <command> over a marker already holding <first>, and
+    # compare whether the marker file was rewritten against <expected>.
+    local label="$1"
+    local cmd="$2"
+    local first="$3"
+    local expected="$4"
+
+    printf '%s\n' "${first}" >"${MARKER}"
+    # Backdate the marker, so a rewrite shows as a newer change time.
+    touch -t 202001010000 -- "${MARKER}"
+    local before
+    before="$(stat --format='%Y' -- "${MARKER}")"
+    jq --null-input --compact-output \
+        --arg cmd "${cmd}" \
+        --arg sid "${SESSION_ID}" \
+        '{session_id: $sid, tool_name: "Bash", tool_input: {command: $cmd}}' |
+        bash "${HOOK}"
+
+    local actual="kept"
+    if [[ "$(stat --format='%Y' -- "${MARKER}")" != "${before}" ]]; then
+        actual="rewritten"
+    fi
+
+    if [[ "${actual}" == "${expected}" ]]; then
+        echo "✓ ${label}"
+    else
+        echo "✗ ${label}"
+        echo "    expected: ${expected}"
+        echo "    actual:   ${actual}"
+        failures=$((failures + 1))
+    fi
+}
+
+assert_marker_rewrite "same worktree leaves the marker untouched" \
+    "git -C ${SANDBOX}/repo/worktrees/first status" "${SANDBOX}/repo/worktrees/first" "kept"
+assert_marker_rewrite "different worktree rewrites the marker" \
+    "git -C ${SANDBOX}/repo/worktrees/second status" "${SANDBOX}/repo/worktrees/first" "rewritten"
+
 rm -r -- "/tmp/claude/${SESSION_ID:0:7}" "${SANDBOX}"
 
 if [[ "${failures}" -eq 0 ]]; then
