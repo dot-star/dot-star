@@ -23,7 +23,8 @@
 # to match). Fails loudly when Hammerspoon is installed but can't run the hop,
 # since that is a missing `hs.ipc`, a stopped app or a missing bootstrap block.
 #
-# Logs every skip and hop, this script's and Hammerspoon's, to one file:
+# Logs every skip and hop, this script's and Hammerspoon's, to one file, each
+# tagged with the script that asked and the claude session above it:
 #   tail -f /tmp/claude-state-hook/follow_closed_full_screen_space.log
 
 set -euo pipefail
@@ -39,6 +40,61 @@ else
     exit 2
 fi
 
+# Print the name of the script that ran this one: the script an interpreter
+# runs (`bash <hook>.sh`), else the program itself (`zsh` for a bare-shell `x`).
+caller_name() {
+    local words
+    local program
+
+    read -r -a words <<<"$(ps -o command= -p "${PPID}")"
+    program="${words[0]##*/}"
+    program="${program#-}"
+
+    if [[ "${#words[@]}" -lt 2 ]]; then
+        echo "${program}"
+    elif [[ "${words[1]}" == "-"* ]]; then
+        echo "${program}"
+    elif [[ "${program}" == "bash" || "${program}" == "sh" || "${program}" == "zsh" || "${program}" == python* ]]; then
+        echo "${words[1]##*/}"
+    else
+        echo "${program}"
+    fi
+}
+
+# Print the pid of the nearest `claude` above this script, or nothing, from one
+# `ps` snapshot so the tag adds no walk of separate calls.
+claude_ancestor_pid() {
+    ps -A -o pid=,ppid=,comm= |
+        awk -v start="${PPID}" '
+            {
+                command = $0
+                sub(/^ *[0-9]+ +[0-9]+ +/, "", command)
+                sub(/.*\//, "", command)
+                parent[$1] = $2
+                name[$1] = command
+            }
+            END {
+                pid = start
+                while (pid > 1) {
+                    if (name[pid] == "claude") {
+                        print pid
+                        exit
+                    }
+                    pid = parent[pid]
+                }
+            }
+        '
+}
+
+caller="caller: $(caller_name)"
+claude_pid=$(claude_ancestor_pid)
+if [[ -n "${claude_pid}" ]]; then
+    caller+=", claude ${claude_pid}"
+fi
+
+# Keep the tag to characters that can't break out of the Lua string below.
+caller="${caller//[^A-Za-z0-9_.,: -]/}"
+
 hammerspoon_cli="/Applications/Hammerspoon.app/Contents/Frameworks/hs/hs"
 log_dir="/tmp/claude-state-hook"
 
@@ -51,7 +107,7 @@ log() {
 if [[ "${OSTYPE}" != "darwin"* ]]; then
     exit 0
 elif [[ ! -x "${hammerspoon_cli}" ]]; then
-    log "${mode}: skipped: no Hammerspoon client at ${hammerspoon_cli}"
+    log "${mode} [${caller}]: skipped: no Hammerspoon client at ${hammerspoon_cli}"
     exit 0
 fi
 
@@ -60,7 +116,7 @@ fi
 terminal_bundle_id="${__CFBundleIdentifier:-}"
 
 if [[ -z "${terminal_bundle_id}" ]]; then
-    log "${mode}: skipped: no __CFBundleIdentifier to name the terminal app"
+    log "${mode} [${caller}]: skipped: no __CFBundleIdentifier to name the terminal app"
     exit 0
 fi
 
@@ -72,19 +128,19 @@ if [[ -z "${session_id}" ]]; then
     # Leave it nil for a caller with no session, such as `x` in a bare shell.
     :
 elif [[ ! -f "${log_dir}/${session_id}.window" ]]; then
-    log "${mode}: no window recorded for session ${session_id}"
+    log "${mode} [${caller}]: no window recorded for session ${session_id}"
 else
     read -r recorded_window_id _ <"${log_dir}/${session_id}.window" || true
     if [[ "${recorded_window_id:-}" =~ ^[0-9]+$ ]]; then
         closing_window_id="${recorded_window_id}"
     else
-        log "${mode}: no window id in the record for session ${session_id}"
+        log "${mode} [${caller}]: no window id in the record for session ${session_id}"
     fi
 fi
 
 # Load the module on demand, so a Hammerspoon still running a config from before the module shipped can run it anyway.
-if ! "${hammerspoon_cli}" -c "require('follow_closed_full_screen_space'); return followClosedFullScreenSpace.${lua_function}('${terminal_bundle_id}', ${closing_window_id})" >/dev/null; then
-    log "${mode} ${terminal_bundle_id}: failed: Hammerspoon couldn't run the hop"
+if ! "${hammerspoon_cli}" -c "require('follow_closed_full_screen_space'); return followClosedFullScreenSpace.${lua_function}('${terminal_bundle_id}', ${closing_window_id}, '${caller}')" >/dev/null; then
+    log "${mode} ${terminal_bundle_id} [${caller}]: failed: Hammerspoon couldn't run the hop"
     echo "Couldn't run the full-screen follow through Hammerspoon. Check it's running with the dot-star bootstrap block and require('hs.ipc') in ~/.hammerspoon/init.lua (./install.sh adds both), then reload its config." >&2
     exit 1
 fi

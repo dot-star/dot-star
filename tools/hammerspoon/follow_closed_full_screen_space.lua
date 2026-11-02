@@ -2,6 +2,7 @@
 -- Call `onClose` from the shell just before the window closes, passing the terminal's bundle id and the closing session's window id (nil when there is none to compare against):
 --   hs -c "require('follow_closed_full_screen_space'); return followClosedFullScreenSpace.onClose('com.mitchellh.ghostty', 12345)"
 -- Call `now` instead to go right away, once the window is sure to close.
+-- Pass a third argument naming the caller (nil when there is none) to tag each log line with it.
 
 -- Give up on a Space still open this long after `onClose`, so a window that never closed can't yank focus later.
 local GIVE_UP_SECONDS = 60
@@ -203,9 +204,17 @@ local function closingAndTarget(bundleId)
     return closing, next.space, next.windowId, next.pickedBy, nil
 end
 
+-- Name the call in the log: its mode and bundle id, tagged with the caller the shell passed so a hop the log can't place says where it came from.
+local function labelFor(mode, bundleId, caller)
+    if caller == nil then
+        return mode .. ' ' .. bundleId
+    end
+    return mode .. ' ' .. bundleId .. ' [' .. caller .. ']'
+end
+
 -- Hop once the focused Space closes, when it holds a full-screen window of `bundleId` that is still `closingWindowId`; return what happened for the log.
-function followClosedFullScreenSpace.onClose(bundleId, closingWindowId)
-    local label = 'on-close ' .. bundleId
+function followClosedFullScreenSpace.onClose(bundleId, closingWindowId, caller)
+    local label = labelFor('on-close', bundleId, caller)
     local movedOn = focusMovedOn(label, closingWindowId)
     if movedOn then
         log(label .. ': ' .. movedOn)
@@ -225,16 +234,16 @@ function followClosedFullScreenSpace.onClose(bundleId, closingWindowId)
     followClosedFullScreenSpace.timer = hs.timer.doEvery(POLL_SECONDS, function()
         if hs.timer.secondsSinceEpoch() > deadline then
             cancelWait()
-            log('on-close: gave up, Space ' .. closing .. ' still open after ' .. GIVE_UP_SECONDS .. 's')
+            log(label .. ': gave up, Space ' .. closing .. ' still open after ' .. GIVE_UP_SECONDS .. 's')
         elseif spaceExists(closing) then
             return
         else
             cancelWait()
             if spaceExists(target) then
-                log('on-close: Space ' .. closing .. ' closed, following to ' .. target .. ' (' .. pickedBy .. ')')
+                log(label .. ': Space ' .. closing .. ' closed, following to ' .. target .. ' (' .. pickedBy .. ')')
                 followClosedFullScreenSpace.goTo(target, windowId)
             else
-                log('on-close: Space ' .. closing .. ' closed, but target ' .. target .. ' is gone too')
+                log(label .. ': Space ' .. closing .. ' closed, but target ' .. target .. ' is gone too')
             end
         end
     end)
@@ -243,8 +252,8 @@ function followClosedFullScreenSpace.onClose(bundleId, closingWindowId)
 end
 
 -- Go now to the Space `onClose` would follow to, for a window known to be closing that is still `closingWindowId`; return what happened for the log.
-function followClosedFullScreenSpace.now(bundleId, closingWindowId)
-    local label = 'now ' .. bundleId
+function followClosedFullScreenSpace.now(bundleId, closingWindowId, caller)
+    local label = labelFor('now', bundleId, caller)
     local movedOn = focusMovedOn(label, closingWindowId)
     if movedOn then
         log(label .. ': ' .. movedOn)
