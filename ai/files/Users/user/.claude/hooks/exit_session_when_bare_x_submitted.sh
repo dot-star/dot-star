@@ -70,7 +70,7 @@ fi
 mkdir --parents -- "${prune_marks_dir}"
 : >"${prune_marks_dir}/${session_id}"
 mark_close_requested
-leave_full_screen_space
+leave_full_screen_space "${session_id}"
 
 # Stop the prompt before it reaches the model. Use `continue: false` over
 # `decision: "block"`, since a block puts the typed prompt back in the input.

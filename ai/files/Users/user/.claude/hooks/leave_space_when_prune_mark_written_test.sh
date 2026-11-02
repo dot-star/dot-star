@@ -10,12 +10,12 @@ HOOK="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/leave_space_when_prune_mark_
 SANDBOX="$(cd "$(mktemp -d)" && pwd -P)"
 SESSION_ID="test-leave-space-$$"
 
-# Stub the Space hop under a sandboxed HOME, so a run records the hop instead
-# of moving the real screen.
+# Stub the Space hop under a sandboxed HOME, so a run records the hop and its
+# arguments instead of moving the real screen.
 HOP_RECORD="${SANDBOX}/hopped"
 export HOME="${SANDBOX}/home"
 mkdir --parents "${HOME}/.dot-star/ai/claude"
-printf '#!/usr/bin/env bash\ntouch -- "%s"\n' "${HOP_RECORD}" >"${HOME}/.dot-star/ai/claude/follow_closed_full_screen_space.sh"
+printf '#!/usr/bin/env bash\necho "$*" >"%s"\n' "${HOP_RECORD}" >"${HOME}/.dot-star/ai/claude/follow_closed_full_screen_space.sh"
 chmod +x "${HOME}/.dot-star/ai/claude/follow_closed_full_screen_space.sh"
 
 failures=0
@@ -37,7 +37,7 @@ assert_hop() {
         bash "${HOOK}"
 
     local actual="stayed"
-    if [[ -e "${HOP_RECORD}" ]]; then
+    if [[ "$(cat -- "${HOP_RECORD}" 2>/dev/null)" == "now ${SESSION_ID}" ]]; then
         actual="hopped"
     fi
 

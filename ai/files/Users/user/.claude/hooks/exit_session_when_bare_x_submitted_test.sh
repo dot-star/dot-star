@@ -13,12 +13,12 @@ SESSION_ID="test-bare-x-$$"
 MARK="/tmp/claude/prune_marks/${SESSION_ID}"
 export CLAUDE_RUN_CLOSE_REQUESTED_MARKER="${SANDBOX}/close_requested"
 
-# Stub the Space hop under a sandboxed HOME, so a run records the hop instead
-# of moving the real screen.
+# Stub the Space hop under a sandboxed HOME, so a run records the hop and its
+# arguments instead of moving the real screen.
 HOP_RECORD="${SANDBOX}/hopped"
 export HOME="${SANDBOX}/home"
 mkdir --parents "${HOME}/.dot-star/ai/claude"
-printf '#!/usr/bin/env bash\ntouch -- "%s"\n' "${HOP_RECORD}" >"${HOME}/.dot-star/ai/claude/follow_closed_full_screen_space.sh"
+printf '#!/usr/bin/env bash\necho "$*" >"%s"\n' "${HOP_RECORD}" >"${HOME}/.dot-star/ai/claude/follow_closed_full_screen_space.sh"
 chmod +x "${HOME}/.dot-star/ai/claude/follow_closed_full_screen_space.sh"
 
 # Stand in for claude with a bash reached through a link named after it, so
@@ -85,7 +85,7 @@ assert_close() {
     fi
 
     local hop_state="stayed"
-    if [[ -e "${HOP_RECORD}" ]]; then
+    if [[ "$(cat -- "${HOP_RECORD}" 2>/dev/null)" == "now ${SESSION_ID}" ]]; then
         hop_state="hopped"
     fi
 

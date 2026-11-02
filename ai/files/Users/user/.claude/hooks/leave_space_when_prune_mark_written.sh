@@ -19,4 +19,4 @@ elif [[ "${file_path}" != "${prune_marks_dir}/${session_id}" ]]; then
     exit 0
 fi
 
-leave_full_screen_space
+leave_full_screen_space "${session_id}"
