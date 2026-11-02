@@ -113,6 +113,15 @@
             "type": "command"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "command": "${HOME}/.claude/hooks/leave_space_when_prune_mark_written.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Write"
       }
     ],
     "PostToolUseFailure": [

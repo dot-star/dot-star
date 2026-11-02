@@ -2,6 +2,8 @@
 #
 # Stop hook: quit the claude session once the model has marked it for prune
 # (an `x` or `xx` reply), so closing it takes no `/exit` or Ctrl+D by hand.
+# leave_space_when_prune_mark_written.sh already left the Space when the mark
+# landed, so the recap renders off-screen.
 #
 # Signals the nearest `claude` ancestor from a detached job after a short
 # delay, so this hook returns and the final recap renders first.
@@ -25,7 +27,6 @@ if [[ -z "${claude_pid}" ]]; then
 fi
 
 mark_close_requested
-leave_full_screen_space
 
 # TODO: Minimize the window while the tab finishes closing (see ai/claude/minimize_own_window.sh).
 nohup sh -c "sleep 1; kill -TERM ${claude_pid}" </dev/null >/dev/null 2>&1 &

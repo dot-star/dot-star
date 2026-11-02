@@ -12,6 +12,14 @@ SESSION_ID="test-exit-session-$$"
 MARK="/tmp/claude/prune_marks/${SESSION_ID}"
 export CLAUDE_RUN_CLOSE_REQUESTED_MARKER="${SANDBOX}/close_requested"
 
+# Stub the Space hop under a sandboxed HOME, so a run records any hop instead
+# of moving the real screen.
+HOP_RECORD="${SANDBOX}/hopped"
+export HOME="${SANDBOX}/home"
+mkdir --parents "${HOME}/.dot-star/ai/claude"
+printf '#!/usr/bin/env bash\ntouch -- "%s"\n' "${HOP_RECORD}" >"${HOME}/.dot-star/ai/claude/follow_closed_full_screen_space.sh"
+chmod +x "${HOME}/.dot-star/ai/claude/follow_closed_full_screen_space.sh"
+
 # Stand in for claude with a bash reached through a link named after it, so
 # the hook's walk stops there instead of at the claude running this test.
 FAKE_CLAUDE="${SANDBOX}/claude"
@@ -31,12 +39,12 @@ failures=0
 
 assert_exit() {
     # Run the hook under the stand-in claude, which outlives the hook's delayed
-    # kill unless signaled, and compare "<exit status>, <marker state>" against
-    # <expected>.
+    # kill unless signaled, and compare "<exit status>, <marker state>, <hop>"
+    # against <expected>.
     local label="$1"
     local expected="$2"
 
-    rm --force -- "${CLAUDE_RUN_CLOSE_REQUESTED_MARKER}"
+    rm --force -- "${CLAUDE_RUN_CLOSE_REQUESTED_MARKER}" "${HOP_RECORD}"
 
     local input
     input="$(jq \
@@ -56,7 +64,12 @@ assert_exit() {
         marker_state="close requested"
     fi
 
-    local actual="exit ${status}, ${marker_state}"
+    local hop_state="stayed"
+    if [[ -e "${HOP_RECORD}" ]]; then
+        hop_state="hopped"
+    fi
+
+    local actual="exit ${status}, ${marker_state}, ${hop_state}"
     if [[ "${actual}" == "${expected}" ]]; then
         echo "✓ ${label}"
     else
@@ -69,12 +82,12 @@ assert_exit() {
 
 rm --force -- "${MARK}"
 assert_exit "unmarked session keeps running" \
-    "exit 0, close not requested"
+    "exit 0, close not requested, stayed"
 
 mkdir --parents "$(dirname -- "${MARK}")"
 touch -- "${MARK}"
 assert_exit "marked session gets SIGTERM after asking claude_run to close" \
-    "exit 143, close requested"
+    "exit 143, close requested, stayed"
 
 rm --force -- "${MARK}"
 rm -r -- "${SANDBOX}"
