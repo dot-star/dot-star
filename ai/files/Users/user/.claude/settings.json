@@ -326,6 +326,10 @@
           {
             "command": "${HOME}/.claude/hooks/announce_window_state.py UserPromptSubmit",
             "type": "command"
+          },
+          {
+            "command": "${HOME}/.claude/hooks/exit_session_when_bare_x_submitted.sh",
+            "type": "command"
           }
         ]
       }
