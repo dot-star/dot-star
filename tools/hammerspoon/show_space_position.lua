@@ -769,13 +769,25 @@ local function updateCatchUpTimer()
 end
 
 -- Show a ready not yet settled as busy, so a stop a Stop hook blocks never draws a check, pings or follows.
-local function settleReadyStates(states, now)
+local function settleReadyStates(
+    states,
+    changedAt,
+    now
+)
     for space, state in pairs(states) do
         if state ~= 'ready' then
             readySince[space] = nil
         elseif readySince[space] == nil and sessionStates == nil then
-            -- Count a ready already there at reload as settled, so a reload doesn't replay every check's ping.
-            readySince[space] = now - READY_SETTLE_SECONDS
+            -- Start the clock at the state file's write, so an old check skips its ping but a fresh one still waits.
+            -- Round the whole-second write time up; count a file gone mid-read as fresh.
+            if changedAt[space] == nil then
+                readySince[space] = now
+            else
+                readySince[space] = changedAt[space] + 1
+            end
+            if now - readySince[space] < READY_SETTLE_SECONDS then
+                states[space] = 'busy'
+            end
         elseif readySince[space] == nil then
             readySince[space] = now
             states[space] = 'busy'
@@ -818,9 +830,9 @@ end
 
 -- Re-read every session's state, starting a ping on each Space that just turned ready and following it there when you're away, or once you are.
 local function refreshSessionStates()
-    local states, windows = readSessionStates()
+    local states, windows, changedAt = readSessionStates()
     local now = hs.timer.secondsSinceEpoch()
-    settleReadyStates(states, now)
+    settleReadyStates(states, changedAt, now)
     if sessionStates ~= nil then
         for space, state in pairs(states) do
             if state == 'ready' and sessionStates[space] ~= 'ready' then
