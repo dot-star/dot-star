@@ -29,7 +29,7 @@
 
 set -euo pipefail
 
-mode="$1"
+mode="${1:-}"
 session_id="${2:-}"
 # Take the claude pid from a caller that already found it, so the log tag skips the ancestor walk.
 claude_pid="${3:-}"
