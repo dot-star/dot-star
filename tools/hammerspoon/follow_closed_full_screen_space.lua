@@ -175,6 +175,16 @@ local function focusMovedOn(label, closingWindowId)
     return 'focused window ' .. tostring(window:id()) .. ' no longer matches closing session window ' .. closingWindowId .. '; skipped'
 end
 
+-- Count the tabs in `bundleId`'s front window by asking the app itself, falling back to `window`'s accessibility tab group for an app that can't answer.
+-- Ask the app first: Ghostty exposes no accessibility tab group, so `tabCount()` reads 0 for every Ghostty window.
+local function tabCountOf(window, bundleId)
+    local ok, count = hs.osascript.applescript('tell application id "' .. bundleId .. '" to count tabs of front window')
+    if ok and type(count) == 'number' then
+        return count
+    end
+    return window:tabCount()
+end
+
 -- Return the focused Space, the Space to follow it to, the target's ready window (nil when it has none) and how the target was picked; a skip returns nil for each and why.
 local function closingAndTarget(bundleId)
     local window = hs.window.focusedWindow()
@@ -186,8 +196,8 @@ local function closingAndTarget(bundleId)
     elseif hs.spaces.spaceType(closing) ~= 'fullscreen' then
         return nil, nil, nil, nil, 'skipped: focused Space ' .. tostring(closing) .. ' is ' .. tostring(hs.spaces.spaceType(closing)) .. ', not full screen'
     -- Stay put when the window has sibling tabs: closing one keeps the Space open and the terminal lands on the next tab itself.
-    elseif window:tabCount() > 1 then
-        return nil, nil, nil, nil, 'skipped: focused window has ' .. window:tabCount() .. ' tabs, so closing one leaves its Space open'
+    elseif tabCountOf(window, bundleId) > 1 then
+        return nil, nil, nil, nil, 'skipped: focused window has other tabs, so closing one leaves its Space open'
     end
 
     local screen = hs.screen.find(hs.spaces.spaceDisplay(closing)) or hs.screen.mainScreen()
