@@ -261,6 +261,21 @@ commit_fix() {
 }
 alias fix="commit_fix"
 
+# Match only a hex abbreviation that resolves to a commit, so a ref name git also reads as a subcommand (`stash`) still reaches git.
+is_commit_hash() {
+    local candidate="${1}"
+
+    if [[ ! "${candidate}" =~ ^[0-9a-f]{4,40}$ ]]; then
+        return 1
+    fi
+
+    git rev-parse \
+        --quiet \
+        --verify \
+        "${candidate}^{commit}" \
+        >/dev/null
+}
+
 conditional_g() {
     # Supports alias g with and without arguments.
     if [[ "${#}" -eq 0 ]]; then
@@ -269,6 +284,8 @@ conditional_g() {
         git_browser "${1}"
     elif [[ "${#}" -eq 1 ]] && [[ -d "${1}" ]]; then
         git_browser "${1}"
+    elif [[ "${#}" -eq 1 ]] && is_commit_hash "${1}"; then
+        git_browser --select-commit="${1}"
     else
         git ${@}
     fi
