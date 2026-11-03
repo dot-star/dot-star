@@ -12,7 +12,7 @@
 --   Number the dots in the order a closing session hops to them, by state then last seen, for debugging (follow_order, needs session_state).
 -- Hand follow_closed_full_screen_space the ranked Spaces with hopOrder, so a closing session hops to the one most in need of you.
 -- Toggle from the shell with `space_position_experiment`; each flag persists across reloads.
--- Pick the session dots' decision style and focus marker the same way; each style persists too.
+-- Pick the session dots' decision style, pending style and focus marker the same way; each style persists too.
 -- Set how long you must be idle before follow_ready switches Spaces the same way, with follow_idle_seconds.
 -- Re-place the bars after a display change or a wake, which move the screens without switching Spaces.
 -- Redraw a beat after each Space change too, so bars of a full-screen Space that just closed get deleted.
@@ -34,10 +34,12 @@ local DEFAULT_ENABLED = {
 local DEFAULT_STYLES = {
     decision_style = 'heartbeat',
     focus_marker = 'underline',
+    pending_style = 'pulse',
 }
 local STYLE_CHOICES = {
     decision_style = { 'blink', 'flash', 'heartbeat', 'nudge' },
     focus_marker = { 'center', 'underline' },
+    pending_style = { 'dashed', 'dot', 'pulse' },
 }
 -- Apply each number's default until it's set; a saved value wins after that.
 local DEFAULT_NUMBERS = {
@@ -98,10 +100,12 @@ local PING_SECONDS = 1
 local READY_SETTLE_SECONDS = 3
 local FRAMES_PER_SECOND = 30
 -- Color each state like a traffic light: amber busy, red decision, green ready.
+-- Keep pending colorless, so a session not yet known never reads as one at work.
 local SESSION_STATE_COLORS = {
     busy = { red = 1, green = 0.69, blue = 0, alpha = 1 },
     decision = { red = 1, green = 0.23, blue = 0.19, alpha = 1 },
     ready = { red = 0.2, green = 0.78, blue = 0.35, alpha = 1 },
+    pending = { white = 0.55, alpha = 1 },
     none = { white = 0.55, alpha = 1 },
 }
 -- Rank the states, so a Space shared by several sessions shows the one most in need of you.
@@ -495,6 +499,24 @@ local function readyElements(center, pingProgress)
     return elements
 end
 
+-- Draw a session ring in gray, so a session whose state isn't known yet shows up without claiming to be busy.
+local function pendingElements(style, center, seconds)
+    local color = SESSION_STATE_COLORS.pending
+    if style == 'dashed' then
+        local dashed = ring(center, RING_RADIUS, color, RING_WIDTH)
+        dashed.strokeDashPattern = { 3, 3 }
+        return { dashed }
+    elseif style == 'dot' then
+        return {
+            ring(center, RING_RADIUS, withAlpha(color, 0.3), RING_WIDTH),
+            disc(center, 2.5, color),
+        }
+    elseif style == 'pulse' then
+        return { ring(center, RING_RADIUS, withAlpha(color, 0.25 + 0.75 * wave(phaseOf(seconds, 1.5))), RING_WIDTH) }
+    end
+    error('unknown pending style: ' .. style)
+end
+
 -- Draw the plain dots' thin ring, so a Space with no session looks as it did before session states.
 local function noneElements(center)
     return { ring(center, DOT_SIZE / 2 - 0.75, SESSION_STATE_COLORS.none, 1.5) }
@@ -507,6 +529,8 @@ local function stateElements(state, center, seconds, pingProgress)
         return decisionElements(styleOf('decision_style'), center, seconds)
     elseif state == 'ready' then
         return readyElements(center, pingProgress)
+    elseif state == 'pending' then
+        return pendingElements(styleOf('pending_style'), center, seconds)
     elseif state == 'none' then
         return noneElements(center)
     end
@@ -556,7 +580,7 @@ local function pingProgressOf(space, seconds)
     return (seconds - startedAt) / PING_SECONDS
 end
 
--- Return whether any dot in the row moves: an orbit, a decision's beat or a ping still rippling.
+-- Return whether any dot in the row moves: an orbit, a decision's beat, a pending pulse or a ping still rippling.
 local function sessionDotsAnimate(spaces, seconds)
     for _, space in ipairs(spaces) do
         local state = sessionStateOf(space)
@@ -566,6 +590,10 @@ local function sessionDotsAnimate(spaces, seconds)
             return true
         elseif pingProgressOf(space, seconds) ~= nil then
             return true
+        elseif state == 'pending' then
+            if styleOf('pending_style') == 'pulse' then
+                return true
+            end
         end
     end
     return false
@@ -632,7 +660,7 @@ end
 
 -- Return a key that changes whenever a session row's still frame would, so an unchanged row skips its redraw.
 local function sessionDotsKey(index, spaces, followOrder, pillVisible)
-    local parts = { index, tostring(pillVisible), styleOf('decision_style'), styleOf('focus_marker') }
+    local parts = { index, tostring(pillVisible), styleOf('decision_style'), styleOf('pending_style'), styleOf('focus_marker') }
     for _, space in ipairs(spaces) do
         parts[#parts + 1] = sessionStateOf(space) .. ':' .. tostring(followOrder[space])
     end
@@ -770,7 +798,19 @@ local function updateCatchUpTimer()
     end
 end
 
--- Show a ready not yet settled as busy, so a stop a Stop hook blocks never draws a check, pings or follows.
+-- Return what a Space shows while its ready settles: a turn's orbit keeps spinning, anything else waits as pending.
+local function heldReadyState(space)
+    if sessionStates == nil then
+        return 'pending'
+    elseif sessionStates[space] == 'busy' then
+        return 'busy'
+    elseif sessionStates[space] == 'decision' then
+        return 'busy'
+    end
+    return 'pending'
+end
+
+-- Hold back a ready not yet settled, so a stop a Stop hook blocks never draws a check, pings or follows.
 local function settleReadyStates(
     states,
     changedAt,
@@ -788,13 +828,13 @@ local function settleReadyStates(
                 readySince[space] = changedAt[space] + 1
             end
             if now - readySince[space] < READY_SETTLE_SECONDS then
-                states[space] = 'busy'
+                states[space] = heldReadyState(space)
             end
         elseif readySince[space] == nil then
             readySince[space] = now
-            states[space] = 'busy'
+            states[space] = heldReadyState(space)
         elseif now - readySince[space] < READY_SETTLE_SECONDS then
-            states[space] = 'busy'
+            states[space] = heldReadyState(space)
         end
     end
     -- Forget the Spaces whose session went away.
