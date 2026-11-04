@@ -7,7 +7,7 @@
 #     (written when the user picks the `[x]` close option), or
 #   - tagged with a customTitle in the target list (set via /rename), or
 #   - a print-mode transcript (one-shot `claude --print` run, e.g. from `cgc`
-#     or `ask`), identified by a queue-operation first event.
+#     or `ask`), identified by a queue-operation ahead of its first user event.
 # A mark is removed along with its session, and any orphan the session left
 # running (e.g. a server run from its scratchpad) is killed and logged to
 # ~/.claude/prune.log.
@@ -75,8 +75,17 @@ is_marked_done() {
 is_print_mode_transcript() {
     local file="${1}"
     local first_type
+    # Find the first queue-operation or user event rather than reading line 1,
+    # so header lines Claude Code adds ahead of them (session-owner) don't hide it.
     first_type="$(
-        head -n 1 "${file}" 2>/dev/null |
+        {
+            grep \
+                --max-count=1 \
+                -e '"type":"queue-operation"' \
+                -e '"type":"user"' \
+                "${file}" 2>/dev/null ||
+                true
+        } |
             \jq -r '.type // empty' 2>/dev/null
     )"
     if [[ "${first_type}" == "queue-operation" ]]; then
