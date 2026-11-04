@@ -35,6 +35,19 @@ if [[ "${fake_comm##*/}" != "claude" ]]; then
     exit 1
 fi
 
+# Give the close a dirty repo and a transcript ending on a reply that still
+# waits on the user, the shape of a close that fired mid-task.
+REPO="${SANDBOX}/repo"
+git init --quiet "${REPO}"
+touch -- "${REPO}/staged.txt"
+git -C "${REPO}" add -- "staged.txt"
+TRANSCRIPT="${SANDBOX}/transcript.jsonl"
+{
+    jq --null-input --compact-output '{type: "user", message: {content: "x"}}'
+    jq --null-input --compact-output '{type: "assistant", message: {content: [{type: "text", text: "Pick a subject: 1. Fix foo"}]}}'
+} >"${TRANSCRIPT}"
+CLOSE_LOG="${HOME}/.claude/session_close.jsonl"
+
 failures=0
 
 assert_exit() {
@@ -51,7 +64,9 @@ assert_exit() {
         --null-input \
         --compact-output \
         --arg sid "${SESSION_ID}" \
-        '{session_id: $sid, hook_event_name: "Stop"}')"
+        --arg cwd "${REPO}" \
+        --arg transcript "${TRANSCRIPT}" \
+        '{session_id: $sid, hook_event_name: "Stop", cwd: $cwd, transcript_path: $transcript}')"
 
     # Silence bash's "Terminated" notice for the signaled case.
     {
@@ -88,6 +103,23 @@ mkdir --parents "$(dirname -- "${MARK}")"
 touch -- "${MARK}"
 assert_exit "marked session gets SIGTERM after asking claude_run to close" \
     "exit 143, close requested, stayed"
+
+# Expect one entry, from the marked run only, carrying the evidence a
+# premature close leaves behind.
+expected_entry='1 stop hook | A  staged.txt | x | Pick a subject: 1. Fix foo'
+actual_entry="$(jq \
+    --slurp \
+    --raw-output \
+    '"\(length) \(.[0].trigger) | \(.[0].uncommitted | join(",")) | \(.[0].last_prompt) | \(.[0].last_reply_tail)"' \
+    "${CLOSE_LOG}" 2>&1)"
+if [[ "${actual_entry}" == "${expected_entry}" ]]; then
+    echo "✓ close log records trigger, dirty tree and last exchange"
+else
+    echo "✗ close log records trigger, dirty tree and last exchange"
+    echo "    expected: ${expected_entry}"
+    echo "    actual:   ${actual_entry}"
+    failures=$((failures + 1))
+fi
 
 rm --force -- "${MARK}"
 rm -r -- "${SANDBOX}"

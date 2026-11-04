@@ -16,10 +16,11 @@ source "$(dirname -- "${BASH_SOURCE[0]}")/exit_session.inc.sh"
     IFS= read -r -d '' prompt
     IFS= read -r -d '' session_id
     IFS= read -r -d '' cwd
+    IFS= read -r -d '' transcript_path
 } < <(
     command jq \
         --raw-output0 \
-        '.prompt // "", .session_id // "", .cwd // ""'
+        '.prompt // "", .session_id // "", .cwd // "", .transcript_path // ""'
 )
 
 # Succeed when the session sits in a linked worktree, whose git dir differs
@@ -82,6 +83,7 @@ fi
 
 mkdir --parents -- "${prune_marks_dir}"
 : >"${prune_marks_dir}/${session_id}"
+log_session_close "bare ${prompt}" "${session_id}" "${cwd}" "${transcript_path}"
 mark_close_requested
 leave_full_screen_space "${session_id}" "${claude_pid}"
 

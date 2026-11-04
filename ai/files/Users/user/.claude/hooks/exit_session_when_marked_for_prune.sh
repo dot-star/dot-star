@@ -7,12 +7,24 @@
 #
 # Signals the nearest `claude` ancestor from a detached job after a short
 # delay, so this hook returns and the final recap renders first.
+#
+# Logs each close to ~/.claude/session_close.jsonl, so a close that fired
+# mid-task can be traced after prune.sh deletes the transcript.
 
 set -euo pipefail
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/exit_session.inc.sh"
 
-session_id=$(command jq --raw-output '.session_id // empty')
+{
+    IFS= read -r -d '' session_id
+    IFS= read -r -d '' cwd
+    IFS= read -r -d '' transcript_path
+} < <(
+    command jq \
+        --raw-output0 \
+        '.session_id // "", .cwd // "", .transcript_path // ""'
+)
+
 if [[ -z "${session_id}" ]]; then
     exit 0
 fi
@@ -26,6 +38,7 @@ if [[ -z "${claude_pid}" ]]; then
     exit 0
 fi
 
+log_session_close "stop hook" "${session_id}" "${cwd}" "${transcript_path}"
 mark_close_requested
 
 # TODO: Minimize the window while the tab finishes closing (see ai/claude/minimize_own_window.sh).
