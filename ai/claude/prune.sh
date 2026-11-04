@@ -6,7 +6,7 @@
 #   - marked done by the model: /tmp/claude/prune_marks/<session-id> exists
 #     (written when the user picks the `[x]` close option), or
 #   - tagged with a customTitle in the target list (set via /rename), or
-#   - a print-mode transcript (one-shot `claude --print` run, e.g. from `cmc`
+#   - a print-mode transcript (one-shot `claude --print` run, e.g. from `cgc`
 #     or `ask`), identified by a queue-operation first event.
 # A mark is removed along with its session, and any orphan the session left
 # running (e.g. a server run from its scratchpad) is killed and logged to

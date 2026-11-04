@@ -48,7 +48,7 @@ Consequences for changes:
 
 - Adding a new tool directory does nothing until you also add a `source "tools/newtool/.aliases.sh"` line to `bootstrap/.bash_profile`. The bootstrap does not glob.
 - Some files are bash-only and are guarded with `if [[ -n "${BASH_VERSION}" ]]`; zsh users get a smaller set (notably `tools/bash/.behavior.sh` and `tools/bash/.prompt.sh` are skipped). Mirror that guarding when adding shell-specific features.
-- Aliases and functions are intentionally short and overlap by design (e.g. `cmc`/`cgc`/`clc`/`clcm`/`cma`/`aic` all alias `claude_git_commit` in `ai/.aliases.sh`). Don't "deduplicate" these without asking; the redundancy is the point.
+- Aliases and functions are intentionally short and overlap by design (e.g. `cgc`/`clc`/`clcm`/`cma`/`aic` all alias `claude_git_commit` in `ai/.aliases.sh`). Don't "deduplicate" these without asking; the redundancy is the point.
 - `tools/bash/extra.sh` is gitignored and may be a symlink into another repo; treat it as user-local override territory and don't commit content there.
 
 ### Install-time side effects live in `script/post_install.sh`
