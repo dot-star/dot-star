@@ -616,9 +616,11 @@ claude_ask() {
         echo "usage: ask <prompt>" >&2
         return 1
     fi
+    # Skip saving the transcript, so each ask stays out of the session list.
     claude \
         --add-dir ~/.claude/projects ~/Projects/dot-star \
         --print \
+        --no-session-persistence \
         "$@"
 }
 alias ask="claude_ask"
@@ -739,6 +741,7 @@ EOF
                 --print \
                 --tools "" \
                 --strict-mcp-config \
+                --no-session-persistence \
                 --output-format=json
     )"
     printf '%s\n' "${response}" |
