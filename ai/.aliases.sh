@@ -832,11 +832,13 @@ EOF
 
     # Run with no tools so an injection in the diff can't drive tool execution;
     # --strict-mcp-config also drops MCP and connector tools --tools "" leaves.
+    # Skip hooks and CLAUDE.md with --safe-mode, so neither sees the diff.
     session_id="$(uuidgen)"
     claude \
         --session-id "${session_id}" \
         --tools "" \
         --strict-mcp-config \
+        --safe-mode \
         "${prompt}"
 
     # Ask the finished session, still tool-less, which subject was picked.
@@ -846,6 +848,7 @@ EOF
             --resume "${session_id}" \
             --tools "" \
             --strict-mcp-config \
+            --safe-mode \
             --output-format="json" \
             --json-schema "${subject_schema}" \
             "Return the commit subject the user settled on, or null if none." |
