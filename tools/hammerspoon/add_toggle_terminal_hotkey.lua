@@ -48,33 +48,16 @@ function toggleGhostty()
             set ghosttyHidden to not (visible of process "Ghostty")
         end tell
 
-        -- Count windows through System Events rather than Ghostty's own
-        -- dictionary, which reports 0 however many are open.
-        tell application "System Events" to set ghosttyWindowCount to (count of windows of process "Ghostty")
-
-        set ghosttyState to "frontmost=" & ghosttyFrontMost & " hidden=" & ghosttyHidden & " windows=" & ghosttyWindowCount & ": "
+        set ghosttyState to "frontmost=" & ghosttyFrontMost & " hidden=" & ghosttyHidden & ": "
 
         if ghosttyFrontMost then
-            if ghosttyWindowCount = 0 then
-                tell application "System Events" to keystroke "t" using command down
-                return ghosttyState & "sent Cmd+T to frontmost Ghostty"
-            else
-                tell application "System Events" to set visible of process "Ghostty" to false
-                return ghosttyState & "hid frontmost Ghostty"
-            end if
-        else if ghosttyHidden then
-            -- Unhide without trusting the count: System Events reports 0
-            -- windows for a hidden process, so Cmd+T would open a stray tab.
-            tell application "System Events" to set visible of process "Ghostty" to true
-            tell targetApplication to activate
-            return ghosttyState & "unhid and activated Ghostty"
+            tell application "System Events" to set visible of process "Ghostty" to false
+            return ghosttyState & "hid frontmost Ghostty"
         else
-            tell targetApplication to reopen -- un-minimize
+            -- Leave opening a window to reopen rather than counting windows
+            -- first: System Events sees none on other Spaces or when hidden.
+            tell targetApplication to reopen -- un-minimize, or open a window if none
             tell targetApplication to activate
-            if ghosttyWindowCount = 0 then
-                tell application "System Events" to keystroke "t" using command down
-                return ghosttyState & "reopened, activated and sent Cmd+T"
-            end if
             return ghosttyState & "reopened and activated Ghostty"
         end if
     else
