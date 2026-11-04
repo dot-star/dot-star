@@ -854,8 +854,10 @@ EOF
     if [[ -z "${subject}" ]]; then
         echo "No commit subject picked."
         return 1
-    elif [[ "${subject}" == *$'\n'* ]]; then
-        echo "Refusing a multi-line commit subject."
+    # Reject newlines plus the carriage returns and escape codes that could
+    # repaint the confirmation prompt below to show a different subject.
+    elif [[ "${subject}" == *[[:cntrl:]]* ]]; then
+        echo "Refusing a commit subject with control characters."
         return 1
     fi
 
