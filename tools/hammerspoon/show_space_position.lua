@@ -774,14 +774,21 @@ local function shouldFollow(space, now)
 end
 
 -- Switch to `space` by focusing its session's window, falling back to the Space itself when that window isn't reachable from here.
-local function followTo(space, windowId, now)
-    lastFollowAt = now
+local function focusSpace(
+    space,
+    windowId
+)
     local window = hs.window.get(windowId)
     if window then
         window:focus()
     else
         hs.spaces.gotoSpace(space)
     end
+end
+
+local function followTo(space, windowId, now)
+    lastFollowAt = now
+    focusSpace(space, windowId)
 end
 
 -- Follow the newest session that turned ready while you were busy, once you've been idle long enough to arm.
