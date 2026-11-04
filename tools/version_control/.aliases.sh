@@ -1543,6 +1543,13 @@ alias c7="git_series_diff 7"
 alias c8="git_series_diff 8"
 alias c9="git_series_diff 9"
 
+git_series_pick() {
+    # Pick one subject per queued commit in side-by-side panes and copy the
+    # reply. Reads the newest /tmp/claude/<session_id>/series unless given one.
+    python3 "${HOME}/.dot-star/tools/version_control/pick_series_subjects.py" "${@}"
+}
+alias cpick="git_series_pick"
+
 rc_fetch_tags() {
     git fetch --tags $@
 }
