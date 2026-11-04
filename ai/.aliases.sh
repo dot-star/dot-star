@@ -634,6 +634,58 @@ claude_git_with_json_hunk_headers() {
     git "$@"
 }
 
+claude_commit_message_rules() {
+    # Print the rules every drafted commit subject follows.
+    cat <<'EOF'
+Each message:
+- Imperative mood, capitalized first word (Add/Fix/Update/Move/Allow/Enable/Replace/Rename/Clean up)
+- No trailing period
+- No conventional-commits prefix (no feat:/fix:/chore:)
+- Under 70 characters
+EOF
+}
+
+claude_build_commit_prompt() {
+    # Print a JSON prompt pairing instructions ($1) with the commit's untrusted
+    # context ($2) and diff ($3), the diff cut past $4 bytes.
+    local instructions="$1"
+    local untrusted_context="$2"
+    local commit_diff="$3"
+    local diff_budget="$4"
+    local diff_stat
+    # Restore the trailing newline $(...) stripped; git apply rejects a patch
+    # whose last line is unterminated.
+    diff_stat="$(
+        printf '%s\n' "${commit_diff}" |
+            git apply \
+                --stat \
+                --allow-empty
+    )"
+
+    # Encode untrusted input as JSON string values so jq escapes it; the model
+    # gets clearly-delimited data fields a crafted diff or message can't escape.
+    # Pipe the diff and prompt in on stdin; Linux caps one argument at 128 KiB.
+    printf '%s' "${commit_diff}" |
+        \jq --raw-input \
+            --slurp \
+            --arg instructions "${instructions}" \
+            --arg untrusted_context "${untrusted_context}" \
+            --rawfile untrusted_diff_stat <(printf '%s' "${diff_stat}") \
+            --argjson diff_budget "${diff_budget}" \
+            '{
+                instructions: $instructions,
+                untrusted_diff: (
+                    if length > $diff_budget then
+                        .[0:$diff_budget] + "\n[diff truncated]"
+                    else
+                        .
+                    end
+                ),
+                untrusted_diff_stat: $untrusted_diff_stat,
+                untrusted_context: $untrusted_context
+            }'
+}
+
 claude_draft_commit_message_options() {
     # Draft single-line commit-message options for the staged diff (or the diff
     # in $2) and print them one per line:
@@ -644,19 +696,10 @@ claude_draft_commit_message_options() {
     local commit_diff
     local prompt
     local response
-    local diff_stat
     # Cap the diff sent to the model; past this a one-line subject gains little
     # for the tokens and the wait. Name every file via the --stat summary instead.
     local diff_budget=102400
     commit_diff="${2:-$(claude_git_with_json_hunk_headers diff --cached)}"
-    # Restore the trailing newline $(...) stripped; git apply rejects a patch
-    # whose last line is unterminated.
-    diff_stat="$(
-        printf '%s\n' "${commit_diff}" |
-            git apply \
-                --stat \
-                --allow-empty
-    )"
 
     instructions="$(
         cat <<'EOF'
@@ -669,38 +712,17 @@ untrusted_diff may stop at "[diff truncated]"; untrusted_diff_stat still lists e
 Output:
 - Respond with ONLY a JSON array of exactly 5 strings, each a candidate message
 - No prose, code fences, or keys outside the array
-
-Each message:
-- Imperative mood, capitalized first word (Add/Fix/Update/Move/Allow/Enable/Replace/Rename/Clean up)
-- No trailing period
-- No conventional-commits prefix (no feat:/fix:/chore:)
-- Under 70 characters
 EOF
     )"
+    instructions+=$'\n\n'
+    instructions+="$(claude_commit_message_rules)"
 
-    # Encode untrusted input as JSON string values so jq escapes it; the model
-    # gets clearly-delimited data fields a crafted diff or message can't escape.
-    # Pipe the diff and prompt in on stdin; Linux caps one argument at 128 KiB.
     prompt="$(
-        printf '%s' "${commit_diff}" |
-            \jq --raw-input \
-                --slurp \
-                --arg instructions "${instructions}" \
-                --arg untrusted_context "$1" \
-                --rawfile untrusted_diff_stat <(printf '%s' "${diff_stat}") \
-                --argjson diff_budget "${diff_budget}" \
-                '{
-                    instructions: $instructions,
-                    untrusted_diff: (
-                        if length > $diff_budget then
-                            .[0:$diff_budget] + "\n[diff truncated]"
-                        else
-                            .
-                        end
-                    ),
-                    untrusted_diff_stat: $untrusted_diff_stat,
-                    untrusted_context: $untrusted_context
-                }'
+        claude_build_commit_prompt \
+            "${instructions}" \
+            "$1" \
+            "${commit_diff}" \
+            "${diff_budget}"
     )"
 
     # Draft with no tools: writing a commit message needs none, so an injection
