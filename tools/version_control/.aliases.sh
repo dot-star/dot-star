@@ -2283,6 +2283,32 @@ git_worktree_list_rows() {
                 return "safe to remove"
             }
 
+            # Assemble a row from its age onward: age, kept branch, verdict
+            # and objective. Right-pad each column to its widest only when a
+            # later column follows, so columns line up without trailing spaces.
+            function row_tail(color, rel, branch_kept, v, v_color, objective,    line) {
+                line = sprintf("%s(%s)\033[0m", color, rel)
+                if (branch_kept != "" || v != "" || objective != "") {
+                    line = line sprintf("%*s", max_rel - length(rel), "")
+                }
+                if (max_branch > 0 && (branch_kept != "" || v != "" || objective != "")) {
+                    line = line "  \033[38;5;177m" branch_kept "\033[0m"
+                }
+                if (max_branch > 0 && (v != "" || objective != "")) {
+                    line = line sprintf("%*s", max_branch - length(branch_kept), "")
+                }
+                if (max_verdict > 0 && (v != "" || objective != "")) {
+                    line = line "  " v_color v "\033[0m"
+                }
+                if (max_verdict > 0 && objective != "") {
+                    line = line sprintf("%*s", max_verdict - length(v), "")
+                }
+                if (objective != "") {
+                    line = line "  \033[2m" objective "\033[0m"
+                }
+                return line
+            }
+
             {
                 i = FNR
                 lines[i] = $0
@@ -2334,7 +2360,6 @@ git_worktree_list_rows() {
                     idx_str = sprintf("[%*d]", digits, i)
                     lead = sprintf("\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  ", idx_str, max_name, name)
                     hash = sprintf("\033[33m%s\033[0m ", sha)
-                    line = sprintf("%s(%s)\033[0m", color, rel)
 
                     # Paint "safe to remove" as a cleanup candidate and
                     # anything else as work still held.
@@ -2344,31 +2369,7 @@ git_worktree_list_rows() {
                         v_color = "\033[38;5;108m"
                     }
                     objective = t_objective[f[2]]
-
-                    # Right-pad each column to its widest only when a later
-                    # column follows on this row, so trailing columns line up
-                    # across rows without leaving trailing spaces.
-                    rel_pad = sprintf("%*s", max_rel - length(rel), "")
-                    branch_pad = sprintf("%*s", max_branch - length(branch_kept), "")
-                    verdict_pad = sprintf("%*s", max_verdict - length(v), "")
-                    if (branch_kept != "" || v != "" || objective != "") {
-                        line = line rel_pad
-                    }
-                    if (max_branch > 0 && (branch_kept != "" || v != "" || objective != "")) {
-                        line = line "  \033[38;5;177m" branch_kept "\033[0m"
-                    }
-                    if (max_branch > 0 && (v != "" || objective != "")) {
-                        line = line branch_pad
-                    }
-                    if (max_verdict > 0 && (v != "" || objective != "")) {
-                        line = line "  " v_color v "\033[0m"
-                    }
-                    if (max_verdict > 0 && objective != "") {
-                        line = line verdict_pad
-                    }
-                    if (objective != "") {
-                        line = line "  \033[2m" objective "\033[0m"
-                    }
+                    line = row_tail(color, rel, branch_kept, v, v_color, objective)
                     print f[2] "\t" lead "\t" hash "\t" line
                 }
             }
