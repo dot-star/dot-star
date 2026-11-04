@@ -784,9 +784,13 @@ claude_git_commit_interactive() {
     local session_id
     local subject
     local reply
-    # Keep the JSON-escaped prompt under Linux's 128 KiB per-argument cap, since
-    # the interactive session takes it as an argument; escaping can double a diff.
-    local diff_budget=49152
+    local prompt_bytes
+    # Match Linux's per-argument limit (MAX_ARG_STRLEN); the interactive session
+    # takes the whole prompt as one argument.
+    local arg_max_bytes=131072
+    # Spend at most half the limit on the diff, even if jq escapes every
+    # character to a 6-byte \u00XX; the budget counts characters, not bytes.
+    local diff_budget=$((arg_max_bytes / 2 / 6))
     local subject_schema='{"type":"object","properties":{"subject":{"type":["string","null"]}},"required":["subject"]}'
 
     if git diff --cached --quiet; then
@@ -818,6 +822,13 @@ EOF
             "$(claude_git_with_json_hunk_headers diff --cached)" \
             "${diff_budget}"
     )"
+
+    # Refuse well short of the limit; the context and stat aren't truncated.
+    prompt_bytes="$(printf '%s' "${prompt}" | wc -c)"
+    if ((prompt_bytes > arg_max_bytes * 3 / 4)); then
+        echo "Prompt too large (${prompt_bytes// /} bytes); shorten the context or split the commit."
+        return 1
+    fi
 
     # Run with no tools so an injection in the diff can't drive tool execution;
     # --strict-mcp-config also drops MCP and connector tools --tools "" leaves.
