@@ -1,4 +1,4 @@
--- Wrap Ctrl+Left/Right around the ends of the Space list: past the last Space lands on the first, before the first lands on the last.
+-- Wrap Ctrl+Left/Right around the ends of the Space list: past the last Space lands on the first full-screen Space, before the first lands on the last.
 -- Leave every other press to macOS, which keeps its slide animation; only the edge presses go through the slower Mission Control jump.
 
 local function indexOf(spaces, space)
@@ -8,6 +8,16 @@ local function indexOf(spaces, space)
         end
     end
     return nil
+end
+
+-- Skip past the desktop on a rightward wrap, since the full-screen apps are where the work is; fall back to the first Space when none is full screen.
+local function firstFullScreenSpace(spaces)
+    for _, space in ipairs(spaces) do
+        if hs.spaces.spaceType(space) == 'fullscreen' then
+            return space
+        end
+    end
+    return spaces[1]
 end
 
 -- Return the Space to wrap to, or nil when macOS can move in `direction` on its own.
@@ -21,7 +31,11 @@ local function wrapTarget(direction)
     elseif #spaces < 2 then
         return nil
     elseif direction == 'right' and index == #spaces then
-        return spaces[1]
+        local target = firstFullScreenSpace(spaces)
+        if target == focused then
+            return nil
+        end
+        return target
     elseif direction == 'left' and index == 1 then
         return spaces[#spaces]
     end
