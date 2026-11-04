@@ -164,17 +164,17 @@ claude_session_list_render() {
     # the max wins a conflict.
     # Rows print oldest-first so the newest lands closest to the prompt, the
     # way `s`'s worktree table orders.
-    # Nest each "<path>\t<line>" row of <worktree_rows> (as
+    # Nest each "<path>\t<lead>\t<rest>" row of <worktree_rows> (as
     # `git_worktree_list_rows` prints them) under its newest listed session, so
     # no worktree prints twice. List the rest beneath, counting
     # <hidden_worktrees> rows the caller cut off as more.
     # Example output:
     #     Fix login redirect           (3 days ago)
-    #       └ [2]  login-fix  1234567 (3 days ago)   1 uncommitted
+    #       └ [2]  login-fix  1234567  (3 days ago)   1 uncommitted
     #     Add quoted flag values rule  (2 hours ago)
     #
     #     1 other worktree:
-    #         [1]  old-spike  abcdef1 (3 weeks ago)  safe to remove
+    #         [1]  old-spike  abcdef1      (3 weeks ago)  safe to remove
     # Usage:
     #   $ claude_session_list_render "$(git rev-parse --show-toplevel)" 7 5 10 "${worktree_rows}" 0
     local dir="$1"
@@ -239,11 +239,24 @@ claude_session_list_render() {
                     if ($0 != "") {
                         worktree_count++
                         worktree_path[worktree_count] = $1
-                        line = $0
-                        sub(/^[^\t]*\t/, "", line)
-                        worktree_line[$1] = line
+                        worktree_lead[$1] = $2
+                        rest = $0
+                        sub(/^[^\t]*\t[^\t]*\t/, "", rest)
+                        worktree_rest[$1] = rest
+
+                        # Measure the lead as it prints, without its color codes.
+                        plain = $2
+                        gsub(/\033\[[0-9;]*m/, "", plain)
+                        if (length(plain) > lead_width) {
+                            lead_width = length(plain)
+                        }
                     }
                     next
+                }
+
+                # Print a worktree row after <prefix>, which prints <prefix_width> wide, padded so its age starts at age_column.
+                function worktree_row(path, prefix, prefix_width) {
+                    printf "%s%s%*s%s\n", prefix, worktree_lead[path], age_column - prefix_width - lead_width, "", worktree_rest[path]
                 }
                 {
                     n++
@@ -289,21 +302,35 @@ claude_session_list_render() {
                         printf "    \033[2m... and \033[0m\033[1;36m%d\033[0m\033[2m %s\033[0m\n", first - 1, hidden_label
                     }
 
-                    # Pad titles to the widest shown, so the ages line up in a column of their own.
-                    width = 0
-                    for (i = first; i <= n; i++) {
-                        if (length(row_title[i]) > width) {
-                            width = length(row_title[i])
-                        }
-                    }
-                    row_format = "    %-" width "s  %s(%s)\033[0m\n"
-
                     # Find the newest listed session of each worktree, the one its row nests under.
                     for (i = first; i <= n; i++) {
                         if (row_owner[i] != "") {
                             newest[row_owner[i]] = i
                         }
                     }
+                    for (o in newest) {
+                        if (o in worktree_lead) {
+                            nested[o] = 1
+                            nested_count++
+                        }
+                    }
+                    left = worktree_count - nested_count
+
+                    # Start every age in one column: past the widest title shown, the nested worktree rows and the leftover ones.
+                    width = 0
+                    for (i = first; i <= n; i++) {
+                        if (length(row_title[i]) > width) {
+                            width = length(row_title[i])
+                        }
+                    }
+                    age_column = (n > 0) ? 4 + width + 2 : 0
+                    if (nested_count > 0 && 8 + lead_width > age_column) {
+                        age_column = 8 + lead_width
+                    }
+                    if (left > 0 && 4 + lead_width > age_column) {
+                        age_column = 4 + lead_width
+                    }
+                    row_format = "    %-" (age_column - 6) "s  %s(%s)\033[0m\n"
 
                     for (i = first; i <= n; i++) {
                         rel = relative_age(row_mtime[i])
@@ -317,14 +344,11 @@ claude_session_list_render() {
                         printf row_format, row_title[i], color, rel
 
                         o = row_owner[i]
-                        if (o != "" && (o in worktree_line) && newest[o] == i) {
-                            printf "      \033[2m└\033[0m %s\n", worktree_line[o]
-                            nested[o] = 1
-                            nested_count++
+                        if ((o in nested) && newest[o] == i) {
+                            worktree_row(o, "      \033[2m└\033[0m ", 8)
                         }
                     }
 
-                    left = worktree_count - nested_count
                     if (left + hidden_worktrees == 0) {
                         exit
                     }
@@ -348,7 +372,7 @@ claude_session_list_render() {
                     }
                     for (j = 1; j <= worktree_count; j++) {
                         if (!(worktree_path[j] in nested)) {
-                            printf "    %s\n", worktree_line[worktree_path[j]]
+                            worktree_row(worktree_path[j], "    ", 4)
                         }
                     }
                 }
