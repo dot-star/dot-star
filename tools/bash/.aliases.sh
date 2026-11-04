@@ -2899,7 +2899,23 @@ curl_neverssl() {
 }
 alias cn="curl_neverssl"
 
-alias alive="while :; do ping google.com; date; sleep 1; echo; done"
+# Ping over IPv6 when it reaches the host. A phone hotspot on an IPv6-only carrier can
+# stop forwarding IPv4 while IPv6 keeps working.
+alive() {
+    local host="google.com"
+
+    while :; do
+        if ping6 -c 1 "${host}" >/dev/null 2>&1; then
+            ping6 "${host}"
+        else
+            ping "${host}"
+        fi
+
+        date
+        sleep 1
+        echo
+    done
+}
 alias al="alive"
 
 conditional_a() {
