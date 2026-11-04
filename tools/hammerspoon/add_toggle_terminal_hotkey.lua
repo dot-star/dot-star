@@ -31,8 +31,12 @@ function toggleTerminal()
     ]])
 end
 
+-- Log each toggle to the Hammerspoon console under "toggleGhostty".
+local ghosttyLog = hs.logger.new('toggleGhostty', 'info')
+
 function toggleGhostty()
-    hs.osascript.applescript([[
+    -- Return the branch taken so the console shows what each press did.
+    local ok, result, descriptor = hs.osascript.applescript([[
     set targetApplication to application "Ghostty"
     if targetApplication is running then
 
@@ -48,28 +52,41 @@ function toggleGhostty()
         -- dictionary, which reports 0 however many are open.
         tell application "System Events" to set ghosttyWindowCount to (count of windows of process "Ghostty")
 
+        set ghosttyState to "frontmost=" & ghosttyFrontMost & " hidden=" & ghosttyHidden & " windows=" & ghosttyWindowCount & ": "
+
         if ghosttyFrontMost then
             if ghosttyWindowCount = 0 then
                 tell application "System Events" to keystroke "t" using command down
+                return ghosttyState & "sent Cmd+T to frontmost Ghostty"
             else
                 tell application "System Events" to set visible of process "Ghostty" to false
+                return ghosttyState & "hid frontmost Ghostty"
             end if
         else if ghosttyHidden then
             -- Unhide without trusting the count: System Events reports 0
             -- windows for a hidden process, so Cmd+T would open a stray tab.
             tell application "System Events" to set visible of process "Ghostty" to true
             tell targetApplication to activate
+            return ghosttyState & "unhid and activated Ghostty"
         else
             tell targetApplication to reopen -- un-minimize
             tell targetApplication to activate
             if ghosttyWindowCount = 0 then
                 tell application "System Events" to keystroke "t" using command down
+                return ghosttyState & "reopened, activated and sent Cmd+T"
             end if
+            return ghosttyState & "reopened and activated Ghostty"
         end if
     else
         tell targetApplication to activate
+        return "not running: launched Ghostty"
     end if
     ]])
+    if ok then
+        ghosttyLog.i(result)
+    else
+        ghosttyLog.e('AppleScript failed: ' .. hs.inspect(descriptor))
+    end
 end
 
 -- Bind the terminal hotkeys to one of:
