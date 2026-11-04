@@ -4,7 +4,7 @@
 --   Add a thin band along the bottom edge of every full-screen Space in that Space's strip color (bottom_bar, needs edge_bars).
 --   Add a matching band along the top edge of every full-screen Space (top_bar, needs edge_bars).
 --   Paint each Space's bars the next color in a cycle rather than one shared color (cycle_colors, needs edge_bars).
---   Add a row of dots in the title bar's upper-right corner of every full-screen Space, the focused Space filled (page_dots, needs edge_bars).
+--   Add a row of dots in the title bar's upper-right corner of every full-screen Space, the focused Space filled; click a dot to jump to its Space (page_dots, needs edge_bars).
 --   Show the dark pill behind the dots, to check where their canvas sits (page_dots_pill, needs page_dots).
 --   Show on each dot the state of the Claude session whose window sits on that Space (session_state, needs page_dots).
 --   Switch to a Space whose session turned ready, once you've been idle a while (follow_ready, needs session_state).
@@ -122,6 +122,14 @@ local HOP_STATE_PRIORITY = {
     busy = 4,
 }
 local FOCUS_MARK_COLOR = { white = 1, alpha = 1 }
+-- Frame the dot under the pointer, so a click's target shows before you commit to it.
+local HOVER_FRAME_COLOR = { white = 1, alpha = 0.8 }
+local HOVER_FRAME_WIDTH = 1.5
+-- Reach into the gap on each side of the dot, stopping short of the neighbor's frame.
+local HOVER_FRAME_SIDE_PADDING = DOT_GAP / 2 - 1
+-- Keep the frame off the title bar's edges, tall enough to take in the focus underline and follow-order number.
+local HOVER_FRAME_MARGIN = 2
+local HOVER_FRAME_RADIUS = 6
 -- Size the follow-order number to fit the strip between a dot and the title bar's bottom edge.
 local FOLLOW_ORDER_TEXT_SIZE = 10
 -- Number only the first few picks in the follow order, so the row shows where a close lands next without badging every dot.
@@ -297,7 +305,10 @@ local function newBumper(color)
 end
 
 local function newPageDots()
-    return newOverlay({ x = 0, y = 0, w = 1, h = TITLE_BAR_HEIGHT }, EDGE_BAR_BEHAVIOR)
+    local dots = newOverlay({ x = 0, y = 0, w = 1, h = TITLE_BAR_HEIGHT }, EDGE_BAR_BEHAVIOR)
+    -- Keep Hammerspoon in the background on a click, so focusing the clicked Space's window isn't undone.
+    dots:clickActivating(false)
+    return dots
 end
 
 -- Right-align the text, so it hugs the dots however long it runs.
@@ -342,13 +353,45 @@ local function pageDotCenter(position)
     return { x = DOTS_PADDING + (position - 1) * (DOT_SIZE + DOT_GAP) + DOT_SIZE / 2, y = TITLE_BAR_HEIGHT / 2 }
 end
 
--- Draw one dot per Space in `color` on a pill, filling the dot at `index`.
+-- Return the slot under `x` in a row of `count` dots, counting half the gap on each side of a dot as its own, or nil past either end.
+local function dotSlotAt(
+    x,
+    count
+)
+    local slot = math.floor((x - DOTS_PADDING + DOT_GAP / 2) / (DOT_SIZE + DOT_GAP)) + 1
+    if slot < 1 then
+        return nil
+    elseif slot > count then
+        return nil
+    end
+    return slot
+end
+
+local function hoverFrameElement(center)
+    local halfWidth = DOT_SIZE / 2 + HOVER_FRAME_SIDE_PADDING
+    return {
+        type = 'rectangle',
+        action = 'stroke',
+        strokeColor = HOVER_FRAME_COLOR,
+        strokeWidth = HOVER_FRAME_WIDTH,
+        roundedRectRadii = { xRadius = HOVER_FRAME_RADIUS, yRadius = HOVER_FRAME_RADIUS },
+        frame = {
+            x = center.x - halfWidth,
+            y = HOVER_FRAME_MARGIN,
+            w = 2 * halfWidth,
+            h = TITLE_BAR_HEIGHT - 2 * HOVER_FRAME_MARGIN,
+        },
+    }
+end
+
+-- Draw one dot per Space in `color` on a pill, filling the dot at `index` and framing the one at `hoverSlot`.
 local function layoutPageDots(
     dots,
     index,
     count,
     color,
-    pillVisible
+    pillVisible,
+    hoverSlot
 )
     local elements = { pageDotsPill(pillVisible) }
     -- Draw the dots fully opaque, the same as the bumper, so they hold up against glare.
@@ -368,6 +411,9 @@ local function layoutPageDots(
             dot.action = 'stroke'
         end
         elements[#elements + 1] = dot
+    end
+    if hoverSlot ~= nil then
+        elements[#elements + 1] = hoverFrameElement(pageDotCenter(hoverSlot))
     end
     dots:replaceElements(elements)
 end
@@ -635,6 +681,7 @@ local function followOrderElement(center, rank)
 end
 
 -- Draw the home triangle, then one ring per Space in `spaces` showing its session's state, marking the ring at `index` and badging each ranked in `followOrder`; draw pings only when `animate`, since a still frame would freeze one mid-ripple.
+-- Frame the slot at `hoverSlot`, counting the home triangle as slot 1.
 local function layoutSessionDots(
     dots,
     index,
@@ -642,7 +689,8 @@ local function layoutSessionDots(
     followOrder,
     pillVisible,
     seconds,
-    animate
+    animate,
+    hoverSlot
 )
     local elements = { pageDotsPill(pillVisible) }
     for _, element in ipairs(homeElements(pageDotCenter(1))) do
@@ -669,6 +717,9 @@ local function layoutSessionDots(
             elements[#elements + 1] = followOrderElement(center, followOrder[space])
         end
     end
+    if hoverSlot ~= nil then
+        elements[#elements + 1] = hoverFrameElement(pageDotCenter(hoverSlot))
+    end
     dots:replaceElements(elements)
 end
 
@@ -677,11 +728,13 @@ local function sessionDotsKey(
     index,
     spaces,
     followOrder,
-    pillVisible
+    pillVisible,
+    hoverSlot
 )
     local parts = {
         index,
         tostring(pillVisible),
+        tostring(hoverSlot),
         styleOf('decision_style'),
         styleOf('pending_style'),
         styleOf('focus_marker'),
@@ -773,12 +826,15 @@ local function shouldFollow(space, now)
     return true
 end
 
--- Switch to `space` by focusing its session's window, falling back to the Space itself when that window isn't reachable from here.
+-- Switch to `space` by focusing its session's window, falling back to the Space itself when it has no session or that window isn't reachable from here.
 local function focusSpace(
     space,
     windowId
 )
-    local window = hs.window.get(windowId)
+    local window = nil
+    if windowId ~= nil then
+        window = hs.window.get(windowId)
+    end
     if window then
         window:focus()
     else
@@ -1111,12 +1167,14 @@ local function placeEdgeBars(pair, index, count, screen)
     -- Redraw the dots only when the Space moved, the count changed or the pill was toggled, the same as the bars' height check.
     local pillVisible = isEnabled('page_dots_pill')
     local dotsCount = count
+    local screenSpaces = hs.spaces.spacesForScreen(screen) or {}
+    -- Map each dot slot to its Space for a click; both rows run in swipe order, the session row's home triangle standing in for the first Space.
+    pair.dotSpaces = screenSpaces
     if isEnabled('session_state') then
         local spaces = sessionDotSpaces(screen)
         local rowIndex = index - 1
-        local screenSpaces = hs.spaces.spacesForScreen(screen) or {}
         local followOrder = followOrderOf(screenSpaces, screenSpaces[index])
-        local key = sessionDotsKey(rowIndex, spaces, followOrder, pillVisible)
+        local key = sessionDotsKey(rowIndex, spaces, followOrder, pillVisible, pair.hoverSlot)
         pair.sessionIndex = rowIndex
         pair.sessionSpaces = spaces
         pair.followOrder = followOrder
@@ -1130,17 +1188,19 @@ local function placeEdgeBars(pair, index, count, screen)
                 followOrder,
                 pillVisible,
                 hs.timer.secondsSinceEpoch(),
-                false
+                false,
+                pair.hoverSlot
             )
             pair.sessionKey = key
             -- Forget the plain dots, so turning session_state off redraws them.
             pair.dotsIndex = nil
         end
-    elseif pair.dotsIndex ~= index or pair.dotsCount ~= count or pair.dotsPill ~= pillVisible then
-        layoutPageDots(pair.dots, index, count, pair.color, pillVisible)
+    elseif pair.dotsIndex ~= index or pair.dotsCount ~= count or pair.dotsPill ~= pillVisible or pair.dotsHover ~= pair.hoverSlot then
+        layoutPageDots(pair.dots, index, count, pair.color, pillVisible, pair.hoverSlot)
         pair.dotsIndex = index
         pair.dotsCount = count
         pair.dotsPill = pillVisible
+        pair.dotsHover = pair.hoverSlot
         pair.sessionKey = nil
     end
     local dotsWidth = pageDotsWidth(dotsCount)
@@ -1157,6 +1217,77 @@ local function placeEdgeBars(pair, index, count, screen)
         w = COUNTDOWN_WIDTH,
         h = TITLE_BAR_HEIGHT,
     })
+end
+
+-- Redraw a pair's dots in place from what its last placement recorded, for a hover that moved without the Space changing.
+local function redrawPageDots(pair)
+    local pillVisible = isEnabled('page_dots_pill')
+    if isEnabled('session_state') then
+        local seconds = hs.timer.secondsSinceEpoch()
+        layoutSessionDots(
+            pair.dots,
+            pair.sessionIndex,
+            pair.sessionSpaces,
+            pair.followOrder,
+            pillVisible,
+            seconds,
+            sessionDotsAnimate(pair.sessionSpaces, seconds),
+            pair.hoverSlot
+        )
+        pair.sessionKey = sessionDotsKey(pair.sessionIndex, pair.sessionSpaces, pair.followOrder, pillVisible, pair.hoverSlot)
+        return
+    end
+    layoutPageDots(pair.dots, pair.dotsIndex, pair.dotsCount, pair.color, pillVisible, pair.hoverSlot)
+    pair.dotsPill = pillVisible
+    pair.dotsHover = pair.hoverSlot
+end
+
+-- Frame the dot at `slot`, or none when nil, redrawing only on a change.
+local function hoverPageDot(
+    pair,
+    slot
+)
+    if pair.hoverSlot == slot then
+        return
+    end
+    pair.hoverSlot = slot
+    redrawPageDots(pair)
+end
+
+-- Return the dot slot under the pointer, or nil when the pointer is off the row.
+local function pointerPageDotSlot(pair)
+    local pointer = hs.mouse.absolutePosition()
+    local frame = pair.dots:frame()
+    if pointer.y < frame.y then
+        return nil
+    elseif pointer.y >= frame.y + frame.h then
+        return nil
+    end
+    return dotSlotAt(pointer.x - frame.x, #pair.dotSpaces)
+end
+
+-- Frame the dot under the pointer as it moves and jump to the Space of a clicked dot.
+local function handlePageDotsMouse(
+    pair,
+    message,
+    x
+)
+    if message == 'mouseExit' then
+        hoverPageDot(pair, nil)
+    elseif message == 'mouseEnter' then
+        hoverPageDot(pair, dotSlotAt(x, #pair.dotSpaces))
+    elseif message == 'mouseMove' then
+        hoverPageDot(pair, dotSlotAt(x, #pair.dotSpaces))
+    elseif message == 'mouseUp' then
+        local slot = dotSlotAt(x, #pair.dotSpaces)
+        if slot == nil then
+            return
+        end
+        local space = pair.dotSpaces[slot]
+        -- Clear the frame first, since leaving the Space can skip the exit event and strand it for your return.
+        hoverPageDot(pair, nil)
+        focusSpace(space, sessionWindows[space])
+    end
 end
 
 -- Give the focused Space its own pair on first visit; only a reorder of Spaces ever flips a pair's visibility.
@@ -1199,10 +1330,16 @@ local function renderEdgeBars(index, count, screen, focused)
             color = color,
             cycleColor = cycleColor,
         }
+        pair.dots:canvasMouseEvents(true, true, true, true)
+        pair.dots:mouseCallback(function(_, message, _, x, _)
+            handlePageDotsMouse(pair, message, x)
+        end)
         edgeBarsBySpace[focused] = pair
     end
 
     placeEdgeBars(pair, index, count, screen)
+    -- Frame whatever dot the pointer rests on as you land, which no mouse event reports when the Space switched under a still pointer.
+    hoverPageDot(pair, pointerPageDotSlot(pair))
     local rightVisible = showsRightBar(focused, index, count)
     setEdgeBarVisible(pair.left, startsFullScreenRun(hs.spaces.spacesForScreen(screen) or {}, index))
     setEdgeBarVisible(pair.right, rightVisible)
@@ -1262,7 +1399,8 @@ local function animateFrame()
             pair.followOrder,
             pillVisible,
             seconds,
-            animate
+            animate,
+            pair.hoverSlot
         )
         if animate then
             moving = true
