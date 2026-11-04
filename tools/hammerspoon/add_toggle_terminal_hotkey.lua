@@ -51,6 +51,10 @@ function toggleGhostty()
         set ghosttyState to "frontmost=" & ghosttyFrontMost & " hidden=" & ghosttyHidden & ": "
 
         if ghosttyFrontMost then
+
+            -- TODO: Open a window instead of hiding when frontmost Ghostty has none (hiding an empty
+            -- Ghostty makes the first press look dead; needs a window check that sees other Spaces).
+
             tell application "System Events" to set visible of process "Ghostty" to false
             return ghosttyState & "hid frontmost Ghostty"
         else
