@@ -2199,7 +2199,8 @@ git_worktree_list_rows() {
     # Render `git_worktree_list_sorted`'s TSV rows, read from stdin, as table
     # lines keyed by worktree path ("<path>\t<line>"), unindented and without
     # a header. Show at most the given number of rows; 0 shows every row.
-    # Used by `git_worktree_list_render`, which adds the header and indent.
+    # Used by `git_worktree_list_render`, which adds the header and indent, and
+    # by `s`, which nests each row under its Claude session.
     # Usage:
     #   $ git_worktree_list_sorted | git_worktree_list_rows 10
 
@@ -2690,38 +2691,42 @@ rc_status() {
             current_toplevel="$(git rev-parse --show-toplevel)"
             if [[ "${main_toplevel}" == "${current_toplevel}" ]]; then
                 local worktree_count
+                local worktree_rows=""
+                local hidden_worktrees=0
+                local max_worktree_rows=10
                 worktree_count="$(git worktree list | awk 'NR>1' | wc -l | tr -d ' ')"
                 if [[ "${worktree_count}" -gt 0 ]]; then
-                    echo
-
                     local sorted_worktrees
                     sorted_worktrees="$(git_worktree_list_sorted)"
 
-                    # Bind digit aliases `1`..`N` (capped at the 10 visible rows)
+                    # Bind digit aliases `1`..`N` (capped at the visible rows)
                     # to `cd <worktree-path>` so the user can jump to the Nth
                     # worktree by typing its index after running `s`.
                     local idx=1
                     local entry
                     while read -r entry; do
-                        if [[ "${idx}" -gt 10 ]]; then
+                        if [[ "${idx}" -gt "${max_worktree_rows}" ]]; then
                             break
                         fi
                         alias -- "${idx}"="cd ${entry}"
                         idx=$((idx + 1))
                     done < <(echo "${sorted_worktrees}" | awk -F'\t' '{print $2}')
 
-                    # Cap the table at the 10 rows the digit aliases cover.
-                    echo "${sorted_worktrees}" |
-                        git_worktree_list_render 10
+                    # Cap the table at the rows the digit aliases cover.
+                    worktree_rows="$(echo "${sorted_worktrees}" | git_worktree_list_rows "${max_worktree_rows}")"
+                    if [[ "${worktree_count}" -gt "${max_worktree_rows}" ]]; then
+                        hidden_worktrees=$((worktree_count - max_worktree_rows))
+                    fi
                 fi
 
-                # List the Claude sessions `clr` can resume here, only from the
-                # main checkout. Retune by exporting
-                # CLAUDE_SESSION_LIST_MAX_AGE_DAYS (0 keeps every age),
-                # CLAUDE_SESSION_LIST_MIN_ROWS and CLAUDE_SESSION_LIST_MAX_ROWS
-                # (0 caps none).
+                # List the Claude sessions filed here and under each visible
+                # worktree, only from the main checkout, each worktree nested
+                # under its newest one.
+                # Retune by exporting CLAUDE_SESSION_LIST_MAX_AGE_DAYS (0 keeps
+                # every age), CLAUDE_SESSION_LIST_MIN_ROWS and
+                # CLAUDE_SESSION_LIST_MAX_ROWS (0 caps none).
                 local claude_sessions
-                claude_sessions="$(claude_session_list_render "${current_toplevel}" "${CLAUDE_SESSION_LIST_MAX_AGE_DAYS:-7}" "${CLAUDE_SESSION_LIST_MIN_ROWS:-3}" "${CLAUDE_SESSION_LIST_MAX_ROWS:-5}")"
+                claude_sessions="$(claude_session_list_render "${current_toplevel}" "${CLAUDE_SESSION_LIST_MAX_AGE_DAYS:-7}" "${CLAUDE_SESSION_LIST_MIN_ROWS:-3}" "${CLAUDE_SESSION_LIST_MAX_ROWS:-5}" "${worktree_rows}" "${hidden_worktrees}")"
                 if [[ -n "${claude_sessions}" ]]; then
                     echo
                     echo "${claude_sessions}"

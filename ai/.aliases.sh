@@ -89,7 +89,8 @@ newest_moved_in_session() {
 }
 
 claude_session_list_titles() {
-    # Print "<mtime>\t<title>" for each given session transcript, unsorted.
+    # Print "<mtime>\t<title>\t<transcript>" for each given session transcript,
+    # unsorted.
     # Usage:
     #   $ claude_session_list_titles <transcript>...
     local -a stat_mtime=(stat -c '%Y %n')
@@ -138,7 +139,7 @@ claude_session_list_titles() {
                         title = "untitled " id
                     }
                     gsub(/\t/, " ", title)
-                    printf "%s\t%s\n", mtime[file], title
+                    printf "%s\t%s\t%s\n", mtime[file], title, file
                 }
             }
         ' \
@@ -156,22 +157,35 @@ claude_session_list_titles() {
 }
 
 claude_session_list_render() {
-    # Render the sessions `clr` can resume from <dir> under a "<count> claude
-    # sessions:" header, each titled and aged. Hide sessions older than
-    # <max_age_days> (0 hides none), but always show the <min_rows> newest and
-    # never more than <max_rows> (0 caps none); the max wins a conflict.
+    # Render the sessions filed under <dir> or under a worktree in
+    # <worktree_rows> under a "<count> claude sessions:" header, each titled and
+    # aged. Hide sessions older than <max_age_days> (0 hides none), but always
+    # show the <min_rows> newest and never more than <max_rows> (0 caps none);
+    # the max wins a conflict.
     # Rows print oldest-first so the newest lands closest to the prompt, the
     # way `s`'s worktree table orders.
+    # Nest each "<path>\t<line>" row of <worktree_rows> (as
+    # `git_worktree_list_rows` prints them) under its newest listed session, so
+    # no worktree prints twice. List the rest beneath, counting
+    # <hidden_worktrees> rows the caller cut off as more.
     # Example output:
     #     Fix login redirect           (3 days ago)
+    #       └ [2]  login-fix  1234567 (3 days ago)   1 uncommitted
     #     Add quoted flag values rule  (2 hours ago)
+    #
+    #     1 other worktree:
+    #         [1]  old-spike  abcdef1 (3 weeks ago)  safe to remove
     # Usage:
-    #   $ claude_session_list_render "$(git rev-parse --show-toplevel)" 7 5 10
+    #   $ claude_session_list_render "$(git rev-parse --show-toplevel)" 7 5 10 "${worktree_rows}" 0
     local dir="$1"
     local max_age_days="$2"
     local min_rows="$3"
     local max_rows="$4"
+    local worktree_rows="$5"
+    local hidden_worktrees="$6"
     local transcript
+    local worktree
+    local owners=""
     local -a transcripts=()
     local now
 
@@ -179,45 +193,86 @@ claude_session_list_render() {
         transcripts+=("${transcript}")
     done < <(list_session_transcripts "${dir}")
 
-    if [[ "${#transcripts[@]}" -eq 0 ]]; then
+    # Gather each listed worktree's sessions too, which claude files under the
+    # worktree's own folder, noting the worktree that owns each.
+    while IFS=$'\t' read -r worktree _; do
+        if [[ -z "${worktree}" ]]; then
+            continue
+        fi
+
+        while IFS= read -r transcript; do
+            transcripts+=("${transcript}")
+            owners+="${transcript}"$'\t'"${worktree}"$'\n'
+        done < <(list_session_transcripts "${worktree}")
+    done <<<"${worktree_rows}"
+
+    if [[ "${#transcripts[@]}" -eq 0 && -z "${worktree_rows}" ]]; then
         return 0
     fi
 
     now="$(/bin/date +%s)"
 
-    claude_session_list_titles "${transcripts[@]}" |
+    # Skip the title lookup with no transcripts, where its stat and grep would
+    # read stdin instead.
+    {
+        if [[ "${#transcripts[@]}" -gt 0 ]]; then
+            claude_session_list_titles "${transcripts[@]}"
+        fi
+    } |
         command sort -n |
         awk \
             -F'\t' \
             -v max_age_days="${max_age_days}" \
             -v min_rows="${min_rows}" \
             -v max_rows="${max_rows}" \
+            -v hidden_worktrees="${hidden_worktrees}" \
             -v now="${now}" \
             "$(relative_age_awk)$(relative_age_color_awk)"'
+                # Index each transcript by its owning worktree, then the worktree rows by path.
+                FILENAME == ARGV[1] {
+                    if ($0 != "") {
+                        owner[$1] = $2
+                    }
+                    next
+                }
+                FILENAME == ARGV[2] {
+                    if ($0 != "") {
+                        worktree_count++
+                        worktree_path[worktree_count] = $1
+                        line = $0
+                        sub(/^[^\t]*\t/, "", line)
+                        worktree_line[$1] = line
+                    }
+                    next
+                }
                 {
-                    row_mtime[NR] = $1
-                    row_title[NR] = $2
+                    n++
+                    row_mtime[n] = $1
+                    row_title[n] = $2
+                    row_owner[n] = owner[$3]
                 }
                 END {
-                    label = (NR > 1) ? "claude sessions" : "claude session"
-                    printf "\033[1;36m%d\033[0m \033[2m%s:\033[0m\n", NR, label
+                    if (n > 0) {
+                        label = (n > 1) ? "claude sessions" : "claude session"
+                        printf "\033[1;36m%d\033[0m \033[2m%s:\033[0m\n", n, label
+                    }
 
                     # Skip the rows past the age cutoff, then pull back in enough of the newest to reach the minimum.
                     first = 1
                     if (max_age_days > 0) {
                         cutoff = now - max_age_days * 86400
-                        while (first <= NR && row_mtime[first] < cutoff) {
+                        while (first <= n && row_mtime[first] < cutoff) {
                             first++
                         }
                     }
-                    if (NR - first + 1 < min_rows) {
-                        first = (NR > min_rows) ? NR - min_rows + 1 : 1
+                    if (n - first + 1 < min_rows) {
+                        first = (n > min_rows) ? n - min_rows + 1 : 1
                     }
                     aged_out = first - 1
 
                     # Trim to the newest rows past the cap, last so it overrides the minimum.
-                    if (max_rows > 0 && NR - first + 1 > max_rows) {
-                        first = NR - max_rows + 1
+                    if (max_rows > 0 && n - first + 1 > max_rows) {
+                        first = n - max_rows + 1
                     }
 
                     # Say "older than" only while the age cutoff alone hid every hidden row.
@@ -236,14 +291,21 @@ claude_session_list_render() {
 
                     # Pad titles to the widest shown, so the ages line up in a column of their own.
                     width = 0
-                    for (i = first; i <= NR; i++) {
+                    for (i = first; i <= n; i++) {
                         if (length(row_title[i]) > width) {
                             width = length(row_title[i])
                         }
                     }
                     row_format = "    %-" width "s  %s(%s)\033[0m\n"
 
-                    for (i = first; i <= NR; i++) {
+                    # Find the newest listed session of each worktree, the one its row nests under.
+                    for (i = first; i <= n; i++) {
+                        if (row_owner[i] != "") {
+                            newest[row_owner[i]] = i
+                        }
+                    }
+
+                    for (i = first; i <= n; i++) {
                         rel = relative_age(row_mtime[i])
 
                         # Rest at dim for an age too old for a recency tint.
@@ -253,9 +315,47 @@ claude_session_list_render() {
                         }
 
                         printf row_format, row_title[i], color, rel
+
+                        o = row_owner[i]
+                        if (o != "" && (o in worktree_line) && newest[o] == i) {
+                            printf "      \033[2m└\033[0m %s\n", worktree_line[o]
+                            nested[o] = 1
+                            nested_count++
+                        }
+                    }
+
+                    left = worktree_count - nested_count
+                    if (left + hidden_worktrees == 0) {
+                        exit
+                    }
+
+                    # Call the leftover worktrees "other" only once some nested above.
+                    if (n > 0) {
+                        print ""
+                    }
+                    if (nested_count == 0) {
+                        label = "worktree"
+                    } else {
+                        label = "other worktree"
+                    }
+                    if (left + hidden_worktrees > 1) {
+                        label = label "s"
+                    }
+                    printf "\033[1;36m%d\033[0m \033[2m%s:\033[0m\n", left + hidden_worktrees, label
+
+                    if (hidden_worktrees > 0) {
+                        printf "    \033[2m... and \033[0m\033[1;36m%d\033[0m\033[2m more\033[0m\n", hidden_worktrees
+                    }
+                    for (j = 1; j <= worktree_count; j++) {
+                        if (!(worktree_path[j] in nested)) {
+                            printf "    %s\n", worktree_line[worktree_path[j]]
+                        }
                     }
                 }
-            '
+            ' \
+            <(printf '%s' "${owners}") \
+            <(printf '%s\n' "${worktree_rows}") \
+            -
 }
 
 claude_run() {
