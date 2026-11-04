@@ -2197,10 +2197,12 @@ git_worktree_list_triage() {
 
 git_worktree_list_rows() {
     # Render `git_worktree_list_sorted`'s TSV rows, read from stdin, as table
-    # lines keyed by worktree path ("<path>\t<lead>\t<hash>\t<rest>"),
+    # lines keyed by worktree path
+    # ("<path>\t<lead>\t<hash>\t<rest>\t<rest without objective>\t<objective>"),
     # unindented and without a header. Split each line where its hash and its
-    # age start, so a caller can line both up with its own columns. Show at
-    # most the given number of rows; 0 shows every row.
+    # age start, so a caller can line both up with its own columns, and offer
+    # the objective apart for a caller to print elsewhere. Show at most the
+    # given number of rows; 0 shows every row.
     # Used by `git_worktree_list_render`, which adds the header and indent, and
     # by `s`, which nests each row under its Claude session.
     # Usage:
@@ -2370,7 +2372,7 @@ git_worktree_list_rows() {
                     }
                     objective = t_objective[f[2]]
                     line = row_tail(color, rel, branch_kept, v, v_color, objective)
-                    print f[2] "\t" lead "\t" hash "\t" line
+                    print f[2] "\t" lead "\t" hash "\t" line "\t" row_tail(color, rel, branch_kept, v, v_color, "") "\t" objective
                 }
             }
         ' \

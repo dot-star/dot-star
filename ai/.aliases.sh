@@ -170,6 +170,7 @@ claude_session_list_render() {
     # <hidden_worktrees> rows the caller cut off as more.
     # Example output:
     #     Fix login redirect           (3 days ago)
+    #       │ Stop redirect loop after login
     #       └ [2]  login-fix   1234567 (3 days ago)   1 uncommitted
     #     Add quoted flag values rule  (2 hours ago)
     #
@@ -241,9 +242,9 @@ claude_session_list_render() {
                         worktree_path[worktree_count] = $1
                         worktree_lead[$1] = $2
                         worktree_hash[$1] = $3
-                        rest = $0
-                        sub(/^[^\t]*\t[^\t]*\t[^\t]*\t/, "", rest)
-                        worktree_rest[$1] = rest
+                        worktree_rest[$1] = $4
+                        worktree_bare[$1] = $5
+                        worktree_objective[$1] = $6
 
                         # Measure the lead and hash as they print, without their color codes.
                         lead_plain[$1] = printed_width($2)
@@ -263,9 +264,9 @@ claude_session_list_render() {
                     return length(text)
                 }
 
-                # Print a worktree row after <prefix>, which prints <prefix_width> wide, padded so its hash and age start at their columns.
-                function worktree_row(path, prefix, prefix_width) {
-                    printf "%s%s%*s%s%*s%s\n", prefix, worktree_lead[path], age_column - hash_width - prefix_width - lead_plain[path], "", worktree_hash[path], hash_width - hash_plain[path], "", worktree_rest[path]
+                # Print a worktree row after <prefix>, which prints <prefix_width> wide, padded so its hash and age start at their columns, ending in <tail>.
+                function worktree_row(path, prefix, prefix_width, tail) {
+                    printf "%s%s%*s%s%*s%s\n", prefix, worktree_lead[path], age_column - hash_width - prefix_width - lead_plain[path], "", worktree_hash[path], hash_width - hash_plain[path], "", tail
                 }
                 {
                     n++
@@ -354,7 +355,11 @@ claude_session_list_render() {
 
                         o = row_owner[i]
                         if ((o in nested) && newest[o] == i) {
-                            worktree_row(o, "      \033[2m└\033[0m ", 8)
+                            # Move the objective onto its own line under the session title, keeping the worktree row short.
+                            if (worktree_objective[o] != "") {
+                                printf "      \033[2m│\033[0m \033[2m%s\033[0m\n", worktree_objective[o]
+                            }
+                            worktree_row(o, "      \033[2m└\033[0m ", 8, worktree_bare[o])
                         }
                     }
 
@@ -381,7 +386,7 @@ claude_session_list_render() {
                     }
                     for (j = 1; j <= worktree_count; j++) {
                         if (!(worktree_path[j] in nested)) {
-                            worktree_row(worktree_path[j], "    ", 4)
+                            worktree_row(worktree_path[j], "    ", 4, worktree_rest[worktree_path[j]])
                         }
                     }
                 }
