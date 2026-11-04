@@ -2197,10 +2197,10 @@ git_worktree_list_triage() {
 
 git_worktree_list_rows() {
     # Render `git_worktree_list_sorted`'s TSV rows, read from stdin, as table
-    # lines keyed by worktree path ("<path>\t<lead>\t<rest>"), unindented and
-    # without a header. Split each line where its age starts, so a caller can
-    # line the ages up with its own. Show at most the given number of rows; 0
-    # shows every row.
+    # lines keyed by worktree path ("<path>\t<lead>\t<hash>\t<rest>"),
+    # unindented and without a header. Split each line where its hash and its
+    # age start, so a caller can line both up with its own columns. Show at
+    # most the given number of rows; 0 shows every row.
     # Used by `git_worktree_list_render`, which adds the header and indent, and
     # by `s`, which nests each row under its Claude session.
     # Usage:
@@ -2332,7 +2332,8 @@ git_worktree_list_rows() {
                     # Brackets hint that the number is a live
                     # `cd` alias bound by `s`/`wta` for this row.
                     idx_str = sprintf("[%*d]", digits, i)
-                    lead = sprintf("\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  \033[33m%s\033[0m ", idx_str, max_name, name, sha)
+                    lead = sprintf("\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  ", idx_str, max_name, name)
+                    hash = sprintf("\033[33m%s\033[0m ", sha)
                     line = sprintf("%s(%s)\033[0m", color, rel)
 
                     # Paint "safe to remove" as a cleanup candidate and
@@ -2368,7 +2369,7 @@ git_worktree_list_rows() {
                     if (objective != "") {
                         line = line "  \033[2m" objective "\033[0m"
                     }
-                    print f[2] "\t" lead "\t" line
+                    print f[2] "\t" lead "\t" hash "\t" line
                 }
             }
         ' \
@@ -2408,7 +2409,7 @@ git_worktree_list_render() {
 
     echo "${rows}" |
         git_worktree_list_rows "${max_rows}" |
-        awk -F'\t' '{ printf "    %s%s\n", $2, $3 }'
+        awk -F'\t' '{ printf "    %s%s%s\n", $2, $3, $4 }'
 }
 
 stack_renamed_paths() {

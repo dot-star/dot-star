@@ -164,17 +164,17 @@ claude_session_list_render() {
     # the max wins a conflict.
     # Rows print oldest-first so the newest lands closest to the prompt, the
     # way `s`'s worktree table orders.
-    # Nest each "<path>\t<lead>\t<rest>" row of <worktree_rows> (as
+    # Nest each "<path>\t<lead>\t<hash>\t<rest>" row of <worktree_rows> (as
     # `git_worktree_list_rows` prints them) under its newest listed session, so
     # no worktree prints twice. List the rest beneath, counting
     # <hidden_worktrees> rows the caller cut off as more.
     # Example output:
     #     Fix login redirect           (3 days ago)
-    #       └ [2]  login-fix  1234567  (3 days ago)   1 uncommitted
+    #       └ [2]  login-fix   1234567 (3 days ago)   1 uncommitted
     #     Add quoted flag values rule  (2 hours ago)
     #
     #     1 other worktree:
-    #         [1]  old-spike  abcdef1      (3 weeks ago)  safe to remove
+    #         [1]  old-spike       abcdef1 (3 weeks ago)  safe to remove
     # Usage:
     #   $ claude_session_list_render "$(git rev-parse --show-toplevel)" 7 5 10 "${worktree_rows}" 0
     local dir="$1"
@@ -240,23 +240,32 @@ claude_session_list_render() {
                         worktree_count++
                         worktree_path[worktree_count] = $1
                         worktree_lead[$1] = $2
+                        worktree_hash[$1] = $3
                         rest = $0
-                        sub(/^[^\t]*\t[^\t]*\t/, "", rest)
+                        sub(/^[^\t]*\t[^\t]*\t[^\t]*\t/, "", rest)
                         worktree_rest[$1] = rest
 
-                        # Measure the lead as it prints, without its color codes.
-                        plain = $2
-                        gsub(/\033\[[0-9;]*m/, "", plain)
-                        if (length(plain) > lead_width) {
-                            lead_width = length(plain)
+                        # Measure the lead and hash as they print, without their color codes.
+                        lead_plain[$1] = printed_width($2)
+                        hash_plain[$1] = printed_width($3)
+                        if (lead_plain[$1] > lead_width) {
+                            lead_width = lead_plain[$1]
+                        }
+                        if (hash_plain[$1] > hash_width) {
+                            hash_width = hash_plain[$1]
                         }
                     }
                     next
                 }
 
-                # Print a worktree row after <prefix>, which prints <prefix_width> wide, padded so its age starts at age_column.
+                function printed_width(text) {
+                    gsub(/\033\[[0-9;]*m/, "", text)
+                    return length(text)
+                }
+
+                # Print a worktree row after <prefix>, which prints <prefix_width> wide, padded so its hash and age start at their columns.
                 function worktree_row(path, prefix, prefix_width) {
-                    printf "%s%s%*s%s\n", prefix, worktree_lead[path], age_column - prefix_width - lead_width, "", worktree_rest[path]
+                    printf "%s%s%*s%s%*s%s\n", prefix, worktree_lead[path], age_column - hash_width - prefix_width - lead_plain[path], "", worktree_hash[path], hash_width - hash_plain[path], "", worktree_rest[path]
                 }
                 {
                     n++
@@ -324,11 +333,11 @@ claude_session_list_render() {
                         }
                     }
                     age_column = (n > 0) ? 4 + width + 2 : 0
-                    if (nested_count > 0 && 8 + lead_width > age_column) {
-                        age_column = 8 + lead_width
+                    if (nested_count > 0 && 8 + lead_width + hash_width > age_column) {
+                        age_column = 8 + lead_width + hash_width
                     }
-                    if (left > 0 && 4 + lead_width > age_column) {
-                        age_column = 4 + lead_width
+                    if (left > 0 && 4 + lead_width + hash_width > age_column) {
+                        age_column = 4 + lead_width + hash_width
                     }
                     row_format = "    %-" (age_column - 6) "s  %s(%s)\033[0m\n"
 
