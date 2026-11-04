@@ -88,41 +88,16 @@ newest_moved_in_session() {
     basename "${newest}" .jsonl
 }
 
-claude_session_list_render() {
-    # Render the sessions `clr` can resume from <dir> under a "<count> claude
-    # sessions:" header, each titled and aged. Hide sessions older than
-    # <max_age_days> (0 hides none), but always show the <min_rows> newest and
-    # never more than <max_rows> (0 caps none); the max wins a conflict.
-    # Rows print oldest-first so the newest lands closest to the prompt, the
-    # way `s`'s worktree table orders.
-    # Example output:
-    #     Fix login redirect           (3 days ago)
-    #     Add quoted flag values rule  (2 hours ago)
+claude_session_list_titles() {
+    # Print "<mtime>\t<title>" for each given session transcript, unsorted.
     # Usage:
-    #   $ claude_session_list_render "$(git rev-parse --show-toplevel)" 7 5 10
-    local dir="$1"
-    local max_age_days="$2"
-    local min_rows="$3"
-    local max_rows="$4"
-    local transcript
-    local -a transcripts=()
+    #   $ claude_session_list_titles <transcript>...
     local -a stat_mtime=(stat -c '%Y %n')
-    local now
-
-    while IFS= read -r transcript; do
-        transcripts+=("${transcript}")
-    done < <(list_session_transcripts "${dir}")
-
-    if [[ "${#transcripts[@]}" -eq 0 ]]; then
-        return 0
-    fi
 
     if [[ "${OSTYPE}" == "darwin"* ]]; then
         # Call BSD stat directly, as `git_worktree_list_sorted` does.
         stat_mtime=(/usr/bin/stat -f '%m %N')
     fi
-
-    now="$(/bin/date +%s)"
 
     # Join each transcript's mtime to its title, preferring a `/rename` title
     # over the one claude generates. Fall back to the session id when neither
@@ -167,7 +142,7 @@ claude_session_list_render() {
                 }
             }
         ' \
-        <("${stat_mtime[@]}" "${transcripts[@]}" 2>/dev/null) \
+        <("${stat_mtime[@]}" "$@" 2>/dev/null) \
         <(
             command grep \
                 --extended-regexp \
@@ -175,9 +150,42 @@ claude_session_list_render() {
                 --with-filename \
                 '"type":"(custom-title|ai-title)","(customTitle|aiTitle)":"([^"\\]|\\.)*"' \
                 -- \
-                "${transcripts[@]}" \
+                "$@" \
                 2>/dev/null
-        ) |
+        )
+}
+
+claude_session_list_render() {
+    # Render the sessions `clr` can resume from <dir> under a "<count> claude
+    # sessions:" header, each titled and aged. Hide sessions older than
+    # <max_age_days> (0 hides none), but always show the <min_rows> newest and
+    # never more than <max_rows> (0 caps none); the max wins a conflict.
+    # Rows print oldest-first so the newest lands closest to the prompt, the
+    # way `s`'s worktree table orders.
+    # Example output:
+    #     Fix login redirect           (3 days ago)
+    #     Add quoted flag values rule  (2 hours ago)
+    # Usage:
+    #   $ claude_session_list_render "$(git rev-parse --show-toplevel)" 7 5 10
+    local dir="$1"
+    local max_age_days="$2"
+    local min_rows="$3"
+    local max_rows="$4"
+    local transcript
+    local -a transcripts=()
+    local now
+
+    while IFS= read -r transcript; do
+        transcripts+=("${transcript}")
+    done < <(list_session_transcripts "${dir}")
+
+    if [[ "${#transcripts[@]}" -eq 0 ]]; then
+        return 0
+    fi
+
+    now="$(/bin/date +%s)"
+
+    claude_session_list_titles "${transcripts[@]}" |
         command sort -n |
         awk \
             -F'\t' \
