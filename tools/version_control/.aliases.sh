@@ -2195,31 +2195,18 @@ git_worktree_list_triage() {
         <(printf '%s\n' "${entries}")
 }
 
-git_worktree_list_render() {
-    # Render `git_worktree_list_sorted`'s TSV rows, read from stdin, as an
-    # indented table under a "<count> worktrees:" header. Show at most the given
-    # number of rows; 0 shows every row.
-    # Used by rc_status's `s` summary and `wta` so their tables and `wt`'s row
-    # numbers agree.
+git_worktree_list_rows() {
+    # Render `git_worktree_list_sorted`'s TSV rows, read from stdin, as table
+    # lines keyed by worktree path ("<path>\t<line>"), unindented and without
+    # a header. Show at most the given number of rows; 0 shows every row.
+    # Used by `git_worktree_list_render`, which adds the header and indent.
     # Usage:
-    #   $ git_worktree_list_sorted | git_worktree_list_render 10
+    #   $ git_worktree_list_sorted | git_worktree_list_rows 10
 
     local max_rows="${1}"
 
     local rows
     rows="$(cat)"
-
-    local total
-    total="$(echo "${rows}" | wc -l | tr -d ' ')"
-
-    local label
-    if [[ "${total}" -gt 1 ]]; then
-        label="worktrees"
-    else
-        label="worktree"
-    fi
-
-    echo -e "\033[1;36m${total}\033[0m \033[2m${label}:\033[0m"
 
     # Show basenames only and drop the branch column when it matches
     # the auto-generated `worktree-<name>` convention. The leading
@@ -2237,10 +2224,6 @@ git_worktree_list_render() {
     # newest down to 239 (gray) at oldest, linearly by rank,
     # right-pads the 1-based index for two-digit alignment, and
     # right-pads the parenthetical so the branch column lines up.
-    if [[ "${max_rows}" -gt 0 && "${total}" -gt "${max_rows}" ]]; then
-        echo -e "    \033[2m... and \033[0m\033[1;36m$((total - max_rows))\033[0m\033[2m more\033[0m"
-    fi
-
     # Gather triage evidence for the visible rows only, since each costs a
     # `git status`.
     local triage
@@ -2381,12 +2364,47 @@ git_worktree_list_render() {
                     if (objective != "") {
                         line = line "  \033[2m" objective "\033[0m"
                     }
-                    print line
+                    print f[2] "\t" line
                 }
             }
         ' \
         <(printf '%s\n' "${triage}") \
-        <(printf '%s\n' "${rows}") |
+        <(printf '%s\n' "${rows}")
+}
+
+git_worktree_list_render() {
+    # Render `git_worktree_list_sorted`'s TSV rows, read from stdin, as an
+    # indented table under a "<count> worktrees:" header. Show at most the given
+    # number of rows; 0 shows every row.
+    # Used by rc_status's `s` summary and `wta` so their tables and `wt`'s row
+    # numbers agree.
+    # Usage:
+    #   $ git_worktree_list_sorted | git_worktree_list_render 10
+
+    local max_rows="${1}"
+
+    local rows
+    rows="$(cat)"
+
+    local total
+    total="$(echo "${rows}" | wc -l | tr -d ' ')"
+
+    local label
+    if [[ "${total}" -gt 1 ]]; then
+        label="worktrees"
+    else
+        label="worktree"
+    fi
+
+    echo -e "\033[1;36m${total}\033[0m \033[2m${label}:\033[0m"
+
+    if [[ "${max_rows}" -gt 0 && "${total}" -gt "${max_rows}" ]]; then
+        echo -e "    \033[2m... and \033[0m\033[1;36m$((total - max_rows))\033[0m\033[2m more\033[0m"
+    fi
+
+    echo "${rows}" |
+        git_worktree_list_rows "${max_rows}" |
+        cut -f 2- |
         sed 's/^/    /'
 }
 
