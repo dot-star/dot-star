@@ -343,7 +343,13 @@ local function pageDotCenter(position)
 end
 
 -- Draw one dot per Space in `color` on a pill, filling the dot at `index`.
-local function layoutPageDots(dots, index, count, color, pillVisible)
+local function layoutPageDots(
+    dots,
+    index,
+    count,
+    color,
+    pillVisible
+)
     local elements = { pageDotsPill(pillVisible) }
     -- Draw the dots fully opaque, the same as the bumper, so they hold up against glare.
     local opaque = { red = color.red, green = color.green, blue = color.blue, alpha = 1 }
@@ -629,7 +635,15 @@ local function followOrderElement(center, rank)
 end
 
 -- Draw the home triangle, then one ring per Space in `spaces` showing its session's state, marking the ring at `index` and badging each ranked in `followOrder`; draw pings only when `animate`, since a still frame would freeze one mid-ripple.
-local function layoutSessionDots(dots, index, spaces, followOrder, pillVisible, seconds, animate)
+local function layoutSessionDots(
+    dots,
+    index,
+    spaces,
+    followOrder,
+    pillVisible,
+    seconds,
+    animate
+)
     local elements = { pageDotsPill(pillVisible) }
     for _, element in ipairs(homeElements(pageDotCenter(1))) do
         elements[#elements + 1] = element
@@ -659,8 +673,19 @@ local function layoutSessionDots(dots, index, spaces, followOrder, pillVisible, 
 end
 
 -- Return a key that changes whenever a session row's still frame would, so an unchanged row skips its redraw.
-local function sessionDotsKey(index, spaces, followOrder, pillVisible)
-    local parts = { index, tostring(pillVisible), styleOf('decision_style'), styleOf('pending_style'), styleOf('focus_marker') }
+local function sessionDotsKey(
+    index,
+    spaces,
+    followOrder,
+    pillVisible
+)
+    local parts = {
+        index,
+        tostring(pillVisible),
+        styleOf('decision_style'),
+        styleOf('pending_style'),
+        styleOf('focus_marker'),
+    }
     for _, space in ipairs(spaces) do
         parts[#parts + 1] = sessionStateOf(space) .. ':' .. tostring(followOrder[space])
     end
@@ -1091,7 +1116,15 @@ local function placeEdgeBars(pair, index, count, screen)
         -- Count the home triangle too.
         dotsCount = #spaces + 1
         if pair.sessionKey ~= key then
-            layoutSessionDots(pair.dots, rowIndex, spaces, followOrder, pillVisible, hs.timer.secondsSinceEpoch(), false)
+            layoutSessionDots(
+                pair.dots,
+                rowIndex,
+                spaces,
+                followOrder,
+                pillVisible,
+                hs.timer.secondsSinceEpoch(),
+                false
+            )
             pair.sessionKey = key
             -- Forget the plain dots, so turning session_state off redraws them.
             pair.dotsIndex = nil
@@ -1215,7 +1248,15 @@ local function animateFrame()
     local moving = false
     for _, pair in ipairs(shownSessionPairs()) do
         local animate = sessionDotsAnimate(pair.sessionSpaces, seconds)
-        layoutSessionDots(pair.dots, pair.sessionIndex, pair.sessionSpaces, pair.followOrder, pillVisible, seconds, animate)
+        layoutSessionDots(
+            pair.dots,
+            pair.sessionIndex,
+            pair.sessionSpaces,
+            pair.followOrder,
+            pillVisible,
+            seconds,
+            animate
+        )
         if animate then
             moving = true
         end
