@@ -165,17 +165,19 @@ claude_session_list_render() {
     # Rows print oldest-first so the newest lands closest to the prompt, the
     # way `s`'s worktree table orders.
     # Nest each "<path>\t<lead>\t<hash>\t<rest>" row of <worktree_rows> (as
-    # `git_worktree_list_rows` prints them) under its newest listed session, so
-    # no worktree prints twice. List the rest beneath, counting
-    # <hidden_worktrees> rows the caller cut off as more.
+    # `git_worktree_list_rows` prints them) under its newest listed session.
+    # List every worktree beneath too, nested or not, so the table reads as
+    # the full `[1]`..`[N]` run, counting <hidden_worktrees> rows the caller
+    # cut off as more.
     # Example output:
     #     Fix login redirect           (3 days ago)
     #       │ Stop redirect loop after login
     #       └ [2]  login-fix   1234567 (3 days ago)   1 uncommitted
     #     Add quoted flag values rule  (2 hours ago)
     #
-    #     1 other worktree:
+    #     2 worktrees:
     #         [1]  old-spike       abcdef1 (3 weeks ago)  safe to remove
+    #         [2]  login-fix       1234567 (3 days ago)   1 uncommitted
     # Usage:
     #   $ claude_session_list_render "$(git rev-parse --show-toplevel)" 7 5 10 "${worktree_rows}" 0
     local dir="$1"
@@ -324,9 +326,8 @@ claude_session_list_render() {
                             nested_count++
                         }
                     }
-                    left = worktree_count - nested_count
 
-                    # Start every age in one column: past the widest title shown, the nested worktree rows and the leftover ones.
+                    # Start every age in one column: past the widest title shown, the nested worktree rows and the full worktree table.
                     width = 0
                     for (i = first; i <= n; i++) {
                         if (length(row_title[i]) > width) {
@@ -337,7 +338,7 @@ claude_session_list_render() {
                     if (nested_count > 0 && 8 + lead_width + hash_width > age_column) {
                         age_column = 8 + lead_width + hash_width
                     }
-                    if (left > 0 && 4 + lead_width + hash_width > age_column) {
+                    if (worktree_count > 0 && 4 + lead_width + hash_width > age_column) {
                         age_column = 4 + lead_width + hash_width
                     }
                     row_format = "    %-" (age_column - 6) "s  %s(%s)\033[0m\n"
@@ -363,31 +364,21 @@ claude_session_list_render() {
                         }
                     }
 
-                    if (left + hidden_worktrees == 0) {
+                    if (worktree_count + hidden_worktrees == 0) {
                         exit
                     }
 
-                    # Call the leftover worktrees "other" only once some nested above.
                     if (n > 0) {
                         print ""
                     }
-                    if (nested_count == 0) {
-                        label = "worktree"
-                    } else {
-                        label = "other worktree"
-                    }
-                    if (left + hidden_worktrees > 1) {
-                        label = label "s"
-                    }
-                    printf "\033[1;36m%d\033[0m \033[2m%s:\033[0m\n", left + hidden_worktrees, label
+                    label = (worktree_count + hidden_worktrees > 1) ? "worktrees" : "worktree"
+                    printf "\033[1;36m%d\033[0m \033[2m%s:\033[0m\n", worktree_count + hidden_worktrees, label
 
                     if (hidden_worktrees > 0) {
                         printf "    \033[2m... and \033[0m\033[1;36m%d\033[0m\033[2m more\033[0m\n", hidden_worktrees
                     }
                     for (j = 1; j <= worktree_count; j++) {
-                        if (!(worktree_path[j] in nested)) {
-                            worktree_row(worktree_path[j], "    ", 4, worktree_rest[worktree_path[j]])
-                        }
+                        worktree_row(worktree_path[j], "    ", 4, worktree_rest[worktree_path[j]])
                     }
                 }
             ' \
