@@ -219,7 +219,10 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
     ```
 - Name the referent whenever a pronoun or a bare category noun could bind to more than one thing. When the preceding clause offers two candidate nouns, repeat the noun: `it`, `this`, `that`, `theirs`, `the former`. A sentence-opening `This` pointing back at a whole clause is the most common miss.
   - Treat a generic noun (`the doc`, `the file`, `the hook`) as a pronoun once two things of that kind are in play: name the specific one (`the .md`, `the backup`) each time.
-  - Binds rules in instruction docs too: their reader can't ask which one was meant.
+  - Treat a bare direction (`in`, `out`, `up`, `incoming`) as a pronoun too: name the thing it moves into or out of, since `incoming` at a proxy reads as from the client or from the upstream server depending on who's reading. Sign conventions and flow labels are the common miss.
+  - Binds rules in instruction docs and code comments too: their reader can't ask which one was meant.
+  - Fail: `# Count of incoming bytes.`
+  - Pass: `# Count of bytes arriving from the client.`
   - Fail: `The cache falls back to the database when it goes stale.`
   - Pass: `The cache falls back to the database when the cache goes stale.`
   - Fail: `The formatter rewrites the file on exit. This breaks the symlink.`

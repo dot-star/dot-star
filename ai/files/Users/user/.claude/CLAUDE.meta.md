@@ -219,6 +219,9 @@
     ```
 -
   -
+  - A direction word is a pronoun for a place: it binds to whichever party the reader stands in. It bites wherever something moves between two parties, since the same flow is incoming to one and outgoing to the other.
+  -
+  -
   -
   -
   -
