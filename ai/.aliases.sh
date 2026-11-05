@@ -923,7 +923,6 @@ claude_git_commit_interactive() {
     local prompt
     local session_id
     local subject
-    local reply
     local prompt_bytes
     # Match Linux's per-argument limit (MAX_ARG_STRLEN); the interactive session
     # takes the whole prompt as one argument.
@@ -1003,23 +1002,14 @@ EOF
         echo "No commit subject picked."
         return 1
     # Reject newlines plus the carriage returns and escape codes that could
-    # repaint the confirmation prompt below to show a different subject.
+    # repaint the terminal to hide what the commit subject really says.
     elif [[ "${subject}" == *[[:cntrl:]]* ]]; then
         echo "Refusing a commit subject with control characters."
         return 1
     fi
 
-    # Confirm, since the subject comes from a model that read untrusted text.
-    printf 'Commit with "%s"? [y/N] ' "${subject}"
-    read -r reply
-    if [[ "${reply}" == "y" ]]; then
-        git commit --message "${subject}"
-    elif [[ "${reply}" == "Y" ]]; then
-        git commit --message "${subject}"
-    else
-        echo "Not committed."
-        return 1
-    fi
+    # Commit without asking again; picking a subject in the chat already approved it.
+    git commit --message "${subject}"
 }
 
 # Adding various. Let's see which one sticks.
