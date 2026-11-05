@@ -14,7 +14,7 @@ pomodoro() {
 
         if [[ -n "${ZSH_VERSION}" ]]; then
             echo -n "${prompt}"
-            read REPLY
+            read -k 1 -s REPLY
         elif [[ -n "${BASH_VERSION}" ]]; then
             read -p "${prompt}" -n 1 -s
         fi
