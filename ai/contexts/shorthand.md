@@ -118,6 +118,8 @@ Interpret a bare one-token reply or a short fixed phrase as shorthand. Fires onl
 - `<x> vs <y>` or `<x> v <y>`, as a whole message, means `w <x> vs <y>`. Treat a `vs` or `v` inside an ordinary question or sentence as prose; it fires only when the candidates and their separator make up the entire message.
 - `exp <x>` means "explain `<x>`" without acting on it; re-offer any menu it came from.
 - `h <x>` means "how do I `<x>`?": answer with the steps to do `<x>` without doing it yourself. The question is the request, so `u` is how to hand the doing over.
+- `nvm <x>`, `ab <x>`, `abandon <x>` mean "stop pursuing the `<x>` objective": drop the work toward it and its pending menu rows, then carry on with the objectives left. Any prefix of `abandon` from `ab` up counts.
+  <!-- shorthand-match: ^(nvm|ab(a(n(d(on?)?)?)?)?) .+$ -->
 - `o <x>` means "omit `<x>`": cut `<x>` from whatever we're working on and leave the rest as it stands.
 - `r <x>` means "replace `<x>`": swap `<x>` for an alternate word or phrasing in whatever we're working on and leave the rest as it stands.
 - `show me <x>` means "render `<x>` concretely": `<x>` names something the last message described (a rule, an edit, an output line, an option); produce that artifact itself, not a summary of it. Same preview-only semantics as `show`.

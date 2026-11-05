@@ -118,6 +118,8 @@ Generated from this file, so the index can't drift from it; one parse per sessio
 -
 -
 -
+- `o <x>` cuts text from the thing being worked on; this token drops a whole objective, the work toward it included.
+
 -
 -
 -
