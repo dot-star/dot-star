@@ -295,6 +295,7 @@
   -
   -
   -
+  - Most readers skim, so a version that hits weaker on the first pass never gets its point across, however precise it is. Precision a reader needs can go in a later sentence; a punchline split by an aside can't be repaired later.
 
 
 

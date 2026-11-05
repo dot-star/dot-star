@@ -295,6 +295,7 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
   - Render one-line options in a fenced code block to hold the alignment, and options with samples as the paragraphs above, marker on the name line.
   - `❯` marks "my pick" (the option to favor); it's distinct from the lighter `→`, which marks the live/currently-applied state.
   - State the recommendation in the lead-in too (e.g. "my pick first") so the marker reinforces it rather than carrying it alone.
+  - Pick the version that lands strongest when weighing versions of one piece of writing: the one whose point hits hardest on a first skim. Rank landing above precision and completeness; say in the lead-in why the pick lands harder.
 
   Rendered example:
 
