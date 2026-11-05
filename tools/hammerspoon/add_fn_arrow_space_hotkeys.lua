@@ -10,9 +10,21 @@ local function arrowFor(keyCode)
     return nil
 end
 
+-- Track the physical Fn key, since macOS sets the fn flag on every Home/End press and a real Home/End key would match too.
+local fnHeld = false
+
+-- Keep the tap global so garbage collection doesn't stop it.
+fnArrowSpaceHotkeysFnTap = hs.eventtap.new({hs.eventtap.event.types.flagsChanged}, function(event)
+    if event:getKeyCode() == hs.keycodes.map.fn then
+        fnHeld = event:getFlags().fn == true
+    end
+    return false
+end)
+fnArrowSpaceHotkeysFnTap:start()
+
 -- Match Fn alone; leave Shift+Fn (select to line start/end) and other chords alone.
 local function isFnOnly(flags)
-    if not flags.fn then
+    if not fnHeld then
         return false
     elseif flags.alt or flags.cmd or flags.ctrl or flags.shift then
         return false
