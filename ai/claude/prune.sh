@@ -125,9 +125,40 @@ kill_session_processes() {
     done < <(pgrep -f "/${session_id}/" || true)
 }
 
+# Remove a transcript along with its <session-id>/ dir (subagent transcripts, tool results).
+remove_session() {
+    local file="${1}"
+    rm "${file}"
+    rm -rf -- "${file%.jsonl}"
+}
+
+# True if the name is a session id, so a sibling dir like memory/ never matches.
+is_session_id() {
+    local name="${1}"
+    local hex="[0-9a-fA-F]"
+    local block4="${hex}${hex}${hex}${hex}"
+    [[ "${name}" == ${block4}${block4}"-"${block4}"-"${block4}"-"${block4}"-"${block4}${block4}${block4} ]]
+}
+
+# Remove each session dir whose transcript is gone, left by prunes that predate remove_session.
+remove_orphan_session_dirs() {
+    local dir
+    for dir in "${projects_dir}"/*/*/; do
+        dir="${dir%/}"
+        if ! is_session_id "$(basename "${dir}")"; then
+            continue
+        fi
+
+        if [[ ! -f "${dir}.jsonl" ]]; then
+            rm -rf -- "${dir}"
+        fi
+    done
+}
+
 pruned=0
 remaining=0
 sessions=0
+# Scan only top-level transcripts; subagent ones under <session-id>/ go with their session.
 while IFS= read -r -d '' file; do
     # Pre-filter with grep so jq parses only the last match, not the whole transcript.
     title="$(
@@ -137,15 +168,16 @@ while IFS= read -r -d '' file; do
     )"
     if is_marked_done "${file}"; then
         kill_session_processes "${file}"
-        rm "${file}" "$(mark_for "${file}")"
+        remove_session "${file}"
+        rm "$(mark_for "${file}")"
         pruned=$((pruned + 1))
     elif is_target_title "${title}"; then
         kill_session_processes "${file}"
-        rm "${file}"
+        remove_session "${file}"
         pruned=$((pruned + 1))
     elif is_print_mode_transcript "${file}"; then
         kill_session_processes "${file}"
-        rm "${file}"
+        remove_session "${file}"
         pruned=$((pruned + 1))
     else
         remaining=$((remaining + 1))
@@ -153,6 +185,15 @@ while IFS= read -r -d '' file; do
             sessions=$((sessions + 1))
         fi
     fi
-done < <(find "${projects_dir}" -type f -name '*.jsonl' -print0)
+done < <(
+    find "${projects_dir}" \
+        -mindepth 2 \
+        -maxdepth 2 \
+        -type f \
+        -name '*.jsonl' \
+        -print0
+)
+
+remove_orphan_session_dirs
 
 printf '\r\033[K\033[90m⚪️ Pruning Claude sessions... done (%d pruned, %d remaining, %d sessions)\033[0m\n' "${pruned}" "${remaining}" "${sessions}"
