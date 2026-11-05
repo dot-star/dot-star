@@ -110,6 +110,7 @@
 -
   -
   -
+- IPython colorizes its output and tracebacks, which pays off on every run the user watches, not only an interactive session. Commands Claude runs itself aren't suggestions, so they stay out of scope.
 -
 -
   -
