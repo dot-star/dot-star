@@ -1003,6 +1003,11 @@ EOF
             "Return the commit subject the user settled on, or null if none." |
             \jq --raw-output '.structured_output.subject // empty'
     )"
+
+    # Mark the throwaway chat for prune; its transcript opens like a real session, so prune can't tell.
+    mkdir --parents -- "/tmp/claude/prune_marks"
+    : >"/tmp/claude/prune_marks/${session_id}"
+
     if [[ -z "${subject}" ]]; then
         echo "No commit subject picked."
         return 1
