@@ -528,12 +528,17 @@ def focus_window(session_id: str) -> None:
 
 def notify(message: str, session_id: str) -> None:
     """
-    Fire a native desktop notification with the Glass sound.
+    Fire a silent native desktop notification.
+
+    Silent because `chime_when_waiting_on_user_to_answer.sh` already chimes on
+    this event, debounced across sessions; a sound here would double it.
 
     :param message: Notification body (e.g. the hook payload's message).
     :param session_id: Claude session id whose objective titles the notification.
     """
-    script = f'display notification "{applescript_quote(message)}" with title "{applescript_quote(objective(session_id))}" sound name "Glass"'
+    script = (
+        f'display notification "{applescript_quote(message)}" with title "{applescript_quote(objective(session_id))}"'
+    )
 
     result = run_osascript(script, "post notification")
 
