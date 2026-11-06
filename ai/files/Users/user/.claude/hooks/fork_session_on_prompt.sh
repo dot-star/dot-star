@@ -7,9 +7,10 @@
 #
 #   1. `fork`, `fork <task>` or `f <task>`: the window runs a clean `claude`
 #      passed the task.
-#   2. A link to a failed GitHub Actions run: the window investigates and fixes
-#      it. Each run forks once, so linking it again (the fork's own first prompt
-#      included) reaches the session as usual.
+#   2. A prompt holding nothing but a link to a failed GitHub Actions run: the
+#      window investigates and fixes it. A link pasted among typed words reaches
+#      the session as usual, and each run forks once, so pasting the bare link
+#      again does too.
 #
 # See fork_session_window.inc.sh for how the window opens.
 
@@ -73,7 +74,9 @@ fork_typed_task() {
 
 # Fork a fix for the failed GitHub Actions run the prompt links, once per run.
 fork_failed_run_fix() {
-    local run_url_pattern='https://github\.com/([^/[:space:]]+)/([^/[:space:]]+)/actions/runs/([0-9]+)(/job/[0-9]+)?'
+    # Match the whole prompt, so a link pasted beside a question stays in this session. Accept any tail after the run id (`/job/<id>`, `/attempts/<n>`, `?pr=<n>`, `#step:<n>:<line>`).
+    local run_url_pattern='^https://github\.com/([^/[:space:]]+)/([^/[:space:]]+)/actions/runs/([0-9]+)([/?#][^[:space:]]*)?$'
+    local trimmed_prompt
     local run_url
     local owner
     local repo
@@ -83,7 +86,10 @@ fork_failed_run_fix() {
     local task
     local start_dir
 
-    if [[ ! "${prompt}" =~ ${run_url_pattern} ]]; then
+    # Strip the whitespace around the pasted link.
+    trimmed_prompt="${prompt#"${prompt%%[![:space:]]*}"}"
+    trimmed_prompt="${trimmed_prompt%"${trimmed_prompt##*[![:space:]]}"}"
+    if [[ ! "${trimmed_prompt}" =~ ${run_url_pattern} ]]; then
         return 0
     fi
 

@@ -40,6 +40,26 @@
     "prompt": "f 2"
   },
   {
+    "expected": "fork",
+    "name": "bare failed-run link",
+    "prompt": "https://github.com/foo/bar/actions/runs/1234567"
+  },
+  {
+    "expected": "fork",
+    "name": "bare failed-job link copied with its PR query",
+    "prompt": "https://github.com/foo/bar/actions/runs/1234567/job/7654321?pr=12"
+  },
+  {
+    "expected": "fork",
+    "name": "bare failed-run link with surrounding whitespace",
+    "prompt": "  https://github.com/foo/bar/actions/runs/1234567\n"
+  },
+  {
+    "expected": "fork",
+    "name": "bare failed-run link to a retry attempt",
+    "prompt": "https://github.com/foo/bar/actions/runs/1234567/attempts/2"
+  },
+  {
     "expected": "pass-through",
     "name": "bare f, which means fold",
     "prompt": "f"
@@ -83,5 +103,25 @@
     "expected": "pass-through",
     "name": "f mid-prompt",
     "prompt": "please f add a retry to the upload"
+  },
+  {
+    "expected": "pass-through",
+    "name": "failed-run link after typed words",
+    "prompt": "why did this fail? https://github.com/foo/bar/actions/runs/1234567"
+  },
+  {
+    "expected": "pass-through",
+    "name": "failed-run link before typed words",
+    "prompt": "https://github.com/foo/bar/actions/runs/1234567 only the lint job matters"
+  },
+  {
+    "expected": "pass-through",
+    "name": "failed-run link with typed words on the next line",
+    "prompt": "https://github.com/foo/bar/actions/runs/1234567\nwhy did this fail?"
+  },
+  {
+    "expected": "pass-through",
+    "name": "run id running into other characters",
+    "prompt": "https://github.com/foo/bar/actions/runs/1234567x"
   }
 ]
