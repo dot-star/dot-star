@@ -178,6 +178,26 @@ fi
 [[ -r ~/.dot-star/bootstrap/.bash_profile ]] && source ~/.dot-star/bootstrap/.bash_profile
 # End dot-star bootstrap.
 
+# Clear claude session variables inherited from a session that has exited.
+# An app launched from inside a session (Hammerspoon, a relaunched terminal) hands them to every shell it opens.
+clear_stale_claude_marker() {
+    local holders
+
+    if [[ -z "${CLAUDE_PID}" ]]; then
+        # Skip; this shell inherited no session.
+        return 0
+    elif [[ "$(ps -o comm= -p "${CLAUDE_PID}")" == "claude" ]]; then
+        # Skip; this shell runs inside a live session.
+        return 0
+    fi
+
+    holders="$(claude_stale_marker_log "cleared at shell start")"
+    print -u2 -- $'\e[2m'"Cleared variables leaked from exited claude session ${CLAUDE_PID}; still held by: ${holders}"$'\e[0m'
+    unset -m 'CLAUDE*'
+}
+clear_stale_claude_marker
+unfunction clear_stale_claude_marker
+
 export NVM_DIR="$HOME/.nvm"
 
 # Put the default alias's newest install on PATH without loading nvm, so the lazy loader can skip `nvm use`.
