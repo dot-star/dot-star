@@ -4,4 +4,4 @@
 
 set -u
 
-afplay /System/Library/Sounds/Hero.aiff
+"${HOME}/.claude/hooks/play_chime_unless_recent.py" "Hero"

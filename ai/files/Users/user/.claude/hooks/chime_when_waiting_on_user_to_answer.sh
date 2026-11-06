@@ -4,4 +4,4 @@
 
 set -u
 
-afplay /System/Library/Sounds/Glass.aiff
+"${HOME}/.claude/hooks/play_chime_unless_recent.py" "Glass"
