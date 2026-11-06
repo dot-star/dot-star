@@ -147,6 +147,7 @@
 -
 -
   -
+  - Fixture ids don't read as illustrations, so the parent rule slid past them: a value copied from dev data looks like plain test data yet names a real customer.
 
 ## Styles
 
