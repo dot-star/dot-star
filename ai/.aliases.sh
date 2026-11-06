@@ -387,6 +387,57 @@ claude_session_list_render() {
             -
 }
 
+claude_stale_marker_log() {
+    # Log this shell inheriting the marker of an exited claude session, then print
+    # every other process still holding it, so the app that leaked it can be restarted.
+    # Usage:
+    #   claude_stale_marker_log <action>
+    local action="$1"
+    local log_file="${XDG_STATE_HOME:-${HOME}/.local/state}/dot-star/claude_stale_marker.log"
+    local ps_output
+    local holders
+
+    # Scan with an empty environment, so the scan never lists itself as a holder.
+    ps_output="$(env -i /bin/ps -E -ww -A -o pid=,ppid=,command=)"
+
+    # Skip this shell and its own children; they hold the marker only through it.
+    holders="$(
+        printf '%s\n' "${ps_output}" |
+            awk \
+                -v dead_pid="${CLAUDE_PID}" \
+                -v shell_pid="$$" \
+                '
+                    $1 == shell_pid {
+                        next
+                    }
+                    $2 == shell_pid {
+                        next
+                    }
+                    index($0 " ", " CLAUDE_PID=" dead_pid " ") == 0 {
+                        next
+                    }
+                    {
+                        name = $3
+                        sub(/.*\//, "", name)
+                        printf "%s%s(%s)", separator, name, $1
+                        separator = " "
+                    }
+                '
+    )"
+
+    mkdir -p "${log_file%/*}"
+    printf '%s\t%s\tdead_pid=%s\tsession=%s\tobjective=%s\tshell_parent=%s\tholders=%s\n' \
+        "$(date +%Y-%m-%dT%H:%M:%S%z)" \
+        "${action}" \
+        "${CLAUDE_PID}" \
+        "${CLAUDE_CODE_SESSION_ID}" \
+        "${CLAUDE_OBJECTIVE}" \
+        "$(ps -o comm= -p "${PPID}")" \
+        "${holders}" \
+        >>"${log_file}"
+    printf '%s\n' "${holders}"
+}
+
 claude_run() {
     # Run claude, optionally resuming a session and/or labeling the window.
     # Usage:
@@ -415,7 +466,9 @@ claude_run() {
         return 1
     else
         echo "cl: shell inherited a marker from dead claude session (pid ${CLAUDE_PID})." >&2
-        echo "cl: quit the terminal app (Cmd+Q) and reopen it; a new tab inherits the same marker." >&2
+        echo "cl: still held by: $(claude_stale_marker_log "refused cl")" >&2
+        echo "cl: open a new tab; new shells clear a dead session's marker at startup." >&2
+        echo "cl: restart the app that launched this terminal to stop the leak at its source." >&2
         echo "cl: override with CLAUDE_RUN_ALLOW_CHILD=1 cl" >&2
         return 1
     fi
