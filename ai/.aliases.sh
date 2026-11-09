@@ -389,7 +389,7 @@ claude_session_list_render() {
 
 claude_stale_marker_log() {
     # Log this shell inheriting the marker of an exited claude session, then print
-    # every other process still holding it, so the app that leaked it can be restarted.
+    # every other process still holding it, so the app that passed it on can be restarted.
     # Usage:
     #   claude_stale_marker_log <action>
     local action="$1"
@@ -455,7 +455,7 @@ claude_run() {
     # claude turns transcript saving off for it. A terminal app relaunched from
     # inside a session hands that marker to every new tab.
     if [[ -z "${CLAUDE_CODE_CHILD_SESSION}" ]]; then
-        # Start normally; nothing leaked into this shell.
+        # Start normally; this shell inherited no marker.
         :
     elif [[ -n "${CLAUDE_RUN_ALLOW_CHILD}" ]]; then
         # Start anyway; the caller accepted a session without a transcript.
@@ -468,7 +468,7 @@ claude_run() {
         echo "cl: shell inherited a marker from dead claude session (pid ${CLAUDE_PID})." >&2
         echo "cl: still held by: $(claude_stale_marker_log "refused cl")" >&2
         echo "cl: open a new tab; new shells clear a dead session's marker at startup." >&2
-        echo "cl: restart the app that launched this terminal to stop the leak at its source." >&2
+        echo "cl: restart the app that launched this terminal so it stops passing the marker on." >&2
         echo "cl: override with CLAUDE_RUN_ALLOW_CHILD=1 cl" >&2
         return 1
     fi
