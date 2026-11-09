@@ -33,6 +33,14 @@ Loaded on demand: the Writing style section of `~/.claude/CLAUDE.md` points here
   - **What goes:** restating the mechanism the code already spells out, naming the platforms or commands a reader infers from the surrounding branch, the consequence of a consequence.
   - **Exempt:** a file-header or usage block, which documents the file rather than a statement. The cap governs a comment sitting over code.
 - Build multi-line strings so the source mirrors the rendered output: one statement per output line, each carrying a literal newline, not several `\n` escapes packed into one long line. The split makes the rendered shape visible in the source and keeps diffs line-addressable. A `\n` mid-string is still fine (a header's trailing `\n\n` stays inline). Per-language idioms live in the matching style guide.
+- End every line of a multi-line sequence the same way, so adding, removing or moving one line touches only that line: a trailing comma after the last list item or argument, a closing `+ ""` (or the language's no-op) after the last piece of a string concatenation. Rendered example:
+
+  ```js
+  htmlBody =
+    "<p>first</p>" +
+    "<p>second</p>" +
+    "";
+  ```
 - Write a config-file list (TOML, YAML) one item per line, even a single item: the opening bracket ends the key's line, each item takes its own line with a trailing comma where the format allows one, and the closing bracket sits alone. Each item then diffs on its own line and adding one touches one line, the same reason a command's flags split one per line. A comment explaining an item goes inside the list, flush above that item, never above the key, so a second item can't strand it. Rendered example:
 
   ```

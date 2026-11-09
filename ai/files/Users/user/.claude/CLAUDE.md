@@ -8,6 +8,7 @@
     - Restructuring first shrinks the change's diff:
       - Split a dense paragraph into bullets.
       - Extract a helper.
+      - End a string concatenation in `+ ""` before moving its last line.
     - The change would leave a name or comment narrower than what the code now does (a `saveDraft` that now also publishes).
     - Folded together, the change reads as a rewrite of every touched line; split, the refactor is verifiably a no-op and the change shows only its intent.
     - Spot the split before making the edit and do the restructure first, so the first commit on offer is the no-op refactor and the change reapplies on top of it; announce the split rather than doing it silently.

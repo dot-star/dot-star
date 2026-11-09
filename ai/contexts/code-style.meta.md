@@ -33,6 +33,14 @@
   -
   -
 -
+- Generalizes the trailing-comma rules below to any sequence, string concatenation included, where no formatter adds the terminator. The extra `""` line makes a reorder diff as a pure move.
+
+  ```
+
+
+
+
+  ```
 -
 
   ```

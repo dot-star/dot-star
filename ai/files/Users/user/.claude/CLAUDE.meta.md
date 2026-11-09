@@ -8,6 +8,7 @@
     -
       -
       -
+      - Moving the last line of a chain hands its `;` to the neighbor, so a one-line move diffs as two rewritten lines.
     - A diff-size trigger alone misses the outgrown name: renaming a function the feature now routes a new case through shrinks nothing, so it passes as polish and lands after the feature, which then ships under a name that already lies.
     -
     -
