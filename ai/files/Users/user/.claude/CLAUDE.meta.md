@@ -204,6 +204,7 @@
   -
 -
 -
+  - The word sounds alarming and makes the event seem worse than it was; naming the mechanism tells the reader what happened without that alarm.
 - Scoping the rule to prose left menu rows outside it, so a trimmed menu parenthetical shrank a commit to its bare hash right where the reader decides what to do with it.
   -
   - A hash looks like the short handle the trim rule keeps, but the subject is the only part a reader recognizes, so trimming it cuts the load-bearing words.
