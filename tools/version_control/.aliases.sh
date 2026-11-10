@@ -2740,11 +2740,23 @@ rc_status() {
                 # every age), CLAUDE_SESSION_LIST_MIN_ROWS and
                 # CLAUDE_SESSION_LIST_MAX_ROWS (0 caps none).
                 local claude_sessions
-                claude_sessions="$(claude_session_list_render "${current_toplevel}" "${CLAUDE_SESSION_LIST_MAX_AGE_DAYS:-7}" "${CLAUDE_SESSION_LIST_MIN_ROWS:-3}" "${CLAUDE_SESSION_LIST_MAX_ROWS:-5}" "${worktree_rows}" "${hidden_worktrees}")"
+                local resume_file
+                resume_file="$(mktemp "${TMPDIR:-/tmp}/claude_session_resume.XXXXXX")"
+                claude_sessions="$(claude_session_list_render "${current_toplevel}" "${CLAUDE_SESSION_LIST_MAX_AGE_DAYS:-7}" "${CLAUDE_SESSION_LIST_MIN_ROWS:-3}" "${CLAUDE_SESSION_LIST_MAX_ROWS:-5}" "${worktree_rows}" "${hidden_worktrees}" "${resume_file}")"
                 if [[ -n "${claude_sessions}" ]]; then
                     echo
                     echo "${claude_sessions}"
                 fi
+
+                # Bind `r1`..`rN` to resume each listed session from the folder
+                # claude filed it under, as the digit aliases jump to worktrees.
+                local resume_label
+                local resume_dir
+                local resume_id
+                while IFS=$'\t' read -r resume_label resume_dir resume_id; do
+                    alias -- "${resume_label}"="cd $(printf '%q' "${resume_dir}") && claude_run ${resume_id}"
+                done <"${resume_file}"
+                rm -- "${resume_file}"
             fi
         fi
     elif is_g; then

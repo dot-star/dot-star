@@ -169,23 +169,27 @@ claude_session_list_render() {
     # List every worktree beneath too, nested or not, so the table reads as
     # the full `[1]`..`[N]` run, counting <hidden_worktrees> rows the caller
     # cut off as more.
+    # Label each shown session `[r1]` (newest) up to `[rN]` and write a
+    # "<label>\t<dir>\t<session_id>" line per label to <resume_file>, so the
+    # caller can bind each label to resume its session.
     # Example output:
-    #     Fix login redirect           (3 days ago)
+    #     [r2]  Fix login redirect           (3 days ago)
     #       │ Stop redirect loop after login
     #       └ [2]  login-fix   1234567 (3 days ago)   1 uncommitted
-    #     Add quoted flag values rule  (2 hours ago)
+    #     [r1]  Add quoted flag values rule  (2 hours ago)
     #
     #     2 worktrees:
     #         [1]  old-spike       abcdef1 (3 weeks ago)  safe to remove
     #         [2]  login-fix       1234567 (3 days ago)   1 uncommitted
     # Usage:
-    #   $ claude_session_list_render "$(git rev-parse --show-toplevel)" 7 5 10 "${worktree_rows}" 0
+    #   $ claude_session_list_render "$(git rev-parse --show-toplevel)" 7 5 10 "${worktree_rows}" 0 "${resume_file}"
     local dir="$1"
     local max_age_days="$2"
     local min_rows="$3"
     local max_rows="$4"
     local worktree_rows="$5"
     local hidden_worktrees="$6"
+    local resume_file="$7"
     local transcript
     local worktree
     local owners=""
@@ -229,6 +233,8 @@ claude_session_list_render() {
             -v min_rows="${min_rows}" \
             -v max_rows="${max_rows}" \
             -v hidden_worktrees="${hidden_worktrees}" \
+            -v dir="${dir}" \
+            -v resume_file="${resume_file}" \
             -v now="${now}" \
             "$(relative_age_awk)$(relative_age_color_awk)"'
                 # Index each transcript by its owning worktree, then the worktree rows by path.
@@ -275,6 +281,7 @@ claude_session_list_render() {
                     row_mtime[n] = $1
                     row_title[n] = $2
                     row_owner[n] = owner[$3]
+                    row_transcript[n] = $3
                 }
                 END {
                     if (n > 0) {
@@ -327,11 +334,32 @@ claude_session_list_render() {
                         }
                     }
 
-                    # Start every age in one column: past the widest title shown, the nested worktree rows and the full worktree table.
+                    # Label each shown session counting up from the newest, padded so the titles start in one column.
+                    digits = length((n - first + 1) "")
+                    for (i = first; i <= n; i++) {
+                        row_label[i] = sprintf("r%d", n - i + 1)
+                        row_bracket[i] = sprintf("[r%*d]", digits, n - i + 1)
+                    }
+                    bracket_width = 2 + digits + 1
+
+                    # Record where each label resumes: claude files a session under the folder it launched from.
+                    for (i = first; i <= n; i++) {
+                        session_id = row_transcript[i]
+                        sub(/^.*\//, "", session_id)
+                        sub(/\.jsonl$/, "", session_id)
+                        if (row_owner[i] != "") {
+                            session_dir = row_owner[i]
+                        } else {
+                            session_dir = dir
+                        }
+                        printf "%s\t%s\t%s\n", row_label[i], session_dir, session_id > resume_file
+                    }
+
+                    # Start every age in one column: past the widest labeled title shown, the nested worktree rows and the full worktree table.
                     width = 0
                     for (i = first; i <= n; i++) {
-                        if (length(row_title[i]) > width) {
-                            width = length(row_title[i])
+                        if (bracket_width + 2 + length(row_title[i]) > width) {
+                            width = bracket_width + 2 + length(row_title[i])
                         }
                     }
                     age_column = (n > 0) ? 4 + width + 2 : 0
@@ -341,7 +369,7 @@ claude_session_list_render() {
                     if (worktree_count > 0 && 4 + lead_width + hash_width > age_column) {
                         age_column = 4 + lead_width + hash_width
                     }
-                    row_format = "    %-" (age_column - 6) "s  %s(%s)\033[0m\n"
+                    row_format = "    \033[2m%s\033[0m  %-" (age_column - 6 - bracket_width - 2) "s  %s(%s)\033[0m\n"
 
                     for (i = first; i <= n; i++) {
                         rel = relative_age(row_mtime[i])
@@ -352,7 +380,7 @@ claude_session_list_render() {
                             color = "\033[2m"
                         }
 
-                        printf row_format, row_title[i], color, rel
+                        printf row_format, row_bracket[i], row_title[i], color, rel
 
                         o = row_owner[i]
                         if ((o in nested) && newest[o] == i) {
