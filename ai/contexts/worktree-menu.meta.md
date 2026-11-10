@@ -32,6 +32,7 @@
     5.
        -
     6.
+       - The versions rule lived only in `CLAUDE.md`'s Output, so a message ending in a menu rendered from this file never picked the row up. It sits beside iterate because building the mini repos is edit-and-defer.
     7.
        -
        -

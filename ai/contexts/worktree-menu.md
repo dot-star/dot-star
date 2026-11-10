@@ -32,6 +32,7 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
     5. Is there exactly one space between each emoji and its bracket span? The column padding goes after the closing `**`, before the `(`, never between the emoji and the bracket.
        - Does that padding put every `(` in one column, ⚡ and 📋 rows included? Pad per the alignment rule in the bracket-prefix list.
     6. Does every decision the message body left open have a row here? Re-read the prose above for nits, 💅 polish notes, 🔄 heads-ups, and 🔴 blockers; each one the user could accept needs its own row under the same letter and emoji, per the bracket-prefix checklist. A menu that omits one sends the reader back to typing a sentence.
+       - Did the message lay out two or more candidate versions of one change? Add a 👯 **`[v]ersions`** row beside 🛠️ **`[i]terate`**, per the versions rule in `CLAUDE.md`'s Output.
     7. Does every committing row carry its drafts? A committing row with none costs the user a round trip through the skill's pick step.
        - The 💾 commit row carries the subject drafts beneath it.
        - A menu banking two or more commits gives each its own labeled branch with its drafts nested beneath, never one flat list of every commit's drafts.
