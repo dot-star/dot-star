@@ -405,8 +405,15 @@ claude_session_list_render() {
                     if (hidden_worktrees > 0) {
                         printf "    \033[2m... and \033[0m\033[1;36m%d\033[0m\033[2m more\033[0m\n", hidden_worktrees
                     }
+                    # Move each objective onto its own line above its worktree row, as the session rows nest theirs.
                     for (j = 1; j <= worktree_count; j++) {
-                        worktree_row(worktree_path[j], "    ", 4, worktree_rest[worktree_path[j]])
+                        p = worktree_path[j]
+                        if (worktree_objective[p] != "") {
+                            printf "  \033[2m┌\033[0m \033[2m%s\033[0m\n", worktree_objective[p]
+                            worktree_row(p, "  \033[2m└\033[0m ", 4, worktree_bare[p])
+                        } else {
+                            worktree_row(p, "    ", 4, worktree_rest[p])
+                        }
                     }
                 }
             ' \
