@@ -28,14 +28,14 @@ function update_clock_position()
 
     eachClockPair(function(a, b, pair)
         a:frame({
-            x = x,
+            x = clockLeft(pair),
             y = clockTop(pair),
             h = h,
             w = w,
         })
 
         b:frame({
-            x = x,
+            x = clockLeft(pair),
             y = clockTop(pair) + h,
             h = h,
             w = w,
@@ -74,10 +74,14 @@ CLOCK_CANVAS_BEHAVIOR = pinCanvasesToSpaces.BEHAVIOR
 -- Map each Space id to its own { a, b } pair of clock rows.
 clocksBySpace = {}
 
--- Build one clock row at `rowY`, calling `mouseCallbackFn` as the pointer enters or leaves it.
-function newClockRow(rowY, mouseCallbackFn)
+-- Build one clock row at (`rowX`, `rowY`), calling `mouseCallbackFn` as the pointer enters or leaves it.
+function newClockRow(
+    rowX,
+    rowY,
+    mouseCallbackFn
+)
     local row = hs.canvas.new{
-        x = x,
+        x = rowX,
         y = rowY,
         h = h,
         w = w,
@@ -121,12 +125,37 @@ end
 -- Drop the clock below the title bar Ghostty keeps on a full-screen Space, so it clears the page dots there.
 FULL_SCREEN_CLOCK_TOP = require('ghostty_title_bar').HEIGHT
 
--- Return the top of `pair`'s first row: under the menu bar on a desktop, under the title bar on a full-screen Space.
-function clockTop(pair)
-    if pair.fullScreen then
-        return FULL_SCREEN_CLOCK_TOP
+local TITLE_BAR_HEIGHT = require('ghostty_title_bar').HEIGHT
+
+-- Return how far from the screen's right edge show_space_position wants the clock to end inside the title bar, or nil to leave it below; nil too until that module loads, since it loads after this one.
+local function titleBarClockInset()
+    if showSpacePosition == nil then
+        return nil
     end
-    return y
+    return showSpacePosition.clockRightInset()
+end
+
+-- Return the top of `pair`'s first row: under the menu bar on a desktop, under the title bar on a full-screen Space unless the page dots make room inside it.
+function clockTop(pair)
+    if not pair.fullScreen then
+        return y
+    elseif titleBarClockInset() ~= nil then
+        -- Center both rows in the title bar.
+        return (TITLE_BAR_HEIGHT - 2 * h) / 2
+    end
+    return FULL_SCREEN_CLOCK_TOP
+end
+
+-- Return the left edge of `pair`'s rows: flush right, or left of what the page dots keep in the title bar.
+function clockLeft(pair)
+    if not pair.fullScreen then
+        return x
+    end
+    local inset = titleBarClockInset()
+    if inset == nil then
+        return x
+    end
+    return full_screen_width - inset - w
 end
 
 aMouseEnter = false
@@ -211,8 +240,8 @@ function showClockOnFocusedSpace()
     local pair = {
         fullScreen = hs.spaces.spaceType(focused) == 'fullscreen',
     }
-    pair.a = newClockRow(clockTop(pair), canvasAMouseCallbackFn)
-    pair.b = newClockRow(clockTop(pair) + h, canvasBMouseCallbackFn)
+    pair.a = newClockRow(clockLeft(pair), clockTop(pair), canvasAMouseCallbackFn)
+    pair.b = newClockRow(clockLeft(pair), clockTop(pair) + h, canvasBMouseCallbackFn)
     pair.a[2].text = pst_text
     pair.b[2].text = est_text
     pair.a:show()

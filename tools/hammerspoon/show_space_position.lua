@@ -6,6 +6,7 @@
 --   Paint each Space's bars the next color in a cycle rather than one shared color (cycle_colors, needs edge_bars).
 --   Add a row of dots in the title bar's upper-right corner of every full-screen Space, the focused Space filled; click a dot to jump to its Space (page_dots, needs edge_bars).
 --   Show the dark pill behind the dots, to check where their canvas sits (page_dots_pill, needs page_dots).
+--   Stack the dots in a column down the upper-right corner, in swipe order from the top (vertical_dots, needs page_dots).
 --   Show on each dot the state of the Claude session whose window sits on that Space (session_state, needs page_dots).
 --   Switch to a Space whose session turned ready, once you've been idle a while (follow_ready, needs session_state).
 --   Show a countdown left of the dots to when follow_ready arms, for debugging (follow_countdown, needs follow_ready).
@@ -29,6 +30,7 @@ local DEFAULT_ENABLED = {
     page_dots_pill = false,
     session_state = true,
     top_bar = true,
+    vertical_dots = false,
 }
 -- Apply each style's default until it's set; a saved choice wins after that.
 local DEFAULT_STYLES = {
@@ -138,6 +140,8 @@ local FOLLOW_ORDER_LIMIT = 3
 local SETTLE_SECONDS = 1
 
 local pinCanvasesToSpaces = require('pin_canvases_to_spaces')
+-- Load the alternate clock first, whose update_clock_position re-places it beside the dots' column.
+require('display_alternate_clock')
 
 local EDGE_BAR_BEHAVIOR = pinCanvasesToSpaces.BEHAVIOR
 
@@ -328,8 +332,12 @@ local function newCountdown()
     return countdown
 end
 
-local function pageDotsWidth(count)
-    return count * DOT_SIZE + (count - 1) * DOT_GAP + 2 * DOTS_PADDING
+-- Return the dots canvas's size; a column gives each slot the strip beneath its dot too, so the last dot's follow-order number isn't clipped.
+local function pageDotsSize(count)
+    if isEnabled('vertical_dots') then
+        return { w = TITLE_BAR_HEIGHT, h = count * (DOT_SIZE + DOT_GAP) + 2 * DOTS_PADDING }
+    end
+    return { w = count * DOT_SIZE + (count - 1) * DOT_GAP + 2 * DOTS_PADDING, h = TITLE_BAR_HEIGHT }
 end
 
 -- Keep the pill clear unless `pillVisible`, which shows where the canvas sits.
@@ -349,16 +357,28 @@ local function pageDotsPill(pillVisible)
     }
 end
 
-local function pageDotCenter(position)
-    return { x = DOTS_PADDING + (position - 1) * (DOT_SIZE + DOT_GAP) + DOT_SIZE / 2, y = TITLE_BAR_HEIGHT / 2 }
+local function pageDotCenter(slot)
+    local along = DOTS_PADDING + (slot - 1) * (DOT_SIZE + DOT_GAP) + DOT_SIZE / 2
+    if isEnabled('vertical_dots') then
+        return { x = TITLE_BAR_HEIGHT / 2, y = along }
+    end
+    return { x = along, y = TITLE_BAR_HEIGHT / 2 }
 end
 
--- Return the slot under `x` in a row of `count` dots, counting half the gap on each side of a dot as its own, or nil past either end.
+-- Return the slot under (`x`, `y`) among `count` dots, or nil past either end.
 local function dotSlotAt(
     x,
+    y,
     count
 )
-    local slot = math.floor((x - DOTS_PADDING + DOT_GAP / 2) / (DOT_SIZE + DOT_GAP)) + 1
+    local slot
+    if isEnabled('vertical_dots') then
+        -- Count the strip beneath a dot as its own, where its underline and follow-order number sit.
+        slot = math.floor((y - DOTS_PADDING) / (DOT_SIZE + DOT_GAP)) + 1
+    else
+        -- Count half the gap on each side of a dot as its own.
+        slot = math.floor((x - DOTS_PADDING + DOT_GAP / 2) / (DOT_SIZE + DOT_GAP)) + 1
+    end
     if slot < 1 then
         return nil
     elseif slot > count then
@@ -368,19 +388,31 @@ local function dotSlotAt(
 end
 
 local function hoverFrameElement(center)
-    local halfWidth = DOT_SIZE / 2 + HOVER_FRAME_SIDE_PADDING
+    local frame
+    if isEnabled('vertical_dots') then
+        -- Take in the strip beneath the dot, where its underline and follow-order number sit.
+        frame = {
+            x = HOVER_FRAME_MARGIN,
+            y = center.y - DOT_SIZE / 2 - HOVER_FRAME_MARGIN,
+            w = TITLE_BAR_HEIGHT - 2 * HOVER_FRAME_MARGIN,
+            h = DOT_SIZE + DOT_GAP,
+        }
+    else
+        local halfWidth = DOT_SIZE / 2 + HOVER_FRAME_SIDE_PADDING
+        frame = {
+            x = center.x - halfWidth,
+            y = HOVER_FRAME_MARGIN,
+            w = 2 * halfWidth,
+            h = TITLE_BAR_HEIGHT - 2 * HOVER_FRAME_MARGIN,
+        }
+    end
     return {
         type = 'rectangle',
         action = 'stroke',
         strokeColor = HOVER_FRAME_COLOR,
         strokeWidth = HOVER_FRAME_WIDTH,
         roundedRectRadii = { xRadius = HOVER_FRAME_RADIUS, yRadius = HOVER_FRAME_RADIUS },
-        frame = {
-            x = center.x - halfWidth,
-            y = HOVER_FRAME_MARGIN,
-            w = 2 * halfWidth,
-            h = TITLE_BAR_HEIGHT - 2 * HOVER_FRAME_MARGIN,
-        },
+        frame = frame,
     }
 end
 
@@ -606,8 +638,21 @@ local function focusedElements(state, center, seconds, pingProgress)
             elements[#elements + 1] = disc(center, 3, FOCUS_MARK_COLOR)
         end
     elseif marker == 'underline' then
-        local y = center.y + DOT_SIZE / 2 + 5
-        elements[#elements + 1] = line({ { x = center.x - 6, y = y }, { x = center.x + 6, y = y } }, FOCUS_MARK_COLOR, 2.5)
+        if isEnabled('vertical_dots') then
+            -- Point up at the dot from the underline's slot, since a line under a dot in a column reads as a divider.
+            local tip = center.y + DOT_SIZE / 2 + 3
+            local base = tip + 7
+            elements[#elements + 1] = {
+                type = 'segments',
+                action = 'fill',
+                closed = true,
+                coordinates = { { x = center.x, y = tip }, { x = center.x + 6, y = base }, { x = center.x - 6, y = base } },
+                fillColor = FOCUS_MARK_COLOR,
+            }
+        else
+            local y = center.y + DOT_SIZE / 2 + 5
+            elements[#elements + 1] = line({ { x = center.x - 6, y = y }, { x = center.x + 6, y = y } }, FOCUS_MARK_COLOR, 2.5)
+        end
     else
         error('unknown focus marker: ' .. marker)
     end
@@ -697,7 +742,7 @@ local function layoutSessionDots(
         elements[#elements + 1] = element
     end
     for position, space in ipairs(spaces) do
-        -- Shift each ring one slot right of the home triangle.
+        -- Shift each ring one slot past the home triangle.
         local center = pageDotCenter(position + 1)
         local state = sessionStateOf(space)
         local pingProgress = nil
@@ -738,6 +783,7 @@ local function sessionDotsKey(
         styleOf('decision_style'),
         styleOf('pending_style'),
         styleOf('focus_marker'),
+        tostring(isEnabled('vertical_dots')),
     }
     for _, space in ipairs(spaces) do
         parts[#parts + 1] = sessionStateOf(space) .. ':' .. tostring(followOrder[space])
@@ -1164,8 +1210,9 @@ local function placeEdgeBars(pair, index, count, screen)
         w = BUMPER_DEPTH,
         h = BUMPER_HEIGHT,
     })
-    -- Redraw the dots only when the Space moved, the count changed or the pill was toggled, the same as the bars' height check.
+    -- Redraw the dots only when the Space moved, the count changed or the pill or column was toggled, the same as the bars' height check.
     local pillVisible = isEnabled('page_dots_pill')
+    local vertical = isEnabled('vertical_dots')
     local dotsCount = count
     local screenSpaces = hs.spaces.spacesForScreen(screen) or {}
     -- Map each dot slot to its Space for a click; both rows run in swipe order, the session row's home triangle standing in for the first Space.
@@ -1195,24 +1242,25 @@ local function placeEdgeBars(pair, index, count, screen)
             -- Forget the plain dots, so turning session_state off redraws them.
             pair.dotsIndex = nil
         end
-    elseif pair.dotsIndex ~= index or pair.dotsCount ~= count or pair.dotsPill ~= pillVisible or pair.dotsHover ~= pair.hoverSlot then
+    elseif pair.dotsIndex ~= index or pair.dotsCount ~= count or pair.dotsPill ~= pillVisible or pair.dotsHover ~= pair.hoverSlot or pair.dotsVertical ~= vertical then
         layoutPageDots(pair.dots, index, count, pair.color, pillVisible, pair.hoverSlot)
         pair.dotsIndex = index
         pair.dotsCount = count
         pair.dotsPill = pillVisible
         pair.dotsHover = pair.hoverSlot
+        pair.dotsVertical = vertical
         pair.sessionKey = nil
     end
-    local dotsWidth = pageDotsWidth(dotsCount)
+    local dotsSize = pageDotsSize(dotsCount)
     -- Sit the dots flush against the screen's right edge, over the right bar's glow.
     pair.dots:frame({
-        x = frame.x + frame.w - dotsWidth,
+        x = frame.x + frame.w - dotsSize.w,
         y = frame.y,
-        w = dotsWidth,
-        h = TITLE_BAR_HEIGHT,
+        w = dotsSize.w,
+        h = dotsSize.h,
     })
     pair.countdown:frame({
-        x = frame.x + frame.w - dotsWidth - COUNTDOWN_WIDTH,
+        x = frame.x + frame.w - dotsSize.w - COUNTDOWN_WIDTH,
         y = frame.y,
         w = COUNTDOWN_WIDTH,
         h = TITLE_BAR_HEIGHT,
@@ -1258,28 +1306,33 @@ end
 local function pointerPageDotSlot(pair)
     local pointer = hs.mouse.absolutePosition()
     local frame = pair.dots:frame()
-    if pointer.y < frame.y then
+    if pointer.x < frame.x then
+        return nil
+    elseif pointer.x >= frame.x + frame.w then
+        return nil
+    elseif pointer.y < frame.y then
         return nil
     elseif pointer.y >= frame.y + frame.h then
         return nil
     end
-    return dotSlotAt(pointer.x - frame.x, #pair.dotSpaces)
+    return dotSlotAt(pointer.x - frame.x, pointer.y - frame.y, #pair.dotSpaces)
 end
 
 -- Frame the dot under the pointer as it moves and jump to the Space of a clicked dot.
 local function handlePageDotsMouse(
     pair,
     message,
-    x
+    x,
+    y
 )
     if message == 'mouseExit' then
         hoverPageDot(pair, nil)
     elseif message == 'mouseEnter' then
-        hoverPageDot(pair, dotSlotAt(x, #pair.dotSpaces))
+        hoverPageDot(pair, dotSlotAt(x, y, #pair.dotSpaces))
     elseif message == 'mouseMove' then
-        hoverPageDot(pair, dotSlotAt(x, #pair.dotSpaces))
+        hoverPageDot(pair, dotSlotAt(x, y, #pair.dotSpaces))
     elseif message == 'mouseUp' then
-        local slot = dotSlotAt(x, #pair.dotSpaces)
+        local slot = dotSlotAt(x, y, #pair.dotSpaces)
         if slot == nil then
             return
         end
@@ -1331,8 +1384,8 @@ local function renderEdgeBars(index, count, screen, focused)
             cycleColor = cycleColor,
         }
         pair.dots:canvasMouseEvents(true, true, true, true)
-        pair.dots:mouseCallback(function(_, message, _, x, _)
-            handlePageDotsMouse(pair, message, x)
+        pair.dots:mouseCallback(function(_, message, _, x, y)
+            handlePageDotsMouse(pair, message, x, y)
         end)
         edgeBarsBySpace[focused] = pair
     end
@@ -1559,6 +1612,17 @@ local function renderAfterSettle()
     end)
 end
 
+-- Return how far from the screen's right edge display_alternate_clock should end its rows to sit in the title bar beside the dots' column, or nil to leave them below it.
+-- Reserve the countdown's slot even while it's hidden, so the clock holds still as follow_ready toggles.
+function showSpacePosition.clockRightInset()
+    if not isEnabled('page_dots') then
+        return nil
+    elseif not isEnabled('vertical_dots') then
+        return nil
+    end
+    return pageDotsSize(1).w + COUNTDOWN_WIDTH
+end
+
 -- Turn an experiment on or off, pick a style or set a number, or report every one's current value when called with no name.
 function showSpacePosition.set(name, value)
     if name == nil then
@@ -1603,6 +1667,8 @@ function showSpacePosition.set(name, value)
 
     hs.settings.set(SETTINGS_PREFIX .. name, value)
     render()
+    -- Re-place the alternate clock, whose spot follows clockRightInset.
+    update_clock_position()
     return name .. ' ' .. (value and 'on' or 'off')
 end
 
@@ -1749,3 +1815,5 @@ showSpacePosition.sessionStateWatcher = hs.pathwatcher.new(SESSION_STATE_DIR, re
 showSpacePosition.sessionStateWatcher:start()
 recordSpaceSeen()
 render()
+-- Re-place the alternate clock now that clockRightInset exists; it loaded first and placed itself without it.
+update_clock_position()
