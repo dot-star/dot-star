@@ -30,6 +30,7 @@ if [[ -z "${session_id}" ]]; then
 fi
 
 # Close the turn the bare-x hook opened, so the next bare `x` closes at once.
+turn_before=$(describe_turn "${session_id}")
 rm --force -- "${open_turns_dir}/${session_id}"
 
 if [[ ! -e "${prune_marks_dir}/${session_id}" ]]; then
@@ -41,7 +42,7 @@ if [[ -z "${claude_pid}" ]]; then
     exit 0
 fi
 
-log_session_close "stop hook" "${session_id}" "${cwd}" "${transcript_path}"
+log_session_close "stop hook" "${session_id}" "${cwd}" "${transcript_path}" "${turn_before}"
 mark_close_requested
 
 # TODO: Minimize the window while the tab finishes closing (see ai/claude/minimize_own_window.sh).

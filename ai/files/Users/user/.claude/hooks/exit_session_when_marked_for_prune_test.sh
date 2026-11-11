@@ -11,6 +11,7 @@ SANDBOX="$(cd "$(mktemp -d)" && pwd -P)"
 SESSION_ID="test-exit-session-$$"
 MARK="/tmp/claude/prune_marks/${SESSION_ID}"
 OPEN_TURN="/tmp/claude/open_turns/${SESSION_ID}"
+STATE="/tmp/claude-state-hook/${SESSION_ID}.state"
 export CLAUDE_RUN_CLOSE_REQUESTED_MARKER="${SANDBOX}/close_requested"
 
 # Stub the Space hop under a sandboxed HOME, so a run records any hop instead
@@ -112,27 +113,30 @@ fi
 
 mkdir --parents "$(dirname -- "${MARK}")"
 touch -- "${MARK}"
+touch -- "${OPEN_TURN}"
+mkdir --parents -- "$(dirname -- "${STATE}")"
+printf '%s' "busy" >"${STATE}"
 assert_exit "marked session gets SIGTERM after asking claude_run to close" \
     "exit 143, close requested, stayed"
 
 # Expect one entry, from the marked run only, carrying the evidence a
 # premature close leaves behind.
-expected_entry='1 stop hook | A  staged.txt | x | Pick a subject: 1. Fix foo'
+expected_entry='1 stop hook | open busy | A  staged.txt | x | Pick a subject: 1. Fix foo'
 actual_entry="$(jq \
     --slurp \
     --raw-output \
-    '"\(length) \(.[0].trigger) | \(.[0].uncommitted | join(",")) | \(.[0].last_prompt) | \(.[0].last_reply_tail)"' \
+    '"\(length) \(.[0].trigger) | \(.[0].turn) \(.[0].state) | \(.[0].uncommitted | join(",")) | \(.[0].last_prompt) | \(.[0].last_reply_tail)"' \
     "${CLOSE_LOG}" 2>&1)"
 if [[ "${actual_entry}" == "${expected_entry}" ]]; then
-    echo "✓ close log records trigger, dirty tree and last exchange"
+    echo "✓ close log records trigger, turn, state, dirty tree and last exchange"
 else
-    echo "✗ close log records trigger, dirty tree and last exchange"
+    echo "✗ close log records trigger, turn, state, dirty tree and last exchange"
     echo "    expected: ${expected_entry}"
     echo "    actual:   ${actual_entry}"
     failures=$((failures + 1))
 fi
 
-rm --force -- "${MARK}" "${OPEN_TURN}"
+rm --force -- "${MARK}" "${OPEN_TURN}" "${STATE}"
 rm -r -- "${SANDBOX}"
 
 if [[ "${failures}" -eq 0 ]]; then

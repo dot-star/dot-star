@@ -7,6 +7,8 @@ prune_marks_dir="/tmp/claude/prune_marks"
 # Hold one file per session whose turn is still running, so a bare `x` sent
 # mid-turn waits for that turn's work instead of killing it.
 open_turns_dir="/tmp/claude/open_turns"
+# Read the session's state word (busy, decision, ready) from announce_window_state.py.
+session_state_dir="/tmp/claude-state-hook"
 # Keep the close log outside the transcript, since prune.sh deletes that.
 close_log="${HOME}/.claude/session_close.jsonl"
 # Rotate past this size into a single .1 file, so the log never grows unbounded.
@@ -33,6 +35,17 @@ find_claude_pid() {
     done
 }
 
+# Print whether the session has a turn open ("open") or none ("none").
+describe_turn() {
+    local session_id="$1"
+
+    if [[ -e "${open_turns_dir}/${session_id}" ]]; then
+        echo "open"
+    else
+        echo "none"
+    fi
+}
+
 # Touch the marker claude_run exports, since SIGTERM restores the terminal just
 # as Ctrl+D does but exits 143.
 mark_close_requested() {
@@ -49,9 +62,10 @@ log_session_close() {
     local session_id="$2"
     local cwd="$3"
     local transcript_path="$4"
+    local turn="$5"
 
     # Close the session anyway; a broken log line costs less than a stuck one.
-    if ! write_session_close_entry "${trigger}" "${session_id}" "${cwd}" "${transcript_path}" 2>/dev/null; then
+    if ! write_session_close_entry "${trigger}" "${session_id}" "${cwd}" "${transcript_path}" "${turn}" 2>/dev/null; then
         true
     fi
 }
@@ -61,14 +75,21 @@ write_session_close_entry() {
     local session_id="$2"
     local cwd="$3"
     local transcript_path="$4"
+    local turn="$5"
     local mark="${prune_marks_dir}/${session_id}"
     local mark_written=""
+    local state=""
     local uncommitted=""
     local filter
     local size
 
     if [[ -e "${mark}" ]]; then
         mark_written=$(date -r "${mark}" '+%Y-%m-%dT%H:%M:%S')
+    fi
+
+    # Record the turn and state words too, since an open turn or a busy state marks a close that cut work short.
+    if [[ -f "${session_state_dir}/${session_id}.state" ]]; then
+        state=$(<"${session_state_dir}/${session_id}.state")
     fi
 
     if [[ -d "${cwd}" ]]; then
@@ -97,6 +118,8 @@ def text_of: .message.content
     session_id: $session_id,
     cwd: $cwd,
     mark_written: $mark_written,
+    turn: $turn,
+    state: $state,
     uncommitted: ($uncommitted | split("\n") | map(select(. != ""))),
     last_prompt: ([$events[] | select(.type == "user") | text_of | select(. != "")] | last // "" | .[:300]),
     last_reply_tail: ([$events[] | select(.type == "assistant") | text_of | select(. != "")] | last // "" | .[-600:])
@@ -116,6 +139,8 @@ JQ
             --arg "session_id" "${session_id}" \
             --arg "cwd" "${cwd}" \
             --arg "mark_written" "${mark_written}" \
+            --arg "turn" "${turn}" \
+            --arg "state" "${state}" \
             --arg "uncommitted" "${uncommitted}" \
             "${filter}" \
             >>"${close_log}"

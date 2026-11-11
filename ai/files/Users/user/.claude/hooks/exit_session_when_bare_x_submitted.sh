@@ -58,7 +58,7 @@ is_close_owing_no_work() {
     reply="${reply#"${reply%%[![:space:]]*}"}"
     reply="${reply%"${reply##*[![:space:]]}"}"
 
-    if [[ "${turn_was_open}" == "true" ]]; then
+    if [[ "${turn_before}" == "open" ]]; then
         return 1
     elif [[ "${reply}" == "xx" ]]; then
         return 0
@@ -77,10 +77,7 @@ fi
 
 # Check for a running turn before opening this prompt's own; the prune Stop
 # hook closes it. Any prompt arriving mid-turn joins that turn.
-turn_was_open="false"
-if [[ -e "${open_turns_dir}/${session_id}" ]]; then
-    turn_was_open="true"
-fi
+turn_before=$(describe_turn "${session_id}")
 
 mkdir --parents -- "${open_turns_dir}"
 : >"${open_turns_dir}/${session_id}"
@@ -98,7 +95,7 @@ fi
 
 mkdir --parents -- "${prune_marks_dir}"
 : >"${prune_marks_dir}/${session_id}"
-log_session_close "bare ${prompt}" "${session_id}" "${cwd}" "${transcript_path}"
+log_session_close "bare ${prompt}" "${session_id}" "${cwd}" "${transcript_path}" "${turn_before}"
 mark_close_requested
 leave_full_screen_space "${session_id}" "${claude_pid}"
 
