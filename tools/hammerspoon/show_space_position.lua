@@ -771,7 +771,7 @@ local function addFocusMarker(elements, center)
             }
         else
             local y = center.y + DOT_SIZE / 2 + FOLLOW_ORDER_MIDLINE
-            elements[#elements + 1] = line({ { x = center.x - 6, y = y }, { x = center.x + 6, y = y } }, FOCUS_MARK_COLOR, 2.5)
+            elements[#elements + 1] = line({ { x = center.x - 9, y = y }, { x = center.x + 9, y = y } }, FOCUS_MARK_COLOR, 2.5)
         end
     else
         error('unknown focus marker: ' .. marker)
