@@ -347,8 +347,8 @@ local function pageDotsSize(count)
 end
 
 -- Keep the pill clear unless `pillVisible`, which shows where the canvas sits.
+-- Draw it square-cornered, so it traces the canvas's edges even where the row hangs below the title bar.
 local function pageDotsPill(pillVisible)
-    local height = TITLE_BAR_HEIGHT
     local pillAlpha
     if pillVisible then
         pillAlpha = 1
@@ -358,8 +358,8 @@ local function pageDotsPill(pillVisible)
     return {
         type = 'rectangle',
         action = 'fill',
-        fillColor = { white = 0, alpha = pillAlpha },
-        roundedRectRadii = { xRadius = height / 2, yRadius = height / 2 },
+        -- Tint it a debug magenta, which stands out against both the gray tab strip and the black window below it.
+        fillColor = { red = 1, green = 0, blue = 1, alpha = 0.35 * pillAlpha },
     }
 end
 
