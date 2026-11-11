@@ -2230,9 +2230,9 @@ git_worktree_list_rows() {
     # `git_worktree_list_triage`) and its Claude session's objective, so the
     # table answers whether to pick it back up, leave it or tear it down.
     # Example output:
-    #     [3]  old-spike         1234567 (3 weeks ago)                 safe to remove  Try export idea
-    #     [2]  custom-checkout   abc1234 (2 days ago)   [feature/foo]  2 unlanded      Add checkout flow
-    #     [1]  pretty-tail-glow  e762c60 (1 day ago)                   1 uncommitted
+    #     [3] old-spike         1234567 (3 weeks ago)                 safe to remove  Try export idea
+    #     [2] custom-checkout   abc1234 (2 days ago)   [feature/foo]  2 unlanded      Add checkout flow
+    #     [1] pretty-tail-glow  e762c60 (1 day ago)                   1 uncommitted
     # awk fades the parenthetical from 256-color 255 (white) at
     # newest down to 239 (gray) at oldest, linearly by rank,
     # right-pads the 1-based index for two-digit alignment, and
@@ -2368,7 +2368,7 @@ git_worktree_list_rows() {
                     # Brackets hint that the number is a live
                     # `cd` alias bound by `s`/`wta` for this row.
                     idx_str = sprintf("[%*d]", digits, i)
-                    lead = sprintf("\033[2m%s\033[0m  \033[38;5;80m%-*s\033[0m  ", idx_str, max_name, name)
+                    lead = sprintf("\033[2m%s\033[0m \033[38;5;80m%-*s\033[0m  ", idx_str, max_name, name)
                     hash = sprintf("\033[33m%s\033[0m ", sha)
 
                     # Paint "safe to remove" as a cleanup candidate and

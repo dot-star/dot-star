@@ -173,14 +173,14 @@ claude_session_list_render() {
     # "<label>\t<dir>\t<session_id>" line per label to <resume_file>, so the
     # caller can bind each label to resume its session.
     # Example output:
-    #     [r2]  Fix login redirect           (3 days ago)
+    #     [r2] Fix login redirect           (3 days ago)
     #       │ Stop redirect loop after login
-    #       └ [2]  login-fix   1234567 (3 days ago)   1 uncommitted
-    #     [r1]  Add quoted flag values rule  (2 hours ago)
+    #       └ [2] login-fix   1234567 (3 days ago)   1 uncommitted
+    #     [r1] Add quoted flag values rule  (2 hours ago)
     #
     #     2 worktrees:
-    #         [1]  old-spike       abcdef1 (3 weeks ago)  safe to remove
-    #         [2]  login-fix       1234567 (3 days ago)   1 uncommitted
+    #         [1] old-spike       abcdef1 (3 weeks ago)  safe to remove
+    #         [2] login-fix       1234567 (3 days ago)   1 uncommitted
     # Usage:
     #   $ claude_session_list_render "$(git rev-parse --show-toplevel)" 7 5 10 "${worktree_rows}" 0 "${resume_file}"
     local dir="$1"
@@ -358,8 +358,8 @@ claude_session_list_render() {
                     # Start every age in one column: past the widest labeled title shown, the nested worktree rows and the full worktree table.
                     width = 0
                     for (i = first; i <= n; i++) {
-                        if (bracket_width + 2 + length(row_title[i]) > width) {
-                            width = bracket_width + 2 + length(row_title[i])
+                        if (bracket_width + 1 + length(row_title[i]) > width) {
+                            width = bracket_width + 1 + length(row_title[i])
                         }
                     }
                     age_column = (n > 0) ? 4 + width + 2 : 0
@@ -369,7 +369,7 @@ claude_session_list_render() {
                     if (worktree_count > 0 && 4 + lead_width + hash_width > age_column) {
                         age_column = 4 + lead_width + hash_width
                     }
-                    row_format = "    \033[2m%s\033[0m  %-" (age_column - 6 - bracket_width - 2) "s  %s(%s)\033[0m\n"
+                    row_format = "    \033[2m%s\033[0m %-" (age_column - 6 - bracket_width - 1) "s  %s(%s)\033[0m\n"
 
                     for (i = first; i <= n; i++) {
                         rel = relative_age(row_mtime[i])
