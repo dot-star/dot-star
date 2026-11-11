@@ -83,6 +83,9 @@ local DOTS_PADDING = (TITLE_BAR_HEIGHT - DOT_SIZE) / 2
 -- Leave room for the countdown's longest text, so it never clips against the dots.
 local COUNTDOWN_WIDTH = 60
 local COUNTDOWN_TEXT_SIZE = 22
+-- Stroke the countdown's debug outline green, apart from the dots' red, yellow and cyan boxes beside it.
+local COUNTDOWN_OUTLINE_COLOR = { red = 0, green = 1, blue = 0, alpha = 1 }
+local COUNTDOWN_OUTLINE_HIDDEN_COLOR = { red = 0, green = 1, blue = 0, alpha = 0 }
 -- Heat the countdown from dim gray up to white a third of the way in, then hold white until follow_ready arms.
 -- Keep the early seconds dim, so a countdown that resets on every keystroke stays out of the way.
 local COUNTDOWN_COLOR_STOPS = {
@@ -339,6 +342,13 @@ local function newCountdown()
         textFont = 'Menlo',
         textSize = COUNTDOWN_TEXT_SIZE,
         frame = { x = 0, y = (TITLE_BAR_HEIGHT - textHeight) / 2, w = COUNTDOWN_WIDTH, h = textHeight },
+    }
+    -- Trace the whole canvas for debugging; placement shows it only while page_dots_pill is on.
+    countdown[2] = {
+        type = 'rectangle',
+        action = 'stroke',
+        strokeColor = COUNTDOWN_OUTLINE_HIDDEN_COLOR,
+        strokeWidth = 1,
     }
     return countdown
 end
@@ -1406,6 +1416,11 @@ local function placeEdgeBars(pair, index, count, screen)
         w = COUNTDOWN_WIDTH,
         h = TITLE_BAR_HEIGHT,
     })
+    if pillVisible then
+        pair.countdown[2].strokeColor = COUNTDOWN_OUTLINE_COLOR
+    else
+        pair.countdown[2].strokeColor = COUNTDOWN_OUTLINE_HIDDEN_COLOR
+    end
 end
 
 -- Redraw a pair's dots in place from what its last placement recorded, for a hover that moved without the Space changing.
