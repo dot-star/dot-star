@@ -10,7 +10,7 @@
 --   Show on each dot the state of the Claude session whose window sits on that Space (session_state, needs page_dots).
 --   Switch to a Space whose session turned ready, once you've been idle a while (follow_ready, needs session_state).
 --   Show a countdown left of the dots to when follow_ready arms, for debugging (follow_countdown, needs follow_ready).
---   Number the dots in the order a closing session hops to them, by state then last seen, for debugging (follow_order, needs session_state).
+--   Mark the dots with letters in the order a closing session hops to them, by state then last seen, so they don't read as the Ctrl+number Space keys; for debugging (follow_order, needs session_state).
 -- Hand follow_closed_full_screen_space the ranked Spaces with hopOrder, so a closing session hops to the one most in need of you.
 -- Toggle from the shell with `space_position_experiment`; each flag persists across reloads.
 -- Pick the session dots' decision style, pending style and focus marker the same way; each style persists too.
@@ -129,12 +129,12 @@ local HOVER_FRAME_COLOR = { white = 1, alpha = 0.8 }
 local HOVER_FRAME_WIDTH = 1.5
 -- Reach into the gap on each side of the dot, stopping short of the neighbor's frame.
 local HOVER_FRAME_SIDE_PADDING = DOT_GAP / 2 - 1
--- Keep the frame off the title bar's edges, tall enough to take in the focus underline and follow-order number.
+-- Keep the frame off the title bar's edges, tall enough to take in the focus underline and follow-order letter.
 local HOVER_FRAME_MARGIN = 2
 local HOVER_FRAME_RADIUS = 6
--- Size the follow-order number to fit the strip between a dot and the title bar's bottom edge.
+-- Size the follow-order letter to fit the strip between a dot and the title bar's bottom edge.
 local FOLLOW_ORDER_TEXT_SIZE = 10
--- Number only the first few picks in the follow order, so the row shows where a close lands next without badging every dot.
+-- Mark only the first few picks in the follow order, so the row shows where a close lands next without badging every dot.
 local FOLLOW_ORDER_LIMIT = 3
 -- Wait out macOS rearranging Spaces after a display change, a wake or a Space closing, which often runs on past the event reporting it.
 local SETTLE_SECONDS = 1
@@ -332,7 +332,7 @@ local function newCountdown()
     return countdown
 end
 
--- Return the dots canvas's size; a column gives each slot the strip beneath its dot too, so the last dot's follow-order number isn't clipped.
+-- Return the dots canvas's size; a column gives each slot the strip beneath its dot too, so the last dot's follow-order letter isn't clipped.
 local function pageDotsSize(count)
     if isEnabled('vertical_dots') then
         return { w = TITLE_BAR_HEIGHT, h = count * (DOT_SIZE + DOT_GAP) + 2 * DOTS_PADDING }
@@ -373,7 +373,7 @@ local function dotSlotAt(
 )
     local slot
     if isEnabled('vertical_dots') then
-        -- Count the strip beneath a dot as its own, where its underline and follow-order number sit.
+        -- Count the strip beneath a dot as its own, where its underline and follow-order letter sit.
         slot = math.floor((y - DOTS_PADDING) / (DOT_SIZE + DOT_GAP)) + 1
     else
         -- Count half the gap on each side of a dot as its own.
@@ -390,7 +390,7 @@ end
 local function hoverFrameElement(center)
     local frame
     if isEnabled('vertical_dots') then
-        -- Take in the strip beneath the dot, where its underline and follow-order number sit.
+        -- Take in the strip beneath the dot, where its underline and follow-order letter sit.
         frame = {
             x = HOVER_FRAME_MARGIN,
             y = center.y - DOT_SIZE / 2 - HOVER_FRAME_MARGIN,
@@ -716,7 +716,7 @@ local function followOrderElement(center, rank)
     local textHeight = FOLLOW_ORDER_TEXT_SIZE + 2
     return {
         type = 'text',
-        text = tostring(rank),
+        text = string.char(string.byte('A') + rank - 1),
         textColor = FOCUS_MARK_COLOR,
         textFont = 'Menlo-Bold',
         textSize = FOLLOW_ORDER_TEXT_SIZE,
