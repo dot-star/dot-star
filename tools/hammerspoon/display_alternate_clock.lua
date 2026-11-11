@@ -135,13 +135,23 @@ local function titleBarClockInset()
     return showSpacePosition.clockRightInset()
 end
 
--- Return the top of `pair`'s first row: under the menu bar on a desktop, under the title bar on a full-screen Space unless the page dots make room inside it.
+-- Return where show_space_position wants the clock's rows to start below a row of dots hanging past the title bar, or nil to leave them under the title bar; nil too until that module loads.
+local function belowDotsClockTop()
+    if showSpacePosition == nil then
+        return nil
+    end
+    return showSpacePosition.clockTopBelowDots()
+end
+
+-- Return the top of `pair`'s first row: under the menu bar on a desktop, under the title bar or the page dots below it on a full-screen Space unless the page dots make room inside it.
 function clockTop(pair)
     if not pair.fullScreen then
         return y
     elseif titleBarClockInset() ~= nil then
         -- Center both rows in the title bar.
         return (TITLE_BAR_HEIGHT - 2 * h) / 2
+    elseif belowDotsClockTop() ~= nil then
+        return belowDotsClockTop()
     end
     return FULL_SCREEN_CLOCK_TOP
 end

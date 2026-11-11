@@ -1,4 +1,5 @@
 -- Share which Space each Ctrl+N key reaches: Ctrl+0 the first desktop, Ctrl+1 to 9 the full-screen Spaces in swipe order.
+-- Require nothing else here, so both the hotkeys and the page dots can load it without a require loop.
 local numberedSpaceKeys = {}
 
 local function fullScreenSpaces(spaces)
@@ -26,6 +27,18 @@ function numberedSpaceKeys.targetFor(digit, spaces)
         return firstDesktop(spaces)
     end
     return fullScreenSpaces(spaces)[digit]
+end
+
+-- Map each of `spaces` that has a Ctrl+N key to its digit, so the page dots label the Space the key would reach.
+function numberedSpaceKeys.keysFor(spaces)
+    local keys = {}
+    for digit = 0, 9 do
+        local space = numberedSpaceKeys.targetFor(digit, spaces)
+        if space ~= nil then
+            keys[space] = digit
+        end
+    end
+    return keys
 end
 
 return numberedSpaceKeys

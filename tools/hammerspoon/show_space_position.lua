@@ -134,6 +134,10 @@ local HOVER_FRAME_MARGIN = 2
 local HOVER_FRAME_RADIUS = 6
 -- Size the follow-order letter to fit the strip between a dot and the title bar's bottom edge.
 local FOLLOW_ORDER_TEXT_SIZE = 10
+local BADGE_TEXT_HEIGHT = FOLLOW_ORDER_TEXT_SIZE + 2
+-- Grow a row of dots below the title bar to fit a Ctrl+N hotkey line under the follow-order letters, overlapping the window's top edge there.
+local HORIZONTAL_DOTS_HEIGHT = TITLE_BAR_HEIGHT / 2 + DOT_SIZE / 2 + 2 * BADGE_TEXT_HEIGHT
+local HOTKEY_COLOR = { white = 1, alpha = 0.6 }
 -- Mark only the first few picks in the follow order, so the row shows where a close lands next without badging every dot.
 local FOLLOW_ORDER_LIMIT = 3
 -- Wait out macOS rearranging Spaces after a display change, a wake or a Space closing, which often runs on past the event reporting it.
@@ -142,6 +146,7 @@ local SETTLE_SECONDS = 1
 local pinCanvasesToSpaces = require('pin_canvases_to_spaces')
 -- Load the alternate clock first, whose update_clock_position re-places it beside the dots' column.
 require('display_alternate_clock')
+local numberedSpaceKeys = require('numbered_space_keys')
 
 local EDGE_BAR_BEHAVIOR = pinCanvasesToSpaces.BEHAVIOR
 
@@ -337,7 +342,7 @@ local function pageDotsSize(count)
     if isEnabled('vertical_dots') then
         return { w = TITLE_BAR_HEIGHT, h = count * (DOT_SIZE + DOT_GAP) + 2 * DOTS_PADDING }
     end
-    return { w = count * DOT_SIZE + (count - 1) * DOT_GAP + 2 * DOTS_PADDING, h = TITLE_BAR_HEIGHT }
+    return { w = count * DOT_SIZE + (count - 1) * DOT_GAP + 2 * DOTS_PADDING, h = HORIZONTAL_DOTS_HEIGHT }
 end
 
 -- Keep the pill clear unless `pillVisible`, which shows where the canvas sits.
@@ -403,7 +408,7 @@ local function hoverFrameElement(center)
             x = center.x - halfWidth,
             y = HOVER_FRAME_MARGIN,
             w = 2 * halfWidth,
-            h = TITLE_BAR_HEIGHT - 2 * HOVER_FRAME_MARGIN,
+            h = HORIZONTAL_DOTS_HEIGHT - 2 * HOVER_FRAME_MARGIN,
         }
     end
     return {
@@ -416,14 +421,39 @@ local function hoverFrameElement(center)
     }
 end
 
--- Draw one dot per Space in `color` on a pill, filling the dot at `index` and framing the one at `hoverSlot`.
+-- Write the Ctrl+N key that reaches the dot at `slot` beneath its follow-order letter; skip a column, where that line would run into the next dot.
+local function appendHotkey(
+    elements,
+    slot,
+    slotHotkeys
+)
+    local digit = slotHotkeys[slot]
+    if digit == nil then
+        return
+    elseif isEnabled('vertical_dots') then
+        return
+    end
+    local center = pageDotCenter(slot)
+    elements[#elements + 1] = {
+        type = 'text',
+        text = '⌃' .. digit,
+        textColor = HOTKEY_COLOR,
+        textFont = 'Menlo',
+        textSize = FOLLOW_ORDER_TEXT_SIZE,
+        textAlignment = 'center',
+        frame = { x = center.x - DOT_SIZE / 2, y = center.y + DOT_SIZE / 2 + BADGE_TEXT_HEIGHT, w = DOT_SIZE, h = BADGE_TEXT_HEIGHT },
+    }
+end
+
+-- Draw one dot per Space in `color` on a pill, filling the dot at `index`, framing the one at `hoverSlot` and labeling each with its key in `slotHotkeys`.
 local function layoutPageDots(
     dots,
     index,
     count,
     color,
     pillVisible,
-    hoverSlot
+    hoverSlot,
+    slotHotkeys
 )
     local elements = { pageDotsPill(pillVisible) }
     -- Draw the dots fully opaque, the same as the bumper, so they hold up against glare.
@@ -443,6 +473,7 @@ local function layoutPageDots(
             dot.action = 'stroke'
         end
         elements[#elements + 1] = dot
+        appendHotkey(elements, position, slotHotkeys)
     end
     if hoverSlot ~= nil then
         elements[#elements + 1] = hoverFrameElement(pageDotCenter(hoverSlot))
@@ -713,7 +744,7 @@ end
 
 -- Write a dot's place in the follow order centered beneath it, in the slot the focus underline uses; the focused dot is never ranked, so the two never meet.
 local function followOrderElement(center, rank)
-    local textHeight = FOLLOW_ORDER_TEXT_SIZE + 2
+    local textHeight = BADGE_TEXT_HEIGHT
     return {
         type = 'text',
         text = string.char(string.byte('A') + rank - 1),
@@ -726,7 +757,7 @@ local function followOrderElement(center, rank)
 end
 
 -- Draw the home triangle, then one ring per Space in `spaces` showing its session's state, marking the ring at `index` and badging each ranked in `followOrder`; draw pings only when `animate`, since a still frame would freeze one mid-ripple.
--- Frame the slot at `hoverSlot`, counting the home triangle as slot 1.
+-- Frame the slot at `hoverSlot` and label each slot with its key in `slotHotkeys`, counting the home triangle as slot 1.
 local function layoutSessionDots(
     dots,
     index,
@@ -735,12 +766,14 @@ local function layoutSessionDots(
     pillVisible,
     seconds,
     animate,
-    hoverSlot
+    hoverSlot,
+    slotHotkeys
 )
     local elements = { pageDotsPill(pillVisible) }
     for _, element in ipairs(homeElements(pageDotCenter(1))) do
         elements[#elements + 1] = element
     end
+    appendHotkey(elements, 1, slotHotkeys)
     for position, space in ipairs(spaces) do
         -- Shift each ring one slot past the home triangle.
         local center = pageDotCenter(position + 1)
@@ -761,6 +794,7 @@ local function layoutSessionDots(
         if followOrder[space] ~= nil then
             elements[#elements + 1] = followOrderElement(center, followOrder[space])
         end
+        appendHotkey(elements, position + 1, slotHotkeys)
     end
     if hoverSlot ~= nil then
         elements[#elements + 1] = hoverFrameElement(pageDotCenter(hoverSlot))
@@ -1217,6 +1251,12 @@ local function placeEdgeBars(pair, index, count, screen)
     local screenSpaces = hs.spaces.spacesForScreen(screen) or {}
     -- Map each dot slot to its Space for a click; both rows run in swipe order, the session row's home triangle standing in for the first Space.
     pair.dotSpaces = screenSpaces
+    -- Label each slot with the Ctrl+N key that reaches its Space.
+    local keys = numberedSpaceKeys.keysFor(screenSpaces)
+    pair.slotHotkeys = {}
+    for slot, space in ipairs(screenSpaces) do
+        pair.slotHotkeys[slot] = keys[space]
+    end
     if isEnabled('session_state') then
         local spaces = sessionDotSpaces(screen)
         local rowIndex = index - 1
@@ -1236,14 +1276,15 @@ local function placeEdgeBars(pair, index, count, screen)
                 pillVisible,
                 hs.timer.secondsSinceEpoch(),
                 false,
-                pair.hoverSlot
+                pair.hoverSlot,
+                pair.slotHotkeys
             )
             pair.sessionKey = key
             -- Forget the plain dots, so turning session_state off redraws them.
             pair.dotsIndex = nil
         end
     elseif pair.dotsIndex ~= index or pair.dotsCount ~= count or pair.dotsPill ~= pillVisible or pair.dotsHover ~= pair.hoverSlot or pair.dotsVertical ~= vertical then
-        layoutPageDots(pair.dots, index, count, pair.color, pillVisible, pair.hoverSlot)
+        layoutPageDots(pair.dots, index, count, pair.color, pillVisible, pair.hoverSlot, pair.slotHotkeys)
         pair.dotsIndex = index
         pair.dotsCount = count
         pair.dotsPill = pillVisible
@@ -1280,12 +1321,13 @@ local function redrawPageDots(pair)
             pillVisible,
             seconds,
             sessionDotsAnimate(pair.sessionSpaces, seconds),
-            pair.hoverSlot
+            pair.hoverSlot,
+            pair.slotHotkeys
         )
         pair.sessionKey = sessionDotsKey(pair.sessionIndex, pair.sessionSpaces, pair.followOrder, pillVisible, pair.hoverSlot)
         return
     end
-    layoutPageDots(pair.dots, pair.dotsIndex, pair.dotsCount, pair.color, pillVisible, pair.hoverSlot)
+    layoutPageDots(pair.dots, pair.dotsIndex, pair.dotsCount, pair.color, pillVisible, pair.hoverSlot, pair.slotHotkeys)
     pair.dotsPill = pillVisible
     pair.dotsHover = pair.hoverSlot
 end
@@ -1453,7 +1495,8 @@ local function animateFrame()
             pillVisible,
             seconds,
             animate,
-            pair.hoverSlot
+            pair.hoverSlot,
+            pair.slotHotkeys
         )
         if animate then
             moving = true
@@ -1621,6 +1664,16 @@ function showSpacePosition.clockRightInset()
         return nil
     end
     return pageDotsSize(1).w + COUNTDOWN_WIDTH
+end
+
+-- Return where display_alternate_clock should start its rows to clear a row of dots and their hotkey line, or nil when no row hangs below the title bar.
+function showSpacePosition.clockTopBelowDots()
+    if not isEnabled('page_dots') then
+        return nil
+    elseif isEnabled('vertical_dots') then
+        return nil
+    end
+    return HORIZONTAL_DOTS_HEIGHT
 end
 
 -- Turn an experiment on or off, pick a style or set a number, or report every one's current value when called with no name.
