@@ -138,14 +138,14 @@ local HOVER_FRAME_SIDE_PADDING = DOT_GAP / 2 - 1
 -- Keep the frame off the title bar's edges, tall enough to take in the focus underline and follow-order letter.
 local HOVER_FRAME_MARGIN = 2
 local HOVER_FRAME_RADIUS = 6
--- Size the follow-order letter to read at a glance under its dot, a step below the hotkeys so the two lines stay apart.
+-- Size the follow-order letter to read at a glance under its dot.
 local FOLLOW_ORDER_TEXT_SIZE = 13
 local BADGE_TEXT_HEIGHT = FOLLOW_ORDER_TEXT_SIZE + 2
--- Size the Ctrl+N hotkeys larger than the follow-order letters, so they read at a glance below the title bar.
+-- Size the Ctrl+N digits to read at a glance inside a dot without touching its ring.
 local HOTKEY_TEXT_SIZE = 14
 local HOTKEY_TEXT_HEIGHT = HOTKEY_TEXT_SIZE + 2
--- Grow a row of dots below the title bar to fit a Ctrl+N hotkey line under the follow-order letters, overlapping the window's top edge there.
-local HORIZONTAL_DOTS_HEIGHT = DOT_SIZE + BADGE_TEXT_HEIGHT + HOTKEY_TEXT_HEIGHT
+-- Grow a row of dots below the title bar to fit the follow-order letters, overlapping the window's top edge there.
+local HORIZONTAL_DOTS_HEIGHT = DOT_SIZE + BADGE_TEXT_HEIGHT
 local HOTKEY_COLOR = { white = 1, alpha = 0.6 }
 -- Mark only the first few picks in the follow order, so the row shows where a close lands next without badging every dot.
 local FOLLOW_ORDER_LIMIT = 3
@@ -407,23 +407,13 @@ local function pageDotsBadgeFrame(count)
     return frame
 end
 
--- Return the frame of the dots' band plus every label under it.
-local function pageDotsLabeledFrame(count)
-    local frame = pageDotsBadgeFrame(count)
-    -- Take in a row's hotkey line too, which a column doesn't draw.
-    if not isEnabled('vertical_dots') then
-        frame.h = frame.h + HOTKEY_TEXT_HEIGHT
-    end
-    return frame
-end
-
 -- Back the band the `count` dots run along, and the labels under it, in black whether or not `pillVisible`, so they read the same against whatever sits behind them.
 local function pageDotsBand(count)
     return {
         type = 'rectangle',
         action = 'fill',
         fillColor = { red = 0, green = 0, blue = 0, alpha = 1 },
-        frame = pageDotsLabeledFrame(count),
+        frame = pageDotsBadgeFrame(count),
     }
 end
 
@@ -436,7 +426,7 @@ local function appendDotsBottomEdge(
     if pillVisible then
         return
     end
-    local frame = pageDotsLabeledFrame(count)
+    local frame = pageDotsBadgeFrame(count)
     -- Inset by half the stroke, so the whole line lands inside the canvas.
     local y = frame.y + frame.h - 0.5
     elements[#elements + 1] = {
@@ -541,7 +531,7 @@ local function hoverFrameElement(center)
     }
 end
 
--- Write the Ctrl+N key that reaches the dot at `slot` beneath its follow-order letter; skip a column, where that line would run into the next dot.
+-- Write the digit of the Ctrl+N key that reaches the dot at `slot` inside the dot, on top of whatever it holds.
 local function appendHotkey(
     elements,
     slot,
@@ -550,18 +540,16 @@ local function appendHotkey(
     local digit = slotHotkeys[slot]
     if digit == nil then
         return
-    elseif isEnabled('vertical_dots') then
-        return
     end
     local center = pageDotCenter(slot)
     elements[#elements + 1] = {
         type = 'text',
-        text = '⌃' .. digit,
+        text = tostring(digit),
         textColor = HOTKEY_COLOR,
         textFont = 'Menlo',
         textSize = HOTKEY_TEXT_SIZE,
         textAlignment = 'center',
-        frame = { x = center.x - DOT_SIZE / 2, y = center.y + DOT_SIZE / 2 + BADGE_TEXT_HEIGHT, w = DOT_SIZE, h = HOTKEY_TEXT_HEIGHT },
+        frame = { x = center.x - DOT_SIZE / 2, y = center.y - HOTKEY_TEXT_HEIGHT / 2, w = DOT_SIZE, h = HOTKEY_TEXT_HEIGHT },
     }
 end
 
