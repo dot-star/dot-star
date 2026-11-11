@@ -219,6 +219,79 @@
     Out of it All by Helen Jane Long.mp3: Audio file with ID3 version 2.4.0, contains:MPEG ADTS, layer III, v2, 160 kbps, 22.05 kHz, Monaural (4,832,126 bytes)
     0:04:38
 
+## macOS hotkeys (Hammerspoon)
+
+`./install.sh` installs Hammerspoon and adds these modules to `~/.hammerspoon/init.lua`, keeping anything already in that file. It reloads Hammerspoon whenever the modules change.
+
+### Apps
+
+| Hotkey | Does |
+|--------|------|
+| Option(⌥) + C | open Chrome |
+| Option(⌥) + D | open a new Ghostty window running `claude` |
+| Option(⌥) + F | open Firefox |
+| Option(⌥) + G | open `wish` |
+| Option(⌥) + I | show or hide Ghostty |
+| Option(⌥) + K | open Slack |
+| Option(⌥) + M | open VLC |
+| Option(⌥) + O | open Finder |
+| Option(⌥) + P | open Preview |
+| Option(⌥) + S | open Activity Monitor |
+| Option(⌥) + V | open MacVim |
+| Option(⌥) + Y | open VS Code |
+| Option(⌥) + Z | open Zoom |
+| F18 | show or hide Ghostty |
+
+### Window layout
+
+Press a side or corner hotkey again to cycle the window through 1/2, 2/3 and 1/3 sizes.
+
+| Hotkey | Does |
+|--------|------|
+| Ctrl(⌃) + Cmd(⌘) + Q | move to the top-left corner |
+| Ctrl(⌃) + Cmd(⌘) + W | move to the top half |
+| Ctrl(⌃) + Cmd(⌘) + E | move to the top-right corner |
+| Ctrl(⌃) + Cmd(⌘) + A | move to the left half |
+| Ctrl(⌃) + Cmd(⌘) + S | fill the screen |
+| Ctrl(⌃) + Cmd(⌘) + D | move to the right half |
+| Ctrl(⌃) + Cmd(⌘) + Z | move to the bottom-left corner |
+| Ctrl(⌃) + Cmd(⌘) + X | move to the bottom half |
+| Ctrl(⌃) + Cmd(⌘) + C | move to the bottom-right corner |
+| Ctrl(⌃) + Cmd(⌘) + Up | move to the top half |
+| Ctrl(⌃) + Cmd(⌘) + Down | move to the bottom half |
+| Ctrl(⌃) + Cmd(⌘) + Left | move to the left half |
+| Ctrl(⌃) + Cmd(⌘) + Right | move to the right half |
+| Option(⌥) + 1 | move to the left third |
+| Option(⌥) + 2 | move to the middle third |
+| Option(⌥) + 3 | move to the right third |
+| Option(⌥) + 4 | move to the left two-thirds |
+| Option(⌥) + 5 | move to the right two-thirds |
+| Option(⌥) + 6 | center at half width |
+| Option(⌥) + 7 | center at two-thirds width |
+| Option(⌥) + 8 | move to the third just left of center |
+| Option(⌥) + 9 | move to the third just right of center |
+
+### Displays and tabs
+
+| Hotkey | Does |
+|--------|------|
+| Ctrl(⌃) + Option(⌥) + Cmd(⌘) + Left | move the window to the previous display |
+| Ctrl(⌃) + Option(⌥) + Cmd(⌘) + Right | move the window to the next display |
+| Ctrl(⌃) + Option(⌥) + Cmd(⌘) + N | move the current tab to a new window (Safari, Chrome, Ghostty) |
+
+### System
+
+| Hotkey | Does |
+|--------|------|
+| Option(⌥) + B | turn Bluetooth on or off |
+| Option(⌥) + W | turn Wi-Fi on or off |
+
+### Always on
+
+- A clock showing Eastern and Pacific time.
+- Bars on the screen edges and dots in the title bar show where the current full-screen Space sits in the swipe order.
+- Closing a full-screen window takes you to the next full-screen app instead of the desktop.
+
 ## Update
 
     $ dotstar
