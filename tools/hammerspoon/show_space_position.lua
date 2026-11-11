@@ -387,6 +387,20 @@ local function appendDotsOutline(
     elements[#elements + 1] = {
         type = 'rectangle',
         action = 'stroke',
+        -- Stroke it red, apart from the cyan dots band it shares a bottom edge with; draw it first so the cyan lands on top there.
+        strokeColor = { red = 1, green = 0, blue = 0, alpha = 1 },
+        strokeWidth = 1,
+        -- Run it from the canvas's top edge down to the dots' bottom, so the gap above the dots shows too.
+        frame = {
+            x = 0,
+            y = 0,
+            w = pageDotsSize(count).w,
+            h = last.y + DOT_SIZE / 2,
+        },
+    }
+    elements[#elements + 1] = {
+        type = 'rectangle',
+        action = 'stroke',
         -- Stroke it cyan, apart from the magenta canvas tint.
         strokeColor = { red = 0, green = 1, blue = 1, alpha = 1 },
         strokeWidth = 1,
@@ -396,20 +410,6 @@ local function appendDotsOutline(
             y = first.y - DOT_SIZE / 2,
             w = pageDotsSize(count).w,
             h = last.y - first.y + DOT_SIZE,
-        },
-    }
-    elements[#elements + 1] = {
-        type = 'rectangle',
-        action = 'stroke',
-        -- Stroke it lime, apart from the cyan dots band it shares a bottom edge with.
-        strokeColor = { red = 0.6, green = 1, blue = 0, alpha = 1 },
-        strokeWidth = 1,
-        -- Run it from the canvas's top edge down to the dots' bottom, so the gap above the dots shows too.
-        frame = {
-            x = 0,
-            y = 0,
-            w = pageDotsSize(count).w,
-            h = last.y + DOT_SIZE / 2,
         },
     }
 end
