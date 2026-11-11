@@ -5,7 +5,7 @@
 --   Add a matching band along the top edge of every full-screen Space (top_bar, needs edge_bars).
 --   Paint each Space's bars the next color in a cycle rather than one shared color (cycle_colors, needs edge_bars).
 --   Add a row of dots in the title bar's upper-right corner of every full-screen Space, the focused Space filled; click a dot to jump to its Space (page_dots, needs edge_bars).
---   Show the dots on a desktop too, placed as on a full-screen Space over the menu bar, pushing the clock below them (desktop_dots, needs page_dots).
+--   Show the dots on a desktop too, placed as on a full-screen Space over the menu bar, left of the clock in the corner (desktop_dots, needs page_dots).
 --   Show the dark pill behind the dots, to check where their canvas sits (page_dots_pill, needs page_dots).
 --   Stack the dots in a column down the upper-right corner, in swipe order from the top (vertical_dots, needs page_dots).
 --   Show on each dot the state of the Claude session whose window sits on that Space (session_state, needs page_dots).
@@ -1317,16 +1317,26 @@ local function followOrderOf(spaces, closing)
 end
 
 -- Fit a pair's bars, bumper and dots flush to the edges of `screen`, for the Space at `index` of `count` on it.
--- Return the width display_alternate_clock takes in the top-right corner of `pair`'s Space, which holds it there only beside a full-screen row of dots.
-local function cornerClockWidth(pair)
-    if not pair.fullScreen then
-        return 0
-    elseif not isEnabled('page_dots') then
-        return 0
+-- Return whether display_alternate_clock holds the top-right corner of a full-screen Space or, unless `fullScreen`, a desktop, which it does beside a row of dots there.
+local function clockHoldsCorner(fullScreen)
+    if not isEnabled('page_dots') then
+        return false
     elseif isEnabled('vertical_dots') then
-        return 0
+        return false
+    elseif fullScreen then
+        return true
+    elseif isEnabled('desktop_dots') then
+        return true
     end
-    return alternateClockWidth()
+    return false
+end
+
+-- Return the width display_alternate_clock takes in the top-right corner of `pair`'s Space, so the dots can sit left of it.
+local function cornerClockWidth(pair)
+    if clockHoldsCorner(pair.fullScreen) then
+        return alternateClockWidth()
+    end
+    return 0
 end
 
 local function placeEdgeBars(pair, index, count, screen)
@@ -1786,27 +1796,17 @@ local function renderAfterSettle()
     end)
 end
 
--- Return how far from the screen's right edge display_alternate_clock should end its rows in the title bar, or nil to leave them below it.
--- Hold the corner beside a row of dots, which makes room for it; sit left of a column of dots instead, reserving the countdown's slot even while it's hidden, so the clock holds still as follow_ready toggles.
-function showSpacePosition.clockRightInset()
+-- Return how far from the screen's right edge display_alternate_clock should end its rows at the screen's top on a full-screen Space or, unless `fullScreen`, a desktop, or nil to leave them below.
+-- Sit left of a column of dots on a full-screen Space, reserving the countdown's slot even while it's hidden, so the clock holds still as follow_ready toggles.
+function showSpacePosition.clockRightInset(fullScreen)
     if not isEnabled('page_dots') then
         return nil
-    elseif not isEnabled('vertical_dots') then
+    elseif clockHoldsCorner(fullScreen) then
         return 0
+    elseif not fullScreen then
+        return nil
     end
     return pageDotsSize(1).w + COUNTDOWN_WIDTH
-end
-
--- Return where display_alternate_clock should start its rows on a desktop to clear the dots there, or nil when no dots show on a desktop.
-function showSpacePosition.desktopClockTop()
-    if not isEnabled('page_dots') then
-        return nil
-    elseif not isEnabled('desktop_dots') then
-        return nil
-    elseif isEnabled('vertical_dots') then
-        return nil
-    end
-    return HORIZONTAL_DOTS_HEIGHT
 end
 
 -- Turn an experiment on or off, pick a style or set a number, or report every one's current value when called with no name.

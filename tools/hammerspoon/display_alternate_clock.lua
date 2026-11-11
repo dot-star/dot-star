@@ -127,32 +127,21 @@ FULL_SCREEN_CLOCK_TOP = require('ghostty_title_bar').HEIGHT
 
 local TITLE_BAR_HEIGHT = require('ghostty_title_bar').HEIGHT
 
--- Return how far from the screen's right edge show_space_position wants the clock to end inside the title bar, or nil to leave it below; nil too until that module loads, since it loads after this one.
-local function titleBarClockInset()
+-- Return how far from the screen's right edge show_space_position wants `pair`'s clock to end at the screen's top, or nil to leave it below; nil too until that module loads, since it loads after this one.
+local function titleBarClockInset(pair)
     if showSpacePosition == nil then
         return nil
     end
-    return showSpacePosition.clockRightInset()
+    return showSpacePosition.clockRightInset(pair.fullScreen)
 end
 
--- Return where show_space_position wants the clock's rows to start below the dots on a desktop, or nil to leave them under the menu bar; nil too until that module loads.
-local function belowDesktopDotsClockTop()
-    if showSpacePosition == nil then
-        return nil
-    end
-    return showSpacePosition.desktopClockTop()
-end
-
--- Return the top of `pair`'s first row: under the menu bar on a desktop, under the title bar on a full-screen Space unless the page dots make room inside it.
+-- Return the top of `pair`'s first row: at the screen's top where the page dots make room there, else under the menu bar on a desktop or the title bar on a full-screen Space.
 function clockTop(pair)
-    if not pair.fullScreen then
-        if belowDesktopDotsClockTop() ~= nil then
-            return belowDesktopDotsClockTop()
-        end
-        return y
-    elseif titleBarClockInset() ~= nil then
-        -- Center both rows in the title bar.
+    if titleBarClockInset(pair) ~= nil then
+        -- Center both rows in the title bar's height, level with the dots.
         return (TITLE_BAR_HEIGHT - 2 * h) / 2
+    elseif not pair.fullScreen then
+        return y
     end
     return FULL_SCREEN_CLOCK_TOP
 end
@@ -164,10 +153,7 @@ end
 
 -- Return the left edge of `pair`'s rows: flush right, or left of what the page dots keep in the title bar.
 function clockLeft(pair)
-    if not pair.fullScreen then
-        return x
-    end
-    local inset = titleBarClockInset()
+    local inset = titleBarClockInset(pair)
     if inset == nil then
         return x
     end
