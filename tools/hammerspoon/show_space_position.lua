@@ -58,34 +58,37 @@ local SETTINGS_PREFIX = 'show_space_position.'
 local EDGE_BAR_WIDTH = 7
 -- Keep the top and bottom bands thinner than the edge strips, so they hint at the Space's color without eating into the terminal.
 local BAND_HEIGHT = 5
--- Size the swipe hint to the old last-page bumper, which read at a glance without crowding the desktop.
-local SWIPE_HINT_WIDTH = 28
-local SWIPE_HINT_HEIGHT = 140
--- Keep the chevron shorter than the block, so it reads as an arrow rather than a bracket.
-local SWIPE_HINT_CHEVRON_HEIGHT = 56
-local SWIPE_HINT_CHEVRON_WIDTH = 5
--- Outline the chevron in black, so it holds its shape over a light wallpaper or window.
-local SWIPE_HINT_OUTLINE_WIDTH = 4
-local SWIPE_HINT_OUTLINE_COLOR = { white = 0, alpha = 1 }
--- Back the tab style's chevron with a dark half-pill, a blob big and contrasty enough to spot through a squint on any wallpaper.
-local SWIPE_HINT_TAB_WIDTH = 44
-local SWIPE_HINT_TAB_RADIUS = 14
-local SWIPE_HINT_TAB_COLOR = { white = 0, alpha = 1 }
-local SWIPE_HINT_TAB_CHEVRON_HEIGHT = 70
-local SWIPE_HINT_TAB_CHEVRON_DEPTH = 16
-local SWIPE_HINT_TAB_CHEVRON_WIDTH = 10
--- Grow the large style's chevron to the hint's full height with a heavy stroke, so it survives a squint without a backing tab.
-local SWIPE_HINT_LARGE_CHEVRON_DEPTH = 28
-local SWIPE_HINT_LARGE_CHEVRON_WIDTH = 12
-local SWIPE_HINT_LARGE_OUTLINE_WIDTH = SWIPE_HINT_LARGE_CHEVRON_WIDTH + 2 * SWIPE_HINT_OUTLINE_WIDTH
-local SWIPE_HINT_LARGE_WIDTH = SWIPE_HINT_LARGE_CHEVRON_DEPTH + SWIPE_HINT_LARGE_OUTLINE_WIDTH
--- Pair two full-height chevrons, doubling the yellow area and reading as fast-forward toward the next Space.
-local SWIPE_HINT_DOUBLE_CHEVRON_DEPTH = 24
-local SWIPE_HINT_DOUBLE_CHEVRON_WIDTH = 10
--- Space the chevrons wider than their outlined stroke, so a gap of desktop shows between them.
-local SWIPE_HINT_DOUBLE_SPACING = 26
-local SWIPE_HINT_DOUBLE_OUTLINE_WIDTH = SWIPE_HINT_DOUBLE_CHEVRON_WIDTH + 2 * SWIPE_HINT_OUTLINE_WIDTH
-local SWIPE_HINT_DOUBLE_WIDTH = SWIPE_HINT_DOUBLE_SPACING + SWIPE_HINT_DOUBLE_CHEVRON_DEPTH + SWIPE_HINT_DOUBLE_OUTLINE_WIDTH
+-- Group the swipe hint's sizes and colors in one table, keeping the chunk under Lua's limit of 200 locals.
+local SWIPE_HINT = {
+    -- Size the swipe hint to the old last-page bumper, which read at a glance without crowding the desktop.
+    WIDTH = 28,
+    HEIGHT = 140,
+    -- Keep the chevron shorter than the block, so it reads as an arrow rather than a bracket.
+    CHEVRON_HEIGHT = 56,
+    CHEVRON_WIDTH = 5,
+    -- Outline the chevron in black, so it holds its shape over a light wallpaper or window.
+    OUTLINE_WIDTH = 4,
+    OUTLINE_COLOR = { white = 0, alpha = 1 },
+    -- Back the tab style's chevron with a dark half-pill, a blob big and contrasty enough to spot through a squint on any wallpaper.
+    TAB_WIDTH = 44,
+    TAB_RADIUS = 14,
+    TAB_COLOR = { white = 0, alpha = 1 },
+    TAB_CHEVRON_HEIGHT = 70,
+    TAB_CHEVRON_DEPTH = 16,
+    TAB_CHEVRON_WIDTH = 10,
+    -- Grow the large style's chevron to the hint's full height with a heavy stroke, so it survives a squint without a backing tab.
+    LARGE_CHEVRON_DEPTH = 28,
+    LARGE_CHEVRON_WIDTH = 12,
+    -- Pair two full-height chevrons, doubling the yellow area and reading as fast-forward toward the next Space.
+    DOUBLE_CHEVRON_DEPTH = 24,
+    DOUBLE_CHEVRON_WIDTH = 10,
+    -- Space the chevrons wider than their outlined stroke, so a gap of desktop shows between them.
+    DOUBLE_SPACING = 26,
+}
+SWIPE_HINT.LARGE_OUTLINE_WIDTH = SWIPE_HINT.LARGE_CHEVRON_WIDTH + 2 * SWIPE_HINT.OUTLINE_WIDTH
+SWIPE_HINT.LARGE_WIDTH = SWIPE_HINT.LARGE_CHEVRON_DEPTH + SWIPE_HINT.LARGE_OUTLINE_WIDTH
+SWIPE_HINT.DOUBLE_OUTLINE_WIDTH = SWIPE_HINT.DOUBLE_CHEVRON_WIDTH + 2 * SWIPE_HINT.OUTLINE_WIDTH
+SWIPE_HINT.DOUBLE_WIDTH = SWIPE_HINT.DOUBLE_SPACING + SWIPE_HINT.DOUBLE_CHEVRON_DEPTH + SWIPE_HINT.DOUBLE_OUTLINE_WIDTH
 -- Paint each Space's pair the next color, so pairs are told apart and a recreated pair shows up as a color change.
 local EDGE_BAR_COLORS = {
     { red = 1, green = 0.2, blue = 0.2, alpha = 0.9 },
@@ -323,7 +326,7 @@ local function layoutEdgeBar(
 end
 
 local function newSwipeHint()
-    return newOverlay({ x = 0, y = 0, w = SWIPE_HINT_WIDTH, h = SWIPE_HINT_HEIGHT }, EDGE_BAR_BEHAVIOR)
+    return newOverlay({ x = 0, y = 0, w = SWIPE_HINT.WIDTH, h = SWIPE_HINT.HEIGHT }, EDGE_BAR_BEHAVIOR)
 end
 
 local function newPageDots()
@@ -679,23 +682,23 @@ local function layoutSwipeHint(
         return
     elseif style == 'double' then
         -- Stroke both outlines before either chevron, so the second outline never cuts across the first chevron.
-        local doubleInset = SWIPE_HINT_DOUBLE_OUTLINE_WIDTH / 2
+        local doubleInset = SWIPE_HINT.DOUBLE_OUTLINE_WIDTH / 2
         local function chevronAt(left)
             return {
                 { x = left, y = doubleInset },
-                { x = left + SWIPE_HINT_DOUBLE_CHEVRON_DEPTH, y = SWIPE_HINT_HEIGHT / 2 },
-                { x = left, y = SWIPE_HINT_HEIGHT - doubleInset },
+                { x = left + SWIPE_HINT.DOUBLE_CHEVRON_DEPTH, y = SWIPE_HINT.HEIGHT / 2 },
+                { x = left, y = SWIPE_HINT.HEIGHT - doubleInset },
             }
         end
         local chevrons = {
             chevronAt(doubleInset),
-            chevronAt(doubleInset + SWIPE_HINT_DOUBLE_SPACING),
+            chevronAt(doubleInset + SWIPE_HINT.DOUBLE_SPACING),
         }
         for _, points in ipairs(chevrons) do
-            hint[#hint + 1] = line(points, SWIPE_HINT_OUTLINE_COLOR, SWIPE_HINT_DOUBLE_OUTLINE_WIDTH)
+            hint[#hint + 1] = line(points, SWIPE_HINT.OUTLINE_COLOR, SWIPE_HINT.DOUBLE_OUTLINE_WIDTH)
         end
         for _, points in ipairs(chevrons) do
-            hint[#hint + 1] = line(points, opaque, SWIPE_HINT_DOUBLE_CHEVRON_WIDTH)
+            hint[#hint + 1] = line(points, opaque, SWIPE_HINT.DOUBLE_CHEVRON_WIDTH)
         end
         return
     elseif style == 'tab' then
@@ -703,42 +706,42 @@ local function layoutSwipeHint(
         hint[1] = {
             type = 'rectangle',
             action = 'fill',
-            fillColor = SWIPE_HINT_TAB_COLOR,
-            frame = { x = 0, y = 0, w = SWIPE_HINT_TAB_WIDTH + SWIPE_HINT_TAB_RADIUS, h = SWIPE_HINT_HEIGHT },
-            roundedRectRadii = { xRadius = SWIPE_HINT_TAB_RADIUS, yRadius = SWIPE_HINT_TAB_RADIUS },
+            fillColor = SWIPE_HINT.TAB_COLOR,
+            frame = { x = 0, y = 0, w = SWIPE_HINT.TAB_WIDTH + SWIPE_HINT.TAB_RADIUS, h = SWIPE_HINT.HEIGHT },
+            roundedRectRadii = { xRadius = SWIPE_HINT.TAB_RADIUS, yRadius = SWIPE_HINT.TAB_RADIUS },
         }
-        local left = (SWIPE_HINT_TAB_WIDTH - SWIPE_HINT_TAB_CHEVRON_DEPTH) / 2
-        local tabMiddle = SWIPE_HINT_HEIGHT / 2
+        local left = (SWIPE_HINT.TAB_WIDTH - SWIPE_HINT.TAB_CHEVRON_DEPTH) / 2
+        local tabMiddle = SWIPE_HINT.HEIGHT / 2
         hint[2] = line({
-            { x = left, y = tabMiddle - SWIPE_HINT_TAB_CHEVRON_HEIGHT / 2 },
-            { x = left + SWIPE_HINT_TAB_CHEVRON_DEPTH, y = tabMiddle },
-            { x = left, y = tabMiddle + SWIPE_HINT_TAB_CHEVRON_HEIGHT / 2 },
-        }, opaque, SWIPE_HINT_TAB_CHEVRON_WIDTH)
+            { x = left, y = tabMiddle - SWIPE_HINT.TAB_CHEVRON_HEIGHT / 2 },
+            { x = left + SWIPE_HINT.TAB_CHEVRON_DEPTH, y = tabMiddle },
+            { x = left, y = tabMiddle + SWIPE_HINT.TAB_CHEVRON_HEIGHT / 2 },
+        }, opaque, SWIPE_HINT.TAB_CHEVRON_WIDTH)
         return
     elseif style == 'large' then
         -- Inset by half the outline's stroke on every side, so the round caps stay inside the canvas.
-        local largeInset = SWIPE_HINT_LARGE_OUTLINE_WIDTH / 2
+        local largeInset = SWIPE_HINT.LARGE_OUTLINE_WIDTH / 2
         local largePoints = {
             { x = largeInset, y = largeInset },
-            { x = largeInset + SWIPE_HINT_LARGE_CHEVRON_DEPTH, y = SWIPE_HINT_HEIGHT / 2 },
-            { x = largeInset, y = SWIPE_HINT_HEIGHT - largeInset },
+            { x = largeInset + SWIPE_HINT.LARGE_CHEVRON_DEPTH, y = SWIPE_HINT.HEIGHT / 2 },
+            { x = largeInset, y = SWIPE_HINT.HEIGHT - largeInset },
         }
-        hint[1] = line(largePoints, SWIPE_HINT_OUTLINE_COLOR, SWIPE_HINT_LARGE_OUTLINE_WIDTH)
-        hint[2] = line(largePoints, opaque, SWIPE_HINT_LARGE_CHEVRON_WIDTH)
+        hint[1] = line(largePoints, SWIPE_HINT.OUTLINE_COLOR, SWIPE_HINT.LARGE_OUTLINE_WIDTH)
+        hint[2] = line(largePoints, opaque, SWIPE_HINT.LARGE_CHEVRON_WIDTH)
         return
     end
     -- Stroke the outline first, wider by its width on each side, so the chevron drawn over it leaves a black rim.
-    local outlineWidth = SWIPE_HINT_CHEVRON_WIDTH + 2 * SWIPE_HINT_OUTLINE_WIDTH
+    local outlineWidth = SWIPE_HINT.CHEVRON_WIDTH + 2 * SWIPE_HINT.OUTLINE_WIDTH
     -- Point the chevron at the screen edge, inset by half the outline's stroke so the round caps stay inside the canvas.
     local inset = outlineWidth / 2
-    local middle = SWIPE_HINT_HEIGHT / 2
+    local middle = SWIPE_HINT.HEIGHT / 2
     local points = {
-        { x = inset, y = middle - SWIPE_HINT_CHEVRON_HEIGHT / 2 },
-        { x = SWIPE_HINT_WIDTH - inset, y = middle },
-        { x = inset, y = middle + SWIPE_HINT_CHEVRON_HEIGHT / 2 },
+        { x = inset, y = middle - SWIPE_HINT.CHEVRON_HEIGHT / 2 },
+        { x = SWIPE_HINT.WIDTH - inset, y = middle },
+        { x = inset, y = middle + SWIPE_HINT.CHEVRON_HEIGHT / 2 },
     }
-    hint[1] = line(points, SWIPE_HINT_OUTLINE_COLOR, outlineWidth)
-    hint[2] = line(points, opaque, SWIPE_HINT_CHEVRON_WIDTH)
+    hint[1] = line(points, SWIPE_HINT.OUTLINE_COLOR, outlineWidth)
+    hint[2] = line(points, opaque, SWIPE_HINT.CHEVRON_WIDTH)
 end
 
 local function arc(center, radius, color, startAngle, endAngle)
@@ -1493,19 +1496,19 @@ local function placeEdgeBars(pair, index, count, screen)
         layoutSwipeHint(pair.swipeHint, pair.color, swipeHintStyle)
         pair.swipeHintStyle = swipeHintStyle
     end
-    local swipeHintWidth = SWIPE_HINT_WIDTH
+    local swipeHintWidth = SWIPE_HINT.WIDTH
     if swipeHintStyle == 'tab' then
-        swipeHintWidth = SWIPE_HINT_TAB_WIDTH
+        swipeHintWidth = SWIPE_HINT.TAB_WIDTH
     elseif swipeHintStyle == 'large' then
-        swipeHintWidth = SWIPE_HINT_LARGE_WIDTH
+        swipeHintWidth = SWIPE_HINT.LARGE_WIDTH
     elseif swipeHintStyle == 'double' then
-        swipeHintWidth = SWIPE_HINT_DOUBLE_WIDTH
+        swipeHintWidth = SWIPE_HINT.DOUBLE_WIDTH
     end
     pair.swipeHint:frame({
         x = frame.x + frame.w - swipeHintWidth,
-        y = frame.y + (frame.h - SWIPE_HINT_HEIGHT) / 2,
+        y = frame.y + (frame.h - SWIPE_HINT.HEIGHT) / 2,
         w = swipeHintWidth,
-        h = SWIPE_HINT_HEIGHT,
+        h = SWIPE_HINT.HEIGHT,
     })
     -- Redraw the dots only when the Space moved, the count changed or the pill or column was toggled, the same as the bars' height check.
     local pillVisible = isEnabled('page_dots_pill')
