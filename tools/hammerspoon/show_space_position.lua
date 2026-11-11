@@ -407,13 +407,18 @@ local function pageDotsBadgeFrame(count)
     return frame
 end
 
--- Back the band the `count` dots run along, and the underline and letters under it, in black whether or not `pillVisible`, so they read the same against any title bar.
+-- Back the band the `count` dots run along, and the labels under it, in black whether or not `pillVisible`, so they read the same against whatever sits behind them.
 local function pageDotsBand(count)
+    local frame = pageDotsBadgeFrame(count)
+    -- Take in a row's hotkey line too, which a column doesn't draw.
+    if not isEnabled('vertical_dots') then
+        frame.h = frame.h + HOTKEY_TEXT_HEIGHT
+    end
     return {
         type = 'rectangle',
         action = 'fill',
         fillColor = { red = 0, green = 0, blue = 0, alpha = 1 },
-        frame = pageDotsBadgeFrame(count),
+        frame = frame,
     }
 end
 
