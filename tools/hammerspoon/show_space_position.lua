@@ -6,7 +6,7 @@
 --   Paint each Space's bars the next color in a cycle rather than one shared color (cycle_colors, needs edge_bars).
 --   Add a row of dots in the title bar's upper-right corner of every full-screen Space, the focused Space filled; click a dot to jump to its Space (page_dots, needs edge_bars).
 --   Show the dots on a desktop too, placed as on a full-screen Space over the menu bar, left of the clock in the corner (desktop_dots, needs page_dots).
---   Add a hint at the middle of a desktop's right edge while a Space lies beyond it, so swiping right reads as possible; a chevron or a block (swipe_hint, needs edge_bars).
+--   Add a hint at the middle of a desktop's right edge while a Space lies beyond it, so swiping right reads as possible; a chevron, a block or a chevron on a dark tab (swipe_hint, needs edge_bars).
 --   Show the dark pill behind the dots, to check where their canvas sits (page_dots_pill, needs page_dots).
 --   Stack the dots in a column down the upper-right corner, in swipe order from the top (vertical_dots, needs page_dots).
 --   Show on each dot the state of the Claude session whose window sits on that Space (session_state, needs page_dots).
@@ -47,7 +47,7 @@ local STYLE_CHOICES = {
     decision_style = { 'blink', 'flash', 'heartbeat', 'nudge' },
     focus_marker = { 'center', 'underline' },
     pending_style = { 'dashed', 'dot', 'pulse' },
-    swipe_hint_style = { 'block', 'chevron' },
+    swipe_hint_style = { 'block', 'chevron', 'tab' },
 }
 -- Apply each number's default until it's set; a saved value wins after that.
 local DEFAULT_NUMBERS = {
@@ -67,6 +67,13 @@ local SWIPE_HINT_CHEVRON_WIDTH = 5
 -- Outline the chevron in black, so it holds its shape over a light wallpaper or window.
 local SWIPE_HINT_OUTLINE_WIDTH = 4
 local SWIPE_HINT_OUTLINE_COLOR = { white = 0, alpha = 1 }
+-- Back the tab style's chevron with a dark half-pill, a blob big and contrasty enough to spot through a squint on any wallpaper.
+local SWIPE_HINT_TAB_WIDTH = 44
+local SWIPE_HINT_TAB_RADIUS = 14
+local SWIPE_HINT_TAB_COLOR = { white = 0, alpha = 1 }
+local SWIPE_HINT_TAB_CHEVRON_HEIGHT = 70
+local SWIPE_HINT_TAB_CHEVRON_DEPTH = 16
+local SWIPE_HINT_TAB_CHEVRON_WIDTH = 10
 -- Paint each Space's pair the next color, so pairs are told apart and a recreated pair shows up as a color change.
 local EDGE_BAR_COLORS = {
     { red = 1, green = 0.2, blue = 0.2, alpha = 0.9 },
@@ -655,6 +662,23 @@ local function layoutSwipeHint(
         hint[1] = { type = 'rectangle', action = 'fill', fillColor = opaque }
         -- Drop the chevron's top stroke, left over when the style switched from chevron.
         hint[2] = nil
+        return
+    elseif style == 'tab' then
+        -- Run the pill past the canvas's right side, so only its left corners round and it sits flush on the screen edge.
+        hint[1] = {
+            type = 'rectangle',
+            action = 'fill',
+            fillColor = SWIPE_HINT_TAB_COLOR,
+            frame = { x = 0, y = 0, w = SWIPE_HINT_TAB_WIDTH + SWIPE_HINT_TAB_RADIUS, h = SWIPE_HINT_HEIGHT },
+            roundedRectRadii = { xRadius = SWIPE_HINT_TAB_RADIUS, yRadius = SWIPE_HINT_TAB_RADIUS },
+        }
+        local left = (SWIPE_HINT_TAB_WIDTH - SWIPE_HINT_TAB_CHEVRON_DEPTH) / 2
+        local tabMiddle = SWIPE_HINT_HEIGHT / 2
+        hint[2] = line({
+            { x = left, y = tabMiddle - SWIPE_HINT_TAB_CHEVRON_HEIGHT / 2 },
+            { x = left + SWIPE_HINT_TAB_CHEVRON_DEPTH, y = tabMiddle },
+            { x = left, y = tabMiddle + SWIPE_HINT_TAB_CHEVRON_HEIGHT / 2 },
+        }, opaque, SWIPE_HINT_TAB_CHEVRON_WIDTH)
         return
     end
     -- Stroke the outline first, wider by its width on each side, so the chevron drawn over it leaves a black rim.
@@ -1423,10 +1447,14 @@ local function placeEdgeBars(pair, index, count, screen)
         layoutSwipeHint(pair.swipeHint, pair.color, swipeHintStyle)
         pair.swipeHintStyle = swipeHintStyle
     end
+    local swipeHintWidth = SWIPE_HINT_WIDTH
+    if swipeHintStyle == 'tab' then
+        swipeHintWidth = SWIPE_HINT_TAB_WIDTH
+    end
     pair.swipeHint:frame({
-        x = frame.x + frame.w - SWIPE_HINT_WIDTH,
+        x = frame.x + frame.w - swipeHintWidth,
         y = frame.y + (frame.h - SWIPE_HINT_HEIGHT) / 2,
-        w = SWIPE_HINT_WIDTH,
+        w = swipeHintWidth,
         h = SWIPE_HINT_HEIGHT,
     })
     -- Redraw the dots only when the Space moved, the count changed or the pill or column was toggled, the same as the bars' height check.
