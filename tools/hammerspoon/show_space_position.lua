@@ -146,7 +146,7 @@ local HOTKEY_TEXT_SIZE = 14
 local HOTKEY_TEXT_HEIGHT = HOTKEY_TEXT_SIZE + 2
 -- Grow a row of dots below the title bar to fit the follow-order letters, overlapping the window's top edge there.
 local HORIZONTAL_DOTS_HEIGHT = DOT_SIZE + BADGE_TEXT_HEIGHT
-local HOTKEY_COLOR = { white = 1, alpha = 0.6 }
+local HOTKEY_COLOR = { white = 1, alpha = 1 }
 -- Mark only the first few picks in the follow order, so the row shows where a close lands next without badging every dot.
 local FOLLOW_ORDER_LIMIT = 3
 -- Wait out macOS rearranging Spaces after a display change, a wake or a Space closing, which often runs on past the event reporting it.
