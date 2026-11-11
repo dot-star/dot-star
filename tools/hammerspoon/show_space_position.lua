@@ -707,19 +707,23 @@ local function decisionElements(style, center, seconds)
     error('unknown decision style: ' .. style)
 end
 
--- Draw a check inside the ring, rippling a ping out from it while `pingProgress` runs from 0 to 1.
-local function readyElements(center, pingProgress)
+-- Draw a check inside the ring unless `labeled`, whose hotkey digit takes the middle, rippling a ping out from it while `pingProgress` runs from 0 to 1.
+local function readyElements(
+    center,
+    pingProgress,
+    labeled
+)
     local color = SESSION_STATE_COLORS.ready
-    -- Grow the check with the dot; its points were drawn for a 20-point dot.
-    local scale = DOT_SIZE / 20
-    local elements = {
-        ring(center, RING_RADIUS, color, RING_WIDTH),
-        line({
+    local elements = { ring(center, RING_RADIUS, color, RING_WIDTH) }
+    if not labeled then
+        -- Grow the check with the dot; its points were drawn for a 20-point dot.
+        local scale = DOT_SIZE / 20
+        elements[#elements + 1] = line({
             { x = center.x - 3.5 * scale, y = center.y + 0.5 * scale },
             { x = center.x - 1 * scale, y = center.y + 3 * scale },
             { x = center.x + 3.5 * scale, y = center.y - 2.5 * scale },
-        }, color, 2 * scale),
-    }
+        }, color, 2 * scale)
+    end
     if pingProgress ~= nil then
         elements[#elements + 1] = ring(center, RING_RADIUS + pingProgress * 8, withAlpha(color, 0.8 * (1 - pingProgress)), 2)
     end
@@ -749,13 +753,19 @@ local function noneElements(center)
     return { ring(center, RING_RADIUS, SESSION_STATE_COLORS.none, RING_WIDTH) }
 end
 
-local function stateElements(state, center, seconds, pingProgress)
+local function stateElements(
+    state,
+    center,
+    seconds,
+    pingProgress,
+    labeled
+)
     if state == 'busy' then
         return busyElements(center, seconds)
     elseif state == 'decision' then
         return decisionElements(styleOf('decision_style'), center, seconds)
     elseif state == 'ready' then
-        return readyElements(center, pingProgress)
+        return readyElements(center, pingProgress, labeled)
     elseif state == 'pending' then
         return pendingElements(styleOf('pending_style'), center, seconds)
     elseif state == 'none' then
@@ -801,8 +811,14 @@ local function addFocusMarker(elements, center)
 end
 
 -- Mark the dot of the Space you're on the way the focus_marker style says, on top of its state.
-local function focusedElements(state, center, seconds, pingProgress)
-    local elements = stateElements(state, center, seconds, pingProgress)
+local function focusedElements(
+    state,
+    center,
+    seconds,
+    pingProgress,
+    labeled
+)
+    local elements = stateElements(state, center, seconds, pingProgress, labeled)
     addFocusMarker(elements, center)
     return elements
 end
@@ -907,11 +923,12 @@ local function layoutSessionDots(
         if animate then
             pingProgress = pingProgressOf(space, seconds)
         end
+        local labeled = slotHotkeys[position + 1] ~= nil
         local dotElements
         if position == index then
-            dotElements = focusedElements(state, center, seconds, pingProgress)
+            dotElements = focusedElements(state, center, seconds, pingProgress, labeled)
         else
-            dotElements = stateElements(state, center, seconds, pingProgress)
+            dotElements = stateElements(state, center, seconds, pingProgress, labeled)
         end
         for _, element in ipairs(dotElements) do
             elements[#elements + 1] = element
