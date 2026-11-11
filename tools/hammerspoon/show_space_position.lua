@@ -41,7 +41,7 @@ local DEFAULT_STYLES = {
     decision_style = 'heartbeat',
     focus_marker = 'underline',
     pending_style = 'pulse',
-    swipe_hint_style = 'chevron',
+    swipe_hint_style = 'double',
 }
 local STYLE_CHOICES = {
     decision_style = { 'blink', 'flash', 'heartbeat', 'nudge' },
