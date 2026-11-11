@@ -344,6 +344,16 @@ Press a side or corner hotkey again to cycle the window through 1/2, 2/3 and 1/3
 | Ctrl(⌃) + Option(⌥) + Cmd(⌘) + Right | move the window to the next display |
 | Ctrl(⌃) + Option(⌥) + Cmd(⌘) + N | move the current tab to a new window (Safari, Chrome, Ghostty) |
 
+### Spaces
+
+| Hotkey | Does |
+|--------|------|
+| Ctrl(⌃) + Left | move one Space left; from the first Space, wrap to the last |
+| Ctrl(⌃) + Right | move one Space right; from the last Space, wrap to the first full-screen Space |
+| Fn + Left | move one Space left, like Ctrl(⌃) + Left (replaces Home) |
+| Fn + Right | move one Space right, like Ctrl(⌃) + Right (replaces End) |
+| Option(⌥) + N | jump to the Space that most needs you next |
+
 ### System
 
 | Hotkey | Does |
