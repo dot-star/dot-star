@@ -680,9 +680,9 @@ local function pendingElements(style, center, seconds)
     error('unknown pending style: ' .. style)
 end
 
--- Draw the plain dots' thin ring, so a Space with no session looks as it did before session states.
+-- Draw a Space with no session as a gray ring as thick as the session states' rings, so every ring in the row reads at one weight.
 local function noneElements(center)
-    return { ring(center, DOT_SIZE / 2 - 0.75, SESSION_STATE_COLORS.none, 1.5) }
+    return { ring(center, RING_RADIUS, SESSION_STATE_COLORS.none, RING_WIDTH) }
 end
 
 local function stateElements(state, center, seconds, pingProgress)
