@@ -427,6 +427,28 @@ local function pageDotsBand(count)
     }
 end
 
+-- Rule off the black band's bottom edge in white unless `pillVisible`, whose debug boxes trace that edge already, so the band reads as a panel against a black window.
+local function appendDotsBottomEdge(
+    elements,
+    pillVisible,
+    count
+)
+    if pillVisible then
+        return
+    end
+    local frame = pageDotsLabeledFrame(count)
+    -- Inset by half the stroke, so the whole line lands inside the canvas.
+    local y = frame.y + frame.h - 0.5
+    elements[#elements + 1] = {
+        type = 'segments',
+        action = 'stroke',
+        closed = false,
+        coordinates = { { x = frame.x, y = y }, { x = frame.x + frame.w, y = y } },
+        strokeColor = { white = 1, alpha = 1 },
+        strokeWidth = 1,
+    }
+end
+
 -- Outline the band the `count` dots run along, and the whole canvas, while `pillVisible`, inside the tinted canvas, so the boxes show how far the labels hang past the dots.
 local function appendDotsOutline(
     elements,
@@ -554,6 +576,7 @@ local function layoutPageDots(
     slotHotkeys
 )
     local elements = { pageDotsPill(pillVisible), pageDotsBand(count) }
+    appendDotsBottomEdge(elements, pillVisible, count)
     appendDotsOutline(elements, pillVisible, count)
     -- Draw the dots fully opaque, the same as the bumper, so they hold up against glare.
     local opaque = { red = color.red, green = color.green, blue = color.blue, alpha = 1 }
@@ -877,6 +900,7 @@ local function layoutSessionDots(
 )
     -- Count the home triangle too.
     local elements = { pageDotsPill(pillVisible), pageDotsBand(#spaces + 1) }
+    appendDotsBottomEdge(elements, pillVisible, #spaces + 1)
     appendDotsOutline(elements, pillVisible, #spaces + 1)
     local home = homeElements(pageDotCenter(1))
     -- Mark the home triangle while you're on the home Space, which sits before the first ring.
