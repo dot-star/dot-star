@@ -4,6 +4,9 @@
 # don't execute it.
 
 prune_marks_dir="/tmp/claude/prune_marks"
+# Hold one file per session whose turn is still running, so a bare `x` sent
+# mid-turn waits for that turn's work instead of killing it.
+open_turns_dir="/tmp/claude/open_turns"
 # Keep the close log outside the transcript, since prune.sh deletes that.
 close_log="${HOME}/.claude/session_close.jsonl"
 # Rotate past this size into a single .1 file, so the log never grows unbounded.

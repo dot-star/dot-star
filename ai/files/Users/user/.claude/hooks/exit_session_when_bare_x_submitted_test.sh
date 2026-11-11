@@ -11,6 +11,7 @@ HOOK="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/exit_session_when_bare_x_sub
 SANDBOX="$(cd "$(mktemp -d)" && pwd -P)"
 SESSION_ID="test-bare-x-$$"
 MARK="/tmp/claude/prune_marks/${SESSION_ID}"
+OPEN_TURN="/tmp/claude/open_turns/${SESSION_ID}"
 export CLAUDE_RUN_CLOSE_REQUESTED_MARKER="${SANDBOX}/close_requested"
 
 # Stub the Space hop under a sandboxed HOME, so a run records the hop and its
@@ -55,14 +56,20 @@ failures=0
 
 assert_close() {
     # Submit <prompt> from <cwd> under the stand-in claude, which outlives the
-    # hook unless signaled, and compare "<exit status>, <mark>, <hop>" against
-    # <expected>.
+    # hook unless signaled, with a turn already running or not per <turn>, and
+    # compare "<exit status>, <mark>, <hop>" against <expected>.
     local label="$1"
     local prompt="$2"
     local cwd="$3"
-    local expected="$4"
+    local turn="$4"
+    local expected="$5"
 
-    rm --force -- "${CLAUDE_RUN_CLOSE_REQUESTED_MARKER}" "${HOP_RECORD}" "${MARK}"
+    rm --force -- "${CLAUDE_RUN_CLOSE_REQUESTED_MARKER}" "${HOP_RECORD}" "${MARK}" "${OPEN_TURN}"
+
+    if [[ "${turn}" == "mid-turn" ]]; then
+        mkdir --parents -- "$(dirname -- "${OPEN_TURN}")"
+        touch -- "${OPEN_TURN}"
+    fi
 
     local input
     input="$(jq \
@@ -102,23 +109,35 @@ assert_close() {
 }
 
 assert_close "x outside a repo closes at once" \
-    "x" "${PLAIN_DIR}" "exit 143, marked, hopped"
+    "x" "${PLAIN_DIR}" "idle" "exit 143, marked, hopped"
 assert_close "x in a main checkout closes at once" \
-    "x" "${REPO}" "exit 143, marked, hopped"
+    "x" "${REPO}" "idle" "exit 143, marked, hopped"
 assert_close "x from a torn-down worktree closes at once" \
-    "x" "${SANDBOX}/gone" "exit 143, marked, hopped"
+    "x" "${SANDBOX}/gone" "idle" "exit 143, marked, hopped"
 assert_close "padded uppercase X closes at once" \
-    $' X \n' "${PLAIN_DIR}" "exit 143, marked, hopped"
+    $' X \n' "${PLAIN_DIR}" "idle" "exit 143, marked, hopped"
 assert_close "xx inside a worktree closes at once" \
-    "xx" "${WORKTREE}" "exit 143, marked, hopped"
+    "xx" "${WORKTREE}" "idle" "exit 143, marked, hopped"
 assert_close "x inside a worktree reaches the model" \
-    "x" "${WORKTREE}" "exit 0, unmarked, stayed"
+    "x" "${WORKTREE}" "idle" "exit 0, unmarked, stayed"
 assert_close "drafted pick x2 reaches the model" \
-    "x2" "${PLAIN_DIR}" "exit 0, unmarked, stayed"
+    "x2" "${PLAIN_DIR}" "idle" "exit 0, unmarked, stayed"
 assert_close "sentence carrying x reaches the model" \
-    "fix x" "${PLAIN_DIR}" "exit 0, unmarked, stayed"
+    "fix x" "${PLAIN_DIR}" "idle" "exit 0, unmarked, stayed"
+assert_close "x mid-turn in a main checkout reaches the model" \
+    "x" "${REPO}" "mid-turn" "exit 0, unmarked, stayed"
+assert_close "xx mid-turn reaches the model" \
+    "xx" "${PLAIN_DIR}" "mid-turn" "exit 0, unmarked, stayed"
 
-rm --force -- "${MARK}"
+# Expect a prompt that reaches the model to leave its turn open for the Stop hook to close.
+if [[ -e "${OPEN_TURN}" ]]; then
+    echo "✓ prompt reaching the model opens a turn"
+else
+    echo "✗ prompt reaching the model opens a turn"
+    failures=$((failures + 1))
+fi
+
+rm --force -- "${MARK}" "${OPEN_TURN}"
 rm -r -- "${SANDBOX}"
 
 if [[ "${failures}" -eq 0 ]]; then

@@ -29,6 +29,9 @@ if [[ -z "${session_id}" ]]; then
     exit 0
 fi
 
+# Close the turn the bare-x hook opened, so the next bare `x` closes at once.
+rm --force -- "${open_turns_dir}/${session_id}"
+
 if [[ ! -e "${prune_marks_dir}/${session_id}" ]]; then
     exit 0
 fi

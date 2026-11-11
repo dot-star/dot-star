@@ -3,8 +3,9 @@
 # UserPromptSubmit hook: close the session the moment a bare `x` or `xx` is
 # submitted, when the close owes no work, so the window goes without waiting on
 # a model reply. An `x` inside a git worktree still reaches the model, since it
-# lands the worktree first. Writes the prune mark the model would have, so
-# prune.sh still sweeps the session.
+# lands the worktree first. So does an `x` or `xx` sent while a turn is still
+# running, so the close waits for that turn's work. Writes the prune mark the
+# model would have, so prune.sh still sweeps the session.
 
 set -euo pipefail
 
@@ -57,7 +58,9 @@ is_close_owing_no_work() {
     reply="${reply#"${reply%%[![:space:]]*}"}"
     reply="${reply%"${reply##*[![:space:]]}"}"
 
-    if [[ "${reply}" == "xx" ]]; then
+    if [[ "${turn_was_open}" == "true" ]]; then
+        return 1
+    elif [[ "${reply}" == "xx" ]]; then
         return 0
     elif [[ "${reply}" != "x" ]]; then
         return 1
@@ -70,7 +73,19 @@ is_close_owing_no_work() {
 
 if [[ -z "${session_id}" ]]; then
     exit 0
-elif ! is_close_owing_no_work; then
+fi
+
+# Check for a running turn before opening this prompt's own; the prune Stop
+# hook closes it. Any prompt arriving mid-turn joins that turn.
+turn_was_open="false"
+if [[ -e "${open_turns_dir}/${session_id}" ]]; then
+    turn_was_open="true"
+fi
+
+mkdir --parents -- "${open_turns_dir}"
+: >"${open_turns_dir}/${session_id}"
+
+if ! is_close_owing_no_work; then
     exit 0
 fi
 
@@ -93,4 +108,5 @@ command jq \
     --null-input \
     --compact-output \
     '{continue: false, stopReason: "Closing session."}'
+rm --force -- "${open_turns_dir}/${session_id}"
 kill -TERM "${claude_pid}"

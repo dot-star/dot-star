@@ -10,6 +10,7 @@ HOOK="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/exit_session_when_marked_for
 SANDBOX="$(cd "$(mktemp -d)" && pwd -P)"
 SESSION_ID="test-exit-session-$$"
 MARK="/tmp/claude/prune_marks/${SESSION_ID}"
+OPEN_TURN="/tmp/claude/open_turns/${SESSION_ID}"
 export CLAUDE_RUN_CLOSE_REQUESTED_MARKER="${SANDBOX}/close_requested"
 
 # Stub the Space hop under a sandboxed HOME, so a run records any hop instead
@@ -96,8 +97,18 @@ assert_exit() {
 }
 
 rm --force -- "${MARK}"
+mkdir --parents -- "$(dirname -- "${OPEN_TURN}")"
+touch -- "${OPEN_TURN}"
 assert_exit "unmarked session keeps running" \
     "exit 0, close not requested, stayed"
+
+# Expect the turn closed, so the next bare `x` closes at once.
+if [[ ! -e "${OPEN_TURN}" ]]; then
+    echo "✓ stop closes the open turn"
+else
+    echo "✗ stop closes the open turn"
+    failures=$((failures + 1))
+fi
 
 mkdir --parents "$(dirname -- "${MARK}")"
 touch -- "${MARK}"
@@ -121,7 +132,7 @@ else
     failures=$((failures + 1))
 fi
 
-rm --force -- "${MARK}"
+rm --force -- "${MARK}" "${OPEN_TURN}"
 rm -r -- "${SANDBOX}"
 
 if [[ "${failures}" -eq 0 ]]; then
