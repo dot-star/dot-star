@@ -373,7 +373,7 @@ local function pageDotCenter(slot)
     return { x = along, y = TITLE_BAR_HEIGHT / 2 }
 end
 
--- Outline the band the `count` dots run along while `pillVisible`, inside the tinted canvas, so the two boxes show how far the labels hang past the dots.
+-- Outline the band the `count` dots run along, and the stretch from the canvas's top down to it, while `pillVisible`, inside the tinted canvas, so the boxes show how far the labels hang past the dots.
 local function appendDotsOutline(
     elements,
     pillVisible,
@@ -396,6 +396,20 @@ local function appendDotsOutline(
             y = first.y - DOT_SIZE / 2,
             w = pageDotsSize(count).w,
             h = last.y - first.y + DOT_SIZE,
+        },
+    }
+    elements[#elements + 1] = {
+        type = 'rectangle',
+        action = 'stroke',
+        -- Stroke it lime, apart from the cyan dots band it shares a bottom edge with.
+        strokeColor = { red = 0.6, green = 1, blue = 0, alpha = 1 },
+        strokeWidth = 1,
+        -- Run it from the canvas's top edge down to the dots' bottom, so the gap above the dots shows too.
+        frame = {
+            x = 0,
+            y = 0,
+            w = pageDotsSize(count).w,
+            h = last.y + DOT_SIZE / 2,
         },
     }
 end
