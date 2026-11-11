@@ -6,7 +6,7 @@
 --   Paint each Space's bars the next color in a cycle rather than one shared color (cycle_colors, needs edge_bars).
 --   Add a row of dots in the title bar's upper-right corner of every full-screen Space, the focused Space filled; click a dot to jump to its Space (page_dots, needs edge_bars).
 --   Show the dots on a desktop too, placed as on a full-screen Space over the menu bar, left of the clock in the corner (desktop_dots, needs page_dots).
---   Add a hint at the middle of a desktop's right edge while a Space lies beyond it, so swiping right reads as possible; a chevron, a large chevron, a block or a chevron on a dark tab (swipe_hint, needs edge_bars).
+--   Add a hint at the middle of a desktop's right edge while a Space lies beyond it, so swiping right reads as possible; a chevron, a large chevron, a double chevron, a block or a chevron on a dark tab (swipe_hint, needs edge_bars).
 --   Show the dark pill behind the dots, to check where their canvas sits (page_dots_pill, needs page_dots).
 --   Stack the dots in a column down the upper-right corner, in swipe order from the top (vertical_dots, needs page_dots).
 --   Show on each dot the state of the Claude session whose window sits on that Space (session_state, needs page_dots).
@@ -47,7 +47,7 @@ local STYLE_CHOICES = {
     decision_style = { 'blink', 'flash', 'heartbeat', 'nudge' },
     focus_marker = { 'center', 'underline' },
     pending_style = { 'dashed', 'dot', 'pulse' },
-    swipe_hint_style = { 'block', 'chevron', 'large', 'tab' },
+    swipe_hint_style = { 'block', 'chevron', 'double', 'large', 'tab' },
 }
 -- Apply each number's default until it's set; a saved value wins after that.
 local DEFAULT_NUMBERS = {
@@ -79,6 +79,13 @@ local SWIPE_HINT_LARGE_CHEVRON_DEPTH = 28
 local SWIPE_HINT_LARGE_CHEVRON_WIDTH = 12
 local SWIPE_HINT_LARGE_OUTLINE_WIDTH = SWIPE_HINT_LARGE_CHEVRON_WIDTH + 2 * SWIPE_HINT_OUTLINE_WIDTH
 local SWIPE_HINT_LARGE_WIDTH = SWIPE_HINT_LARGE_CHEVRON_DEPTH + SWIPE_HINT_LARGE_OUTLINE_WIDTH
+-- Pair two full-height chevrons, doubling the yellow area and reading as fast-forward toward the next Space.
+local SWIPE_HINT_DOUBLE_CHEVRON_DEPTH = 24
+local SWIPE_HINT_DOUBLE_CHEVRON_WIDTH = 10
+-- Space the chevrons wider than their outlined stroke, so a gap of desktop shows between them.
+local SWIPE_HINT_DOUBLE_SPACING = 26
+local SWIPE_HINT_DOUBLE_OUTLINE_WIDTH = SWIPE_HINT_DOUBLE_CHEVRON_WIDTH + 2 * SWIPE_HINT_OUTLINE_WIDTH
+local SWIPE_HINT_DOUBLE_WIDTH = SWIPE_HINT_DOUBLE_SPACING + SWIPE_HINT_DOUBLE_CHEVRON_DEPTH + SWIPE_HINT_DOUBLE_OUTLINE_WIDTH
 -- Paint each Space's pair the next color, so pairs are told apart and a recreated pair shows up as a color change.
 local EDGE_BAR_COLORS = {
     { red = 1, green = 0.2, blue = 0.2, alpha = 0.9 },
@@ -663,10 +670,33 @@ local function layoutSwipeHint(
     style
 )
     local opaque = { red = color.red, green = color.green, blue = color.blue, alpha = 1 }
+    -- Drop the last style's elements from the end, since styles draw different counts and a leftover would show over the new one.
+    while #hint > 0 do
+        hint[#hint] = nil
+    end
     if style == 'block' then
         hint[1] = { type = 'rectangle', action = 'fill', fillColor = opaque }
-        -- Drop the chevron's top stroke, left over when the style switched from chevron.
-        hint[2] = nil
+        return
+    elseif style == 'double' then
+        -- Stroke both outlines before either chevron, so the second outline never cuts across the first chevron.
+        local doubleInset = SWIPE_HINT_DOUBLE_OUTLINE_WIDTH / 2
+        local function chevronAt(left)
+            return {
+                { x = left, y = doubleInset },
+                { x = left + SWIPE_HINT_DOUBLE_CHEVRON_DEPTH, y = SWIPE_HINT_HEIGHT / 2 },
+                { x = left, y = SWIPE_HINT_HEIGHT - doubleInset },
+            }
+        end
+        local chevrons = {
+            chevronAt(doubleInset),
+            chevronAt(doubleInset + SWIPE_HINT_DOUBLE_SPACING),
+        }
+        for _, points in ipairs(chevrons) do
+            hint[#hint + 1] = line(points, SWIPE_HINT_OUTLINE_COLOR, SWIPE_HINT_DOUBLE_OUTLINE_WIDTH)
+        end
+        for _, points in ipairs(chevrons) do
+            hint[#hint + 1] = line(points, opaque, SWIPE_HINT_DOUBLE_CHEVRON_WIDTH)
+        end
         return
     elseif style == 'tab' then
         -- Run the pill past the canvas's right side, so only its left corners round and it sits flush on the screen edge.
@@ -1468,6 +1498,8 @@ local function placeEdgeBars(pair, index, count, screen)
         swipeHintWidth = SWIPE_HINT_TAB_WIDTH
     elseif swipeHintStyle == 'large' then
         swipeHintWidth = SWIPE_HINT_LARGE_WIDTH
+    elseif swipeHintStyle == 'double' then
+        swipeHintWidth = SWIPE_HINT_DOUBLE_WIDTH
     end
     pair.swipeHint:frame({
         x = frame.x + frame.w - swipeHintWidth,

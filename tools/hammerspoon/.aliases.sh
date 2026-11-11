@@ -34,7 +34,7 @@ space_position_experiment() {
         echo "       space_position_experiment decision_style <blink|flash|heartbeat|nudge>"
         echo "       space_position_experiment focus_marker <center|underline>"
         echo "       space_position_experiment pending_style <dashed|dot|pulse>"
-        echo "       space_position_experiment swipe_hint_style <block|chevron|large|tab>"
+        echo "       space_position_experiment swipe_hint_style <block|chevron|double|large|tab>"
         echo "       space_position_experiment follow_idle_seconds <seconds>"
         return 1
     fi
