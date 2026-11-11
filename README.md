@@ -46,6 +46,68 @@
 | `rp ./symlink` | resolve to absolute real path |
 | `rm *` | refuses with a warning |
 
+## Worktrees
+
+Work on several branches at once, each checked out in its own directory. Everything here changes local branches only; nothing gets pushed.
+
+| Example | Does |
+|---------|------|
+| `s` | `git status`, then the repo's worktrees, newest first, with what each one holds |
+| `wt` | pick a worktree with fzf and `cd` into it, keeping your subdirectory when it exists there |
+| `wt 3` | jump to row 3 of the worktree list `s` printed |
+| `wt pattern` | jump to the worktree matching `pattern` |
+| `wta` | list every worktree (`s` shows the newest 10) |
+| `promote` | fast-forward the default branch to this worktree's commits and keep the worktree |
+| `wtd` | land this worktree's commits on the default branch, then delete the worktree and its branch |
+| `wtp` | delete every worktree that's merged and clean; report the rest |
+| `rr` | go to the main checkout (`r` stops at the worktree's root) |
+
+`wtd` refuses while the worktree has uncommitted changes. When the default branch has moved on, it rebases the worktree's branch onto it first.
+
+## AI helpers
+
+These call the `claude` CLI.
+
+### Pick an AI-written commit message
+
+    $ cmc
+    $ cmc "fixes the login redirect"
+
+Drafts five one-line messages for the staged diff and opens them in fzf; the one you pick becomes the commit. An optional note steers the drafts. The model runs with no tools and gets the diff as data, so text inside the diff can't make it do anything. `aic`, `cgc`, `clc`, `clcm` and `cma` do the same.
+
+### Stash with a summary
+
+    $ cstash
+
+Stashes everything (untracked files included) and hands the prompt back right away. In the background, an AI-written summary replaces the stash's default `WIP on <branch>` message.
+
+### Ask a one-off question
+
+    $ ask "find my session about the install script"
+
+Prints Claude's answer. It can read past Claude Code session transcripts and this repo.
+
+### Start or resume a Claude session
+
+    $ cl
+    $ clr
+
+`cl` starts a session and `clr` opens the session picker. Inside a worktree, both pick up that worktree's last session instead. Quitting Claude cleanly also closes the terminal window. `cl` refuses to start in a shell left over from inside another session, where Claude would quietly skip saving the transcript.
+
+## Claude Code
+
+### Config
+
+`./install.sh` links `CLAUDE.md`, `settings.json`, hooks, skills and slash commands from `ai/files/Users/user/.claude/` into `~/.claude/`. A link you've already pointed somewhere else is left alone with a warning.
+
+### Context
+
+Three ways to give Claude standing instructions, by how often they're needed:
+
+- **Every session:** `~/.claude/CLAUDE.md`, plus any `CLAUDE_<name>.md` beside it, which a session-start hook loads. Keep these small, since hook output is capped at 10,000 bytes.
+- **One repo:** write the doc in `ai/contexts/<name>.md` and import it from that repo's gitignored `CLAUDE.local.md` with `@~/.dot-star/ai/contexts/<name>.md`. No size cap.
+- **On mention:** add `<!-- claude-mention: <keyword> -->` to a doc in `ai/contexts/`. The first prompt that mentions the keyword gets a pointer to the doc.
+
 ## Examples
 
 ### Prevent accidental wildcard deletion
@@ -167,7 +229,10 @@
 
 ### View last git diff
 
+    $ dfl
     $ difflast
+
+Keeps two kinds of noisy diff readable. A commit that renumbers a list shows as a word diff, so you see the changed numbers instead of every line removed and re-added. A commit that's mostly reindenting hides its whitespace-only lines. Pass `--full` to turn both off.
 
 ### View git log
 
