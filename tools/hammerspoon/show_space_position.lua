@@ -1317,6 +1317,18 @@ local function followOrderOf(spaces, closing)
 end
 
 -- Fit a pair's bars, bumper and dots flush to the edges of `screen`, for the Space at `index` of `count` on it.
+-- Return the width display_alternate_clock takes in the top-right corner of `pair`'s Space, which holds it there only beside a full-screen row of dots.
+local function cornerClockWidth(pair)
+    if not pair.fullScreen then
+        return 0
+    elseif not isEnabled('page_dots') then
+        return 0
+    elseif isEnabled('vertical_dots') then
+        return 0
+    end
+    return alternateClockWidth()
+end
+
 local function placeEdgeBars(pair, index, count, screen)
     local frame = screen:fullFrame()
     -- Start the first Space's bar below the menu bar, so it doesn't cover the clock; `frame()` drops the menu bar where this screen has one.
@@ -1397,15 +1409,16 @@ local function placeEdgeBars(pair, index, count, screen)
         pair.sessionKey = nil
     end
     local dotsSize = pageDotsSize(dotsCount)
+    -- Sit the dots flush against the screen's right edge, over the right bar's glow, or left of the clock where it holds the corner.
+    local dotsX = frame.x + frame.w - cornerClockWidth(pair) - dotsSize.w
     -- Stop the top band where the dots' canvas starts, so it doesn't run across the dots.
     local topBandWidth = frame.w
     if isEnabled('page_dots') then
-        topBandWidth = frame.w - dotsSize.w
+        topBandWidth = dotsX - frame.x
     end
     pair.top:frame({ x = frame.x, y = frame.y, w = topBandWidth, h = BAND_HEIGHT })
-    -- Sit the dots flush against the screen's right edge, over the right bar's glow.
     pair.dots:frame({
-        x = frame.x + frame.w - dotsSize.w,
+        x = dotsX,
         y = frame.y,
         w = dotsSize.w,
         h = dotsSize.h,
@@ -1413,7 +1426,7 @@ local function placeEdgeBars(pair, index, count, screen)
     -- Line the countdown up with the first dot's band, so it reads as part of the row.
     local firstBand = pageDotsBandFrame(1)
     pair.countdown:frame({
-        x = frame.x + frame.w - dotsSize.w - COUNTDOWN_WIDTH,
+        x = dotsX - COUNTDOWN_WIDTH,
         y = frame.y + firstBand.y,
         w = COUNTDOWN_WIDTH,
         h = firstBand.h,
@@ -1541,6 +1554,7 @@ local function renderEdgeBars(index, count, screen, focused)
             countdown = newCountdown(),
             color = color,
             cycleColor = cycleColor,
+            fullScreen = hs.spaces.spaceType(focused) == 'fullscreen',
         }
         pair.dots:canvasMouseEvents(true, true, true, true)
         pair.dots:mouseCallback(function(_, message, _, x, y)
@@ -1772,25 +1786,15 @@ local function renderAfterSettle()
     end)
 end
 
--- Return how far from the screen's right edge display_alternate_clock should end its rows to sit in the title bar beside the dots' column, or nil to leave them below it.
--- Reserve the countdown's slot even while it's hidden, so the clock holds still as follow_ready toggles.
+-- Return how far from the screen's right edge display_alternate_clock should end its rows in the title bar, or nil to leave them below it.
+-- Hold the corner beside a row of dots, which makes room for it; sit left of a column of dots instead, reserving the countdown's slot even while it's hidden, so the clock holds still as follow_ready toggles.
 function showSpacePosition.clockRightInset()
     if not isEnabled('page_dots') then
         return nil
     elseif not isEnabled('vertical_dots') then
-        return nil
+        return 0
     end
     return pageDotsSize(1).w + COUNTDOWN_WIDTH
-end
-
--- Return where display_alternate_clock should start its rows to clear a row of dots and their hotkey line, or nil when no row hangs below the title bar.
-function showSpacePosition.clockTopBelowDots()
-    if not isEnabled('page_dots') then
-        return nil
-    elseif isEnabled('vertical_dots') then
-        return nil
-    end
-    return HORIZONTAL_DOTS_HEIGHT
 end
 
 -- Return where display_alternate_clock should start its rows on a desktop to clear the dots there, or nil when no dots show on a desktop.
