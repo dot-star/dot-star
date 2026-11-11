@@ -2,6 +2,7 @@
 -- Jump to the first desktop with Ctrl+0, since Ctrl+1 no longer reaches it.
 -- Leave a press for a Space that doesn't exist to the focused app.
 require('follow_closed_full_screen_space')
+local numberedSpaceKeys = require('numbered_space_keys')
 
 local function digitOf(keyCode)
     for digit = 0, 9 do
@@ -20,32 +21,6 @@ local function isCtrlOnly(flags)
         return false
     end
     return true
-end
-
-local function fullScreenSpaces(spaces)
-    local fullScreen = {}
-    for _, space in ipairs(spaces) do
-        if hs.spaces.spaceType(space) == 'fullscreen' then
-            table.insert(fullScreen, space)
-        end
-    end
-    return fullScreen
-end
-
-local function firstDesktop(spaces)
-    for _, space in ipairs(spaces) do
-        if hs.spaces.spaceType(space) == 'user' then
-            return space
-        end
-    end
-    return nil
-end
-
-local function targetFor(digit, spaces)
-    if digit == 0 then
-        return firstDesktop(spaces)
-    end
-    return fullScreenSpaces(spaces)[digit]
 end
 
 -- Return a window on the Space, since focusing it slides there faster than the Mission Control jump.
@@ -68,7 +43,7 @@ numberedSpaceHotkeysTap = hs.eventtap.new({hs.eventtap.event.types.keyDown}, fun
     end
     local focused = hs.spaces.focusedSpace()
     local screen = hs.screen.find(hs.spaces.spaceDisplay(focused)) or hs.screen.mainScreen()
-    local target = targetFor(digit, hs.spaces.spacesForScreen(screen) or {})
+    local target = numberedSpaceKeys.targetFor(digit, hs.spaces.spacesForScreen(screen) or {})
     if target == nil then
         return false
     elseif target == focused then
