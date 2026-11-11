@@ -195,6 +195,7 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
 - Never use em dashes (—) in any output, code, comments, commit messages, or PR descriptions. Use a comma, parentheses, semicolon, or two sentences instead.
 - Never use the ellipsis character (…) in any output, code, comments, commit messages, or PR descriptions. Type three plain periods (`...`) instead.
 - Never use enclosed/circled alphanumeric glyphs (`①②③`, etc.) in any output, code, comments, commit messages, or PR descriptions. They render as unreadable rings/boxes in the terminal. Use plain ASCII digits and letters (`1`, `2`, `3`) instead.
+- Never write HTML entities (`&lt;`, `&gt;`, `&amp;`) in output; the terminal prints them raw. Bracket a placeholder outside code as `[name]`, since a bare `<...>` gets swallowed as an HTML tag; inside code, type `<` and `>` as is.
 - Never write `, and` joining two things; the comma belongs there only when it closes a list of three or more items. Binds every surface: chat prose, commit subjects, PR text, drafted messages, code comments, and each option in a numbered or bracketed list.
   - `Do X, and do Y` → `Do X and do Y`
   - `A does X, and B does Y` → `A does X and B does Y`

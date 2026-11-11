@@ -195,6 +195,7 @@
 -
 -
 -
+- Output gets read or pasted as-is, so `&lt;name&gt;` reaches the reader as junk; square brackets survive markdown and still read as a slot.
 -
   -
   -
