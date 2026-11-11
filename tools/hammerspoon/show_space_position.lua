@@ -331,7 +331,7 @@ end
 
 -- Right-align the text, so it hugs the dots however long it runs.
 local function newCountdown()
-    local countdown = newOverlay({ x = 0, y = 0, w = COUNTDOWN_WIDTH, h = TITLE_BAR_HEIGHT }, EDGE_BAR_BEHAVIOR)
+    local countdown = newOverlay({ x = 0, y = 0, w = COUNTDOWN_WIDTH, h = DOT_SIZE }, EDGE_BAR_BEHAVIOR)
     local textHeight = COUNTDOWN_TEXT_SIZE + 4
     countdown[1] = {
         type = 'text',
@@ -341,7 +341,7 @@ local function newCountdown()
         -- Use fixed-width digits, so the text doesn't shift as each second ticks.
         textFont = 'Menlo',
         textSize = COUNTDOWN_TEXT_SIZE,
-        frame = { x = 0, y = (TITLE_BAR_HEIGHT - textHeight) / 2, w = COUNTDOWN_WIDTH, h = textHeight },
+        frame = { x = 0, y = (DOT_SIZE - textHeight) / 2, w = COUNTDOWN_WIDTH, h = textHeight },
     }
     -- Trace the whole canvas for debugging; placement shows it only while page_dots_pill is on.
     countdown[2] = {
@@ -1410,11 +1410,13 @@ local function placeEdgeBars(pair, index, count, screen)
         w = dotsSize.w,
         h = dotsSize.h,
     })
+    -- Line the countdown up with the first dot's band, so it reads as part of the row.
+    local firstBand = pageDotsBandFrame(1)
     pair.countdown:frame({
         x = frame.x + frame.w - dotsSize.w - COUNTDOWN_WIDTH,
-        y = frame.y,
+        y = frame.y + firstBand.y,
         w = COUNTDOWN_WIDTH,
-        h = TITLE_BAR_HEIGHT,
+        h = firstBand.h,
     })
     if pillVisible then
         pair.countdown[2].strokeColor = COUNTDOWN_OUTLINE_COLOR
