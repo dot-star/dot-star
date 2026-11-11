@@ -138,8 +138,11 @@ local HOVER_FRAME_RADIUS = 6
 -- Size the follow-order letter to fit the strip between a dot and the title bar's bottom edge.
 local FOLLOW_ORDER_TEXT_SIZE = 10
 local BADGE_TEXT_HEIGHT = FOLLOW_ORDER_TEXT_SIZE + 2
+-- Size the Ctrl+N hotkeys larger than the follow-order letters, so they read at a glance below the title bar.
+local HOTKEY_TEXT_SIZE = 14
+local HOTKEY_TEXT_HEIGHT = HOTKEY_TEXT_SIZE + 2
 -- Grow a row of dots below the title bar to fit a Ctrl+N hotkey line under the follow-order letters, overlapping the window's top edge there.
-local HORIZONTAL_DOTS_HEIGHT = DOT_SIZE + 2 * BADGE_TEXT_HEIGHT
+local HORIZONTAL_DOTS_HEIGHT = DOT_SIZE + BADGE_TEXT_HEIGHT + HOTKEY_TEXT_HEIGHT
 local HOTKEY_COLOR = { white = 1, alpha = 0.6 }
 -- Mark only the first few picks in the follow order, so the row shows where a close lands next without badging every dot.
 local FOLLOW_ORDER_LIMIT = 3
@@ -514,9 +517,9 @@ local function appendHotkey(
         text = '⌃' .. digit,
         textColor = HOTKEY_COLOR,
         textFont = 'Menlo',
-        textSize = FOLLOW_ORDER_TEXT_SIZE,
+        textSize = HOTKEY_TEXT_SIZE,
         textAlignment = 'center',
-        frame = { x = center.x - DOT_SIZE / 2, y = center.y + DOT_SIZE / 2 + BADGE_TEXT_HEIGHT, w = DOT_SIZE, h = BADGE_TEXT_HEIGHT },
+        frame = { x = center.x - DOT_SIZE / 2, y = center.y + DOT_SIZE / 2 + BADGE_TEXT_HEIGHT, w = DOT_SIZE, h = HOTKEY_TEXT_HEIGHT },
     }
 end
 
