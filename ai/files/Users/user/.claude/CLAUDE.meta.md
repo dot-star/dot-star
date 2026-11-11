@@ -68,6 +68,7 @@
     - Most cross-repo edits are a line or two in a context doc, which this session can write directly at the absolute path; routing every one to another session turned a one-line fix into a terminal round trip. The other repo's `CLAUDE.md` never loaded here, so reading it is what keeps the edit inside that repo's conventions.
     - The handoff earns its cost only when the work needs that repo's worktree. Cross-repo edits are what tempt a hand-made worktree: `EnterWorktree` creates only in the launch repo (or one nested inside it). Routing the edit to a session in its own repo also loads that repo's `CLAUDE.md`. One paste opens the session already briefed, so the user never retypes or relays the context; a bare "start a session there" leaves them writing the brief. Reading the brief from a file sidesteps zsh quoting: the task text often holds quotes, backticks or `!`, any of which breaks an inline single-quoted prompt.
   -
+  - Hammerspoon loads its modules from `~/.dot-star/tools/hammerspoon/` (`script/post_install.sh:331`), the main checkout, so a worktree edit can't run until `/try` ferries it over; every tweak-reload-look loop paid that round trip. Pending edits there flip the trade back: this session's change would mix with unreviewed work, so the worktree's isolation earns its cost again.
   -
     -
     -
