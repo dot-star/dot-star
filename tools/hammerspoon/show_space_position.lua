@@ -71,10 +71,11 @@ local EDGE_BAR_COLORS = {
 }
 -- Paint every Space's bars this one color while cycle_colors is off, so the bars read as a single landmark.
 local UNIFORM_EDGE_BAR_COLOR = { red = 1, green = 0.9, blue = 0.1, alpha = 0.9 }
-local DOT_SIZE = 20
 local DOT_GAP = 14
 -- Fill the native title bar Ghostty keeps for its tabs with the dots' pill.
 local TITLE_BAR_HEIGHT = require('ghostty_title_bar').HEIGHT
+-- Fill the height of the tab strip inside the title bar with each dot, pushing the underline, letters and hotkeys below it.
+local DOT_SIZE = require('ghostty_title_bar').TAB_STRIP_HEIGHT
 -- Pad the pill's ends as much as its top and bottom, so the rounded ends hug the first and last dots evenly.
 local DOTS_PADDING = (TITLE_BAR_HEIGHT - DOT_SIZE) / 2
 -- Leave room for the countdown's longest text, so it never clips against the dots.
@@ -600,13 +601,15 @@ end
 -- Draw a check inside the ring, rippling a ping out from it while `pingProgress` runs from 0 to 1.
 local function readyElements(center, pingProgress)
     local color = SESSION_STATE_COLORS.ready
+    -- Grow the check with the dot; its points were drawn for a 20-point dot.
+    local scale = DOT_SIZE / 20
     local elements = {
         ring(center, RING_RADIUS, color, RING_WIDTH),
         line({
-            { x = center.x - 3.5, y = center.y + 0.5 },
-            { x = center.x - 1, y = center.y + 3 },
-            { x = center.x + 3.5, y = center.y - 2.5 },
-        }, color, 2),
+            { x = center.x - 3.5 * scale, y = center.y + 0.5 * scale },
+            { x = center.x - 1 * scale, y = center.y + 3 * scale },
+            { x = center.x + 3.5 * scale, y = center.y - 2.5 * scale },
+        }, color, 2 * scale),
     }
     if pingProgress ~= nil then
         elements[#elements + 1] = ring(center, RING_RADIUS + pingProgress * 8, withAlpha(color, 0.8 * (1 - pingProgress)), 2)
