@@ -24,7 +24,7 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
        - Promote drops only on a clean tree with nothing ahead of the default branch (the state right after a promote), where it would fast-forward by zero commits.
        - A menu missing a row it owes is an omission, not a narrowed menu; the other rows that drop are 💾 **`[c]ommit`**, 📦 **`[f]old`**, 🛠️ **`[i]terate`** and 🧨🧨 **`[xx]`**.
        - Does a `git status --porcelain` run this turn back the shape? Empty output is the only license for the clean-tree menu; a staged path still owes 💾 **`[c]ommit`** with its drafts and 🧨🧨 **`[xx]`**.
-    3. Is 🛠️ **`[i]terate`** the top row? Only ⚡ **`[n]ow`**, 🔧 **`[im]plement`** and 📋 **`[a]dd`** may sit above it, in that order; 🔧 makes it 🛠️ **`[it]erate`**.
+    3. Is 🛠️ **`[i]terate`** the top row? Only ⚡ **`[n]ow`**, 🔧 **`[im]plement`** and 📋 **`[b]ank`** may sit above it, in that order; 🔧 makes it 🛠️ **`[it]erate`**.
     4. Does 🧨🧨 **`[xx]`** render only over a dirty tree, and on a dirty tree is it the bottom row, with 🧨 **`[x]`** directly above it and 🏁 **`[L]and`** above that?
        - A clean tree ends on 🧨 **`[x]`** instead.
        - A menu behind a set-aside change, with no land or close row, ends on 🧨🧨 **`[xx]`** directly beneath ⬆️ **`[p]romote`**.

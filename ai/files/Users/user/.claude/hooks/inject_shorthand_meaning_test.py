@@ -170,7 +170,7 @@ class BuildContextTest(unittest.TestCase):
     def test_defers_to_an_offered_bracket_option(self) -> None:
         """Ensure build_context names the offered option instead of the table entry when the last message offered the letter."""
         with tempfile.TemporaryDirectory() as directory:
-            transcript = write_transcript(directory, "Proceed?\n  ⚡ **`[n]ow`** (do it)\n  📋 **`[a]dd`** (bank it)")
+            transcript = write_transcript(directory, "Proceed?\n  ⚡ **`[n]ow`** (do it)\n  📋 **`[b]ank`** (bank it)")
             context = build_context("n", transcript, DOC_PATH)
         self.assertIn("`[n]`", context)
         self.assertNotIn('mean "no"', context)
@@ -178,7 +178,7 @@ class BuildContextTest(unittest.TestCase):
     def test_uses_the_table_when_no_option_claims_the_letter(self) -> None:
         """Ensure build_context injects the table entry when the last message offered other letters only."""
         with tempfile.TemporaryDirectory() as directory:
-            transcript = write_transcript(directory, "Proceed?\n  📋 **`[a]dd`** (bank it)")
+            transcript = write_transcript(directory, "Proceed?\n  📋 **`[b]ank`** (bank it)")
             context = build_context("n", transcript, DOC_PATH)
         self.assertIn('mean "no"', context)
 

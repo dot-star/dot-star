@@ -402,7 +402,7 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
     - Name it in the 📎 **`[cb]`** row's parenthetical too (`(copy for a new terminal)`, `(copy for this prompt)`), so the user knows before accepting.
   - **Check before pointing back at an earlier copy:** run `pbpaste` before telling the user a command is still on the clipboard, and copy it again when the clipboard holds anything else.
   - **Wrap a script that may still change in `wf`:** hand it as `wf <script>` (`alias_watch_file` in `tools/bash/.aliases.sh`), so each save reruns it with no second paste; a script taking arguments uses `wf <script> "<command>"`. Copy it without `!`, since the watcher never exits and would hang the session's prompt.
-  - **Reach for 📎, not 📋:** the loose-end 📋 **`[a]dd`** row already owns 📋 and both can share one menu.
+  - **Reach for 📎, not 📋:** the loose-end 📋 **`[b]ank`** row already owns 📋 and both can share one menu.
   - **On a menu that also commits:** `[cb]` matches the `cb` clipboard shorthand and collides with commit on its first character, so that menu renders 💾 **`[co]mmit`** per the collision rule.
 - When a message lays out two or more candidate versions of one change to a tracked file (rewordings of an entry, alternative edits, a new sibling vs. an updated one), offer 👯 **`[v]ersions`** to build them as diffable mini repos.
   - A diff beats a prose preview for judging an edit, so the offer hands the user the review they'd otherwise have to ask for.
@@ -420,14 +420,14 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
   - Leaving the fold row off makes the user type a sentence for the obvious follow-up fix to HEAD or to an earlier unpushed commit.
   - Leaving the `[cN]` tree off sends a bare `c` through the skill's separate pick list.
 - Read `~/.dot-star/ai/contexts/worktree-menu.md` before sending any message that offers a follow-up (commit, fold, promote, land, close); read the whole file, never a slice (`head`, an offset, a byte cap), and render the menu from it, never from memory. It holds the row order, subject-draft trees, staging step and pre-send check, loaded on demand so sessions that never offer a menu skip its cost.
-- Whenever a message names loose ends (work this session surfaced but didn't do: a figure still unsourced, a file still to write, a decision the user has to make), offer 📋 **`[a]dd`** to bank them in a TODO section. Fires anywhere loose ends get named, not just at wrap-up: the 🏁 completion recap, a worktree follow-up, or a plain answer trailing off in "still needs". A loose end left in chat scrollback dies with the session; a TODO entry outlives it.
+- Whenever a message names loose ends (work this session surfaced but didn't do: a figure still unsourced, a file still to write, a decision the user has to make), offer 📋 **`[b]ank`** to bank them in a TODO section. Fires anywhere loose ends get named, not just at wrap-up: the 🏁 completion recap, a worktree follow-up, or a plain answer trailing off in "still needs". A loose end left in chat scrollback dies with the session; a TODO entry outlives it.
 
   **Asking to bank a todo runs this flow directly.** Any wording that banks (bank a todo, bank these as todos, bank that) names the entries itself, so skip the menu: resolve where they land and write them per the banking doc below, then report the file and the entries as written.
 
   **Pre-send check**, run on every message that names a loose end, not only on ones already shaped as a menu:
 
     1. Does the message name a loose end? A 🔄 heads-up, a 🔴 blocker, or a trailing note in any wording (left alone, still needs, untouched code) names one; flagging it as deliberately-not-done doesn't make it less of a loose end.
-    2. Is there a 📋 **`[a]dd`** row? Add one if not.
+    2. Is there a 📋 **`[b]ank`** row? Add one if not.
     3. Could you close the loose end yourself? Then ⚡ **`[n]ow`** goes above the 📋 row. Drop it only per the not-yours-to-close exception below; choosing not to touch the code isn't that exception.
     4. Does the loose end trace to a cause you could fix too (a rule, a generator, a fragile approach)? Then 🔧 **`[i]mplement`** goes below the ⚡ row, per the cause-fix rule below.
     5. Does the ⚡ row's parenthetical name the concrete job rather than generic filler?
@@ -435,11 +435,11 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
 
   **Read `~/.dot-star/ai/contexts/todo-banking.md` before writing any banked entry**; apply it from that file, never from memory. It holds where the entries land, what each entry carries and the `P#`/`S#` labels, loaded on demand so sessions that never bank a todo skip its cost.
 
-  **Slot order:** ⚡ **`[n]ow`** leads, then 🔧 **`[i]mplement`**, then 📋 **`[a]dd`**, then the rest. Joining a worktree menu, all of them sit above 🛠️ **`[i]terate`** and the close rows still end the list; the shared letter extends both sides to 🔧 **`[im]plement`** and 🛠️ **`[it]erate`**.
+  **Slot order:** ⚡ **`[n]ow`** leads, then 🔧 **`[i]mplement`**, then 📋 **`[b]ank`**, then the rest. Joining a worktree menu, all of them sit above 🛠️ **`[i]terate`** and the close rows still end the list; the shared letter extends both sides to 🔧 **`[im]plement`** and 🛠️ **`[it]erate`**.
 
   The loose-end slots front the action rather than tracking least-to-most committal like the worktree rows do: closing the loose end is what the user usually wants, so it reads first and the deferring slots follow.
 
-  **Pair it with ⚡ `[n]ow`** whenever the loose end is something you could just do. The other two slots both defer, since 📋 **`[a]dd`** banks the work and ☕ **`[d]iscuss`** talks about it, so without a do-it token the user has to type a sentence to accept the obvious next step.
+  **Pair it with ⚡ `[n]ow`** whenever the loose end is something you could just do. The other two slots both defer, since 📋 **`[b]ank`** banks the work and ☕ **`[d]iscuss`** talks about it, so without a do-it token the user has to type a sentence to accept the obvious next step.
 
   **Split the cause fix into 🔧 `[i]mplement`** whenever the loose end has a cause you could fix too: ⚡ **`[n]ow`** fixes this instance (the one bad draft) and 🔧 **`[i]mplement`** fixes the cause (the rule that let it through).
 
@@ -455,7 +455,7 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
 
   > 👉 How do you want to proceed?
   >   ⚡ **`[n]ow`**     (implement both now)
-  >   📋 **`[a]dd`**     (bank 2 loose ends as todos)
+  >   📋 **`[b]ank`**    (bank 2 loose ends as todos)
   >   🛠️ **`[i]terate`** (no commit + keep iterating)
   >   🏁 **`[L]and`**    (commit + ✅ promote to master + 🪓 tear down worktree)
   >   🧨 **`[x]`**       (commit + ✅ promote to master + 🪓 tear down worktree + 🧨 close session)
@@ -465,7 +465,7 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
 
   > 👉 Two loose ends came out of this. What next?
   >   ⚡ **`[n]ow`**     (implement both now)
-  >   📋 **`[a]dd`**     (bank the loose ends as todos)
+  >   📋 **`[b]ank`**    (bank the loose ends as todos)
   >   ☕ **`[d]iscuss`** (talk them through first)
 - When picking a decorative emoji for an option or label, prefer the playful wink/pun pick over the literal-metaphor one.
 - Use a bread emoji (🥖) for any "bake" action or option.
