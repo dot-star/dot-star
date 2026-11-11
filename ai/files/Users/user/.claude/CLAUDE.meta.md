@@ -153,6 +153,7 @@
 -
   -
   - Fixture ids don't read as illustrations, so the parent rule slid past them: a value copied from dev data looks like plain test data yet names a real customer.
+  - A word from the triggering source feels invented because it's already generic-sounding and fresh in mind, so the parent rule's "real data" test slides past it; checking where the word came from catches what checking how it sounds misses.
 
 ## Styles
 

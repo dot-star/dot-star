@@ -153,6 +153,7 @@
 - Generalize every example to neutral placeholders, whatever the file and however personal its repo. When an illustration (code, comment, doc, test, a Fail/Pass pair) would otherwise carry real private content (actual values from a private file, a real message, not invented samples), swap in invented placeholders showing the same pattern (`deploy`/`rollback`, `foo`/`bar`). An example only has to demonstrate shape, so its content is invented, never real data.
   - Count up through a well-formed identifier instead of copying a live one: a session id, UUID, hash or token becomes `12345678-90ab-cdef-1234-567890abcdef`, `1234567`, `abcdef123456`, still passing whatever format check the code applies. A random-looking value reads as real and may be (this session's own id is the usual slip); a counting sequence reads as a placeholder at a glance.
   - Treat every test fixture value as an example: a tenant, account, member or institution id copied from a real record (dev data, a log, a ticket) exposes real data the same way. Fail: a `tenant_id` value lifted from a real tenant row. Pass: `tenant_id="12345"`.
+  - Trace each concrete word in an example to its source before writing it: a subject, person, place or situation lifted from the source that prompted the edit (a paste, a file, a log) is real, however generic it sounds. Fail: a placeholder rule whose example names the venue from the case that triggered it. Pass: `[name]`.
 
 ## Styles
 
