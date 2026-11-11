@@ -1928,6 +1928,7 @@ hopOrderFrom = function(reading, spaces, closing)
         if isHopTarget(space, state, closing) then
             order[#order + 1] = {
                 space = space,
+                fullScreen = hs.spaces.spaceType(space) == 'fullscreen',
                 windowId = windows[space],
                 pickedBy = hopPickedBy(state),
                 priority = HOP_STATE_PRIORITY[state],
@@ -1937,7 +1938,10 @@ hopOrderFrom = function(reading, spaces, closing)
         end
     end
     table.sort(order, function(a, b)
-        if a.priority ~= b.priority then
+        -- Rank every full-screen Space ahead of the desktop, so a session there is the last resort rather than skipped.
+        if a.fullScreen ~= b.fullScreen then
+            return a.fullScreen
+        elseif a.priority ~= b.priority then
             return a.priority < b.priority
         elseif a.recency ~= b.recency then
             return a.recency > b.recency
