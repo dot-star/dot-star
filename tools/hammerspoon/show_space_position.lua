@@ -387,6 +387,13 @@ local function pageDotsBandFrame(count)
     }
 end
 
+-- Return the frame of the dots' band plus the strip under it, where the focus underline and follow-order letters sit.
+local function pageDotsBadgeFrame(count)
+    local frame = pageDotsBandFrame(count)
+    frame.h = frame.h + BADGE_TEXT_HEIGHT
+    return frame
+end
+
 -- Back the band the `count` dots run along in black whether or not `pillVisible`, so the dots read the same against any title bar.
 local function pageDotsBand(count)
     return {
@@ -420,16 +427,13 @@ local function appendDotsOutline(
             h = pageDotsSize(count).h,
         },
     }
-    local badgeFrame = pageDotsBandFrame(count)
-    badgeFrame.h = badgeFrame.h + BADGE_TEXT_HEIGHT
     elements[#elements + 1] = {
         type = 'rectangle',
         action = 'stroke',
         -- Stroke it yellow, apart from the red and cyan boxes; draw it before the cyan so the cyan lands on top where they share edges.
         strokeColor = { red = 1, green = 1, blue = 0, alpha = 1 },
         strokeWidth = 1,
-        -- Reach down past the dots' band to take in the strip under it, where the focus underline and follow-order letters sit.
-        frame = badgeFrame,
+        frame = pageDotsBadgeFrame(count),
     }
     elements[#elements + 1] = {
         type = 'rectangle',
