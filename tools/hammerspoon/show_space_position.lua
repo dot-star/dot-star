@@ -1298,7 +1298,6 @@ local function placeEdgeBars(pair, index, count, screen)
     end
     pair.left:frame(edgeBarFrame(barFrame, barFrame.x))
     pair.right:frame(edgeBarFrame(rightBarFrame, rightBarFrame.x + rightBarFrame.w - EDGE_BAR_CANVAS_WIDTH))
-    pair.top:frame({ x = frame.x, y = frame.y, w = frame.w, h = BAND_HEIGHT })
     pair.bottom:frame({ x = frame.x, y = frame.y + frame.h - BAND_HEIGHT, w = frame.w, h = BAND_HEIGHT })
     pair.bumper:frame({
         x = frame.x + frame.w - BUMPER_DEPTH,
@@ -1355,6 +1354,12 @@ local function placeEdgeBars(pair, index, count, screen)
         pair.sessionKey = nil
     end
     local dotsSize = pageDotsSize(dotsCount)
+    -- Stop the top band where the dots' canvas starts, so it doesn't run across the dots.
+    local topBandWidth = frame.w
+    if isEnabled('page_dots') then
+        topBandWidth = frame.w - dotsSize.w
+    end
+    pair.top:frame({ x = frame.x, y = frame.y, w = topBandWidth, h = BAND_HEIGHT })
     -- Sit the dots flush against the screen's right edge, over the right bar's glow.
     pair.dots:frame({
         x = frame.x + frame.w - dotsSize.w,
