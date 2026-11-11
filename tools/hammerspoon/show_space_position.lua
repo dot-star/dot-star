@@ -76,8 +76,8 @@ local UNIFORM_EDGE_BAR_COLOR = { red = 1, green = 0.9, blue = 0.1, alpha = 0.9 }
 local DOT_GAP = 14
 -- Fill the native title bar Ghostty keeps for its tabs with the dots' pill.
 local TITLE_BAR_HEIGHT = require('ghostty_title_bar').HEIGHT
--- Fill the height of the tab strip inside the title bar with each dot, pushing the underline, letters and hotkeys below it.
-local DOT_SIZE = require('ghostty_title_bar').TAB_STRIP_HEIGHT
+-- Run each dot from the screen's top edge down to the bottom of the tab strip centered in the title bar, pushing the underline, letters and hotkeys below it.
+local DOT_SIZE = (TITLE_BAR_HEIGHT + require('ghostty_title_bar').TAB_STRIP_HEIGHT) / 2
 -- Pad the pill's ends as much as its top and bottom, so the rounded ends hug the first and last dots evenly.
 local DOTS_PADDING = (TITLE_BAR_HEIGHT - DOT_SIZE) / 2
 -- Leave room for the countdown's longest text, so it never clips against the dots.
@@ -139,7 +139,7 @@ local HOVER_FRAME_RADIUS = 6
 local FOLLOW_ORDER_TEXT_SIZE = 10
 local BADGE_TEXT_HEIGHT = FOLLOW_ORDER_TEXT_SIZE + 2
 -- Grow a row of dots below the title bar to fit a Ctrl+N hotkey line under the follow-order letters, overlapping the window's top edge there.
-local HORIZONTAL_DOTS_HEIGHT = TITLE_BAR_HEIGHT / 2 + DOT_SIZE / 2 + 2 * BADGE_TEXT_HEIGHT
+local HORIZONTAL_DOTS_HEIGHT = DOT_SIZE + 2 * BADGE_TEXT_HEIGHT
 local HOTKEY_COLOR = { white = 1, alpha = 0.6 }
 -- Mark only the first few picks in the follow order, so the row shows where a close lands next without badging every dot.
 local FOLLOW_ORDER_LIMIT = 3
@@ -370,7 +370,8 @@ local function pageDotCenter(slot)
     if isEnabled('vertical_dots') then
         return { x = TITLE_BAR_HEIGHT / 2, y = along }
     end
-    return { x = along, y = TITLE_BAR_HEIGHT / 2 }
+    -- Hang a row from the canvas's top edge, which sits at the screen's top.
+    return { x = along, y = DOT_SIZE / 2 }
 end
 
 -- Outline the band the `count` dots run along, and the stretch from the canvas's top down to it, while `pillVisible`, inside the tinted canvas, so the boxes show how far the labels hang past the dots.
