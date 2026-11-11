@@ -6,6 +6,7 @@
 --   Paint each Space's bars the next color in a cycle rather than one shared color (cycle_colors, needs edge_bars).
 --   Add a row of dots in the title bar's upper-right corner of every full-screen Space, the focused Space filled; click a dot to jump to its Space (page_dots, needs edge_bars).
 --   Show the dots on a desktop too, placed as on a full-screen Space over the menu bar, left of the clock in the corner (desktop_dots, needs page_dots).
+--   Add a hint at the middle of a desktop's right edge while a Space lies beyond it, so swiping right reads as possible; a chevron or a block (swipe_hint, needs edge_bars).
 --   Show the dark pill behind the dots, to check where their canvas sits (page_dots_pill, needs page_dots).
 --   Stack the dots in a column down the upper-right corner, in swipe order from the top (vertical_dots, needs page_dots).
 --   Show on each dot the state of the Claude session whose window sits on that Space (session_state, needs page_dots).
@@ -31,6 +32,7 @@ local DEFAULT_ENABLED = {
     page_dots = true,
     page_dots_pill = false,
     session_state = true,
+    swipe_hint = true,
     top_bar = true,
     vertical_dots = false,
 }
@@ -39,11 +41,13 @@ local DEFAULT_STYLES = {
     decision_style = 'heartbeat',
     focus_marker = 'underline',
     pending_style = 'pulse',
+    swipe_hint_style = 'chevron',
 }
 local STYLE_CHOICES = {
     decision_style = { 'blink', 'flash', 'heartbeat', 'nudge' },
     focus_marker = { 'center', 'underline' },
     pending_style = { 'dashed', 'dot', 'pulse' },
+    swipe_hint_style = { 'block', 'chevron' },
 }
 -- Apply each number's default until it's set; a saved value wins after that.
 local DEFAULT_NUMBERS = {
@@ -54,6 +58,12 @@ local SETTINGS_PREFIX = 'show_space_position.'
 local EDGE_BAR_WIDTH = 7
 -- Keep the top and bottom bands thinner than the edge strips, so they hint at the Space's color without eating into the terminal.
 local BAND_HEIGHT = 5
+-- Size the swipe hint to the old last-page bumper, which read at a glance without crowding the desktop.
+local SWIPE_HINT_WIDTH = 28
+local SWIPE_HINT_HEIGHT = 140
+-- Keep the chevron shorter than the block, so it reads as an arrow rather than a bracket.
+local SWIPE_HINT_CHEVRON_HEIGHT = 56
+local SWIPE_HINT_CHEVRON_WIDTH = 5
 -- Paint each Space's pair the next color, so pairs are told apart and a recreated pair shows up as a color change.
 local EDGE_BAR_COLORS = {
     { red = 1, green = 0.2, blue = 0.2, alpha = 0.9 },
@@ -157,7 +167,7 @@ local EDGE_BAR_BEHAVIOR = pinCanvasesToSpaces.BEHAVIOR
 
 showSpacePosition = {}
 
--- Map each Space id to its own { left, right, top, bottom, dots } set of bars and dots.
+-- Map each Space id to its own { left, right, top, bottom, swipeHint, dots } set of bars, hint and dots.
 local edgeBarsBySpace = {}
 local edgeBarPairsCreated = 0
 local settleTimer = nil
@@ -288,6 +298,10 @@ local function layoutEdgeBar(
         fillColor = { red = color.red, green = color.green, blue = color.blue, alpha = 1 },
         frame = { x = 0, y = 0, w = EDGE_BAR_WIDTH, h = height },
     }
+end
+
+local function newSwipeHint()
+    return newOverlay({ x = 0, y = 0, w = SWIPE_HINT_WIDTH, h = SWIPE_HINT_HEIGHT }, EDGE_BAR_BEHAVIOR)
 end
 
 local function newPageDots()
@@ -625,6 +639,27 @@ local function line(points, color, width)
         strokeCapStyle = 'round',
         strokeJoinStyle = 'round',
     }
+end
+
+-- Draw the hint fully opaque, so it holds up against glare the same as the dots.
+local function layoutSwipeHint(
+    hint,
+    color,
+    style
+)
+    local opaque = { red = color.red, green = color.green, blue = color.blue, alpha = 1 }
+    if style == 'block' then
+        hint[1] = { type = 'rectangle', action = 'fill', fillColor = opaque }
+        return
+    end
+    -- Point the chevron at the screen edge, inset by half its stroke so the round caps stay inside the canvas.
+    local inset = SWIPE_HINT_CHEVRON_WIDTH / 2
+    local middle = SWIPE_HINT_HEIGHT / 2
+    hint[1] = line({
+        { x = inset, y = middle - SWIPE_HINT_CHEVRON_HEIGHT / 2 },
+        { x = SWIPE_HINT_WIDTH - inset, y = middle },
+        { x = inset, y = middle + SWIPE_HINT_CHEVRON_HEIGHT / 2 },
+    }, opaque, SWIPE_HINT_CHEVRON_WIDTH)
 end
 
 local function arc(center, radius, color, startAngle, endAngle)
@@ -1232,6 +1267,18 @@ local function showsTopBar(focused)
     return true
 end
 
+-- Return whether the focused Space gets the swipe hint, which marks a desktop with a Space beyond it; full-screen Spaces have their dots for that.
+local function showsSwipeHint(focused, index, count)
+    if not isEnabled('swipe_hint') then
+        return false
+    elseif hs.spaces.spaceType(focused) == 'fullscreen' then
+        return false
+    elseif index == count then
+        return false
+    end
+    return true
+end
+
 -- Return whether the focused Space gets the dots; desktops stay clear, the same as for the right bar, unless desktop_dots is on.
 local function showsPageDots(focused)
     if not isEnabled('page_dots') then
@@ -1267,6 +1314,7 @@ local function deleteEdgeBarPair(pair)
     pair.right:delete()
     pair.top:delete()
     pair.bottom:delete()
+    pair.swipeHint:delete()
     pair.dots:delete()
     pair.countdown:delete()
 end
@@ -1312,7 +1360,7 @@ local function followOrderOf(spaces, closing)
     return order
 end
 
--- Fit a pair's bars and dots flush to the edges of `screen`, for the Space at `index` of `count` on it.
+-- Fit a pair's bars, hint and dots flush to the edges of `screen`, for the Space at `index` of `count` on it.
 -- Return whether display_alternate_clock holds the top-right corner of a full-screen Space or, unless `fullScreen`, a desktop, which it does beside a row of dots there.
 local function clockHoldsCorner(fullScreen)
     if not isEnabled('page_dots') then
@@ -1360,6 +1408,18 @@ local function placeEdgeBars(pair, index, count, screen)
     pair.left:frame(edgeBarFrame(barFrame, barFrame.x))
     pair.right:frame(edgeBarFrame(rightBarFrame, rightBarFrame.x + rightBarFrame.w - EDGE_BAR_WIDTH))
     pair.bottom:frame({ x = frame.x, y = frame.y + frame.h - BAND_HEIGHT, w = frame.w, h = BAND_HEIGHT })
+    -- Redraw the hint only when its style changed, the same as the bars' height check.
+    local swipeHintStyle = styleOf('swipe_hint_style')
+    if pair.swipeHintStyle ~= swipeHintStyle then
+        layoutSwipeHint(pair.swipeHint, pair.color, swipeHintStyle)
+        pair.swipeHintStyle = swipeHintStyle
+    end
+    pair.swipeHint:frame({
+        x = frame.x + frame.w - SWIPE_HINT_WIDTH,
+        y = frame.y + (frame.h - SWIPE_HINT_HEIGHT) / 2,
+        w = SWIPE_HINT_WIDTH,
+        h = SWIPE_HINT_HEIGHT,
+    })
     -- Redraw the dots only when the Space moved, the count changed or the pill or column was toggled, the same as the bars' height check.
     local pillVisible = isEnabled('page_dots_pill')
     local vertical = isEnabled('vertical_dots')
@@ -1549,6 +1609,7 @@ local function renderEdgeBars(index, count, screen, focused)
             right = newEdgeBar(color),
             top = newBand(color),
             bottom = newBand(color),
+            swipeHint = newSwipeHint(),
             dots = newPageDots(),
             countdown = newCountdown(),
             color = color,
@@ -1570,6 +1631,7 @@ local function renderEdgeBars(index, count, screen, focused)
     setEdgeBarVisible(pair.right, rightVisible)
     setEdgeBarVisible(pair.top, showsTopBar(focused))
     setEdgeBarVisible(pair.bottom, showsBottomBar(focused))
+    setEdgeBarVisible(pair.swipeHint, showsSwipeHint(focused, index, count))
     setEdgeBarVisible(pair.dots, showsPageDots(focused))
     setEdgeBarVisible(pair.countdown, showsCountdown(focused))
 end
