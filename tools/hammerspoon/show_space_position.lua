@@ -52,12 +52,9 @@ local DEFAULT_NUMBERS = {
 }
 local SETTINGS_PREFIX = 'show_space_position.'
 local EDGE_BAR_WIDTH = 7
--- Back the right strip with a wide glow that fades out toward the middle, so the edge reads from the corner of the eye.
-local EDGE_GLOW_WIDTH = 64
-local EDGE_BAR_CANVAS_WIDTH = math.max(EDGE_BAR_WIDTH, EDGE_GLOW_WIDTH)
--- Keep the top and bottom bands thinner than the edge strips with no glow, so they hint at the Space's color without eating into the terminal.
+-- Keep the top and bottom bands thinner than the edge strips, so they hint at the Space's color without eating into the terminal.
 local BAND_HEIGHT = 5
--- Block the right edge's midpoint with a bumper on the last Space, where there's no bar to say the swipe goes on.
+-- Block the right edge's midpoint with a bumper on the last Space, where the swipe ends.
 local BUMPER_DEPTH = 28
 local BUMPER_HEIGHT = 140
 -- Draw the bumper more opaque than the bars, so its hard edge holds up against glare outdoors.
@@ -258,12 +255,12 @@ local function focusedPosition()
 end
 
 local function edgeBarFrame(screenFrame, x)
-    return { x = x, y = screenFrame.y, w = EDGE_BAR_CANVAS_WIDTH, h = screenFrame.h }
+    return { x = x, y = screenFrame.y, w = EDGE_BAR_WIDTH, h = screenFrame.h }
 end
 
--- Fade the whole canvas rather than each fill, so the strip and glow overlap without a darker seam.
+-- Fade the whole canvas rather than its fill, the same as a band.
 local function newEdgeBar(color)
-    local bar = newOverlay({ x = 0, y = 0, w = EDGE_BAR_CANVAS_WIDTH, h = 1 }, EDGE_BAR_BEHAVIOR)
+    local bar = newOverlay({ x = 0, y = 0, w = EDGE_BAR_WIDTH, h = 1 }, EDGE_BAR_BEHAVIOR)
     bar:alpha(color.alpha)
     return bar
 end
@@ -280,33 +277,17 @@ local function newBand(color)
     return bar
 end
 
--- Draw the strip flush against the screen edge on `side`, the right one over a glow that starts as solid as the strip and fades out.
-local function layoutEdgeBar(bar, side, color, height)
-    local opaque = { red = color.red, green = color.green, blue = color.blue, alpha = 1 }
-    if side == 'left' then
-        bar[1] = {
-            type = 'rectangle',
-            action = 'fill',
-            fillColor = opaque,
-            frame = { x = 0, y = 0, w = EDGE_BAR_WIDTH, h = height },
-        }
-        return
-    end
-
-    local clear = { red = color.red, green = color.green, blue = color.blue, alpha = 0 }
+-- Fill the strip solid, flush against the screen edge its canvas sits on.
+local function layoutEdgeBar(
+    bar,
+    color,
+    height
+)
     bar[1] = {
         type = 'rectangle',
         action = 'fill',
-        fillGradient = 'linear',
-        fillGradientColors = { clear, opaque },
-        fillGradientAngle = 0,
-        frame = { x = EDGE_BAR_CANVAS_WIDTH - EDGE_GLOW_WIDTH, y = 0, w = EDGE_GLOW_WIDTH, h = height },
-    }
-    bar[2] = {
-        type = 'rectangle',
-        action = 'fill',
-        fillColor = opaque,
-        frame = { x = EDGE_BAR_CANVAS_WIDTH - EDGE_BAR_WIDTH, y = 0, w = EDGE_BAR_WIDTH, h = height },
+        fillColor = { red = color.red, green = color.green, blue = color.blue, alpha = 1 },
+        frame = { x = 0, y = 0, w = EDGE_BAR_WIDTH, h = height },
     }
 end
 
@@ -1234,11 +1215,11 @@ local function startsFullScreenRun(spaces, index)
     return true
 end
 
--- Return whether the focused Space gets a right bar; desktops stay clear so bars mark only the full-screen apps.
+-- Return whether the focused Space gets a right bar, which marks the last Space, where a swipe right goes no further; desktops stay clear so bars mark only the full-screen apps.
 local function showsRightBar(focused, index, count)
     if hs.spaces.spaceType(focused) ~= 'fullscreen' then
         return false
-    elseif index == count then
+    elseif index ~= count then
         return false
     end
     return true
@@ -1393,15 +1374,15 @@ local function placeEdgeBars(pair, index, count, screen)
     local rightBarFrame = { x = frame.x, y = rightBarTop, w = frame.w, h = frame.y + frame.h - rightBarTop }
     -- Redraw the elements only when a bar's height changes, so a plain Space switch never repaints the bars.
     if pair.leftHeight ~= barFrame.h then
-        layoutEdgeBar(pair.left, 'left', pair.color, barFrame.h)
+        layoutEdgeBar(pair.left, pair.color, barFrame.h)
         pair.leftHeight = barFrame.h
     end
     if pair.rightHeight ~= rightBarFrame.h then
-        layoutEdgeBar(pair.right, 'right', pair.color, rightBarFrame.h)
+        layoutEdgeBar(pair.right, pair.color, rightBarFrame.h)
         pair.rightHeight = rightBarFrame.h
     end
     pair.left:frame(edgeBarFrame(barFrame, barFrame.x))
-    pair.right:frame(edgeBarFrame(rightBarFrame, rightBarFrame.x + rightBarFrame.w - EDGE_BAR_CANVAS_WIDTH))
+    pair.right:frame(edgeBarFrame(rightBarFrame, rightBarFrame.x + rightBarFrame.w - EDGE_BAR_WIDTH))
     pair.bottom:frame({ x = frame.x, y = frame.y + frame.h - BAND_HEIGHT, w = frame.w, h = BAND_HEIGHT })
     pair.bumper:frame({
         x = frame.x + frame.w - BUMPER_DEPTH,
@@ -1458,7 +1439,7 @@ local function placeEdgeBars(pair, index, count, screen)
         pair.sessionKey = nil
     end
     local dotsSize = pageDotsSize(dotsCount)
-    -- Sit the dots flush against the screen's right edge, over the right bar's glow, or left of the clock where it holds the corner.
+    -- Sit the dots flush against the screen's right edge, or left of the clock where it holds the corner.
     local dotsX = frame.x + frame.w - cornerClockWidth(pair) - dotsSize.w
     -- Stop the top band where the dots' canvas starts, so it doesn't run across the dots.
     local topBandWidth = frame.w
