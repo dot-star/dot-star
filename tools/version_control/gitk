@@ -1,62 +1,62 @@
 set autocopy 0
 set autoselect 1
 set autosellen 40
-set bgcolor white
-set circlecolors {white blue gray blue blue}
-set circleoutlinecolor black
+set bgcolor #2e3440
+set circlecolors {#d8dee9 #88c0d0 #4c566a #88c0d0 #88c0d0}
+set circleoutlinecolor #d8dee9
 set cmitmode patch
-set colors {"#00ff00" red blue magenta darkgrey brown orange}
-set currentsearchhitbgcolor orange
+set colors {#a3be8c #bf616a #81a1c1 #b48ead #4c566a #ebcb8b #d08770}
+set currentsearchhitbgcolor #d08770
 set datetimeformat {%Y-%m-%d %H:%M:%S}
-set diffbgcolors {"#fff3f3" "#f0fff0"}
-set diffcolors {"#c30000" "#009800" blue}
+set diffbgcolors {"#3a2828" "#28342a"}
+set diffcolors {#bf616a #a3be8c #81a1c1}
 set diffcontext 3
 set extdifftool opendiff
-set fgcolor black
-set filesepbgcolor #aaaaaa
-set filesepfgcolor black
+set fgcolor #d8dee9
+set filesepbgcolor #4c566a
+set filesepfgcolor #d8dee9
 set findmergefiles 0
-set foundbgcolor yellow
-set headbgcolor #00ff00
-set headfgcolor black
-set headoutlinecolor black
+set foundbgcolor #ebcb8b
+set headbgcolor #a3be8c
+set headfgcolor #2e3440
+set headoutlinecolor #d8dee9
 set hideremotes 0
-set indexcirclecolor #00ff00
+set indexcirclecolor #a3be8c
 set kscroll 3
 set limitdiffs 1
-set linehoverbgcolor #ffff80
-set linehoverfgcolor black
-set linehoveroutlinecolor black
-set linkfgcolor blue
+set linehoverbgcolor #434c5e
+set linehoverfgcolor #d8dee9
+set linehoveroutlinecolor #d8dee9
+set linkfgcolor #88c0d0
 set mainfont {{Lucida Grande} 15}
-set mainheadcirclecolor yellow
-set markbgcolor #e0e0ff
+set mainheadcirclecolor #ebcb8b
+set markbgcolor #434c5e
 set maxgraphpct 50
 set maxrefs 20
 set maxwidth 16
-set mergecolors {red blue "#00ff00" purple brown "#009090" magenta "#808000" "#009000" "#ff0080" cyan "#b07070" "#70b0f0" "#70f0b0" "#f0b070" "#ff70b0"}
+set mergecolors {#bf616a #81a1c1 #a3be8c #b48ead #d08770 #88c0d0 #ebcb8b #b48ead #a3be8c #bf616a #88c0d0 #b07070 #70b0f0 #70f0b0 #f0b070 #ff70b0}
 set perfile_attrs 0
-set reflinecolor black
+set reflinecolor #d8dee9
 set refstohide {}
-set remotebgcolor #ffddaa
-set selectbgcolor gray85
+set remotebgcolor #d08770
+set selectbgcolor #434c5e
 set showlocalchanges 1
 set showneartags 1
 set sortrefsbytype 1
 set tabstop 8
-set tagbgcolor yellow
-set tagfgcolor black
-set tagoutlinecolor black
+set tagbgcolor #ebcb8b
+set tagfgcolor #2e3440
+set tagoutlinecolor #2e3440
 set textfont {Monaco 12}
 set theme aqua
 set themeloader {}
-set uicolor grey85
-set uifgcolor black
-set uifgdisabledcolor #999
+set uicolor #3b4252
+set uifgcolor #d8dee9
+set uifgdisabledcolor #4c566a
 set uifont {{Lucida Grande} 9 bold}
 set visiblerefs {"master"}
 set web_browser open
-set workingfilescirclecolor red
+set workingfilescirclecolor #bf616a
 set wrapcomment word
 set wrapdefault word
 set permviews {}
