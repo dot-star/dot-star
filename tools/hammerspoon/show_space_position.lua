@@ -685,9 +685,8 @@ local function stateElements(state, center, seconds, pingProgress)
     error('unknown session state: ' .. state)
 end
 
--- Mark the dot of the Space you're on the way the focus_marker style says, on top of its state.
-local function focusedElements(state, center, seconds, pingProgress)
-    local elements = stateElements(state, center, seconds, pingProgress)
+-- Mark `elements`, drawn around `center`, as the focused Space's in the focus_marker style.
+local function addFocusMarker(elements, center)
     local marker = styleOf('focus_marker')
     if marker == 'center' then
         local whitened = false
@@ -720,6 +719,12 @@ local function focusedElements(state, center, seconds, pingProgress)
     else
         error('unknown focus marker: ' .. marker)
     end
+end
+
+-- Mark the dot of the Space you're on the way the focus_marker style says, on top of its state.
+local function focusedElements(state, center, seconds, pingProgress)
+    local elements = stateElements(state, center, seconds, pingProgress)
+    addFocusMarker(elements, center)
     return elements
 end
 
