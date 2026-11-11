@@ -380,4 +380,4 @@ The installation and update may be run repeatedly. Neither action will remove no
 
 ## Mission
 
-    There should be one-- and preferably only one --command to do it.
+    Type less. Break less. Feel at home on every machine.
