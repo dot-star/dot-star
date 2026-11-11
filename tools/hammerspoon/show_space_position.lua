@@ -394,13 +394,13 @@ local function pageDotsBadgeFrame(count)
     return frame
 end
 
--- Back the band the `count` dots run along in black whether or not `pillVisible`, so the dots read the same against any title bar.
+-- Back the band the `count` dots run along, and the underline and letters under it, in black whether or not `pillVisible`, so they read the same against any title bar.
 local function pageDotsBand(count)
     return {
         type = 'rectangle',
         action = 'fill',
         fillColor = { red = 0, green = 0, blue = 0, alpha = 1 },
-        frame = pageDotsBandFrame(count),
+        frame = pageDotsBadgeFrame(count),
     }
 end
 
