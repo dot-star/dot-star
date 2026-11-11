@@ -64,6 +64,9 @@ local SWIPE_HINT_HEIGHT = 140
 -- Keep the chevron shorter than the block, so it reads as an arrow rather than a bracket.
 local SWIPE_HINT_CHEVRON_HEIGHT = 56
 local SWIPE_HINT_CHEVRON_WIDTH = 5
+-- Outline the chevron in black, so it holds its shape over a light wallpaper or window.
+local SWIPE_HINT_OUTLINE_WIDTH = 4
+local SWIPE_HINT_OUTLINE_COLOR = { white = 0, alpha = 1 }
 -- Paint each Space's pair the next color, so pairs are told apart and a recreated pair shows up as a color change.
 local EDGE_BAR_COLORS = {
     { red = 1, green = 0.2, blue = 0.2, alpha = 0.9 },
@@ -650,16 +653,22 @@ local function layoutSwipeHint(
     local opaque = { red = color.red, green = color.green, blue = color.blue, alpha = 1 }
     if style == 'block' then
         hint[1] = { type = 'rectangle', action = 'fill', fillColor = opaque }
+        -- Drop the chevron's top stroke, left over when the style switched from chevron.
+        hint[2] = nil
         return
     end
-    -- Point the chevron at the screen edge, inset by half its stroke so the round caps stay inside the canvas.
-    local inset = SWIPE_HINT_CHEVRON_WIDTH / 2
+    -- Stroke the outline first, wider by its width on each side, so the chevron drawn over it leaves a black rim.
+    local outlineWidth = SWIPE_HINT_CHEVRON_WIDTH + 2 * SWIPE_HINT_OUTLINE_WIDTH
+    -- Point the chevron at the screen edge, inset by half the outline's stroke so the round caps stay inside the canvas.
+    local inset = outlineWidth / 2
     local middle = SWIPE_HINT_HEIGHT / 2
-    hint[1] = line({
+    local points = {
         { x = inset, y = middle - SWIPE_HINT_CHEVRON_HEIGHT / 2 },
         { x = SWIPE_HINT_WIDTH - inset, y = middle },
         { x = inset, y = middle + SWIPE_HINT_CHEVRON_HEIGHT / 2 },
-    }, opaque, SWIPE_HINT_CHEVRON_WIDTH)
+    }
+    hint[1] = line(points, SWIPE_HINT_OUTLINE_COLOR, outlineWidth)
+    hint[2] = line(points, opaque, SWIPE_HINT_CHEVRON_WIDTH)
 end
 
 local function arc(center, radius, color, startAngle, endAngle)
