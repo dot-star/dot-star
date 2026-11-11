@@ -810,7 +810,12 @@ local function layoutSessionDots(
     local elements = { pageDotsPill(pillVisible) }
     -- Count the home triangle too.
     appendDotsOutline(elements, pillVisible, #spaces + 1)
-    for _, element in ipairs(homeElements(pageDotCenter(1))) do
+    local home = homeElements(pageDotCenter(1))
+    -- Mark the home triangle while you're on the home Space, which sits before the first ring.
+    if index == 0 then
+        addFocusMarker(home, pageDotCenter(1))
+    end
+    for _, element in ipairs(home) do
         elements[#elements + 1] = element
     end
     appendHotkey(elements, 1, slotHotkeys)
