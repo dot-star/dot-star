@@ -371,6 +371,32 @@ local function pageDotCenter(slot)
     return { x = along, y = TITLE_BAR_HEIGHT / 2 }
 end
 
+-- Outline the `count` dots themselves while `pillVisible`, inside the tinted canvas, so the two boxes show how far the labels hang past the dots.
+local function appendDotsOutline(
+    elements,
+    pillVisible,
+    count
+)
+    if not pillVisible then
+        return
+    end
+    local first = pageDotCenter(1)
+    local last = pageDotCenter(count)
+    elements[#elements + 1] = {
+        type = 'rectangle',
+        action = 'stroke',
+        -- Stroke it cyan, apart from the magenta canvas tint.
+        strokeColor = { red = 0, green = 1, blue = 1, alpha = 1 },
+        strokeWidth = 1,
+        frame = {
+            x = first.x - DOT_SIZE / 2,
+            y = first.y - DOT_SIZE / 2,
+            w = last.x - first.x + DOT_SIZE,
+            h = last.y - first.y + DOT_SIZE,
+        },
+    }
+end
+
 -- Return the slot under (`x`, `y`) among `count` dots, or nil past either end.
 local function dotSlotAt(
     x,
@@ -457,6 +483,7 @@ local function layoutPageDots(
     slotHotkeys
 )
     local elements = { pageDotsPill(pillVisible) }
+    appendDotsOutline(elements, pillVisible, count)
     -- Draw the dots fully opaque, the same as the bumper, so they hold up against glare.
     local opaque = { red = color.red, green = color.green, blue = color.blue, alpha = 1 }
     for position = 1, count do
@@ -773,6 +800,8 @@ local function layoutSessionDots(
     slotHotkeys
 )
     local elements = { pageDotsPill(pillVisible) }
+    -- Count the home triangle too.
+    appendDotsOutline(elements, pillVisible, #spaces + 1)
     for _, element in ipairs(homeElements(pageDotCenter(1))) do
         elements[#elements + 1] = element
     end
