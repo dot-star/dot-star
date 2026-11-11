@@ -143,9 +143,20 @@ local function belowDotsClockTop()
     return showSpacePosition.clockTopBelowDots()
 end
 
+-- Return where show_space_position wants the clock's rows to start below the dots on a desktop, or nil to leave them under the menu bar; nil too until that module loads.
+local function belowDesktopDotsClockTop()
+    if showSpacePosition == nil then
+        return nil
+    end
+    return showSpacePosition.desktopClockTop()
+end
+
 -- Return the top of `pair`'s first row: under the menu bar on a desktop, under the title bar or the page dots below it on a full-screen Space unless the page dots make room inside it.
 function clockTop(pair)
     if not pair.fullScreen then
+        if belowDesktopDotsClockTop() ~= nil then
+            return belowDesktopDotsClockTop()
+        end
         return y
     elseif titleBarClockInset() ~= nil then
         -- Center both rows in the title bar.

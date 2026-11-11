@@ -5,6 +5,7 @@
 --   Add a matching band along the top edge of every full-screen Space (top_bar, needs edge_bars).
 --   Paint each Space's bars the next color in a cycle rather than one shared color (cycle_colors, needs edge_bars).
 --   Add a row of dots in the title bar's upper-right corner of every full-screen Space, the focused Space filled; click a dot to jump to its Space (page_dots, needs edge_bars).
+--   Show the dots on a desktop too, placed as on a full-screen Space over the menu bar, pushing the clock below them (desktop_dots, needs page_dots).
 --   Show the dark pill behind the dots, to check where their canvas sits (page_dots_pill, needs page_dots).
 --   Stack the dots in a column down the upper-right corner, in swipe order from the top (vertical_dots, needs page_dots).
 --   Show on each dot the state of the Claude session whose window sits on that Space (session_state, needs page_dots).
@@ -22,6 +23,7 @@
 local DEFAULT_ENABLED = {
     bottom_bar = true,
     cycle_colors = false,
+    desktop_dots = false,
     edge_bars = true,
     follow_countdown = true,
     follow_order = true,
@@ -1165,14 +1167,16 @@ local function showsBumper(focused, index, count)
     return true
 end
 
--- Return whether the focused Space gets the dots; desktops stay clear, the same as for the right bar.
+-- Return whether the focused Space gets the dots; desktops stay clear, the same as for the right bar, unless desktop_dots is on.
 local function showsPageDots(focused)
     if not isEnabled('page_dots') then
         return false
-    elseif hs.spaces.spaceType(focused) ~= 'fullscreen' then
-        return false
+    elseif hs.spaces.spaceType(focused) == 'fullscreen' then
+        return true
+    elseif isEnabled('desktop_dots') then
+        return true
     end
-    return true
+    return false
 end
 
 -- Return whether the focused Space gets the countdown, which rides along with the dots.
@@ -1702,6 +1706,18 @@ end
 -- Return where display_alternate_clock should start its rows to clear a row of dots and their hotkey line, or nil when no row hangs below the title bar.
 function showSpacePosition.clockTopBelowDots()
     if not isEnabled('page_dots') then
+        return nil
+    elseif isEnabled('vertical_dots') then
+        return nil
+    end
+    return HORIZONTAL_DOTS_HEIGHT
+end
+
+-- Return where display_alternate_clock should start its rows on a desktop to clear the dots there, or nil when no dots show on a desktop.
+function showSpacePosition.desktopClockTop()
+    if not isEnabled('page_dots') then
+        return nil
+    elseif not isEnabled('desktop_dots') then
         return nil
     elseif isEnabled('vertical_dots') then
         return nil
