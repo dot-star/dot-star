@@ -24,7 +24,7 @@
        -
        -
        -
-    3.
+    3. The loose-end rule's cause-fix slot shares iterate's letter, so both extend whenever it joins.
     4.
        -
        - Follows line 23: the menu without land and close now only happens behind a set-aside change, so the bottom-row rule names that case.

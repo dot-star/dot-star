@@ -429,16 +429,19 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
     1. Does the message name a loose end? A 🔄 heads-up, a 🔴 blocker, or a trailing note in any wording (left alone, still needs, untouched code) names one; flagging it as deliberately-not-done doesn't make it less of a loose end.
     2. Is there a 📋 **`[a]dd`** row? Add one if not.
     3. Could you close the loose end yourself? Then ⚡ **`[n]ow`** goes above the 📋 row. Drop it only per the not-yours-to-close exception below; choosing not to touch the code isn't that exception.
-    4. Does the ⚡ row's parenthetical name the concrete job rather than generic filler?
-    5. Is there no worktree menu beneath? Then ☕ **`[d]iscuss`** joins too.
+    4. Does the loose end trace to a cause you could fix too (a rule, a generator, a fragile approach)? Then 🔧 **`[i]mplement`** goes below the ⚡ row, per the cause-fix rule below.
+    5. Does the ⚡ row's parenthetical name the concrete job rather than generic filler?
+    6. Is there no worktree menu beneath? Then ☕ **`[d]iscuss`** joins too.
 
   **Read `~/.dot-star/ai/contexts/todo-banking.md` before writing any banked entry**; apply it from that file, never from memory. It holds where the entries land, what each entry carries and the `P#`/`S#` labels, loaded on demand so sessions that never bank a todo skip its cost.
 
-  **Slot order:** ⚡ **`[n]ow`** leads, then 📋 **`[a]dd`**, then the rest. Joining a worktree menu, both sit above 🛠️ **`[i]terate`** and the close rows still end the list.
+  **Slot order:** ⚡ **`[n]ow`** leads, then 🔧 **`[i]mplement`**, then 📋 **`[a]dd`**, then the rest. Joining a worktree menu, all of them sit above 🛠️ **`[i]terate`** and the close rows still end the list; the shared letter extends both sides to 🔧 **`[im]plement`** and 🛠️ **`[it]erate`**.
 
   The loose-end slots front the action rather than tracking least-to-most committal like the worktree rows do: closing the loose end is what the user usually wants, so it reads first and the deferring slots follow.
 
   **Pair it with ⚡ `[n]ow`** whenever the loose end is something you could just do. The other two slots both defer, since 📋 **`[a]dd`** banks the work and ☕ **`[d]iscuss`** talks about it, so without a do-it token the user has to type a sentence to accept the obvious next step.
+
+  **Split the cause fix into 🔧 `[i]mplement`** whenever the loose end has a cause you could fix too: ⚡ **`[n]ow`** fixes this instance (the one bad draft) and 🔧 **`[i]mplement`** fixes the cause (the rule that let it through).
 
   Never smuggle the action into another option's parenthetical (`☕ [d]iscuss (or just wire it up now)`); an action the user can pick needs its own letter.
 

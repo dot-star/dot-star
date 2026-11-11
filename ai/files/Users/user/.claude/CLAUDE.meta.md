@@ -429,16 +429,19 @@
     1.
     2.
     3.
-    4.
+    4. Fix at the source applies to menus too: a cause the session could fix is in scope now, so it gets an accept token rather than only a todo.
     5.
+    6.
+
+
+
+  A wide row label shifts every parenthetical, so the extension names both sides explicitly rather than leaving the collision rule to catch it.
 
 
 
 
 
-
-
-
+  A lone ⚡ row either bundles both fixes or leaves the cause to 📋, so the source fix never gets a do-it token of its own.
 
 
 
