@@ -83,12 +83,12 @@ local DOTS_PADDING = (TITLE_BAR_HEIGHT - DOT_SIZE) / 2
 -- Leave room for the countdown's longest text, so it never clips against the dots.
 local COUNTDOWN_WIDTH = 60
 local COUNTDOWN_TEXT_SIZE = 22
--- Heat the countdown from dim gray up to white a third of the way in, then on to red as follow_ready nears arming.
+-- Heat the countdown from dim gray up to white a third of the way in, then hold white until follow_ready arms.
 -- Keep the early seconds dim, so a countdown that resets on every keystroke stays out of the way.
 local COUNTDOWN_COLOR_STOPS = {
     { heat = 0, color = { red = 0.3, green = 0.3, blue = 0.3, alpha = 1 } },
     { heat = 1 / 3, color = { red = 1, green = 1, blue = 1, alpha = 1 } },
-    { heat = 1, color = { red = 1, green = 0.15, blue = 0.1, alpha = 1 } },
+    { heat = 1, color = { red = 1, green = 1, blue = 1, alpha = 1 } },
 }
 -- Read each Claude session's state word and window record from where `announce_window_state.py` writes them.
 local SESSION_STATE_DIR = '/tmp/claude-state-hook/'
