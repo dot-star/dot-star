@@ -12,6 +12,9 @@ SESSION_ID="test-exit-session-$$"
 MARK="/tmp/claude/prune_marks/${SESSION_ID}"
 OPEN_TURN="/tmp/claude/open_turns/${SESSION_ID}"
 STATE="/tmp/claude-state-hook/${SESSION_ID}.state"
+STOP_BLOCKED="/tmp/claude-state-hook/${SESSION_ID}.stop_blocked"
+# Carry a non-ASCII character, so the bash and Python fingerprints must agree on encoding.
+LAST_MESSAGE="Pick a subject: 1. Fix foo ✓"
 export CLAUDE_RUN_CLOSE_REQUESTED_MARKER="${SANDBOX}/close_requested"
 
 # Stub the Space hop under a sandboxed HOME, so a run records any hop instead
@@ -68,7 +71,8 @@ assert_exit() {
         --arg sid "${SESSION_ID}" \
         --arg cwd "${REPO}" \
         --arg transcript "${TRANSCRIPT}" \
-        '{session_id: $sid, hook_event_name: "Stop", cwd: $cwd, transcript_path: $transcript}')"
+        --arg message "${LAST_MESSAGE}" \
+        '{session_id: $sid, hook_event_name: "Stop", cwd: $cwd, transcript_path: $transcript, last_assistant_message: $message}')"
 
     # Silence bash's "Terminated" notice for the signaled case.
     {
@@ -97,23 +101,46 @@ assert_exit() {
     fi
 }
 
-rm --force -- "${MARK}"
+# Load describe_turn under the sandboxed HOME, so the include's close log stays in the sandbox.
+source "$(dirname -- "${HOOK}")/exit_session.inc.sh"
+
+assert_turn() {
+    # Compare the turn describe_turn reads after the stop against <expected>.
+    local label="$1"
+    local expected="$2"
+
+    local actual
+    actual="$(describe_turn "${SESSION_ID}")"
+    if [[ "${actual}" == "${expected}" ]]; then
+        echo "✓ ${label}"
+    else
+        echo "✗ ${label}"
+        echo "    expected: ${expected}"
+        echo "    actual:   ${actual}"
+        failures=$((failures + 1))
+    fi
+}
+
+rm --force -- "${MARK}" "${STOP_BLOCKED}"
 mkdir --parents -- "$(dirname -- "${OPEN_TURN}")"
 touch -- "${OPEN_TURN}"
 assert_exit "unmarked session keeps running" \
     "exit 0, close not requested, stayed"
+assert_turn "stop closes the open turn" "closed"
 
-# Expect the turn closed, so the next bare `x` closes at once.
-if [[ ! -e "${OPEN_TURN}" ]]; then
-    echo "✓ stop closes the open turn"
-else
-    echo "✗ stop closes the open turn"
-    failures=$((failures + 1))
-fi
+# Record a block the way a blocking Stop hook does through announce_window_state.py.
+python_fingerprint="$(python3 -c '
+import sys
+sys.path.insert(0, sys.argv[1])
+from announce_window_state import stop_fingerprint
+print(stop_fingerprint({"last_assistant_message": sys.argv[2]}), end="")
+' "$(dirname -- "${HOOK}")" "${LAST_MESSAGE}")"
+printf '%s' "${python_fingerprint}" >"${STOP_BLOCKED}"
+assert_turn "stop a sibling hook blocked keeps the turn running" "blocked"
 
 mkdir --parents "$(dirname -- "${MARK}")"
 touch -- "${MARK}"
-touch -- "${OPEN_TURN}"
+: >"${OPEN_TURN}"
 mkdir --parents -- "$(dirname -- "${STATE}")"
 printf '%s' "busy" >"${STATE}"
 assert_exit "marked session gets SIGTERM after asking claude_run to close" \
@@ -136,7 +163,7 @@ else
     failures=$((failures + 1))
 fi
 
-rm --force -- "${MARK}" "${OPEN_TURN}" "${STATE}"
+rm --force -- "${MARK}" "${OPEN_TURN}" "${STATE}" "${STOP_BLOCKED}"
 rm -r -- "${SANDBOX}"
 
 if [[ "${failures}" -eq 0 ]]; then

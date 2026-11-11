@@ -60,6 +60,8 @@ is_close_owing_no_work() {
 
     if [[ "${turn_before}" == "open" ]]; then
         return 1
+    elif [[ "${turn_before}" == "blocked" ]]; then
+        return 1
     elif [[ "${reply}" == "xx" ]]; then
         return 0
     elif [[ "${reply}" != "x" ]]; then

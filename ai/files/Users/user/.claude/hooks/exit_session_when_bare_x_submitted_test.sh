@@ -12,6 +12,7 @@ SANDBOX="$(cd "$(mktemp -d)" && pwd -P)"
 SESSION_ID="test-bare-x-$$"
 MARK="/tmp/claude/prune_marks/${SESSION_ID}"
 OPEN_TURN="/tmp/claude/open_turns/${SESSION_ID}"
+STOP_BLOCKED="/tmp/claude-state-hook/${SESSION_ID}.stop_blocked"
 export CLAUDE_RUN_CLOSE_REQUESTED_MARKER="${SANDBOX}/close_requested"
 
 # Stub the Space hop under a sandboxed HOME, so a run records the hop and its
@@ -56,19 +57,27 @@ failures=0
 
 assert_close() {
     # Submit <prompt> from <cwd> under the stand-in claude, which outlives the
-    # hook unless signaled, with a turn already running or not per <turn>, and
-    # compare "<exit status>, <mark>, <hop>" against <expected>.
+    # hook unless signaled, with the turn left per <turn> (idle, mid-turn,
+    # blocked, closed), and compare "<exit status>, <mark>, <hop>" against
+    # <expected>.
     local label="$1"
     local prompt="$2"
     local cwd="$3"
     local turn="$4"
     local expected="$5"
 
-    rm --force -- "${CLAUDE_RUN_CLOSE_REQUESTED_MARKER}" "${HOP_RECORD}" "${MARK}" "${OPEN_TURN}"
+    rm --force -- "${CLAUDE_RUN_CLOSE_REQUESTED_MARKER}" "${HOP_RECORD}" "${MARK}" "${OPEN_TURN}" "${STOP_BLOCKED}"
+    mkdir --parents -- "$(dirname -- "${OPEN_TURN}")" "$(dirname -- "${STOP_BLOCKED}")"
 
+    # Record a stop the way the prune Stop hook does, and a block the way announce_window_state.py does.
     if [[ "${turn}" == "mid-turn" ]]; then
-        mkdir --parents -- "$(dirname -- "${OPEN_TURN}")"
         touch -- "${OPEN_TURN}"
+    elif [[ "${turn}" == "blocked" ]]; then
+        printf '%s\n' "abcdef123456" >"${OPEN_TURN}"
+        printf '%s' "abcdef123456" >"${STOP_BLOCKED}"
+    elif [[ "${turn}" == "closed" ]]; then
+        printf '%s\n' "abcdef123456" >"${OPEN_TURN}"
+        printf '%s' "123456abcdef" >"${STOP_BLOCKED}"
     fi
 
     local input
@@ -124,20 +133,24 @@ assert_close "drafted pick x2 reaches the model" \
     "x2" "${PLAIN_DIR}" "idle" "exit 0, unmarked, stayed"
 assert_close "sentence carrying x reaches the model" \
     "fix x" "${PLAIN_DIR}" "idle" "exit 0, unmarked, stayed"
+assert_close "x after a finished turn closes at once" \
+    "x" "${REPO}" "closed" "exit 143, marked, hopped"
+assert_close "x after a blocked stop reaches the model" \
+    "x" "${REPO}" "blocked" "exit 0, unmarked, stayed"
 assert_close "x mid-turn in a main checkout reaches the model" \
     "x" "${REPO}" "mid-turn" "exit 0, unmarked, stayed"
 assert_close "xx mid-turn reaches the model" \
     "xx" "${PLAIN_DIR}" "mid-turn" "exit 0, unmarked, stayed"
 
 # Expect a prompt that reaches the model to leave its turn open for the Stop hook to close.
-if [[ -e "${OPEN_TURN}" ]]; then
+if [[ -e "${OPEN_TURN}" && ! -s "${OPEN_TURN}" ]]; then
     echo "✓ prompt reaching the model opens a turn"
 else
     echo "✗ prompt reaching the model opens a turn"
     failures=$((failures + 1))
 fi
 
-rm --force -- "${MARK}" "${OPEN_TURN}"
+rm --force -- "${MARK}" "${OPEN_TURN}" "${STOP_BLOCKED}"
 rm -r -- "${SANDBOX}"
 
 if [[ "${failures}" -eq 0 ]]; then

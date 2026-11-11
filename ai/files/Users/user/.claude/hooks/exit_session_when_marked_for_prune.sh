@@ -19,19 +19,22 @@ source "$(dirname -- "${BASH_SOURCE[0]}")/exit_session.inc.sh"
     IFS= read -r -d '' session_id
     IFS= read -r -d '' cwd
     IFS= read -r -d '' transcript_path
+    IFS= read -r -d '' last_message
 } < <(
     command jq \
         --raw-output0 \
-        '.session_id // "", .cwd // "", .transcript_path // ""'
+        '.session_id // "", .cwd // "", .transcript_path // "", .last_assistant_message // ""'
 )
 
 if [[ -z "${session_id}" ]]; then
     exit 0
 fi
 
-# Close the turn the bare-x hook opened, so the next bare `x` closes at once.
+# Close the turn the bare-x hook opened by recording this stop, so a sibling
+# Stop hook blocking it in parallel still reads as a running turn.
 turn_before=$(describe_turn "${session_id}")
-rm --force -- "${open_turns_dir}/${session_id}"
+mkdir --parents -- "${open_turns_dir}"
+stop_fingerprint "${last_message}" >"${open_turns_dir}/${session_id}"
 
 if [[ ! -e "${prune_marks_dir}/${session_id}" ]]; then
     exit 0

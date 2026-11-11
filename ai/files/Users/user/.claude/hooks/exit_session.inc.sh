@@ -35,15 +35,46 @@ find_claude_pid() {
     done
 }
 
-# Print whether the session has a turn open ("open") or none ("none").
+# Print the session's turn: "open" while running, "blocked" once a Stop hook
+# sent Claude back to work, "closed" once it ended, "none" before any prompt.
+# Compare at prompt time, after every parallel Stop hook has written its record.
 describe_turn() {
     local session_id="$1"
+    local turn_file="${open_turns_dir}/${session_id}"
+    local blocked_file="${session_state_dir}/${session_id}.stop_blocked"
+    local closed_by
+    local blocked_by=""
 
-    if [[ -e "${open_turns_dir}/${session_id}" ]]; then
-        echo "open"
-    else
+    if [[ ! -e "${turn_file}" ]]; then
         echo "none"
+        return 0
     fi
+
+    closed_by=$(<"${turn_file}")
+    if [[ -f "${blocked_file}" ]]; then
+        blocked_by=$(<"${blocked_file}")
+    fi
+
+    if [[ -z "${closed_by}" ]]; then
+        echo "open"
+    elif [[ "${closed_by}" == "${blocked_by}" ]]; then
+        echo "blocked"
+    else
+        echo "closed"
+    fi
+}
+
+# Print the stop's fingerprint exactly as announce_window_state.py's
+# stop_fingerprint does, so it matches that hook's blocked-stop record.
+stop_fingerprint() {
+    local last_message="$1"
+    local digest
+
+    digest=$(
+        printf '%s' "${last_message}" |
+            shasum --algorithm 256
+    )
+    echo "${digest%% *}"
 }
 
 # Touch the marker claude_run exports, since SIGTERM restores the terminal just
