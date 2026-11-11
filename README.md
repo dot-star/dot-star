@@ -348,6 +348,8 @@ Press a side or corner hotkey again to cycle the window through 1/2, 2/3 and 1/3
 
 | Hotkey | Does |
 |--------|------|
+| Ctrl(⌃) + 0 | jump straight to the desktop |
+| Ctrl(⌃) + 1 to 9 | jump straight to that full-screen Space, counting only full-screen apps in the swipe order |
 | Ctrl(⌃) + Left | move one Space left; from the first Space, wrap to the last |
 | Ctrl(⌃) + Right | move one Space right; from the last Space, wrap to the first full-screen Space |
 | Fn + Left | move one Space left, like Ctrl(⌃) + Left (replaces Home) |
