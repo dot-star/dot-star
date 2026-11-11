@@ -132,7 +132,11 @@ local HOVER_FRAME_MARGIN = 2
 local HOVER_FRAME_RADIUS = 6
 -- Size the follow-order letter to read at a glance under its dot.
 local FOLLOW_ORDER_TEXT_SIZE = 13
+local FOLLOW_ORDER_FONT = 'Menlo-Bold'
 local BADGE_TEXT_HEIGHT = FOLLOW_ORDER_TEXT_SIZE + 2
+-- Find the follow-order letters' cap midline below their frame's top, so the focus underline lines up with them; text hangs from the frame's top by the font's ascender.
+local followOrderFontInfo = hs.styledtext.fontInfo({ name = FOLLOW_ORDER_FONT, size = FOLLOW_ORDER_TEXT_SIZE })
+local FOLLOW_ORDER_MIDLINE = followOrderFontInfo.ascender - followOrderFontInfo.capHeight / 2
 -- Size the Ctrl+N digits to read at a glance inside a dot without touching its ring.
 local HOTKEY_TEXT_SIZE = 14
 local HOTKEY_TEXT_HEIGHT = HOTKEY_TEXT_SIZE + 2
@@ -766,7 +770,7 @@ local function addFocusMarker(elements, center)
                 fillColor = FOCUS_MARK_COLOR,
             }
         else
-            local y = center.y + DOT_SIZE / 2 + 5
+            local y = center.y + DOT_SIZE / 2 + FOLLOW_ORDER_MIDLINE
             elements[#elements + 1] = line({ { x = center.x - 6, y = y }, { x = center.x + 6, y = y } }, FOCUS_MARK_COLOR, 2.5)
         end
     else
@@ -846,7 +850,7 @@ local function followOrderElement(center, rank)
         type = 'text',
         text = string.char(string.byte('A') + rank - 1),
         textColor = FOCUS_MARK_COLOR,
-        textFont = 'Menlo-Bold',
+        textFont = FOLLOW_ORDER_FONT,
         textSize = FOLLOW_ORDER_TEXT_SIZE,
         textAlignment = 'center',
         frame = { x = center.x - DOT_SIZE / 2, y = center.y + DOT_SIZE / 2, w = DOT_SIZE, h = textHeight },
