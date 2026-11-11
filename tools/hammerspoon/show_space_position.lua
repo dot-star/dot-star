@@ -387,6 +387,16 @@ local function pageDotsBandFrame(count)
     }
 end
 
+-- Back the band the `count` dots run along in black whether or not `pillVisible`, so the dots read the same against any title bar.
+local function pageDotsBand(count)
+    return {
+        type = 'rectangle',
+        action = 'fill',
+        fillColor = { red = 0, green = 0, blue = 0, alpha = 1 },
+        frame = pageDotsBandFrame(count),
+    }
+end
+
 -- Outline the band the `count` dots run along, and the whole canvas, while `pillVisible`, inside the tinted canvas, so the boxes show how far the labels hang past the dots.
 local function appendDotsOutline(
     elements,
@@ -505,7 +515,7 @@ local function layoutPageDots(
     hoverSlot,
     slotHotkeys
 )
-    local elements = { pageDotsPill(pillVisible) }
+    local elements = { pageDotsPill(pillVisible), pageDotsBand(count) }
     appendDotsOutline(elements, pillVisible, count)
     -- Draw the dots fully opaque, the same as the bumper, so they hold up against glare.
     local opaque = { red = color.red, green = color.green, blue = color.blue, alpha = 1 }
@@ -827,8 +837,8 @@ local function layoutSessionDots(
     hoverSlot,
     slotHotkeys
 )
-    local elements = { pageDotsPill(pillVisible) }
     -- Count the home triangle too.
+    local elements = { pageDotsPill(pillVisible), pageDotsBand(#spaces + 1) }
     appendDotsOutline(elements, pillVisible, #spaces + 1)
     local home = homeElements(pageDotCenter(1))
     -- Mark the home triangle while you're on the home Space, which sits before the first ring.
