@@ -374,7 +374,7 @@ local function pageDotCenter(slot)
     return { x = along, y = DOT_SIZE / 2 }
 end
 
--- Outline the band the `count` dots run along, and the stretch from the canvas's top down to it, while `pillVisible`, inside the tinted canvas, so the boxes show how far the labels hang past the dots.
+-- Outline the band the `count` dots run along, and the whole canvas, while `pillVisible`, inside the tinted canvas, so the boxes show how far the labels hang past the dots.
 local function appendDotsOutline(
     elements,
     pillVisible,
@@ -388,15 +388,15 @@ local function appendDotsOutline(
     elements[#elements + 1] = {
         type = 'rectangle',
         action = 'stroke',
-        -- Stroke it red, apart from the cyan dots band it shares a bottom edge with; draw it first so the cyan lands on top there.
+        -- Stroke it red, apart from the cyan dots band it shares its top and sides with; draw it first so the cyan lands on top there.
         strokeColor = { red = 1, green = 0, blue = 0, alpha = 1 },
         strokeWidth = 1,
-        -- Run it from the canvas's top edge down to the dots' bottom, so the gap above the dots shows too.
+        -- Trace the whole canvas, so its edges show even where the tint fades into what's behind it.
         frame = {
             x = 0,
             y = 0,
             w = pageDotsSize(count).w,
-            h = last.y + DOT_SIZE / 2,
+            h = pageDotsSize(count).h,
         },
     }
     elements[#elements + 1] = {
