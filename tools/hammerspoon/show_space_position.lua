@@ -135,8 +135,8 @@ local HOVER_FRAME_SIDE_PADDING = DOT_GAP / 2 - 1
 -- Keep the frame off the title bar's edges, tall enough to take in the focus underline and follow-order letter.
 local HOVER_FRAME_MARGIN = 2
 local HOVER_FRAME_RADIUS = 6
--- Size the follow-order letter to fit the strip between a dot and the title bar's bottom edge.
-local FOLLOW_ORDER_TEXT_SIZE = 10
+-- Size the follow-order letter to read at a glance under its dot, a step below the hotkeys so the two lines stay apart.
+local FOLLOW_ORDER_TEXT_SIZE = 13
 local BADGE_TEXT_HEIGHT = FOLLOW_ORDER_TEXT_SIZE + 2
 -- Size the Ctrl+N hotkeys larger than the follow-order letters, so they read at a glance below the title bar.
 local HOTKEY_TEXT_SIZE = 14
