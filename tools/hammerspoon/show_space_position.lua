@@ -1,5 +1,5 @@
 -- Show where the focused Space sits in the swipe order, as experiments toggled independently:
---   Keep a strip on a full-screen Space's right edge while another Space lies beyond it, a bumper once none does (edge_bars).
+--   Add a strip on the right edge of the last full-screen Space, where swiping right goes no further (edge_bars).
 --   Add a strip on the left edge of the first full-screen Space, where swiping left leaves the full-screen apps (edge_bars).
 --   Add a thin band along the bottom edge of every full-screen Space in that Space's strip color (bottom_bar, needs edge_bars).
 --   Add a matching band along the top edge of every full-screen Space (top_bar, needs edge_bars).
@@ -54,11 +54,6 @@ local SETTINGS_PREFIX = 'show_space_position.'
 local EDGE_BAR_WIDTH = 7
 -- Keep the top and bottom bands thinner than the edge strips, so they hint at the Space's color without eating into the terminal.
 local BAND_HEIGHT = 5
--- Block the right edge's midpoint with a bumper on the last Space, where the swipe ends.
-local BUMPER_DEPTH = 28
-local BUMPER_HEIGHT = 140
--- Draw the bumper more opaque than the bars, so its hard edge holds up against glare outdoors.
-local BUMPER_ALPHA = 1
 -- Paint each Space's pair the next color, so pairs are told apart and a recreated pair shows up as a color change.
 local EDGE_BAR_COLORS = {
     { red = 1, green = 0.2, blue = 0.2, alpha = 0.9 },
@@ -158,7 +153,7 @@ local EDGE_BAR_BEHAVIOR = pinCanvasesToSpaces.BEHAVIOR
 
 showSpacePosition = {}
 
--- Map each Space id to its own { left, right, top, bottom, bumper, dots } set of bars, bumper and dots.
+-- Map each Space id to its own { left, right, top, bottom, dots } set of bars and dots.
 local edgeBarsBySpace = {}
 local edgeBarPairsCreated = 0
 local settleTimer = nil
@@ -289,18 +284,6 @@ local function layoutEdgeBar(
         fillColor = { red = color.red, green = color.green, blue = color.blue, alpha = 1 },
         frame = { x = 0, y = 0, w = EDGE_BAR_WIDTH, h = height },
     }
-end
-
--- Fill the whole canvas with a solid block flush against the edge.
-local function newBumper(color)
-    local bumper = newOverlay({ x = 0, y = 0, w = BUMPER_DEPTH, h = BUMPER_HEIGHT }, EDGE_BAR_BEHAVIOR)
-    bumper:alpha(BUMPER_ALPHA)
-    bumper[1] = {
-        type = 'rectangle',
-        action = 'fill',
-        fillColor = { red = color.red, green = color.green, blue = color.blue, alpha = 1 },
-    }
-    return bumper
 end
 
 local function newPageDots()
@@ -547,7 +530,7 @@ local function layoutPageDots(
     local elements = { pageDotsPill(pillVisible), pageDotsBand(count) }
     appendDotsBottomEdge(elements, pillVisible, count)
     appendDotsOutline(elements, pillVisible, count)
-    -- Draw the dots fully opaque, the same as the bumper, so they hold up against glare.
+    -- Draw the dots fully opaque, so they hold up against glare.
     local opaque = { red = color.red, green = color.green, blue = color.blue, alpha = 1 }
     for position = 1, count do
         local dot = {
@@ -1245,16 +1228,6 @@ local function showsTopBar(focused)
     return true
 end
 
--- Return whether the focused Space gets the bumper; desktops stay clear, the same as for the right bar.
-local function showsBumper(focused, index, count)
-    if hs.spaces.spaceType(focused) ~= 'fullscreen' then
-        return false
-    elseif index ~= count then
-        return false
-    end
-    return true
-end
-
 -- Return whether the focused Space gets the dots; desktops stay clear, the same as for the right bar, unless desktop_dots is on.
 local function showsPageDots(focused)
     if not isEnabled('page_dots') then
@@ -1290,7 +1263,6 @@ local function deleteEdgeBarPair(pair)
     pair.right:delete()
     pair.top:delete()
     pair.bottom:delete()
-    pair.bumper:delete()
     pair.dots:delete()
     pair.countdown:delete()
 end
@@ -1336,7 +1308,7 @@ local function followOrderOf(spaces, closing)
     return order
 end
 
--- Fit a pair's bars, bumper and dots flush to the edges of `screen`, for the Space at `index` of `count` on it.
+-- Fit a pair's bars and dots flush to the edges of `screen`, for the Space at `index` of `count` on it.
 -- Return whether display_alternate_clock holds the top-right corner of a full-screen Space or, unless `fullScreen`, a desktop, which it does beside a row of dots there.
 local function clockHoldsCorner(fullScreen)
     if not isEnabled('page_dots') then
@@ -1384,12 +1356,6 @@ local function placeEdgeBars(pair, index, count, screen)
     pair.left:frame(edgeBarFrame(barFrame, barFrame.x))
     pair.right:frame(edgeBarFrame(rightBarFrame, rightBarFrame.x + rightBarFrame.w - EDGE_BAR_WIDTH))
     pair.bottom:frame({ x = frame.x, y = frame.y + frame.h - BAND_HEIGHT, w = frame.w, h = BAND_HEIGHT })
-    pair.bumper:frame({
-        x = frame.x + frame.w - BUMPER_DEPTH,
-        y = frame.y + (frame.h - BUMPER_HEIGHT) / 2,
-        w = BUMPER_DEPTH,
-        h = BUMPER_HEIGHT,
-    })
     -- Redraw the dots only when the Space moved, the count changed or the pill or column was toggled, the same as the bars' height check.
     local pillVisible = isEnabled('page_dots_pill')
     local vertical = isEnabled('vertical_dots')
@@ -1579,7 +1545,6 @@ local function renderEdgeBars(index, count, screen, focused)
             right = newEdgeBar(color),
             top = newBand(color),
             bottom = newBand(color),
-            bumper = newBumper(color),
             dots = newPageDots(),
             countdown = newCountdown(),
             color = color,
@@ -1601,7 +1566,6 @@ local function renderEdgeBars(index, count, screen, focused)
     setEdgeBarVisible(pair.right, rightVisible)
     setEdgeBarVisible(pair.top, showsTopBar(focused))
     setEdgeBarVisible(pair.bottom, showsBottomBar(focused))
-    setEdgeBarVisible(pair.bumper, showsBumper(focused, index, count))
     setEdgeBarVisible(pair.dots, showsPageDots(focused))
     setEdgeBarVisible(pair.countdown, showsCountdown(focused))
 end
