@@ -1730,6 +1730,46 @@ rc_push_rebase_onto_remote() {
     fi
 }
 
+# Return 0 when every remote commit the reviewed HEAD lacks has a patch-identical
+# copy in HEAD, the trace a local rebase leaves on a branch pushed before it.
+rc_push_remote_was_rewritten() {
+    local commit
+    local unmatched
+
+    unmatched="$(
+        git rev-list \
+            --cherry-pick \
+            --right-only \
+            "${DOTSTAR_STATUS_HEAD}...FETCH_HEAD"
+    )"
+    if [[ -n "${unmatched}" ]]; then
+        return 1
+    fi
+
+    # Count an empty remote commit as unmatched: every empty commit shares one
+    # patch id, so its match in HEAD proves nothing.
+    for commit in $(git rev-list "${DOTSTAR_STATUS_HEAD}..FETCH_HEAD"); do
+        if git diff-tree --quiet "${commit}^" "${commit}"; then
+            return 1
+        fi
+    done
+
+    return 0
+}
+
+# Point at a lease push after a local rebase, never rebasing onto the remote:
+# replaying HEAD onto its own older copy drops the branch's commits as duplicates
+# and keeps only what the local rebase pulled in under them.
+rc_push_suggest_force() {
+    local remote="${1}"
+    local branch="${2}"
+
+    echo
+    echo -e "Remote \"${remote}\" holds an older copy of this branch; HEAD already has every commit on it:"
+    git --no-pager log --format='    %C(auto)%h %s' "${DOTSTAR_STATUS_HEAD}..FETCH_HEAD"
+    echo -e "Skipping the rebase onto ${remote}/${branch}; push over it with \`pus --force\`, which pushes with a lease"
+}
+
 rc_push() {
     local current_branch
     local push_remote
@@ -1893,7 +1933,11 @@ rc_push() {
     if [[ "${push_status}" -eq 0 ]]; then
         return 0
     elif rc_push_remote_is_ahead "${push_remote}" "${current_branch}"; then
-        rc_push_rebase_onto_remote "${push_remote}" "${current_branch}"
+        if rc_push_remote_was_rewritten; then
+            rc_push_suggest_force "${push_remote}" "${current_branch}"
+        else
+            rc_push_rebase_onto_remote "${push_remote}" "${current_branch}"
+        fi
     else
         echo -e "\ngit push options: $(git remote show)"
     fi

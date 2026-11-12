@@ -445,6 +445,68 @@ else
 fi
 echo
 
+echo "Pull request branch, rebased after its first push:"
+
+# Rebuild the layout under its own directory, so `../origin.git` names this repo's remote.
+mkdir "${root}/rewritten"
+cd "${root}/rewritten"
+git init \
+    --quiet \
+    --bare \
+    --initial-branch=main \
+    origin.git
+git init \
+    --quiet \
+    --initial-branch=main \
+    repo
+cd repo
+git remote add origin ../origin.git
+
+# Give the rebase a committer identity, since it rewrites commits.
+git config user.name "test"
+git config user.email "test@example.com"
+commit "base"
+git push --quiet origin main
+
+# Push a branch, move main under it, then rebase the branch the way `rbm` does.
+git checkout --quiet -b asmith/add-login
+echo "login" >login.txt
+git add login.txt
+commit "add login"
+git push \
+    --quiet \
+    --set-upstream \
+    origin \
+    asmith/add-login
+git checkout --quiet main
+commit "main moved"
+git push --quiet origin main
+git checkout --quiet asmith/add-login
+git rebase --quiet main
+remote_tip="$(git --git-dir=../origin.git rev-parse refs/heads/asmith/add-login)"
+rebased="$(git rev-parse HEAD)"
+rc_push_guard_stamp
+
+output="$(rc_push 2>&1)"
+status="${?}"
+output="$(uncolored "${output}")"
+if [[ "${status}" -eq 0 ]]; then
+    fail "rewritten branch: rc_push succeeded"
+elif [[ "$(git --git-dir=../origin.git rev-parse refs/heads/asmith/add-login)" != "${remote_tip}" ]]; then
+    fail "rewritten branch: remote branch moved"
+elif git merge-base --is-ancestor "${remote_tip}" HEAD; then
+    fail "rewritten branch: HEAD rebased onto its own older copy: ${output}"
+elif ! git merge-base --is-ancestor "${rebased}" HEAD; then
+    fail "rewritten branch: HEAD lost the rebased commits"
+elif [[ "${output}" != *"push over it with \`pus --force\`"* ]]; then
+    fail "rewritten branch: no hint to push with a lease: ${output}"
+else
+    pass "rewritten branch: pointed at a lease push instead of rebasing"
+fi
+
+expect_pushed "rewritten branch: --force as the hint says" origin.git asmith/add-login --force
+echo
+
 if [[ "${failures}" -gt 0 ]]; then
     echo "${failures} check(s) failed"
     exit 1
