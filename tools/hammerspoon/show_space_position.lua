@@ -162,12 +162,10 @@ local FOCUS_MARK_COLOR = { white = 1, alpha = 1 }
 -- Frame the dot under the pointer, so a click's target shows before you commit to it.
 local HOVER_FRAME_COLOR = { white = 1, alpha = 0.8 }
 local HOVER_FRAME_WIDTH = 2.5
--- Reach into the gap on each side of the dot, stopping short of the neighbor's frame.
-local HOVER_FRAME_SIDE_PADDING = DOT_GAP / 2 - 1
+-- Reach the stroke's outer edge to the dot's click zone, half the gap on each side, so the frame shows exactly what a click hits.
+local HOVER_FRAME_SIDE_PADDING = DOT_GAP / 2 - HOVER_FRAME_WIDTH / 2
 -- Keep the frame off the title bar's edges, tall enough to take in the focus underline and follow-order letter.
 local HOVER_FRAME_MARGIN = 2
--- Reach the hover canvas past the dots canvas as far as an end slot's frame spills, so the frame draws like a CSS outline without growing the clickable row.
-local HOVER_CANVAS_OUTSET = math.max(0, HOVER_FRAME_SIDE_PADDING + HOVER_FRAME_WIDTH / 2 - DOTS_PADDING)
 -- Size the follow-order letter to read at a glance under its dot.
 local FOLLOW_ORDER_TEXT_SIZE = 13
 local FOLLOW_ORDER_FONT = 'Menlo-Bold'
@@ -376,7 +374,7 @@ local function newPageDotsMotion()
     return motion
 end
 
--- Hold the hover frame on its own canvas reaching past the row, so the frame never grows the clickable row.
+-- Hold the hover frame on its own canvas over the row, so a hover repaints one element rather than the whole row.
 -- Give it no mouse callback, which leaves it click-through to the row beneath.
 local function newPageDotsHover()
     local hover = newOverlay({ x = 0, y = 0, w = 1, h = TITLE_BAR_HEIGHT }, EDGE_BAR_BEHAVIOR)
@@ -1679,9 +1677,14 @@ local function layoutHoverFrame(
         clearCanvas(hover)
     else
         local element = hoverFrameElement(pageDotCenter(hoverSlot))
-        -- Shift the frame out of the dots canvas's coordinates, since the hover canvas starts the outset above and left of it.
-        element.frame.x = element.frame.x + HOVER_CANVAS_OUTSET
-        element.frame.y = element.frame.y + HOVER_CANVAS_OUTSET
+        -- Trim an end slot's frame to the canvas, so the stroke stays inside the clickable row like a CSS border; the stroke straddles its line, so inset by half of it.
+        local inset = HOVER_FRAME_WIDTH / 2
+        local size = hover:frame()
+        local left = math.max(element.frame.x, inset)
+        local top = math.max(element.frame.y, inset)
+        local right = math.min(element.frame.x + element.frame.w, size.w - inset)
+        local bottom = math.min(element.frame.y + element.frame.h, size.h - inset)
+        element.frame = { x = left, y = top, w = right - left, h = bottom - top }
         hover:replaceElements({ element })
     end
 end
@@ -1853,16 +1856,12 @@ local function placeEdgeBars(
     }
     pair.dots:frame(dotsFrame)
     pair.dotsMotion:frame(dotsFrame)
-    pair.dotsHover:frame({
-        x = dotsFrame.x - HOVER_CANVAS_OUTSET,
-        y = dotsFrame.y - HOVER_CANVAS_OUTSET,
-        w = dotsFrame.w + 2 * HOVER_CANVAS_OUTSET,
-        h = dotsFrame.h + 2 * HOVER_CANVAS_OUTSET,
-    })
-    -- Redraw the frame when the column toggles, which moves every slot's center.
-    if pair.hoverVertical ~= vertical then
+    pair.dotsHover:frame(dotsFrame)
+    -- Redraw the frame when the column toggles or the row resizes, which move every slot's center or the end slots' trim.
+    if pair.hoverVertical ~= vertical or pair.hoverCount ~= dotsCount then
         layoutHoverFrame(pair.dotsHover, pair.hoverSlot)
         pair.hoverVertical = vertical
+        pair.hoverCount = dotsCount
     end
     -- Line the countdown up with the first dot's band, so it reads as part of the row.
     local firstBand = pageDotsBandFrame(1)
