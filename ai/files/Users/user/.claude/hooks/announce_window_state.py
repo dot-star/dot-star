@@ -6,7 +6,8 @@ argv[1] and the event's JSON payload on stdin:
 
   SessionStart -> record the front window id, label the tab `[RUNNING]`.
   Notification -> Claude is waiting on you: `[READY]` title, Dock bounce,
-                  desktop notification, and pull the window frontmost unless
+                  desktop notification (a click raises the window under
+                  Hammerspoon), and pull the window frontmost unless
                   the terminal app is already frontmost (you may be typing).
   PostToolUse  -> a tool finished (including one you just approved): reset to
                   `[RUNNING]`.
@@ -556,6 +557,95 @@ def focus_window(session_id: str) -> None:
         log(outcome)
 
 
+def lua_quote(text: str) -> str:
+    """
+    Returns a Lua long-bracket string literal holding the text verbatim.
+
+    :param text: Text to embed (e.g. a notification body).
+    :return: The text wrapped in `[[` and `]]`, padded with enough `=` that
+        no `]]` inside the text closes it early.
+    """
+    level = 0
+
+    while f"]{'=' * level}]" in text:
+        level += 1
+
+    equals = "=" * level
+    return f"[{equals}[{text}]{equals}]"
+
+
+def post_osascript_notification(
+    message: str,
+    title: str,
+) -> None:
+    """
+    Post a notification through `osascript`, which macOS files under Script Editor.
+
+    :param message: Notification body (e.g. the hook payload's message).
+    :param title: Notification title (e.g. the session's objective).
+    """
+    script = f'display notification "{applescript_quote(message)}" with title "{applescript_quote(title)}"'
+
+    result = run_osascript(script, "post notification")
+
+    if result.returncode == 0:
+        log("notification dispatched; if invisible, allow Script Editor in System Settings > Notifications")
+
+
+def post_clickable_notification(
+    message: str,
+    title: str,
+    session_id: str,
+) -> bool:
+    """
+    Post a notification through Hammerspoon that raises the session's window when clicked.
+
+    :param message: Notification body (e.g. the hook payload's message).
+    :param title: Notification title (e.g. the session's objective).
+    :param session_id: Claude session id whose recorded window the click raises.
+    :return: True once Hammerspoon posted it; False when no window is on file
+        or Hammerspoon can't be reached, so the caller can fall back.
+    """
+    record = recorded_window(session_id=session_id)
+
+    # Fall back when no window is on file (None) or the record is empty.
+    if not record:
+        return False
+
+    window_id = record[0]
+    bundle_id = record[1] if len(record) > 1 else ""
+    outcome = run_hammerspoon(
+        f"""
+        -- Hold each notification in a global keyed by window, so its click callback outlives this call.
+        claudeSessionNotifications = claudeSessionNotifications or {{}}
+        local previous = claudeSessionNotifications[{window_id}]
+        if previous ~= nil then
+            previous:withdraw()
+        end
+        local notification = hs.notify.new(function()
+            claudeSessionNotifications[{window_id}] = nil
+            {raise_window_lua(window_id=window_id, bundle_id=bundle_id)}
+        end, {{
+            title = {lua_quote(title)},
+            informativeText = {lua_quote(message)},
+            -- Keep it in Notification Center until clicked; hs.notify withdraws it after 5 seconds by default.
+            withdrawAfter = 0,
+        }})
+        claudeSessionNotifications[{window_id}] = notification
+        notification:send()
+        return "notification dispatched for window {window_id}; if invisible, allow Hammerspoon in System Settings > Notifications"
+        """,
+        "post clickable notification",
+        session_id,
+    )
+
+    if outcome is None:
+        return False
+
+    log(outcome)
+    return True
+
+
 def notify(message: str, session_id: str) -> None:
     """
     Fire a silent native desktop notification.
@@ -563,17 +653,21 @@ def notify(message: str, session_id: str) -> None:
     Silent because `chime_when_waiting_on_user_to_answer.sh` already chimes on
     this event, debounced across sessions; a sound here would double it.
 
+    Hammerspoon posts it when it can, since its click callback raises the
+    session's window; clicking an `osascript` notification opens Script Editor.
+
     :param message: Notification body (e.g. the hook payload's message).
     :param session_id: Claude session id whose objective titles the notification.
     """
-    script = (
-        f'display notification "{applescript_quote(message)}" with title "{applescript_quote(objective(session_id))}"'
-    )
+    title = objective(session_id)
 
-    result = run_osascript(script, "post notification")
+    if IN_TERMINAL_APP:
+        post_osascript_notification(message=message, title=title)
+        return
+    elif post_clickable_notification(message=message, title=title, session_id=session_id):
+        return
 
-    if result.returncode == 0:
-        log("notification dispatched; if invisible, allow Script Editor in System Settings > Notifications")
+    post_osascript_notification(message=message, title=title)
 
 
 def on_waiting(event: dict) -> None:
