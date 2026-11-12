@@ -6,6 +6,9 @@ print('display alternate clock')
 EST_time_command = "TZ='America/New_York'    date '+%a %b %e %H:%M' | perl -pe 's/  / /'"
 PST_time_command = "TZ='America/Los_Angeles' date '+%a %b %e %H:%M' | perl -pe 's/  / /'"
 
+-- Keep the main screen's width private to this file, so another file's global of the same name can't move the clock.
+local full_screen_width
+
 function update_clock_position()
     -- print('update_clock_position')
 

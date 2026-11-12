@@ -121,8 +121,7 @@ function move_to(dir)
         local screen_x = local_focused_window_screen_coords.x
         local screen_y = local_focused_window_screen_coords.y
 
-        -- TODO: Replace this global write with a local once the alternate clock stops reading it (display_alternate_clock.lua's clockLeft places the clock by whichever screen move_to last saw).
-        full_screen_width = local_focused_window_screen_coords.w
+        local full_screen_width = local_focused_window_screen_coords.w
         local one_third_screen_width = local_focused_window_screen_coords.w * 1/3
         local one_half_screen_width = local_focused_window_screen_coords.w * 1/2
         local two_thirds_screen_width = local_focused_window_screen_coords.w * 2/3
