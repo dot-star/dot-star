@@ -1175,7 +1175,12 @@ local function layoutSessionDotsMotion(
 )
     local elements = {}
     for position, space in ipairs(spaces) do
-        if moving[position + 1] then
+        if not moving[position + 1] then
+            -- Skip a still dot, which the still row draws.
+        elseif sessionStateOf(space) == 'busy' then
+            -- Draw only the arc, since the still row holds the busy dot's track, focus mark and digit.
+            elements[#elements + 1] = busyArcElement(pageDotCenter(position + 1), seconds)
+        else
             for _, element in ipairs(sessionDotElements(index, position, space, seconds, true, slotHotkeys)) do
                 elements[#elements + 1] = element
             end
@@ -1225,8 +1230,19 @@ local function layoutSessionDots(
     appendHotkey(elements, 1, slotHotkeys)
     for position, space in ipairs(spaces) do
         local moves = moving[position + 1] == true
+        -- Hold a busy dot's track, focus mark and digit here even while it moves, since only its arc changes and the arc never crosses the digit.
+        local busyMoves = moves and sessionStateOf(space) == 'busy'
         if not moves then
             for _, element in ipairs(sessionDotElements(index, position, space, seconds, false, slotHotkeys)) do
+                elements[#elements + 1] = element
+            end
+        elseif busyMoves then
+            local center = pageDotCenter(position + 1)
+            local track = { busyTrackElement(center) }
+            if position == index then
+                addFocusMarker(track, center)
+            end
+            for _, element in ipairs(track) do
                 elements[#elements + 1] = element
             end
         end
@@ -1234,6 +1250,8 @@ local function layoutSessionDots(
             elements[#elements + 1] = followOrderElement(pageDotCenter(position + 1), followOrder[space])
         end
         if not moves then
+            appendHotkey(elements, position + 1, slotHotkeys)
+        elseif busyMoves then
             appendHotkey(elements, position + 1, slotHotkeys)
         end
     end
