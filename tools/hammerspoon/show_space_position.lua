@@ -218,6 +218,8 @@ local sessionReading = nil
 -- Map each Space id to when you were last on it, so the green checks can be ranked by how fresh each is in your head.
 local lastSeenAt = {}
 local currentSpace = nil
+-- Map each screen to the Space showing on it, read once per render since each read copies every display's Space list.
+local onScreenSpaces = {}
 local catchUpTimer = nil
 local countdownTimer = nil
 
@@ -1727,14 +1729,18 @@ local function renderEdgeBars(index, count, screen, focused)
     setEdgeBarVisible(pair.countdown, showsCountdown(focused))
 end
 
--- Return every Space's pair whose session dots are showing, not just the focused one, so whichever Space a swipe or jump reveals is already on the current frame.
+-- Return the pair of each Space on a screen right now whose session dots are showing.
+-- Leave off-screen rows still, since repainting each Space's row every frame costs a core; a switch re-places the row it lands on.
 local function shownSessionPairs()
     local shown = {}
     if not isEnabled('session_state') then
         return shown
     end
-    for _, pair in pairs(edgeBarsBySpace) do
-        if pair.sessionSpaces == nil then
+    for _, space in pairs(onScreenSpaces) do
+        local pair = edgeBarsBySpace[space]
+        if pair == nil then
+            -- Skip a Space not visited yet, which has no pair.
+        elseif pair.sessionSpaces == nil then
             -- Skip a pair still showing plain dots.
         elseif not pair.dots:isShowing() then
             -- Skip a desktop's pair, which never shows its dots.
@@ -1874,6 +1880,7 @@ local function render()
         refreshSessionStates()
     end
     local index, count, screen, focused = focusedPosition()
+    onScreenSpaces = hs.spaces.activeSpaces()
     -- Forget a missed ready once you've seen its Space.
     missedReadyAt[focused] = nil
     renderEdgeBars(index, count, screen, focused)
