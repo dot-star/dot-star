@@ -2095,9 +2095,16 @@ local function updateCountdowns()
     local text = countdownText(now)
     local color = countdownColor(now)
     for _, pair in pairs(edgeBarsBySpace) do
+        -- Write only what changed, since each write repaints the countdown and an armed one holds still for minutes.
         if pair.countdown:isShowing() then
-            pair.countdown[1].text = text
-            pair.countdown[1].textColor = color
+            if pair.countdownText ~= text then
+                pair.countdown[1].text = text
+                pair.countdownText = text
+            end
+            if not sameValue(pair.countdownColor, color) then
+                pair.countdown[1].textColor = color
+                pair.countdownColor = color
+            end
         end
     end
 end
