@@ -187,6 +187,7 @@ local pinCanvasesToSpaces = require('pin_canvases_to_spaces')
 -- Load the alternate clock first, whose update_clock_position re-places it beside the dots' column.
 require('display_alternate_clock')
 local numberedSpaceKeys = require('numbered_space_keys')
+local spaceTypes = require('space_types')
 
 local EDGE_BAR_BEHAVIOR = pinCanvasesToSpaces.BEHAVIOR
 
@@ -1311,9 +1312,9 @@ end
 local function startsFullScreenRun(spaces, index)
     if index == 1 then
         return false
-    elseif hs.spaces.spaceType(spaces[index]) ~= 'fullscreen' then
+    elseif spaceTypes.of(spaces[index]) ~= 'fullscreen' then
         return false
-    elseif hs.spaces.spaceType(spaces[index - 1]) == 'fullscreen' then
+    elseif spaceTypes.of(spaces[index - 1]) == 'fullscreen' then
         return false
     end
     return true
@@ -1321,7 +1322,7 @@ end
 
 -- Return whether the focused Space gets a right bar, which marks the last Space, where a swipe right goes no further; desktops stay clear so bars mark only the full-screen apps.
 local function showsRightBar(focused, index, count)
-    if hs.spaces.spaceType(focused) ~= 'fullscreen' then
+    if spaceTypes.of(focused) ~= 'fullscreen' then
         return false
     elseif index ~= count then
         return false
@@ -1333,7 +1334,7 @@ end
 local function showsBottomBar(focused)
     if not isEnabled('bottom_bar') then
         return false
-    elseif hs.spaces.spaceType(focused) ~= 'fullscreen' then
+    elseif spaceTypes.of(focused) ~= 'fullscreen' then
         return false
     end
     return true
@@ -1343,7 +1344,7 @@ end
 local function showsTopBar(focused)
     if not isEnabled('top_bar') then
         return false
-    elseif hs.spaces.spaceType(focused) ~= 'fullscreen' then
+    elseif spaceTypes.of(focused) ~= 'fullscreen' then
         return false
     end
     return true
@@ -1353,7 +1354,7 @@ end
 local function showsSwipeHint(focused, index, count)
     if not isEnabled('swipe_hint') then
         return false
-    elseif hs.spaces.spaceType(focused) == 'fullscreen' then
+    elseif spaceTypes.of(focused) == 'fullscreen' then
         return false
     elseif index == count then
         return false
@@ -1365,7 +1366,7 @@ end
 local function showsPageDots(focused)
     if not isEnabled('page_dots') then
         return false
-    elseif hs.spaces.spaceType(focused) == 'fullscreen' then
+    elseif spaceTypes.of(focused) == 'fullscreen' then
         return true
     elseif isEnabled('desktop_dots') then
         return true
@@ -1704,7 +1705,7 @@ local function renderEdgeBars(index, count, screen, focused)
             countdown = newCountdown(),
             color = color,
             cycleColor = cycleColor,
-            fullScreen = hs.spaces.spaceType(focused) == 'fullscreen',
+            fullScreen = spaceTypes.of(focused) == 'fullscreen',
         }
         pair.dots:canvasMouseEvents(true, true, true, true)
         pair.dots:mouseCallback(function(_, message, _, x, y)
@@ -2040,7 +2041,7 @@ local function isHopTarget(
     elseif state ~= 'none' then
         return true
     -- Land on an empty Space only when it's full screen, never the desktop the swipe starts from.
-    elseif hs.spaces.spaceType(space) == 'fullscreen' then
+    elseif spaceTypes.of(space) == 'fullscreen' then
         return true
     end
     return false
@@ -2080,7 +2081,7 @@ hopOrderFrom = function(reading, spaces, closing)
         if isHopTarget(space, state, closing) then
             order[#order + 1] = {
                 space = space,
-                fullScreen = hs.spaces.spaceType(space) == 'fullscreen',
+                fullScreen = spaceTypes.of(space) == 'fullscreen',
                 windowId = windows[space],
                 pickedBy = hopPickedBy(state),
                 priority = HOP_STATE_PRIORITY[state],

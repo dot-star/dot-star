@@ -1,11 +1,13 @@
 -- Share which Space each Ctrl+N key reaches: Ctrl+0 the first desktop, Ctrl+1 to 9 the full-screen Spaces in swipe order.
--- Require nothing else here, so both the hotkeys and the page dots can load it without a require loop.
+-- Require nothing else here but space_types, which requires nothing, so both the hotkeys and the page dots can load it without a require loop.
+local spaceTypes = require('space_types')
+
 local numberedSpaceKeys = {}
 
 local function fullScreenSpaces(spaces)
     local fullScreen = {}
     for _, space in ipairs(spaces) do
-        if hs.spaces.spaceType(space) == 'fullscreen' then
+        if spaceTypes.of(space) == 'fullscreen' then
             table.insert(fullScreen, space)
         end
     end
@@ -14,7 +16,7 @@ end
 
 local function firstDesktop(spaces)
     for _, space in ipairs(spaces) do
-        if hs.spaces.spaceType(space) == 'user' then
+        if spaceTypes.of(space) == 'user' then
             return space
         end
     end
