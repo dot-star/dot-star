@@ -11,6 +11,9 @@ fi
 
 export MY_OPEN_EDITOR="Visual Studio Code.app"
 
+# Keep emoji variation selectors and modifiers in less (delta pages through it); less deletes them by default, so an emoji that needs a selector for color falls back to its plain text glyph.
+export LESSUTFCHARDEF="FE00-FE0F:c,1F3FB-1F3FF:c,1F9B0-1F9B3:c,E0100-E01EF:c"
+
 colordiff="$(which colordiff)"
 if [[ -z "${colordiff}" ]]; then
     COLORDIFF_INSTALLED=false
