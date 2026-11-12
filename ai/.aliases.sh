@@ -335,11 +335,11 @@ claude_session_list_render() {
                     }
 
                     # Label each shown session counting up from the newest, padded so the titles start in one column.
-                    # Paint the `r` red inside the dim bracket, so it reads as the resume prefix apart from its number.
+                    # Paint the whole `r<N>` label red inside the dim bracket, so the resume token reads as one unit.
                     digits = length((n - first + 1) "")
                     for (i = first; i <= n; i++) {
                         row_label[i] = sprintf("r%d", n - i + 1)
-                        row_bracket[i] = sprintf("[\033[22;31mr\033[39;2m%*d]", digits, n - i + 1)
+                        row_bracket[i] = sprintf("[\033[22;31mr%*d\033[39;2m]", digits, n - i + 1)
                     }
                     bracket_width = 2 + digits + 1
 
