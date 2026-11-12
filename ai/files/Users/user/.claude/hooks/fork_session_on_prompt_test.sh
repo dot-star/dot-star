@@ -20,13 +20,6 @@ if [[ ! -x "${HOOK}" ]]; then
     exit 1
 fi
 
-# Stub `gh` to report every run as failed and point the seen-run cache at a throwaway dir, so a run-link case reaches the fork without the network or the real cache.
-scratch_dir=$(mktemp -d)
-trap 'rm -rf "${scratch_dir}"' EXIT
-mkdir "${scratch_dir}/bin"
-printf '#!/usr/bin/env bash\necho "failure"\n' >"${scratch_dir}/bin/gh"
-chmod +x "${scratch_dir}/bin/gh"
-
 passes=0
 fails=0
 last_section=""
@@ -45,8 +38,6 @@ run_test() {
             --arg prompt "${prompt}" \
             '{prompt: $prompt, session_id: "12345678-90ab-cdef-1234-567890abcdef", transcript_path: "/tmp/transcript.jsonl", cwd: "/tmp"}' |
             TERM_PROGRAM=not-ghostty \
-                PATH="${scratch_dir}/bin:${PATH}" \
-                XDG_CACHE_HOME="${scratch_dir}/cache" \
                 "${HOOK}"
     )
 
@@ -78,9 +69,9 @@ do
         fi
 
         if [[ "${expected}" == "fork" ]]; then
-            echo "== Should FORK (fork alone, fork or f followed by a task, or a bare failed-run link) =="
+            echo "== Should FORK (fork alone, or fork or f followed by a task) =="
         else
-            echo "== Should PASS THROUGH (bare f, fold picks, no fork prefix, or a run link among typed words) =="
+            echo "== Should PASS THROUGH (bare f, fold picks, no fork prefix, or a GitHub Actions run link) =="
         fi
 
         last_section="${expected}"

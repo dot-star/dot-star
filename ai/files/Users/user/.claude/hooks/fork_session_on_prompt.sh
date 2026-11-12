@@ -2,15 +2,8 @@
 #
 # UserPromptSubmit hook: fork the session into a new Ghostty or Terminal.app window when the
 # prompt asks for one, then block the prompt, so the parent session spends no
-# turn on it and stays where it was. The triggers run in order and the first
-# match wins, so a prompt matching both opens one window:
-#
-#   1. `fork`, `fork <task>` or `f <task>`: the window runs a clean `claude`
-#      passed the task.
-#   2. A prompt holding nothing but a link to a failed GitHub Actions run: the
-#      window investigates and fixes it. A link pasted among typed words reaches
-#      the session as usual, and each run forks once, so pasting the bare link
-#      again does too.
+# turn on it and stays where it was. `fork`, `fork <task>` or `f <task>` opens
+# a window running a clean `claude` passed the task.
 #
 # See fork_session_window.inc.sh for how the window opens.
 
@@ -72,68 +65,4 @@ fork_typed_task() {
     block "Forked into a new window (${start_dir})."
 }
 
-# Fork a fix for the failed GitHub Actions run the prompt links, once per run.
-fork_failed_run_fix() {
-    # Match the whole prompt, so a link pasted beside a question stays in this session. Accept any tail after the run id (`/job/<id>`, `/attempts/<n>`, `?pr=<n>`, `#step:<n>:<line>`).
-    local run_url_pattern='^https://github\.com/([^/[:space:]]+)/([^/[:space:]]+)/actions/runs/([0-9]+)([/?#][^[:space:]]*)?$'
-    local trimmed_prompt
-    local run_url
-    local owner
-    local repo
-    local run_id
-    local seen_file
-    local conclusion
-    local task
-    local start_dir
-
-    # Strip the whitespace around the pasted link.
-    trimmed_prompt="${prompt#"${prompt%%[![:space:]]*}"}"
-    trimmed_prompt="${trimmed_prompt%"${trimmed_prompt##*[![:space:]]}"}"
-    if [[ ! "${trimmed_prompt}" =~ ${run_url_pattern} ]]; then
-        return 0
-    fi
-
-    run_url="${BASH_REMATCH[0]}"
-    owner="${BASH_REMATCH[1]}"
-    repo="${BASH_REMATCH[2]}"
-    run_id="${BASH_REMATCH[3]}"
-    seen_file="${XDG_CACHE_HOME:-${HOME}/.cache}/dot-star/investigations/ci_runs/${owner}_${repo}_${run_id}"
-
-    if [ -e "${seen_file}" ]; then
-        return 0
-    fi
-
-    # Fork only for a run that actually failed; a link to a passing or unfinished run, or no answer from gh, lets the prompt through.
-    if ! conclusion=$(
-        gh run view "${run_id}" \
-            --repo "${owner}/${repo}" \
-            --json conclusion \
-            --jq '.conclusion' 2>/dev/null
-    ); then
-        return 0
-    elif [ "${conclusion}" != "failure" ]; then
-        return 0
-    fi
-
-    task="Investigate and fix the failed GitHub Actions run ${run_url} (${owner}/${repo}, run ${run_id})."
-    task+=" Pull the failing logs with: gh run view ${run_id} --repo ${owner}/${repo} --log-failed"
-    task+=" Find the cause, fix it in a worktree of that repo and commit. Don't push; leave that to me."
-
-    # Let the prompt through when the window can't open, so this session handles the run instead of losing the prompt.
-    if ! start_dir=$(open_fork_window "${session_id}" "${transcript_path}" "${cwd}" "${task}"); then
-        command jq \
-            --null-input \
-            --compact-output \
-            --arg message "Didn't fork a CI investigation: ${start_dir}" \
-            '{systemMessage: $message}'
-        exit 0
-    fi
-
-    mkdir -p "${seen_file%/*}"
-    : >"${seen_file}"
-
-    block "Forked an investigation of failed run ${run_id} (${owner}/${repo}) into a new window (${start_dir})."
-}
-
 fork_typed_task
-fork_failed_run_fix
