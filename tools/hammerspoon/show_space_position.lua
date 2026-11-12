@@ -798,13 +798,25 @@ local function arc(center, radius, color, startAngle, endAngle)
     }
 end
 
+-- Return the faint ring a busy dot's arc circles.
+local function busyTrackElement(center)
+    return ring(center, RING_RADIUS, withAlpha(SESSION_STATE_COLORS.busy, 0.3), RING_WIDTH)
+end
+
+-- Return the bright arc that circles a busy dot's track.
+local function busyArcElement(
+    center,
+    seconds
+)
+    local start = phaseOf(seconds, ORBIT_SECONDS) * 360
+    return arc(center, RING_RADIUS, SESSION_STATE_COLORS.busy, start, start + 100)
+end
+
 -- Circle a bright arc around a faint ring.
 local function busyElements(center, seconds)
-    local color = SESSION_STATE_COLORS.busy
-    local start = phaseOf(seconds, ORBIT_SECONDS) * 360
     return {
-        ring(center, RING_RADIUS, withAlpha(color, 0.3), RING_WIDTH),
-        arc(center, RING_RADIUS, color, start, start + 100),
+        busyTrackElement(center),
+        busyArcElement(center, seconds),
     }
 end
 
