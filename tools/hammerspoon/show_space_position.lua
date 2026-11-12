@@ -166,7 +166,6 @@ local HOVER_FRAME_WIDTH = 2.5
 local HOVER_FRAME_SIDE_PADDING = DOT_GAP / 2 - 1
 -- Keep the frame off the title bar's edges, tall enough to take in the focus underline and follow-order letter.
 local HOVER_FRAME_MARGIN = 2
-local HOVER_FRAME_RADIUS = 6
 -- Size the follow-order letter to read at a glance under its dot.
 local FOLLOW_ORDER_TEXT_SIZE = 13
 local FOLLOW_ORDER_FONT = 'Menlo-Bold'
@@ -574,7 +573,6 @@ local function hoverFrameElement(center)
         action = 'stroke',
         strokeColor = HOVER_FRAME_COLOR,
         strokeWidth = HOVER_FRAME_WIDTH,
-        roundedRectRadii = { xRadius = HOVER_FRAME_RADIUS, yRadius = HOVER_FRAME_RADIUS },
         frame = frame,
     }
 end
