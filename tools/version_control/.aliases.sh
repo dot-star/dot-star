@@ -1752,7 +1752,7 @@ rc_push() {
             args+=("${arg}")
         fi
     done
-    set -- "${args[@]}"
+    set -- ${args[@]+"${args[@]}"}
 
     current_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
 
