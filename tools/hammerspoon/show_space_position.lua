@@ -559,13 +559,14 @@ local function hoverFrameElement(center)
         }
     else
         local halfWidth = DOT_SIZE / 2 + HOVER_FRAME_SIDE_PADDING
-        -- Run the top edge up to the screen's top, since the row's dots already touch it and leave no room above them; the stroke straddles its line, so inset by half of it.
-        local top = HOVER_FRAME_WIDTH / 2
+        -- Run the frame from the screen's top to the row's bottom, since the dots already touch the top and leave no room above them.
+        -- Inset each edge by half the stroke, which straddles its line.
+        local inset = HOVER_FRAME_WIDTH / 2
         frame = {
             x = center.x - halfWidth,
-            y = top,
+            y = inset,
             w = 2 * halfWidth,
-            h = HORIZONTAL_DOTS_HEIGHT - HOVER_FRAME_MARGIN - top,
+            h = HORIZONTAL_DOTS_HEIGHT - 2 * inset,
         }
     end
     return {
