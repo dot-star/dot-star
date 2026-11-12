@@ -179,6 +179,24 @@ else
 fi
 
 DOTSTAR_WORKTREE_PUSH="pr-branch" expect_pushed "repeat push via upstream" origin.git asmith/add-login
+
+# Move the remote branch to a commit this checkout never fetched, the way
+# another writer's push would, leaving origin/asmith/add-login stale.
+stranger="$(
+    git \
+        -c user.name="other" \
+        -c user.email="other@example.com" \
+        commit-tree \
+        -m "other writer" \
+        "HEAD^{tree}"
+)"
+git push --quiet origin "${stranger}:refs/heads/stranger"
+git --git-dir=../origin.git update-ref refs/heads/asmith/add-login "${stranger}"
+DOTSTAR_WORKTREE_PUSH="pr-branch" expect_refused "--force over unfetched remote work" --force
+DOTSTAR_WORKTREE_PUSH="pr-branch" expect_refused "-f over unfetched remote work" -f
+
+git fetch --quiet origin
+DOTSTAR_WORKTREE_PUSH="pr-branch" expect_pushed "--force once fetched" origin.git asmith/add-login --force
 echo
 
 echo "Worktree branch carrying unpushed master commits:"

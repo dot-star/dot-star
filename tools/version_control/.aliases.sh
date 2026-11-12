@@ -1739,6 +1739,21 @@ rc_push() {
         return 1
     fi
 
+    # Swap a bare force flag for a lease, so a force push refuses to overwrite
+    # remote commits this checkout never fetched.
+    local args=()
+    local arg
+    for arg in "$@"; do
+        if [[ "${arg}" == "--force" ]]; then
+            args+=("--force-with-lease")
+        elif [[ "${arg}" == "-f" ]]; then
+            args+=("--force-with-lease")
+        else
+            args+=("${arg}")
+        fi
+    done
+    set -- "${args[@]}"
+
     current_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
 
     # Route every worktree branch by the per-machine DOTSTAR_WORKTREE_PUSH
