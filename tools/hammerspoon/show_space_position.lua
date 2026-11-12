@@ -1067,9 +1067,90 @@ local function clearCanvas(canvas)
     end
 end
 
+-- Return whether `a` and `b` hold the same value, comparing tables key by key.
+local function sameValue(
+    a,
+    b
+)
+    if a == b then
+        return true
+    elseif type(a) ~= 'table' then
+        return false
+    elseif type(b) ~= 'table' then
+        return false
+    end
+    for key, value in pairs(a) do
+        if not sameValue(value, b[key]) then
+            return false
+        end
+    end
+    for key in pairs(b) do
+        if a[key] == nil then
+            return false
+        end
+    end
+    return true
+end
+
+-- Return whether every element in `elements` has the same type and keys as its counterpart in `previous`.
+local function sameElementShapes(
+    previous,
+    elements
+)
+    if #previous ~= #elements then
+        return false
+    end
+    for position, element in ipairs(elements) do
+        local old = previous[position]
+        if old.type ~= element.type then
+            return false
+        end
+        for key in pairs(old) do
+            if element[key] == nil then
+                return false
+            end
+        end
+        for key in pairs(element) do
+            if old[key] == nil then
+                return false
+            end
+        end
+    end
+    return true
+end
+
+-- Move `canvas` from `previous` to `elements` by setting only the attributes that changed, which costs a fraction of replacing every element.
+-- Replace them all when an element came, went or changed shape, or the canvas no longer holds `previous`.
+local function updateElements(
+    canvas,
+    previous,
+    elements
+)
+    if previous == nil then
+        canvas:replaceElements(elements)
+        return
+    elseif #canvas ~= #previous then
+        canvas:replaceElements(elements)
+        return
+    elseif not sameElementShapes(previous, elements) then
+        canvas:replaceElements(elements)
+        return
+    end
+    for position, element in ipairs(elements) do
+        local old = previous[position]
+        for key, value in pairs(element) do
+            if not sameValue(old[key], value) then
+                canvas[position][key] = value
+            end
+        end
+    end
+end
+
 -- Draw each moving ring in `moving` with its hotkey label on the row's motion canvas, so an animation frame repaints only those.
+-- Return the elements drawn, for the next frame to update from `previous`.
 local function layoutSessionDotsMotion(
     motion,
+    previous,
     index,
     spaces,
     seconds,
@@ -1088,14 +1169,15 @@ local function layoutSessionDotsMotion(
     end
     if #elements == 0 then
         clearCanvas(motion)
-        return
+        return elements
     end
     for _, element in ipairs(elements) do
         if element.frame == nil then
             element.frame = UNDRAWN_FRAME
         end
     end
-    motion:replaceElements(elements)
+    updateElements(motion, previous, elements)
+    return elements
 end
 
 -- Draw the home triangle, then one ring per Space in `spaces` showing its session's state, marking the ring at `index` and badging each ranked in `followOrder`.
@@ -1191,7 +1273,15 @@ local function drawSessionDots(
         )
         pair.sessionKey = key
     end
-    layoutSessionDotsMotion(pair.dotsMotion, pair.sessionIndex, pair.sessionSpaces, seconds, moving, pair.slotHotkeys)
+    pair.motionElements = layoutSessionDotsMotion(
+        pair.dotsMotion,
+        pair.motionElements,
+        pair.sessionIndex,
+        pair.sessionSpaces,
+        seconds,
+        moving,
+        pair.slotHotkeys
+    )
 end
 
 local function readFile(filePath)
