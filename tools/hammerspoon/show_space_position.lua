@@ -225,8 +225,29 @@ local onScreenSpaces = {}
 local catchUpTimer = nil
 local countdownTimer = nil
 
+-- Map each setting name to a box holding its saved value, since each read crosses into the defaults store and the frame timer asks for several per frame.
+local settingsCache = {}
+
+-- Return a setting's saved value, or nil when it was never set.
+local function readSetting(name)
+    local box = settingsCache[name]
+    if box == nil then
+        box = { value = hs.settings.get(SETTINGS_PREFIX .. name) }
+        settingsCache[name] = box
+    end
+    return box.value
+end
+
+local function writeSetting(
+    name,
+    value
+)
+    hs.settings.set(SETTINGS_PREFIX .. name, value)
+    settingsCache[name] = nil
+end
+
 local function isEnabled(name)
-    local value = hs.settings.get(SETTINGS_PREFIX .. name)
+    local value = readSetting(name)
     if value == nil then
         return DEFAULT_ENABLED[name]
     end
@@ -243,7 +264,7 @@ local function isStyleChoice(name, value)
 end
 
 local function styleOf(name)
-    local value = hs.settings.get(SETTINGS_PREFIX .. name)
+    local value = readSetting(name)
     if value == nil then
         return DEFAULT_STYLES[name]
     elseif not isStyleChoice(name, value) then
@@ -253,7 +274,7 @@ local function styleOf(name)
 end
 
 local function numberOf(name)
-    local value = hs.settings.get(SETTINGS_PREFIX .. name)
+    local value = readSetting(name)
     if type(value) ~= 'number' then
         return DEFAULT_NUMBERS[name]
     end
@@ -2065,13 +2086,13 @@ function showSpacePosition.set(name, value)
         elseif value < 0 then
             return name .. ' takes a number of seconds, not ' .. tostring(value)
         end
-        hs.settings.set(SETTINGS_PREFIX .. name, value)
+        writeSetting(name, value)
         return name .. ' ' .. value
     elseif DEFAULT_STYLES[name] ~= nil then
         if not isStyleChoice(name, value) then
             return 'unknown ' .. name .. ': ' .. tostring(value) .. ' (expected one of: ' .. table.concat(STYLE_CHOICES[name], ', ') .. ')'
         end
-        hs.settings.set(SETTINGS_PREFIX .. name, value)
+        writeSetting(name, value)
         render()
         return name .. ' ' .. value
     elseif DEFAULT_ENABLED[name] == nil then
@@ -2087,7 +2108,7 @@ function showSpacePosition.set(name, value)
         return name .. ' takes on or off, not ' .. tostring(value)
     end
 
-    hs.settings.set(SETTINGS_PREFIX .. name, value)
+    writeSetting(name, value)
     render()
     -- Re-place the alternate clock, whose spot follows clockRightInset.
     update_clock_position()
