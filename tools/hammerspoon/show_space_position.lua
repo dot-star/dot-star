@@ -134,6 +134,8 @@ local PING_SECONDS = 1
 -- Hold a session's ready back until it lasts this long, outlasting a Stop hook that blocks the stop and sends Claude back to work.
 local READY_SETTLE_SECONDS = 3
 local FRAMES_PER_SECOND = 30
+-- Hand each moving ring and line a numeric frame it never draws with, since the canvas otherwise parses the frame's percentage default with a new number formatter on every repaint.
+local UNDRAWN_FRAME = { x = 0, y = 0, w = 0, h = 0 }
 -- Color each state like a traffic light: amber busy, red decision, green ready.
 -- Keep pending colorless, so a session not yet known never reads as one at work.
 local SESSION_STATE_COLORS = {
@@ -1066,6 +1068,11 @@ local function layoutSessionDotsMotion(
     if #elements == 0 then
         clearCanvas(motion)
         return
+    end
+    for _, element in ipairs(elements) do
+        if element.frame == nil then
+            element.frame = UNDRAWN_FRAME
+        end
     end
     motion:replaceElements(elements)
 end
