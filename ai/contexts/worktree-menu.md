@@ -151,18 +151,19 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   >   💾 **`[c]ommit`**  (commit + keep iterating)
   > 　　 ├─ **`[c1]`** Keep search input usable under long title
   > 　　 ├─ **`[c2]`** Give open search box room when title is long
-  > 　　 └─ **`[c3]`** Stop long title squeezing search input to nothing
+  > 　　 ├─ **`[c3]`** Stop long title squeezing search input to nothing
+  > 　　 └─ **`[cu]`** you pick
   >   📦 **`[f]old`**    (amend into HEAD + keep iterating)
   > 　　 ├─ **`[f]`**  Add search box to toolbar (♻️ same subject, still fits)
   > 　　 ├─ **`[f4]`** Add search box that stays usable under long title
   > 　　 ├─ **`[f5]`** Add toolbar search box that survives long title
   > 　　 └─ **`[f6]`** Add search box that yields to title
   >   ⬆️ **`[p]romote`** (commit + ✅ promote to master)
-  > 　　 └─ **`[pN]`** ...
+  > 　　 └─ **`[pN]`** ... or **`[pu]`**
   >   🏁 **`[L]and`**    (commit + ✅ promote to master + 🪓 tear down worktree)
-  > 　　 └─ **`[LN]`** ...
+  > 　　 └─ **`[LN]`** ... or **`[Lu]`**
   >   🧨 **`[x]`**       (commit + ✅ promote to master + 🪓 tear down worktree + 🧨 close session)
-  > 　　 └─ **`[xN]`** ...
+  > 　　 └─ **`[xN]`** ... or **`[xu]`**
   >   🧨🧨 **`[xx]`**    (no commit + worktree left as-is + 🧨🧨 close session)
 
   Two commits (one staged in each of two worktrees, so each gets a labeled branch; promote, land and close rows left out):
