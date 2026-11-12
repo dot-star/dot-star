@@ -161,7 +161,7 @@ local HOP_STATE_PRIORITY = {
 local FOCUS_MARK_COLOR = { white = 1, alpha = 1 }
 -- Frame the dot under the pointer, so a click's target shows before you commit to it.
 local HOVER_FRAME_COLOR = { white = 1, alpha = 0.8 }
-local HOVER_FRAME_WIDTH = 1.5
+local HOVER_FRAME_WIDTH = 2.5
 -- Reach into the gap on each side of the dot, stopping short of the neighbor's frame.
 local HOVER_FRAME_SIDE_PADDING = DOT_GAP / 2 - 1
 -- Keep the frame off the title bar's edges, tall enough to take in the focus underline and follow-order letter.
