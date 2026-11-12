@@ -461,21 +461,61 @@ def capture_window_id(session_id: str) -> None:
     log(f"captured window {record} for session {session_id}")
 
 
+def recorded_window(session_id: str) -> list[str] | None:
+    """
+    Returns the session's window record split into its fields.
+
+    :param session_id: Claude session id whose window record to read.
+    :return: Window id, then the owning app's bundle id under Hammerspoon
+        (e.g. `["12345", "com.mitchellh.ghostty"]`), or None when no record is on file.
+    """
+    path = window_file(session_id)
+
+    if not path.exists():
+        return None
+
+    return path.read_text().strip().split()
+
+
+def raise_window_lua(
+    window_id: str,
+    bundle_id: str,
+) -> str:
+    """
+    Returns Lua statements that focus a window, falling back to activating its app.
+
+    :param window_id: Hammerspoon window id to focus (e.g. "12345").
+    :param bundle_id: Bundle id of the app to activate when the window is gone
+        or sits in a background tab (e.g. "com.mitchellh.ghostty").
+    :return: Lua source whose `return` reports what got raised.
+    """
+    return f"""
+        local window = hs.window.get({window_id})
+        if window ~= nil then
+            window:focus()
+            return "raised window {window_id}"
+        end
+        local app = hs.application.get("{bundle_id}")
+        if app == nil then
+            return "window {window_id} gone and app {bundle_id} not running; nothing raised"
+        end
+        app:activate()
+        return "window {window_id} not visible (background tab?); activated {bundle_id} instead"
+        """
+
+
 def focus_window(session_id: str) -> None:
     """
     Force the recorded window to the frontmost layer.
 
     :param session_id: Claude session id whose window record to raise.
     """
-    path = window_file(session_id)
+    record = recorded_window(session_id=session_id)
 
-    if not path.exists():
+    if record is None:
         log(f"no window id on file for session {session_id}; cannot raise (was SessionStart blocked?)")
         return
-
-    record = path.read_text().strip().split()
-
-    if not record:
+    elif not record:
         return
 
     window_id = record[0]
@@ -506,17 +546,7 @@ def focus_window(session_id: str) -> None:
         if focused ~= nil and focused:application():bundleID() == "{bundle_id}" then
             return "{bundle_id} is frontmost (typing?); window {window_id} left alone"
         end
-        local window = hs.window.get({window_id})
-        if window ~= nil then
-            window:focus()
-            return "raised window {window_id}"
-        end
-        local app = hs.application.get("{bundle_id}")
-        if app == nil then
-            return "window {window_id} gone and app {bundle_id} not running; nothing raised"
-        end
-        app:activate()
-        return "window {window_id} not visible (background tab?); activated {bundle_id} instead"
+        {raise_window_lua(window_id=window_id, bundle_id=bundle_id)}
         """,
         f"raise window {window_id}",
         session_id,
