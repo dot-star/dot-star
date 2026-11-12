@@ -68,6 +68,9 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
     - Never repeat the target's subject as an `[fN]` draft: that pick is the `[f]` row, and a numbered copy hides that a bare `f` already reuses it.
     - The tree renders on every fold, since whether the old subject still covers the folded-in change is the question the drafts answer, so leaving them off when it looks fine is the guess they replace.
   - **Bare `c` still runs the skill** and shows the full list of five.
+  - **`[cu]` hands the pick to Claude:** for each commit, take a fresh look at that commit's diff alone and pick the most fitting of its own drafts (`[c1]`-`[c3]` for the first, `[c4]`-`[c6]` for the second), never a new subject or another tree's draft; name each pick and why in the 🏁 recap.
+    - Render it as the first row under 💾 **`[c]ommit`** and append `or [pu]` to each stand-in (`[pN pN] ... or [pu]`).
+    - Read the letters in either order: `uc` picks the same as `cu`, as do `up`, `uL` and `ux` for `pu`, `Lu` and `xu`.
 
   **Stage the change before rendering its drafts.** A subject is judged against the diff it describes, so the diff has to be one command away while the drafts are on screen: once the paths are in the index, a bare `d` in another terminal shows `git diff --cached` (`rc_diff` prefers the staged diff when one exists) and `s` lists the staged files, which is exactly what the picked draft would commit.
 
@@ -181,6 +184,7 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   >    │
   >    │ 🛠️ **`[i]terate`** (no commit + keep iterating)
   >    │ 💾 **`[c]ommit`**  (commit 1 of 2, or both + keep iterating)
+  >    │    ├─ **`[cu]`** you pick, one subject per commit
   >    │    ├─ 👉 1 of 2: Toolbar layout refactor
   >    │    │  │  `toolbar.py`: staged 1 file (+12 -4; `c1` to view)
   >    │    │  ├─ **`[c1]`** Extract toolbar slot layout
@@ -192,11 +196,11 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   >    │       ├─ **`[c5]`** Add toolbar search box
   >    │       └─ **`[c6]`** Show search box in toolbar
   >    │ ⬆️ **`[p]romote`** (commit 1 of 2, or both + ✅ promote to master)
-  >    │    └─ **`[pN pN]`** ...
+  >    │    └─ **`[pN pN]`** ... or **`[pu]`**
   >    │ 🏁 **`[L]and`**    (commit both + ✅ promote to master + 🪓 tear down worktree)
-  >    │    └─ **`[LN LN]`** ...
+  >    │    └─ **`[LN LN]`** ... or **`[Lu]`**
   >    │ 🧨 **`[x]`**       (commit both + ✅ promote to master + 🪓 tear down worktree + 🧨 close session)
-  >    │    └─ **`[xN xN]`** ...
+  >    │    └─ **`[xN xN]`** ... or **`[xu]`**
   >    └─🧨🧨 **`[xx]`**    (no commit + worktree left as-is + 🧨🧨 close session)
 
   Subset (e.g. nothing worth keeping uncommitted, so no iterate slot):
