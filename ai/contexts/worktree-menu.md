@@ -38,6 +38,7 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
        - A menu banking two or more commits gives each its own labeled branch with its drafts nested beneath, never one flat list of every commit's drafts.
        - The 📦 fold row carries a `[f]` row with the fold target's subject when that subject still fits, then its own `[fN]` drafts against the combined diff, none repeating the target's subject.
        - The ⬆️ promote, 🏁 land and 🧨 close rows each carry their `[pN] ...` stand-in, with one `N` per commit when the menu banks several (`[pN pN] ...`).
+       - The 💾 commit row's first row is **`[cu]`**, and each stand-in ends in `or [pu]`, per the `[cu]` rule below.
        - Read `~/.claude/styles/commit-message-style.md` this turn before drafting, never from memory, then scan each draft for a digit or a literal value the diff already shows; cut every hit.
     8. Is the change the drafts describe staged? Every `[cN]` tree needs its paths in the index before the menu renders, per the staging rule below; a menu with drafts over an unstaged change sends the user back to asking for the staging before they can judge the subjects.
     9. Would a behavior-preserving restructure of a touched line shrink this diff? Read the staged diff's deleted lines: a long paragraph replaced by a copy of itself with one clause changed is the tell, since the reviewer sees a rewrite where the intent is one sentence.

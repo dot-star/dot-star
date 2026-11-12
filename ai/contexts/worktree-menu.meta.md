@@ -38,6 +38,7 @@
        -
        -
        - A lone `N` under promote, land or close read as a single pick even when the commit row above offered two trees; the repeated `N` makes the shape match what the reply has to carry.
+       - The `[cu]` rule sat only in the drafts section and the series example, so a menu that passed every other sub-check here still shipped without it; the user then had to know the token existed to type it.
        - Menu drafts are written straight into chat, so the style guide's `Write`/`Edit` reminder hook never fires for them and its rules went unread; the diff-carried value is the cut that slipped through (a retention number and the setting's own name landed in drafts while the diff already showed both). It slipped again while the check was a question, answered from memory without opening the guide; the read is now the step and the digit scan tests the draft itself.
     8.
     9.
