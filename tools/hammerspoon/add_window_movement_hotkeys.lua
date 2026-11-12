@@ -1046,8 +1046,10 @@ function move_to(dir)
             if dir == 'fullscreen' then
                 terminal_fullscreen_target = absolute_focused_window_coords
                 terminal_refill_screen_id = focused_window:screen():id()
+                terminal_refill_timer:start()
             else
                 terminal_fullscreen_target = nil
+                terminal_refill_timer:stop()
             end
         end
     end
@@ -1179,13 +1181,14 @@ hs.hotkey.bind({'ctrl', 'cmd'}, 'g', debug_window_dimensions)
 -- windows rather than tracking an id. Poll instead of subscribing to resize
 -- events, which proved unreliable for these app-driven resizes. Rate-limit the
 -- re-fill so a window Terminal insists on shrinking can't flicker rapidly.
-terminal_refill_timer = hs.timer.doEvery(0.1, function()
-    if terminal_fullscreen_target == nil then
-        return
-    end
-
+-- Run the poll only while a target is tracked, since each tick wakes the CPU
+-- and an always-on poll keeps the laptop from idling.
+terminal_refill_timer = hs.timer.new(0.1, function()
     local app = hs.application.get('Terminal')
     if app == nil then
+        -- Drop the target once Terminal quits, since its windows went with it.
+        terminal_fullscreen_target = nil
+        terminal_refill_timer:stop()
         return
     end
 
