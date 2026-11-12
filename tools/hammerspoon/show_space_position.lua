@@ -166,6 +166,8 @@ local HOVER_FRAME_WIDTH = 2.5
 local HOVER_FRAME_SIDE_PADDING = DOT_GAP / 2 - 1
 -- Keep the frame off the title bar's edges, tall enough to take in the focus underline and follow-order letter.
 local HOVER_FRAME_MARGIN = 2
+-- Reach the hover canvas past the dots canvas as far as an end slot's frame spills, so the frame draws like a CSS outline without growing the clickable row.
+local HOVER_CANVAS_OUTSET = math.max(0, HOVER_FRAME_SIDE_PADDING + HOVER_FRAME_WIDTH / 2 - DOTS_PADDING)
 -- Size the follow-order letter to read at a glance under its dot.
 local FOLLOW_ORDER_TEXT_SIZE = 13
 local FOLLOW_ORDER_FONT = 'Menlo-Bold'
@@ -372,6 +374,15 @@ local function newPageDotsMotion()
     -- Stack above the still row, which shares the overlay level.
     motion:level(hs.canvas.windowLevels.overlay + 1)
     return motion
+end
+
+-- Hold the hover frame on its own canvas reaching past the row, so the frame never grows the clickable row.
+-- Give it no mouse callback, which leaves it click-through to the row beneath.
+local function newPageDotsHover()
+    local hover = newOverlay({ x = 0, y = 0, w = 1, h = TITLE_BAR_HEIGHT }, EDGE_BAR_BEHAVIOR)
+    -- Stack above the moving rings, which sit one level over the still row.
+    hover:level(hs.canvas.windowLevels.overlay + 2)
+    return hover
 end
 
 -- Right-align the text, so it hugs the dots however long it runs.
@@ -600,14 +611,13 @@ local function appendHotkey(
     }
 end
 
--- Draw one dot per Space in `color` on a pill, filling the dot at `index`, framing the one at `hoverSlot` and labeling each with its key in `slotHotkeys`.
+-- Draw one dot per Space in `color` on a pill, filling the dot at `index` and labeling each with its key in `slotHotkeys`.
 local function layoutPageDots(
     dots,
     index,
     count,
     color,
     pillVisible,
-    hoverSlot,
     slotHotkeys
 )
     local elements = { pageDotsPill(pillVisible), pageDotsBand(count) }
@@ -631,9 +641,6 @@ local function layoutPageDots(
         end
         elements[#elements + 1] = dot
         appendHotkey(elements, position, slotHotkeys)
-    end
-    if hoverSlot ~= nil then
-        elements[#elements + 1] = hoverFrameElement(pageDotCenter(hoverSlot))
     end
     dots:replaceElements(elements)
 end
@@ -1204,7 +1211,7 @@ end
 
 -- Draw the home triangle, then one ring per Space in `spaces` showing its session's state, marking the ring at `index` and badging each ranked in `followOrder`.
 -- Leave each slot in `moving` empty for the motion canvas to draw.
--- Frame the slot at `hoverSlot` and label each slot with its key in `slotHotkeys`, counting the home triangle as slot 1.
+-- Label each slot with its key in `slotHotkeys`, counting the home triangle as slot 1.
 local function layoutSessionDots(
     dots,
     index,
@@ -1213,7 +1220,6 @@ local function layoutSessionDots(
     pillVisible,
     seconds,
     moving,
-    hoverSlot,
     slotHotkeys
 )
     -- Count the home triangle too.
@@ -1256,9 +1262,6 @@ local function layoutSessionDots(
             appendHotkey(elements, position + 1, slotHotkeys)
         end
     end
-    if hoverSlot ~= nil then
-        elements[#elements + 1] = hoverFrameElement(pageDotCenter(hoverSlot))
-    end
     dots:replaceElements(elements)
 end
 
@@ -1268,13 +1271,11 @@ local function sessionDotsKey(
     spaces,
     followOrder,
     pillVisible,
-    hoverSlot,
     moving
 )
     local parts = {
         index,
         tostring(pillVisible),
-        tostring(hoverSlot),
         styleOf('decision_style'),
         styleOf('pending_style'),
         styleOf('focus_marker'),
@@ -1293,7 +1294,7 @@ local function drawSessionDots(
     seconds
 )
     local moving = movingSlots(pair.sessionSpaces, seconds)
-    local key = sessionDotsKey(pair.sessionIndex, pair.sessionSpaces, pair.followOrder, pillVisible, pair.hoverSlot, moving)
+    local key = sessionDotsKey(pair.sessionIndex, pair.sessionSpaces, pair.followOrder, pillVisible, moving)
     if pair.sessionKey ~= key then
         layoutSessionDots(
             pair.dots,
@@ -1303,7 +1304,6 @@ local function drawSessionDots(
             pillVisible,
             seconds,
             moving,
-            pair.hoverSlot,
             pair.slotHotkeys
         )
         pair.sessionKey = key
@@ -1666,7 +1666,24 @@ local function deleteEdgeBarPair(pair)
     pair.swipeHint:delete()
     pair.dots:delete()
     pair.dotsMotion:delete()
+    pair.dotsHover:delete()
     pair.countdown:delete()
+end
+
+-- Frame the dot at `hoverSlot` on the hover canvas, or clear the canvas when nil.
+local function layoutHoverFrame(
+    hover,
+    hoverSlot
+)
+    if hoverSlot == nil then
+        clearCanvas(hover)
+    else
+        local element = hoverFrameElement(pageDotCenter(hoverSlot))
+        -- Shift the frame out of the dots canvas's coordinates, since the hover canvas starts the outset above and left of it.
+        element.frame.x = element.frame.x + HOVER_CANVAS_OUTSET
+        element.frame.y = element.frame.y + HOVER_CANVAS_OUTSET
+        hover:replaceElements({ element })
+    end
 end
 
 -- Drop the pairs of Spaces that no longer exist.
@@ -1809,12 +1826,11 @@ local function placeEdgeBars(
         drawSessionDots(pair, pillVisible, hs.timer.secondsSinceEpoch())
         -- Forget the plain dots, so turning session_state off redraws them.
         pair.dotsIndex = nil
-    elseif pair.dotsIndex ~= index or pair.dotsCount ~= count or pair.dotsPill ~= pillVisible or pair.dotsHover ~= pair.hoverSlot or pair.dotsVertical ~= vertical then
-        layoutPageDots(pair.dots, index, count, pair.color, pillVisible, pair.hoverSlot, pair.slotHotkeys)
+    elseif pair.dotsIndex ~= index or pair.dotsCount ~= count or pair.dotsPill ~= pillVisible or pair.dotsVertical ~= vertical then
+        layoutPageDots(pair.dots, index, count, pair.color, pillVisible, pair.slotHotkeys)
         pair.dotsIndex = index
         pair.dotsCount = count
         pair.dotsPill = pillVisible
-        pair.dotsHover = pair.hoverSlot
         pair.dotsVertical = vertical
         pair.sessionKey = nil
         -- Drop any moving rings left from session_state, which the plain dots replace.
@@ -1837,6 +1853,17 @@ local function placeEdgeBars(
     }
     pair.dots:frame(dotsFrame)
     pair.dotsMotion:frame(dotsFrame)
+    pair.dotsHover:frame({
+        x = dotsFrame.x - HOVER_CANVAS_OUTSET,
+        y = dotsFrame.y - HOVER_CANVAS_OUTSET,
+        w = dotsFrame.w + 2 * HOVER_CANVAS_OUTSET,
+        h = dotsFrame.h + 2 * HOVER_CANVAS_OUTSET,
+    })
+    -- Redraw the frame when the column toggles, which moves every slot's center.
+    if pair.hoverVertical ~= vertical then
+        layoutHoverFrame(pair.dotsHover, pair.hoverSlot)
+        pair.hoverVertical = vertical
+    end
     -- Line the countdown up with the first dot's band, so it reads as part of the row.
     local firstBand = pageDotsBandFrame(1)
     pair.countdown:frame({
@@ -1852,18 +1879,6 @@ local function placeEdgeBars(
     end
 end
 
--- Redraw a pair's dots in place from what its last placement recorded, for a hover that moved without the Space changing.
-local function redrawPageDots(pair)
-    local pillVisible = isEnabled('page_dots_pill')
-    if isEnabled('session_state') then
-        drawSessionDots(pair, pillVisible, hs.timer.secondsSinceEpoch())
-        return
-    end
-    layoutPageDots(pair.dots, pair.dotsIndex, pair.dotsCount, pair.color, pillVisible, pair.hoverSlot, pair.slotHotkeys)
-    pair.dotsPill = pillVisible
-    pair.dotsHover = pair.hoverSlot
-end
-
 -- Frame the dot at `slot`, or none when nil, redrawing only on a change.
 local function hoverPageDot(
     pair,
@@ -1873,7 +1888,7 @@ local function hoverPageDot(
         return
     end
     pair.hoverSlot = slot
-    redrawPageDots(pair)
+    layoutHoverFrame(pair.dotsHover, slot)
 end
 
 -- Return the dot slot under the pointer, or nil when the pointer is off the row.
@@ -1960,6 +1975,7 @@ local function renderEdgeBars(
             swipeHint = newSwipeHint(),
             dots = newPageDots(),
             dotsMotion = newPageDotsMotion(),
+            dotsHover = newPageDotsHover(),
             countdown = newCountdown(),
             color = color,
             cycleColor = cycleColor,
@@ -1983,6 +1999,7 @@ local function renderEdgeBars(
     setEdgeBarVisible(pair.swipeHint, showsSwipeHint(focused, index, count))
     setEdgeBarVisible(pair.dots, showsPageDots(focused))
     setEdgeBarVisible(pair.dotsMotion, showsPageDots(focused))
+    setEdgeBarVisible(pair.dotsHover, showsPageDots(focused))
     setEdgeBarVisible(pair.countdown, showsCountdown(focused))
 end
 
