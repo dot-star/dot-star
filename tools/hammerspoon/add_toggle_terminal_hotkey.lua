@@ -107,6 +107,16 @@ function goToSpaceOnceModifiersUp(space)
     end)
 end
 
+-- Report whether `space` is already on screen, on any display.
+local function isSpaceVisible(space)
+    for _, activeSpace in pairs(hs.spaces.activeSpaces()) do
+        if activeSpace == space then
+            return true
+        end
+    end
+    return false
+end
+
 -- Focus the remembered Ghostty window when Ghostty isn't frontmost, returning whether it did.
 local function focusLastGhosttyWindow()
     local app = hs.application.get('com.mitchellh.ghostty')
@@ -131,6 +141,10 @@ local function focusLastGhosttyWindow()
     local space = (hs.spaces.windowSpaces(lastGhosttyWindow) or {})[1]
     if space == nil then
         ghosttyLog.i('no Space for window, focusing it')
+        lastGhosttyWindow:focus()
+    -- Skip the switch when the Space is already on screen: gotoSpace would still run Mission Control for nothing.
+    elseif isSpaceVisible(space) then
+        ghosttyLog.i('already on Space ' .. space .. ', focusing window')
         lastGhosttyWindow:focus()
     else
         goToSpaceOnceModifiersUp(space)
