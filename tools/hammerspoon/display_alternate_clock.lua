@@ -215,17 +215,53 @@ trackMouseEventsMove = false
 pst_text = ''
 est_text = ''
 
-function update_clock_time()
-    local pst_time = hs.execute(PST_time_command)
-    local est_time = hs.execute(EST_time_command)
+-- Print the Pacific then the Eastern time in one process, a line each, so a tick spawns one shell rather than one per zone.
+local CLOCK_TIMES_COMMAND = PST_time_command .. '; ' .. EST_time_command
 
-    pst_text = string.format(' Pacific: %s', pst_time)
-    est_text = string.format(' Eastern: %s', est_time)
+-- Hold the running read, so a slow one never overlaps the next tick's.
+local clockTimesTask = nil
+
+-- Show the read times, repainting the rows only when the minute changed.
+local function showClockTimes(
+    pstTime,
+    estTime
+)
+    local newPstText = string.format(' Pacific: %s', pstTime)
+    local newEstText = string.format(' Eastern: %s', estTime)
+    if newPstText == pst_text then
+        if newEstText == est_text then
+            return
+        end
+    end
+
+    pst_text = newPstText
+    est_text = newEstText
 
     eachClockPair(function(a, b)
         a[2].text = pst_text
         b[2].text = est_text
     end)
+end
+
+-- Read the times in the background, since running the shell in line stalls every animation for its whole run.
+function update_clock_time()
+    if clockTimesTask ~= nil then
+        if clockTimesTask:isRunning() then
+            return
+        end
+    end
+    clockTimesTask = hs.task.new('/bin/sh', function(exitCode, stdOut)
+        clockTimesTask = nil
+        if exitCode ~= 0 then
+            return
+        end
+        local pstTime, estTime = stdOut:match('^([^\n]*)\n([^\n]*)')
+        if pstTime == nil then
+            return
+        end
+        showClockTimes(pstTime, estTime)
+    end, { '-c', CLOCK_TIMES_COMMAND })
+    clockTimesTask:start()
 end
 
 -- Give the focused Space its own pair on first visit, and drop the pairs of Spaces that no longer exist.
@@ -260,11 +296,18 @@ spacesWatcher = hs.spaces.watcher.new(function()
     showClockOnFocusedSpace()
 end):start()
 
--- t = hs.timer.doEvery(.1, update_clock_time) -- High CPU.
--- t = hs.timer.doEvery(1, update_clock_time) -- Acceptable CPU.
-t = hs.timer.doEvery(10, function()
-    update_clock_time()
-end) -- Less CPU.
+-- Land each tick a beat past the minute's start, so the read never catches the minute that's ending.
+local CLOCK_TICK_SLACK_SECONDS = 0.1
+
+-- Tick at each minute's start, so the clock turns over with the minute rather than up to a tick late.
+local function scheduleClockTick()
+    local delay = 60 - hs.timer.secondsSinceEpoch() % 60 + CLOCK_TICK_SLACK_SECONDS
+    t = hs.timer.doAfter(delay, function()
+        update_clock_time()
+        scheduleClockTick()
+    end)
+end
+scheduleClockTick()
 
 -- Watch for addition or removal of a monitor and update positioning.
 current_screen_count = 0
