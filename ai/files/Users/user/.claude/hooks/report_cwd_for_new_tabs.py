@@ -16,8 +16,9 @@ SessionEnd: once claude exits, the shell's next prompt reports the real pwd.
 The repo the session last worked in wins over `cwd`. Claude can't enter a
 worktree or repo outside the one it launched in, so its cwd stays at launch
 while every edit lands elsewhere. `record_worktree_for_statusline.sh` keeps two
-markers naming that place: `last_repo` (the repo of the last Edit or Write, or
-the last worktree a tool named) first, else `worktree` (a session from before
+markers naming that place: `last_repo` (the repo of the last Edit or Write, the
+last worktree a tool named, or the last repo a Bash `git clone` or `git -C`
+named) first, else `worktree` (a session from before
 `last_repo` existed). That hook runs alongside this one, so a freshly recorded
 repo reaches the tab one tool call later. Set `TAB_FOLLOWS` to "worktree" to
 skip `last_repo` and keep the tab on the session's worktree.

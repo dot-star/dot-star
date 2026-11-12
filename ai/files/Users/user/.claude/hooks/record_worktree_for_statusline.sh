@@ -14,7 +14,8 @@
 # whose directory is gone, so a teardown needs no hook of its own.
 #
 # A second marker, last_repo, records the repo the session last worked in,
-# worktree or not (Write / Edit add the repo an edited file sits in), so
+# worktree or not (Write / Edit add the repo an edited file sits in; Bash adds
+# the repo a `git clone` creates or a `git -C <path>` names), so
 # report_cwd_for_new_tabs.py can open a new tab where the work happened.
 
 set -euo pipefail
@@ -43,6 +44,59 @@ worktree_path_in() {
         fi
     done < <(printf '%s' "$1" |
         grep --only-matching --extended-regexp '/[A-Za-z0-9_./-]+/worktrees/[A-Za-z0-9_.-]+' ||
+        true)
+}
+
+# Print the top of the checkout an absolute `git clone` destination in $1
+# names, or nothing. Take the clause's last absolute word, since git takes the
+# destination after the URL and every flag.
+clone_repo_in() {
+    local clause
+    local destination=""
+    local word
+    local words
+
+    clause=$(printf '%s' "$1" |
+        grep --only-matching --extended-regexp 'git clone [^;&|]+' |
+        head --lines=1 ||
+        true)
+    read -r -a words <<<"${clause}"
+    for word in "${words[@]+"${words[@]}"}"; do
+        word="${word#\"}"
+        word="${word%\"}"
+        if [[ "${word}" == "/"* ]]; then
+            destination="${word}"
+        fi
+    done
+
+    if [ -z "${destination}" ]; then
+        return 0
+    elif [ ! -d "${destination}" ]; then
+        return 0
+    fi
+
+    git -C "${destination}" rev-parse --show-toplevel 2>/dev/null ||
+        true
+}
+
+# Print the top of the first checkout an absolute `git -C <path>` in $1 names,
+# or nothing.
+git_c_repo_in() {
+    local match
+    local repo_dir
+    local root
+
+    while IFS= read -r match; do
+        repo_dir="${match#git -C }"
+        repo_dir="${repo_dir#\"}"
+        root=$(git -C "${repo_dir}" rev-parse --show-toplevel 2>/dev/null ||
+            true)
+        if [ -n "${root}" ]; then
+            printf '%s' "${root}"
+            return 0
+        fi
+    done < <(printf '%s' "$1" |
+        grep --only-matching --extended-regexp 'git -C "?/[^" ;&|]+' ||
         true)
 }
 
@@ -113,6 +167,17 @@ Bash)
     fi
 
     record_worktree "${path}"
+
+    # Fall back to a plain checkout the command clones or works in, so a repo
+    # touched only through Bash still becomes last_repo.
+    if [ -z "${path}" ]; then
+        path=$(clone_repo_in "${command}")
+    fi
+
+    if [ -z "${path}" ]; then
+        path=$(git_c_repo_in "${command}")
+    fi
+
     record_last_repo "${path}"
     ;;
 Edit | Write)

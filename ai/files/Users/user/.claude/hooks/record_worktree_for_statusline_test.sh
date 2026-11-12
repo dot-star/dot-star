@@ -2,7 +2,8 @@
 
 # Check that the hook records the worktree a Bash command creates or works in,
 # skipping paths that don't exist (an unexpanded "$R/..." among them), and the
-# repo an edited file sits in, worktree or not.
+# repo an edited file sits in or a Bash command clones or works in, worktree or
+# not.
 #
 # Run: bash ai/files/Users/user/.claude/hooks/record_worktree_for_statusline_test.sh
 
@@ -106,6 +107,47 @@ assert_last_repo "edit in a worktree records the worktree" \
     "${SANDBOX}/repo/worktrees/first/notes.md" "${SANDBOX}/repo/worktrees/first"
 assert_last_repo "edit outside any repo records nothing" \
     "${SANDBOX}/loose/notes.md" ""
+
+assert_bash_last_repo() {
+    # Feed the hook a Bash <command> and compare the last_repo marker against <expected>.
+    local label="$1"
+    local cmd="$2"
+    local expected="$3"
+
+    rm --force -- "${LAST_REPO_MARKER}"
+    jq --null-input --compact-output \
+        --arg cmd "${cmd}" \
+        --arg sid "${SESSION_ID}" \
+        '{session_id: $sid, tool_name: "Bash", tool_input: {command: $cmd}}' |
+        bash "${HOOK}"
+
+    local actual=""
+    if [[ -f "${LAST_REPO_MARKER}" ]]; then
+        actual="$(cat -- "${LAST_REPO_MARKER}")"
+    fi
+
+    if [[ "${actual}" == "${expected}" ]]; then
+        echo "✓ ${label}"
+    else
+        echo "✗ ${label}"
+        echo "    expected: ${expected}"
+        echo "    actual:   ${actual}"
+        failures=$((failures + 1))
+    fi
+}
+
+assert_bash_last_repo "git -C in a plain repo records its root" \
+    "git -C ${SANDBOX}/other status" "${SANDBOX}/other"
+assert_bash_last_repo "quoted git -C path records its root" \
+    "git -C \"${SANDBOX}/other\" status" "${SANDBOX}/other"
+assert_bash_last_repo "git -C in a worktree records the worktree" \
+    "git -C ${SANDBOX}/repo/worktrees/first status" "${SANDBOX}/repo/worktrees/first"
+assert_bash_last_repo "git -C outside any repo records nothing" \
+    "git -C ${SANDBOX}/loose status" ""
+assert_bash_last_repo "git clone records the destination" \
+    "git clone --branch main https://example.com/foo.git ${SANDBOX}/other 2>&1 | tail -2" "${SANDBOX}/other"
+assert_bash_last_repo "command naming no repo records nothing" \
+    "ls ${SANDBOX}/loose" ""
 
 assert_marker_rewrite() {
     # Feed the hook a Bash <command> over a marker already holding <first>, and
