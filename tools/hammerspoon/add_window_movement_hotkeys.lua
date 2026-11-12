@@ -12,14 +12,14 @@
 --   3x: top-right 33%x50%
 -- left:
 --   1x: left 50%x100%
---   2x: left 66%x100%
---   3x: left 33%x100%
+--   2x: left 33%x100%
+--   3x: left 66%x100%
 -- fullscreen:
 --   1x: fullscreen 100%
 -- right:
 --   1x: right 50%x100%
---   2x: right 66%x100%
---   3x: right 33%x100%
+--   2x: right 33%x100%
+--   3x: right 66%x100%
 -- bottom-left:
 --   1x: bottom-left 50%x50%
 --   2x: bottom-left 66%x50%
