@@ -40,6 +40,7 @@
 -
 -
   -
+  - An empty `grep --recursive` over `ai/contexts/` once reported a term appeared nowhere, so the reply said the docs needed no change, while the symlinked personal docs used it in a dozen places. That miss is silent: its output looks like a true absence, so only a scope check catches it.
 -
 -
 -
