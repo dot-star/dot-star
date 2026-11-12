@@ -59,6 +59,39 @@ terminal_fullscreen_target = nil
 terminal_refill_screen_id = nil
 terminal_last_refill_time = 0
 
+-- Return whether `value` sits within `snap_buffer` of `target`.
+local function is_within_snap_buffer(value, target, snap_buffer)
+    return value >= target - snap_buffer and value <= target + snap_buffer
+end
+
+-- Return whether `frame` sits at `position` on every axis, within that axis's snap buffer.
+local function is_at_position(frame, position, snap_buffers)
+    for _, axis in ipairs({'x', 'y', 'w', 'h'}) do
+        if not is_within_snap_buffer(frame[axis], position[axis], snap_buffers[axis]) then
+            return false
+        end
+    end
+    return true
+end
+
+-- Return the position after the one `frame` already sits at, wrapping back to
+-- the first, or the first position when `frame` sits at none of them.
+local function next_position_in_cycle(positions, frame, snap_buffers)
+    for index, position in ipairs(positions) do
+        -- print(string.format('position %d x:%s y:%s w:%s h:%s', index, position.x, position.y, position.w, position.h))
+        if is_at_position(frame, position, snap_buffers) then
+            return positions[index % #positions + 1]
+        end
+    end
+    return positions[1]
+end
+
+-- Match y exactly for these directions instead of within the snap buffer.
+local exact_y_directions = {
+    ['left'] = true,
+    ['right'] = true,
+}
+
 function move_to(dir)
     return function()
         -- print('--------------------------------------')
@@ -83,959 +116,123 @@ function move_to(dir)
         local local_focused_window_screen_coords = focused_window:screen():absoluteToLocal(focused_window_screen_coords)
         -- print(string.format('local_focused_window_screen_coords: %s', local_focused_window_screen_coords))
 
-        window_snap_buffer = 20
+        local window_snap_buffer = 20
 
-              full_screen_width = local_focused_window_screen_coords.w
-         one_third_screen_width = local_focused_window_screen_coords.w * 1/3
-          one_half_screen_width = local_focused_window_screen_coords.w * 1/2
-        two_thirds_screen_width = local_focused_window_screen_coords.w * 2/3
-         one_sixth_screen_width = local_focused_window_screen_coords.w * 1/6
-        one_fourth_screen_width = local_focused_window_screen_coords.w * 1/4
+        local screen_x = local_focused_window_screen_coords.x
+        local screen_y = local_focused_window_screen_coords.y
 
-              full_screen_height = local_focused_window_screen_coords.h
-         one_third_screen_height = local_focused_window_screen_coords.h * 1/3
-          one_half_screen_height = local_focused_window_screen_coords.h * 1/2
-        two_thirds_screen_height = local_focused_window_screen_coords.h * 2/3
+        -- TODO: Replace this global write with a local once the alternate clock stops reading it (display_alternate_clock.lua's clockLeft places the clock by whichever screen move_to last saw).
+        full_screen_width = local_focused_window_screen_coords.w
+        local one_third_screen_width = local_focused_window_screen_coords.w * 1/3
+        local one_half_screen_width = local_focused_window_screen_coords.w * 1/2
+        local two_thirds_screen_width = local_focused_window_screen_coords.w * 2/3
+        local one_sixth_screen_width = local_focused_window_screen_coords.w * 1/6
+        local one_fourth_screen_width = local_focused_window_screen_coords.w * 1/4
 
-        if dir == 'fullscreen' then
-            next_position_x = local_focused_window_screen_coords.x
-            next_position_y = local_focused_window_screen_coords.y
-            next_position_w = full_screen_width
-            next_position_h = full_screen_height
-        elseif dir == 'top' then
-            position_1_x = local_focused_window_screen_coords.x
-            position_1_y = local_focused_window_screen_coords.y
-            position_1_w = full_screen_width
-            position_1_h = one_half_screen_height
-            -- print(string.format('top position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
+        local full_screen_height = local_focused_window_screen_coords.h
+        local one_third_screen_height = local_focused_window_screen_coords.h * 1/3
+        local one_half_screen_height = local_focused_window_screen_coords.h * 1/2
+        local two_thirds_screen_height = local_focused_window_screen_coords.h * 2/3
 
-            position_2_x = local_focused_window_screen_coords.x
-            position_2_y = local_focused_window_screen_coords.y
-            position_2_w = full_screen_width
-            position_2_h = two_thirds_screen_height
-            -- print(string.format('top position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
+        -- List each direction's positions in the order repeated presses cycle through them.
+        local positions_by_direction = {
+            ['fullscreen'] = {
+                {x = screen_x, y = screen_y, w = full_screen_width, h = full_screen_height},
+            },
+            ['top'] = {
+                {x = screen_x, y = screen_y, w = full_screen_width, h = one_half_screen_height},
+                {x = screen_x, y = screen_y, w = full_screen_width, h = two_thirds_screen_height},
+                {x = screen_x, y = screen_y, w = full_screen_width, h = one_third_screen_height},
+            },
+            ['bottom'] = {
+                {x = screen_x, y = screen_y + one_half_screen_height, w = full_screen_width, h = one_half_screen_height},
+                {x = screen_x, y = screen_y + one_third_screen_height, w = full_screen_width, h = two_thirds_screen_height},
+                {x = screen_x, y = screen_y + two_thirds_screen_height, w = full_screen_width, h = one_third_screen_height},
+            },
+            ['left'] = {
+                {x = screen_x, y = screen_y, w = one_half_screen_width, h = full_screen_height},
+                {x = screen_x, y = screen_y, w = one_third_screen_width, h = full_screen_height},
+                {x = screen_x, y = screen_y, w = two_thirds_screen_width, h = full_screen_height},
+            },
+            ['right'] = {
+                {x = one_half_screen_width, y = screen_y, w = one_half_screen_width, h = full_screen_height},
+                {x = two_thirds_screen_width, y = screen_y, w = one_third_screen_width, h = full_screen_height},
+                {x = one_third_screen_width, y = screen_y, w = two_thirds_screen_width, h = full_screen_height},
+            },
+            ['top-left'] = {
+                {x = screen_x, y = screen_y, w = one_half_screen_width, h = one_half_screen_height},
+                {x = screen_x, y = screen_y, w = two_thirds_screen_width, h = one_half_screen_height},
+                {x = screen_x, y = screen_y, w = one_third_screen_width, h = one_half_screen_height},
+            },
+            ['top-right'] = {
+                {x = one_half_screen_width, y = screen_y, w = one_half_screen_width, h = one_half_screen_height},
+                {x = one_third_screen_width, y = screen_y, w = two_thirds_screen_width, h = one_half_screen_height},
+                {x = two_thirds_screen_width, y = screen_y, w = one_third_screen_width, h = one_half_screen_height},
+            },
+            ['bottom-left'] = {
+                {x = screen_x, y = screen_y + one_half_screen_height, w = one_half_screen_width, h = one_half_screen_height},
+                {x = screen_x, y = screen_y + one_half_screen_height, w = two_thirds_screen_width, h = one_half_screen_height},
+                {x = screen_x, y = screen_y + one_half_screen_height, w = one_third_screen_width, h = one_half_screen_height},
+            },
+            ['bottom-right'] = {
+                {x = one_half_screen_width, y = screen_y + one_half_screen_height, w = one_half_screen_width, h = one_half_screen_height},
+                {x = one_third_screen_width, y = screen_y + one_half_screen_height, w = two_thirds_screen_width, h = one_half_screen_height},
+                {x = two_thirds_screen_width, y = screen_y + one_half_screen_height, w = one_third_screen_width, h = one_half_screen_height},
+            },
+            ['first-third'] = {
+                {x = 0, y = 0, w = one_third_screen_width, h = full_screen_height},
+            },
+            ['second-third'] = {
+                {x = one_third_screen_width, y = 0, w = one_third_screen_width, h = full_screen_height},
+            },
+            ['third-third'] = {
+                {x = two_thirds_screen_width, y = 0, w = one_third_screen_width, h = full_screen_height},
+            },
+            ['first-two-thirds'] = {
+                {x = 0, y = 0, w = two_thirds_screen_width, h = full_screen_height},
+            },
+            ['last-two-thirds'] = {
+                {x = one_third_screen_width, y = 0, w = two_thirds_screen_width, h = full_screen_height},
+            },
+            ['middle-half'] = {
+                {x = one_fourth_screen_width, y = 0, w = one_half_screen_width, h = full_screen_height},
+            },
+            ['middle-two-thirds'] = {
+                {x = one_sixth_screen_width, y = 0, w = two_thirds_screen_width, h = full_screen_height},
+            },
+            ['left-third'] = {
+                {x = one_sixth_screen_width, y = 0, w = one_third_screen_width, h = full_screen_height},
+            },
+            ['right-third'] = {
+                {x = one_half_screen_width, y = 0, w = one_third_screen_width, h = full_screen_height},
+            },
+        }
 
-            position_3_x = local_focused_window_screen_coords.x
-            position_3_y = local_focused_window_screen_coords.y
-            position_3_w = full_screen_width
-            position_3_h = one_third_screen_height
-            -- print(string.format('top position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
-
-            -- if at position 1, go to position 2.
-            if
-                (
-                    -- local_focused_window_coords.x ~= position_1_x
-                    local_focused_window_coords.x >= position_1_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_1_x + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.y ~= position_1_y
-                    local_focused_window_coords.y >= position_1_y - window_snap_buffer and
-                    local_focused_window_coords.y <= position_1_y + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.w ~= position_1_w
-                    local_focused_window_coords.w >= position_1_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_1_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_1_h
-                    local_focused_window_coords.h >= position_1_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_1_h + window_snap_buffer
-                ) then
-                -- print('at top position 1')
-                -- print('moving to position 2')
-                next_position_x = position_2_x
-                next_position_y = position_2_y
-                next_position_w = position_2_w
-                next_position_h = position_2_h
-            -- if at position 2, go to position 3.
-            elseif
-                (
-                    -- local_focused_window_coords.x ~= position_2_x
-                    local_focused_window_coords.x >= position_2_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_2_x + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.y ~= position_2_y
-                    local_focused_window_coords.y >= position_2_y - window_snap_buffer and
-                    local_focused_window_coords.y <= position_2_y + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.w ~= position_2_w
-                    local_focused_window_coords.w >= position_2_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_2_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_2_h
-                    local_focused_window_coords.h >= position_2_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_2_h + window_snap_buffer
-                ) then
-                -- print('at top position 2')
-                -- print('moving to position 3')
-                next_position_x = position_3_x
-                next_position_y = position_3_y
-                next_position_w = position_3_w
-                next_position_h = position_3_h
-            -- if at position 3, go to position 1.
-            elseif
-                (
-                    -- local_focused_window_coords.x ~= position_3_x
-                    local_focused_window_coords.x >= position_3_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_3_x + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.y ~= position_3_y
-                    local_focused_window_coords.y >= position_3_y - window_snap_buffer and
-                    local_focused_window_coords.y <= position_3_y + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.w ~= position_3_w
-                    local_focused_window_coords.w >= position_3_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_3_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_3_h
-                    local_focused_window_coords.h >= position_3_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_3_h + window_snap_buffer
-                ) then
-                -- print('at top position 3')
-                -- print('moving to position 1')
-                next_position_x = position_1_x
-                next_position_y = position_1_y
-                next_position_w = position_1_w
-                next_position_h = position_1_h
-            -- if at some other position, go to position 1.
-            else
-                -- print('at some other position')
-                -- print('moving to position 1')
-                next_position_x = position_1_x
-                next_position_y = position_1_y
-                next_position_w = position_1_w
-                next_position_h = position_1_h
-            end
-        elseif dir == 'bottom' then
-            next_position_x = local_focused_window_screen_coords.x
-            next_position_y = local_focused_window_screen_coords.y + one_half_screen_height
-            next_position_w = full_screen_width
-            next_position_h = one_half_screen_height
-
-            position_1_x = local_focused_window_screen_coords.x
-            position_1_y = local_focused_window_screen_coords.y + one_half_screen_height
-            position_1_w = full_screen_width
-            position_1_h = one_half_screen_height
-            -- print(string.format('bottom position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
-
-            position_2_x = local_focused_window_screen_coords.x
-            position_2_y = local_focused_window_screen_coords.y + one_third_screen_height
-            position_2_w = full_screen_width
-            position_2_h = two_thirds_screen_height
-            -- print(string.format('bottom position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
-
-            position_3_x = local_focused_window_screen_coords.x
-            position_3_y = local_focused_window_screen_coords.y + two_thirds_screen_height
-            position_3_w = full_screen_width
-            position_3_h = one_third_screen_height
-            -- print(string.format('bottom position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
-
-            -- if at position 1, go to position 2.
-            if
-                (
-                    -- local_focused_window_coords.x ~= position_1_x
-                    local_focused_window_coords.x >= position_1_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_1_x + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.y ~= position_1_y
-                    local_focused_window_coords.y >= position_1_y - window_snap_buffer and
-                    local_focused_window_coords.y <= position_1_y + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.w ~= position_1_w
-                    local_focused_window_coords.w >= position_1_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_1_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_1_h
-                    local_focused_window_coords.h >= position_1_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_1_h + window_snap_buffer
-                ) then
-                -- print('at bottom position 1')
-                -- print('moving to position 2')
-                next_position_x = position_2_x
-                next_position_y = position_2_y
-                next_position_w = position_2_w
-                next_position_h = position_2_h
-            -- if at position 2, go to position 3.
-            elseif
-                (
-                    -- local_focused_window_coords.x ~= position_2_x
-                    local_focused_window_coords.x >= position_2_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_2_x + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.y ~= position_2_y
-                    local_focused_window_coords.y >= position_2_y - window_snap_buffer and
-                    local_focused_window_coords.y <= position_2_y + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.w ~= position_2_w
-                    local_focused_window_coords.w >= position_2_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_2_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_2_h
-                    local_focused_window_coords.h >= position_2_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_2_h + window_snap_buffer
-                ) then
-                -- print('at bottom position 2')
-                -- print('moving to position 3')
-                next_position_x = position_3_x
-                next_position_y = position_3_y
-                next_position_w = position_3_w
-                next_position_h = position_3_h
-            -- if at position 3, go to position 1.
-            elseif
-                (
-                    -- local_focused_window_coords.x ~= position_3_x
-                    local_focused_window_coords.x >= position_3_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_3_x + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.y ~= position_3_y
-                    local_focused_window_coords.y >= position_3_y - window_snap_buffer and
-                    local_focused_window_coords.y <= position_3_y + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.w ~= position_3_w
-                    local_focused_window_coords.w >= position_3_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_3_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_3_h
-                    local_focused_window_coords.h >= position_3_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_3_h + window_snap_buffer
-                ) then
-                -- print('at bottom position 3')
-                -- print('moving to position 1')
-                next_position_x = position_1_x
-                next_position_y = position_1_y
-                next_position_w = position_1_w
-                next_position_h = position_1_h
-            -- if at some other position, go to position 1.
-            else
-                -- print('at some other position')
-                -- print('moving to position 1')
-                next_position_x = position_1_x
-                next_position_y = position_1_y
-                next_position_w = position_1_w
-                next_position_h = position_1_h
-            end
-        elseif dir == 'left' then
-            position_1_x = local_focused_window_screen_coords.x
-            position_1_y = local_focused_window_screen_coords.y
-            position_1_w = one_half_screen_width
-            position_1_h = full_screen_height
-            -- print(string.format('left position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
-
-            position_2_x = local_focused_window_screen_coords.x
-            position_2_y = local_focused_window_screen_coords.y
-            position_2_w = one_third_screen_width
-            position_2_h = full_screen_height
-            -- print(string.format('left position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
-
-            position_3_x = local_focused_window_screen_coords.x
-            position_3_y = local_focused_window_screen_coords.y
-            position_3_w = two_thirds_screen_width
-            position_3_h = full_screen_height
-            -- print(string.format('left position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
-
-            -- if at position 1, go to position 2.
-            if
-                (
-                    -- local_focused_window_coords.x ~= position_1_x
-                    local_focused_window_coords.x >= position_1_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_1_x + window_snap_buffer
-                ) and
-                local_focused_window_coords.y == position_1_y and
-                (
-                    -- local_focused_window_coords.w ~= position_1_w
-                    local_focused_window_coords.w >= position_1_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_1_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_1_h
-                    local_focused_window_coords.h >= position_1_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_1_h + window_snap_buffer
-                ) then
-                -- print('at left position 1')
-                -- print('moving to position 2')
-                next_position_x = position_2_x
-                next_position_y = position_2_y
-                next_position_w = position_2_w
-                next_position_h = position_2_h
-            -- if at position 2, go to position 3.
-            elseif
-                (
-                    -- local_focused_window_coords.x ~= position_2_x
-                    local_focused_window_coords.x >= position_2_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_2_x + window_snap_buffer
-                ) and
-                local_focused_window_coords.y == position_2_y and
-                (
-                    -- local_focused_window_coords.w ~= position_2_w
-                    local_focused_window_coords.w >= position_2_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_2_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_2_h
-                    local_focused_window_coords.h >= position_2_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_2_h + window_snap_buffer
-                ) then
-                -- print('at left position 2')
-                -- print('moving to position 3')
-                next_position_x = position_3_x
-                next_position_y = position_3_y
-                next_position_w = position_3_w
-                next_position_h = position_3_h
-            -- if at position 3, go to position 1.
-            elseif
-                (
-                    -- local_focused_window_coords.x ~= position_3_x
-                    local_focused_window_coords.x >= position_3_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_3_x + window_snap_buffer
-                ) and
-                local_focused_window_coords.y == position_3_y and
-                (
-                    -- local_focused_window_coords.w ~= position_3_w
-                    local_focused_window_coords.w >= position_3_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_3_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_3_h
-                    local_focused_window_coords.h >= position_3_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_3_h + window_snap_buffer
-                ) then
-                -- print('at left position 3')
-                -- print('moving to position 1')
-                next_position_x = position_1_x
-                next_position_y = position_1_y
-                next_position_w = position_1_w
-                next_position_h = position_1_h
-            -- if at some other position, go to position 1.
-            else
-                -- print('at some other position')
-                -- print('moving to position 1')
-                next_position_x = position_1_x
-                next_position_y = position_1_y
-                next_position_w = position_1_w
-                next_position_h = position_1_h
-            end
-        elseif dir == 'right' then
-            position_1_x = one_half_screen_width
-            position_1_y = local_focused_window_screen_coords.y
-            position_1_w = one_half_screen_width
-            position_1_h = full_screen_height
-            -- print(string.format('right position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
-
-            position_2_x = two_thirds_screen_width
-            position_2_y = local_focused_window_screen_coords.y
-            position_2_w = one_third_screen_width
-            position_2_h = full_screen_height
-            -- print(string.format('right position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
-
-            position_3_x = one_third_screen_width
-            position_3_y = local_focused_window_screen_coords.y
-            position_3_w = two_thirds_screen_width
-            position_3_h = full_screen_height
-            -- print(string.format('right position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
-
-            -- if at position 1, go to position 2.
-            if
-                (
-                    -- local_focused_window_coords.x ~= position_1_x
-                    local_focused_window_coords.x >= position_1_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_1_x + window_snap_buffer
-                ) and
-                local_focused_window_coords.y == position_1_y and
-                (
-                    -- local_focused_window_coords.w ~= position_1_w
-                    local_focused_window_coords.w >= position_1_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_1_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_1_h
-                    local_focused_window_coords.h >= position_1_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_1_h + window_snap_buffer
-                ) then
-                -- print('at right position 1')
-                -- print('moving to position 2')
-                next_position_x = position_2_x
-                next_position_y = position_2_y
-                next_position_w = position_2_w
-                next_position_h = position_2_h
-            -- if at position 2, go to position 3.
-            elseif
-                (
-                    -- local_focused_window_coords.x ~= position_2_x
-                    local_focused_window_coords.x >= position_2_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_2_x + window_snap_buffer
-                ) and
-                local_focused_window_coords.y == position_2_y and
-                (
-                    -- local_focused_window_coords.w ~= position_2_w
-                    local_focused_window_coords.w >= position_2_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_2_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_2_h
-                    local_focused_window_coords.h >= position_2_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_2_h + window_snap_buffer
-                ) then
-                -- print('at right position 2')
-                -- print('moving to position 3')
-                next_position_x = position_3_x
-                next_position_y = position_3_y
-                next_position_w = position_3_w
-                next_position_h = position_3_h
-            -- if at position 3, go to position 1.
-            elseif
-                (
-                    -- local_focused_window_coords.x ~= position_3_x
-                    local_focused_window_coords.x >= position_3_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_3_x + window_snap_buffer
-                ) and
-                local_focused_window_coords.y == position_3_y and
-                (
-                    -- local_focused_window_coords.w ~= position_3_w
-                    local_focused_window_coords.w >= position_3_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_3_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_3_h
-                    local_focused_window_coords.h >= position_3_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_3_h + window_snap_buffer
-                ) then
-                -- print('at right position 3')
-                -- print('moving to position 1')
-                next_position_x = position_1_x
-                next_position_y = position_1_y
-                next_position_w = position_1_w
-                next_position_h = position_1_h
-            -- if at some other position, go to position 1.
-            else
-                -- print('at some other position')
-                -- print('moving to position 1')
-                next_position_x = position_1_x
-                next_position_y = position_1_y
-                next_position_w = position_1_w
-                next_position_h = position_1_h
-            end
-        elseif dir == 'top-left' then
-            position_1_x = local_focused_window_screen_coords.x
-            position_1_y = local_focused_window_screen_coords.y
-            position_1_w = one_half_screen_width
-            position_1_h = one_half_screen_height
-            -- print(string.format('top-left position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
-
-            position_2_x = local_focused_window_screen_coords.x
-            position_2_y = local_focused_window_screen_coords.y
-            position_2_w = two_thirds_screen_width
-            position_2_h = one_half_screen_height
-            -- print(string.format('top-left position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
-
-            position_3_x = local_focused_window_screen_coords.x
-            position_3_y = local_focused_window_screen_coords.y
-            position_3_w = one_third_screen_width
-            position_3_h = one_half_screen_height
-            -- print(string.format('top-left position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
-
-            -- if at position 1, go to position 2.
-            if
-                (
-                    -- local_focused_window_coords.x ~= position_1_x
-                    local_focused_window_coords.x >= position_1_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_1_x + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.y ~= position_1_y
-                    local_focused_window_coords.y >= position_1_y - window_snap_buffer and
-                    local_focused_window_coords.y <= position_1_y + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.w ~= position_1_w
-                    local_focused_window_coords.w >= position_1_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_1_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_1_h
-                    local_focused_window_coords.h >= position_1_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_1_h + window_snap_buffer
-                ) then
-                -- print('at top-left position 1')
-                -- print('moving to position 2')
-                next_position_x = position_2_x
-                next_position_y = position_2_y
-                next_position_w = position_2_w
-                next_position_h = position_2_h
-            -- if at position 2, go to position 3.
-            elseif
-                (
-                    -- local_focused_window_coords.x ~= position_2_x
-                    local_focused_window_coords.x >= position_2_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_2_x + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.y ~= position_2_y
-                    local_focused_window_coords.y >= position_2_y - window_snap_buffer and
-                    local_focused_window_coords.y <= position_2_y + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.w ~= position_2_w
-                    local_focused_window_coords.w >= position_2_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_2_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_2_h
-                    local_focused_window_coords.h >= position_2_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_2_h + window_snap_buffer
-                ) then
-                -- print('at top-left position 2')
-                -- print('moving to position 3')
-                next_position_x = position_3_x
-                next_position_y = position_3_y
-                next_position_w = position_3_w
-                next_position_h = position_3_h
-            -- if at position 3, go to position 1.
-            elseif
-                (
-                    -- local_focused_window_coords.x ~= position_3_x
-                    local_focused_window_coords.x >= position_3_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_3_x + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.y ~= position_3_y
-                    local_focused_window_coords.y >= position_3_y - window_snap_buffer and
-                    local_focused_window_coords.y <= position_3_y + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.w ~= position_3_w
-                    local_focused_window_coords.w >= position_3_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_3_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_3_h
-                    local_focused_window_coords.h >= position_3_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_3_h + window_snap_buffer
-                ) then
-                -- print('at top-left position 3')
-                -- print('moving to position 1')
-                next_position_x = position_1_x
-                next_position_y = position_1_y
-                next_position_w = position_1_w
-                next_position_h = position_1_h
-            -- if at some other position, go to position 1.
-            else
-                -- print('at some other position')
-                -- print('moving to position 1')
-                next_position_x = position_1_x
-                next_position_y = position_1_y
-                next_position_w = position_1_w
-                next_position_h = position_1_h
-            end
-        elseif dir == 'top-right' then
-            position_1_x = one_half_screen_width
-            position_1_y = local_focused_window_screen_coords.y
-            position_1_w = one_half_screen_width
-            position_1_h = one_half_screen_height
-            -- print(string.format('top-right position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
-
-            position_2_x = one_third_screen_width
-            position_2_y = local_focused_window_screen_coords.y
-            position_2_w = two_thirds_screen_width
-            position_2_h = one_half_screen_height
-            -- print(string.format('top-right position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
-
-            position_3_x = two_thirds_screen_width
-            position_3_y = local_focused_window_screen_coords.y
-            position_3_w = one_third_screen_width
-            position_3_h = one_half_screen_height
-            -- print(string.format('top-right position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
-
-            -- if at position 1, go to position 2.
-            if
-                (
-                    -- local_focused_window_coords.x ~= position_1_x
-                    local_focused_window_coords.x >= position_1_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_1_x + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.y ~= position_1_y
-                    local_focused_window_coords.y >= position_1_y - window_snap_buffer and
-                    local_focused_window_coords.y <= position_1_y + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.w ~= position_1_w
-                    local_focused_window_coords.w >= position_1_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_1_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_1_h
-                    local_focused_window_coords.h >= position_1_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_1_h + window_snap_buffer
-                ) then
-                -- print('at top-right position 1')
-                -- print('moving to position 2')
-                next_position_x = position_2_x
-                next_position_y = position_2_y
-                next_position_w = position_2_w
-                next_position_h = position_2_h
-            -- if at position 2, go to position 3.
-            elseif
-                (
-                    -- local_focused_window_coords.x ~= position_2_x
-                    local_focused_window_coords.x >= position_2_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_2_x + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.y ~= position_2_y
-                    local_focused_window_coords.y >= position_2_y - window_snap_buffer and
-                    local_focused_window_coords.y <= position_2_y + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.w ~= position_2_w
-                    local_focused_window_coords.w >= position_2_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_2_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_2_h
-                    local_focused_window_coords.h >= position_2_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_2_h + window_snap_buffer
-                ) then
-                -- print('at top-right position 2')
-                -- print('moving to position 3')
-                next_position_x = position_3_x
-                next_position_y = position_3_y
-                next_position_w = position_3_w
-                next_position_h = position_3_h
-            -- if at position 3, go to position 1.
-            elseif
-                (
-                    -- local_focused_window_coords.x ~= position_3_x
-                    local_focused_window_coords.x >= position_3_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_3_x + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.y ~= position_3_y
-                    local_focused_window_coords.y >= position_3_y - window_snap_buffer and
-                    local_focused_window_coords.y <= position_3_y + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.w ~= position_3_w
-                    local_focused_window_coords.w >= position_3_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_3_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_3_h
-                    local_focused_window_coords.h >= position_3_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_3_h + window_snap_buffer
-                ) then
-                -- print('at top-right position 3')
-                -- print('moving to position 1')
-                next_position_x = position_1_x
-                next_position_y = position_1_y
-                next_position_w = position_1_w
-                next_position_h = position_1_h
-            -- if at some other position, go to position 1.
-            else
-                -- print('at some other position')
-                -- print('moving to position 1')
-                next_position_x = position_1_x
-                next_position_y = position_1_y
-                next_position_w = position_1_w
-                next_position_h = position_1_h
-            end
-        elseif dir == 'bottom-left' then
-            position_1_x = local_focused_window_screen_coords.x
-            position_1_y = local_focused_window_screen_coords.y + one_half_screen_height
-            position_1_w = one_half_screen_width
-            position_1_h = one_half_screen_height
-            -- print(string.format('bottom-left position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
-
-            position_2_x = local_focused_window_screen_coords.x
-            position_2_y = local_focused_window_screen_coords.y + one_half_screen_height
-            position_2_w = two_thirds_screen_width
-            position_2_h = one_half_screen_height
-            -- print(string.format('bottom-left position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
-
-            position_3_x = local_focused_window_screen_coords.x
-            position_3_y = local_focused_window_screen_coords.y + one_half_screen_height
-            position_3_w = one_third_screen_width
-            position_3_h = one_half_screen_height
-            -- print(string.format('bottom-left position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
-
-            -- if at position 1, go to position 2.
-            if
-                (
-                    -- local_focused_window_coords.x ~= position_1_x
-                    local_focused_window_coords.x >= position_1_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_1_x + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.y ~= position_1_y
-                    local_focused_window_coords.y >= position_1_y - window_snap_buffer and
-                    local_focused_window_coords.y <= position_1_y + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.w ~= position_1_w
-                    local_focused_window_coords.w >= position_1_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_1_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_1_h
-                    local_focused_window_coords.h >= position_1_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_1_h + window_snap_buffer
-                ) then
-                -- print('at bottom-left position 1')
-                -- print('moving to position 2')
-                next_position_x = position_2_x
-                next_position_y = position_2_y
-                next_position_w = position_2_w
-                next_position_h = position_2_h
-            -- if at position 2, go to position 3.
-            elseif
-                (
-                    -- local_focused_window_coords.x ~= position_2_x
-                    local_focused_window_coords.x >= position_2_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_2_x + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.y ~= position_2_y
-                    local_focused_window_coords.y >= position_2_y - window_snap_buffer and
-                    local_focused_window_coords.y <= position_2_y + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.w ~= position_2_w
-                    local_focused_window_coords.w >= position_2_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_2_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_2_h
-                    local_focused_window_coords.h >= position_2_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_2_h + window_snap_buffer
-                ) then
-                -- print('at bottom-left position 2')
-                -- print('moving to position 3')
-                next_position_x = position_3_x
-                next_position_y = position_3_y
-                next_position_w = position_3_w
-                next_position_h = position_3_h
-            -- if at position 3, go to position 1.
-            elseif
-                (
-                    -- local_focused_window_coords.x ~= position_3_x
-                    local_focused_window_coords.x >= position_3_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_3_x + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.y ~= position_3_y
-                    local_focused_window_coords.y >= position_3_y - window_snap_buffer and
-                    local_focused_window_coords.y <= position_3_y + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.w ~= position_3_w
-                    local_focused_window_coords.w >= position_3_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_3_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_3_h
-                    local_focused_window_coords.h >= position_3_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_3_h + window_snap_buffer
-                ) then
-                -- print('at bottom-left position 3')
-                -- print('moving to position 1')
-                next_position_x = position_1_x
-                next_position_y = position_1_y
-                next_position_w = position_1_w
-                next_position_h = position_1_h
-            -- if at some other position, go to position 1.
-            else
-                -- print('at some other position')
-                -- print('moving to position 1')
-                next_position_x = position_1_x
-                next_position_y = position_1_y
-                next_position_w = position_1_w
-                next_position_h = position_1_h
-            end
-        elseif dir == 'bottom-right' then
-            position_1_x = one_half_screen_width
-            position_1_y = local_focused_window_screen_coords.y + one_half_screen_height
-            position_1_w = one_half_screen_width
-            position_1_h = one_half_screen_height
-            -- print(string.format('bottom-right position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
-
-            position_2_x = one_third_screen_width
-            position_2_y = local_focused_window_screen_coords.y + one_half_screen_height
-            position_2_w = two_thirds_screen_width
-            position_2_h = one_half_screen_height
-            -- print(string.format('bottom-right position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
-
-            position_3_x = two_thirds_screen_width
-            position_3_y = local_focused_window_screen_coords.y + one_half_screen_height
-            position_3_w = one_third_screen_width
-            position_3_h = one_half_screen_height
-            -- print(string.format('bottom-right position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
-
-            -- if at position 1, go to position 2.
-            if
-                (
-                    -- local_focused_window_coords.x ~= position_1_x
-                    local_focused_window_coords.x >= position_1_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_1_x + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.y ~= position_1_y
-                    local_focused_window_coords.y >= position_1_y - window_snap_buffer and
-                    local_focused_window_coords.y <= position_1_y + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.w ~= position_1_w
-                    local_focused_window_coords.w >= position_1_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_1_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_1_h
-                    local_focused_window_coords.h >= position_1_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_1_h + window_snap_buffer
-                ) then
-                -- print('at bottom-right position 1')
-                -- print('moving to position 2')
-                next_position_x = position_2_x
-                next_position_y = position_2_y
-                next_position_w = position_2_w
-                next_position_h = position_2_h
-            -- if at position 2, go to position 3.
-            elseif
-                (
-                    -- local_focused_window_coords.x ~= position_2_x
-                    local_focused_window_coords.x >= position_2_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_2_x + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.y ~= position_2_y
-                    local_focused_window_coords.y >= position_2_y - window_snap_buffer and
-                    local_focused_window_coords.y <= position_2_y + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.w ~= position_2_w
-                    local_focused_window_coords.w >= position_2_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_2_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_2_h
-                    local_focused_window_coords.h >= position_2_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_2_h + window_snap_buffer
-                ) then
-                -- print('at bottom-right position 2')
-                -- print('moving to position 3')
-                next_position_x = position_3_x
-                next_position_y = position_3_y
-                next_position_w = position_3_w
-                next_position_h = position_3_h
-            -- if at position 3, go to position 1.
-            elseif
-                (
-                    -- local_focused_window_coords.x ~= position_3_x
-                    local_focused_window_coords.x >= position_3_x - window_snap_buffer and
-                    local_focused_window_coords.x <= position_3_x + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.y ~= position_3_y
-                    local_focused_window_coords.y >= position_3_y - window_snap_buffer and
-                    local_focused_window_coords.y <= position_3_y + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.w ~= position_3_w
-                    local_focused_window_coords.w >= position_3_w - window_snap_buffer and
-                    local_focused_window_coords.w <= position_3_w + window_snap_buffer
-                ) and
-                (
-                    -- local_focused_window_coords.h ~= position_3_h
-                    local_focused_window_coords.h >= position_3_h - window_snap_buffer and
-                    local_focused_window_coords.h <= position_3_h + window_snap_buffer
-                ) then
-                -- print('at bottom-right position 3')
-                -- print('moving to position 1')
-                next_position_x = position_1_x
-                next_position_y = position_1_y
-                next_position_w = position_1_w
-                next_position_h = position_1_h
-            -- if at some other position, go to position 1.
-            else
-                -- print('at some other position')
-                -- print('moving to position 1')
-                next_position_x = position_1_x
-                next_position_y = position_1_y
-                next_position_w = position_1_w
-                next_position_h = position_1_h
-            end
-        elseif dir == 'first-third' then
-            next_position_x = 0
-            next_position_y = 0
-            next_position_w = one_third_screen_width
-            next_position_h = full_screen_height
-        elseif dir == 'second-third' then
-            next_position_x = one_third_screen_width
-            next_position_y = 0
-            next_position_w = one_third_screen_width
-            next_position_h = full_screen_height
-        elseif dir == 'third-third' then
-            next_position_x = two_thirds_screen_width
-            next_position_y = 0
-            next_position_w = one_third_screen_width
-            next_position_h = full_screen_height
-        elseif dir == 'first-two-thirds' then
-            next_position_x = 0
-            next_position_y = 0
-            next_position_w = two_thirds_screen_width
-            next_position_h = full_screen_height
-        elseif dir == 'last-two-thirds' then
-            next_position_x = one_third_screen_width
-            next_position_y = 0
-            next_position_w = two_thirds_screen_width
-            next_position_h = full_screen_height
-        elseif dir == 'middle-half' then
-            next_position_x = one_fourth_screen_width
-            next_position_y = 0
-            next_position_w = one_half_screen_width
-            next_position_h = full_screen_height
-        elseif dir == 'middle-two-thirds' then
-            next_position_x = one_sixth_screen_width
-            next_position_y = 0
-            next_position_w = two_thirds_screen_width
-            next_position_h = full_screen_height
-        elseif dir == 'left-third' then
-            next_position_x = one_sixth_screen_width
-            next_position_y = 0
-            next_position_w = one_third_screen_width
-            next_position_h = full_screen_height
-        elseif dir == 'right-third' then
-            next_position_x = one_half_screen_width
-            next_position_y = 0
-            next_position_w = one_third_screen_width
-            next_position_h = full_screen_height
-        else
+        local positions = positions_by_direction[dir]
+        if positions == nil then
             -- print(string.format('unknown direction: %s', dir))
             return
         end
 
-        local_focused_window_coords.x = next_position_x
-        local_focused_window_coords.y = next_position_y
-        local_focused_window_coords.w = next_position_w
-        local_focused_window_coords.h = next_position_h
-        -- print(string.format('moving to position x:%s y:%s w:%s h:%s', next_position_x, next_position_y, next_position_w, next_position_h))
+        local y_snap_buffer = window_snap_buffer
+        if exact_y_directions[dir] then
+            y_snap_buffer = 0
+        end
+        local snap_buffers = {
+            x = window_snap_buffer,
+            y = y_snap_buffer,
+            w = window_snap_buffer,
+            h = window_snap_buffer,
+        }
+        local next_position = next_position_in_cycle(positions, local_focused_window_coords, snap_buffers)
 
-        absolute_focused_window_coords = focused_window:screen():localToAbsolute(local_focused_window_coords)
+        local_focused_window_coords.x = next_position.x
+        local_focused_window_coords.y = next_position.y
+        local_focused_window_coords.w = next_position.w
+        local_focused_window_coords.h = next_position.h
+        -- print(string.format('moving to position x:%s y:%s w:%s h:%s', next_position.x, next_position.y, next_position.w, next_position.h))
+
+        local absolute_focused_window_coords = focused_window:screen():localToAbsolute(local_focused_window_coords)
         focused_window:setFrame(absolute_focused_window_coords)
 
         -- Track this fullscreened Terminal window so the refill timer can
