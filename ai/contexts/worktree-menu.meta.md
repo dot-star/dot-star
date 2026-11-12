@@ -70,7 +70,7 @@
     -
   -
   - The drafts were ranked while writing them, before any were on screen side by side; a fresh look at one diff beside just its own drafts can overturn that order, so the pick is a second judgment rather than a rubber stamp on the first. Keeping it to the drafts on screen means the subject committed is one the user already saw. The recap names each pick because the user never saw it chosen.
-    - The re-judgment can land on any draft, so `cu` differs from `c1` even for one commit and the row earns its place on every menu.
+    - The re-judgment can land on any draft, so `cu` differs from `c1` even for one commit and the row earns its place on every menu. It sits last because it picks among the drafts, so it reads after them, the way each stand-in ends in `or [pu]`; first, it pushed the drafts down and took the top slot from the options it only chooses between.
     - Which letter comes first is a detail the user shouldn't have to get right; `u` reuses the shorthand for "you do it".
 
 
