@@ -301,17 +301,17 @@ local function newOverlay(frame, behavior)
     return overlay
 end
 
--- Return the focused Space's 1-based position, the Space count, the screen holding them and the focused Space's id.
+-- Return the focused Space's 1-based position, the Space count, the screen holding them, the focused Space's id and that screen's Spaces in swipe order.
 local function focusedPosition()
     local focused = hs.spaces.focusedSpace()
     local screen = hs.screen.find(hs.spaces.spaceDisplay(focused)) or hs.screen.mainScreen()
     local spaces = hs.spaces.spacesForScreen(screen) or {}
     for index, space in ipairs(spaces) do
         if space == focused then
-            return index, #spaces, screen, focused
+            return index, #spaces, screen, focused, spaces
         end
     end
-    return nil, #spaces, screen, focused
+    return nil, #spaces, screen, focused, spaces
 end
 
 local function edgeBarFrame(screenFrame, x)
@@ -1639,11 +1639,11 @@ local function pruneEdgeBars()
     pinCanvasesToSpaces.pruneClosedSpaces(edgeBarsBySpace, deleteEdgeBarPair)
 end
 
--- Return the Spaces on `screen` that get a session ring, in row order.
-local function sessionDotSpaces(screen)
+-- Return the Spaces among a screen's `screenSpaces` that get a session ring, in row order.
+local function sessionDotSpaces(screenSpaces)
     -- Leave the home Space out; it's where the swipe starts, not a page worth a ring, so it gets the home triangle instead.
     local spaces = {}
-    for position, space in ipairs(hs.spaces.spacesForScreen(screen) or {}) do
+    for position, space in ipairs(screenSpaces) do
         if position > 1 then
             spaces[#spaces + 1] = space
         end
@@ -1698,7 +1698,14 @@ local function cornerClockWidth(pair)
     return 0
 end
 
-local function placeEdgeBars(pair, index, count, screen)
+-- Take the screen's Spaces in swipe order as `screenSpaces` from the caller, which already read them, since each read copies every display's Space list.
+local function placeEdgeBars(
+    pair,
+    index,
+    count,
+    screen,
+    screenSpaces
+)
     local frame = screen:fullFrame()
     -- Start the first Space's bar below the menu bar, so it doesn't cover the clock; `frame()` drops the menu bar where this screen has one.
     local barTop
@@ -1747,7 +1754,6 @@ local function placeEdgeBars(pair, index, count, screen)
     local pillVisible = isEnabled('page_dots_pill')
     local vertical = isEnabled('vertical_dots')
     local dotsCount = count
-    local screenSpaces = hs.spaces.spacesForScreen(screen) or {}
     -- Map each dot slot to its Space for a click; both rows run in swipe order, the session row's home triangle standing in for the first Space.
     pair.dotSpaces = screenSpaces
     -- Label each slot with the Ctrl+N key that reaches its Space.
@@ -1757,7 +1763,7 @@ local function placeEdgeBars(pair, index, count, screen)
         pair.slotHotkeys[slot] = keys[space]
     end
     if isEnabled('session_state') then
-        local spaces = sessionDotSpaces(screen)
+        local spaces = sessionDotSpaces(screenSpaces)
         local rowIndex = index - 1
         local followOrder = followOrderOf(screenSpaces, screenSpaces[index])
         pair.sessionIndex = rowIndex
@@ -1877,7 +1883,13 @@ local function handlePageDotsMouse(
 end
 
 -- Give the focused Space its own pair on first visit; only a reorder of Spaces ever flips a pair's visibility.
-local function renderEdgeBars(index, count, screen, focused)
+local function renderEdgeBars(
+    index,
+    count,
+    screen,
+    focused,
+    screenSpaces
+)
     if not isEnabled('edge_bars') then
         for space, pair in pairs(edgeBarsBySpace) do
             deleteEdgeBarPair(pair)
@@ -1925,11 +1937,11 @@ local function renderEdgeBars(index, count, screen, focused)
         edgeBarsBySpace[focused] = pair
     end
 
-    placeEdgeBars(pair, index, count, screen)
+    placeEdgeBars(pair, index, count, screen, screenSpaces)
     -- Frame whatever dot the pointer rests on as you land, which no mouse event reports when the Space switched under a still pointer.
     hoverPageDot(pair, pointerPageDotSlot(pair))
     local rightVisible = showsRightBar(focused, index, count)
-    setEdgeBarVisible(pair.left, startsFullScreenRun(hs.spaces.spacesForScreen(screen) or {}, index))
+    setEdgeBarVisible(pair.left, startsFullScreenRun(screenSpaces, index))
     setEdgeBarVisible(pair.right, rightVisible)
     setEdgeBarVisible(pair.top, showsTopBar(focused))
     setEdgeBarVisible(pair.bottom, showsBottomBar(focused))
@@ -2078,11 +2090,11 @@ local function render()
     if isEnabled('session_state') then
         refreshSessionStates()
     end
-    local index, count, screen, focused = focusedPosition()
+    local index, count, screen, focused, screenSpaces = focusedPosition()
     onScreenSpaces = hs.spaces.activeSpaces()
     -- Forget a missed ready once you've seen its Space.
     missedReadyAt[focused] = nil
-    renderEdgeBars(index, count, screen, focused)
+    renderEdgeBars(index, count, screen, focused, screenSpaces)
     updateAnimation()
     updateCountdownTimer()
     updateCountdowns()
@@ -2096,7 +2108,7 @@ local function placeEveryEdgeBarSet()
             for index, space in ipairs(spaces) do
                 local pair = edgeBarsBySpace[space]
                 if pair then
-                    placeEdgeBars(pair, index, #spaces, screen)
+                    placeEdgeBars(pair, index, #spaces, screen, spaces)
                 end
             end
         end
@@ -2205,9 +2217,12 @@ function showSpacePosition.set(name, value)
     return name .. ' ' .. (value and 'on' or 'off')
 end
 
--- Return which session ring stands for `space` on `screen`, the numbering the dots row shows.
-local function ringLabel(space, screen)
-    for ring, candidate in ipairs(sessionDotSpaces(screen)) do
+-- Return which session ring stands for `space` among its screen's `screenSpaces`, the numbering the dots row shows.
+local function ringLabel(
+    space,
+    screenSpaces
+)
+    for ring, candidate in ipairs(sessionDotSpaces(screenSpaces)) do
         if candidate == space then
             return 'ring ' .. ring
         end
@@ -2220,7 +2235,7 @@ function showSpacePosition.spaceNumber(space)
     for screen, spaces in pairs(hs.spaces.allSpaces() or {}) do
         for index, candidate in ipairs(spaces) do
             if candidate == space then
-                return 'Space #' .. index .. ' (' .. ringLabel(space, screen) .. ')'
+                return 'Space #' .. index .. ' (' .. ringLabel(space, spaces) .. ')'
             end
         end
     end
