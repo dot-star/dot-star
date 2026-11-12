@@ -105,7 +105,7 @@ local DOT_GAP = 14
 local TITLE_BAR_HEIGHT = require('ghostty_title_bar').HEIGHT
 -- Run each dot from the screen's top edge down to the bottom of the tab strip centered in the title bar, pushing the underline, letters and hotkeys below it.
 local DOT_SIZE = (TITLE_BAR_HEIGHT + require('ghostty_title_bar').TAB_STRIP_HEIGHT) / 2
--- Pad the pill's ends as much as its top and bottom, so the rounded ends hug the first and last dots evenly.
+-- Pad a column's ends as much as its sides, so the first and last dots sit evenly in it.
 local DOTS_PADDING = (TITLE_BAR_HEIGHT - DOT_SIZE) / 2
 -- Leave room for the countdown's longest text, so it never clips against the dots.
 local COUNTDOWN_WIDTH = 60
@@ -407,12 +407,21 @@ local function newCountdown()
     return countdown
 end
 
+-- Return how far the dots canvas runs past its first and last dots along the row or column.
+-- Pad a row's ends by half the gap, so an end slot gets the same click zone and hover frame width as a middle one.
+local function dotsEndPadding()
+    if isEnabled('vertical_dots') then
+        return DOTS_PADDING
+    end
+    return DOT_GAP / 2
+end
+
 -- Return the dots canvas's size; a column gives each slot the strip beneath its dot too, so the last dot's follow-order letter isn't clipped.
 local function pageDotsSize(count)
     if isEnabled('vertical_dots') then
         return { w = TITLE_BAR_HEIGHT, h = count * (DOT_SIZE + DOT_GAP) + 2 * DOTS_PADDING }
     end
-    return { w = count * DOT_SIZE + (count - 1) * DOT_GAP + 2 * DOTS_PADDING, h = HORIZONTAL_DOTS_HEIGHT }
+    return { w = count * DOT_SIZE + (count - 1) * DOT_GAP + 2 * dotsEndPadding(), h = HORIZONTAL_DOTS_HEIGHT }
 end
 
 -- Keep the pill clear unless `pillVisible`, which shows where the canvas sits.
@@ -433,7 +442,7 @@ local function pageDotsPill(pillVisible)
 end
 
 local function pageDotCenter(slot)
-    local along = DOTS_PADDING + (slot - 1) * (DOT_SIZE + DOT_GAP) + DOT_SIZE / 2
+    local along = dotsEndPadding() + (slot - 1) * (DOT_SIZE + DOT_GAP) + DOT_SIZE / 2
     if isEnabled('vertical_dots') then
         return { x = TITLE_BAR_HEIGHT / 2, y = along }
     end
@@ -546,7 +555,7 @@ local function dotSlotAt(
         slot = math.floor((y - DOTS_PADDING) / (DOT_SIZE + DOT_GAP)) + 1
     else
         -- Count half the gap on each side of a dot as its own.
-        slot = math.floor((x - DOTS_PADDING + DOT_GAP / 2) / (DOT_SIZE + DOT_GAP)) + 1
+        slot = math.floor((x - dotsEndPadding() + DOT_GAP / 2) / (DOT_SIZE + DOT_GAP)) + 1
     end
     if slot < 1 then
         return nil
