@@ -61,27 +61,27 @@ terminal_last_refill_time = 0
 
 function move_to(dir)
     return function()
-        print('--------------------------------------')
-        print(string.format('move_to %s', dir))
+        -- print('--------------------------------------')
+        -- print(string.format('move_to %s', dir))
 
         local focused_window = hs.window.focusedWindow()
-        print(string.format('focused_window: %s', focused_window))
+        -- print(string.format('focused_window: %s', focused_window))
         if focused_window == nil then
-            print('failed to get focused window');
+            -- print('failed to get focused window');
             return
         end
 
         local focused_window_coords = focused_window:frame()
-        print(string.format('focused_window_coords: %s', focused_window_coords))
+        -- print(string.format('focused_window_coords: %s', focused_window_coords))
 
         local focused_window_screen_coords = focused_window:screen():frame()
-        print(string.format('focused_window_screen_coords: %s', focused_window_screen_coords))
+        -- print(string.format('focused_window_screen_coords: %s', focused_window_screen_coords))
 
         local local_focused_window_coords = focused_window:screen():absoluteToLocal(focused_window_coords)
-        print(string.format('local_focused_window_coords: %s', local_focused_window_coords))
+        -- print(string.format('local_focused_window_coords: %s', local_focused_window_coords))
 
         local local_focused_window_screen_coords = focused_window:screen():absoluteToLocal(focused_window_screen_coords)
-        print(string.format('local_focused_window_screen_coords: %s', local_focused_window_screen_coords))
+        -- print(string.format('local_focused_window_screen_coords: %s', local_focused_window_screen_coords))
 
         window_snap_buffer = 20
 
@@ -107,19 +107,19 @@ function move_to(dir)
             position_1_y = local_focused_window_screen_coords.y
             position_1_w = full_screen_width
             position_1_h = one_half_screen_height
-            print(string.format('top position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
+            -- print(string.format('top position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
 
             position_2_x = local_focused_window_screen_coords.x
             position_2_y = local_focused_window_screen_coords.y
             position_2_w = full_screen_width
             position_2_h = two_thirds_screen_height
-            print(string.format('top position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
+            -- print(string.format('top position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
 
             position_3_x = local_focused_window_screen_coords.x
             position_3_y = local_focused_window_screen_coords.y
             position_3_w = full_screen_width
             position_3_h = one_third_screen_height
-            print(string.format('top position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
+            -- print(string.format('top position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
 
             -- if at position 1, go to position 2.
             if
@@ -143,8 +143,8 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_1_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_1_h + window_snap_buffer
                 ) then
-                print('at top position 1')
-                print('moving to position 2')
+                -- print('at top position 1')
+                -- print('moving to position 2')
                 next_position_x = position_2_x
                 next_position_y = position_2_y
                 next_position_w = position_2_w
@@ -171,8 +171,8 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_2_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_2_h + window_snap_buffer
                 ) then
-                print('at top position 2')
-                print('moving to position 3')
+                -- print('at top position 2')
+                -- print('moving to position 3')
                 next_position_x = position_3_x
                 next_position_y = position_3_y
                 next_position_w = position_3_w
@@ -199,16 +199,16 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_3_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_3_h + window_snap_buffer
                 ) then
-                print('at top position 3')
-                print('moving to position 1')
+                -- print('at top position 3')
+                -- print('moving to position 1')
                 next_position_x = position_1_x
                 next_position_y = position_1_y
                 next_position_w = position_1_w
                 next_position_h = position_1_h
             -- if at some other position, go to position 1.
             else
-                print('at some other position')
-                print('moving to position 1')
+                -- print('at some other position')
+                -- print('moving to position 1')
                 next_position_x = position_1_x
                 next_position_y = position_1_y
                 next_position_w = position_1_w
@@ -224,19 +224,19 @@ function move_to(dir)
             position_1_y = local_focused_window_screen_coords.y + one_half_screen_height
             position_1_w = full_screen_width
             position_1_h = one_half_screen_height
-            print(string.format('bottom position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
+            -- print(string.format('bottom position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
 
             position_2_x = local_focused_window_screen_coords.x
             position_2_y = local_focused_window_screen_coords.y + one_third_screen_height
             position_2_w = full_screen_width
             position_2_h = two_thirds_screen_height
-            print(string.format('bottom position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
+            -- print(string.format('bottom position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
 
             position_3_x = local_focused_window_screen_coords.x
             position_3_y = local_focused_window_screen_coords.y + two_thirds_screen_height
             position_3_w = full_screen_width
             position_3_h = one_third_screen_height
-            print(string.format('bottom position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
+            -- print(string.format('bottom position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
 
             -- if at position 1, go to position 2.
             if
@@ -260,8 +260,8 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_1_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_1_h + window_snap_buffer
                 ) then
-                print('at bottom position 1')
-                print('moving to position 2')
+                -- print('at bottom position 1')
+                -- print('moving to position 2')
                 next_position_x = position_2_x
                 next_position_y = position_2_y
                 next_position_w = position_2_w
@@ -288,8 +288,8 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_2_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_2_h + window_snap_buffer
                 ) then
-                print('at bottom position 2')
-                print('moving to position 3')
+                -- print('at bottom position 2')
+                -- print('moving to position 3')
                 next_position_x = position_3_x
                 next_position_y = position_3_y
                 next_position_w = position_3_w
@@ -316,16 +316,16 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_3_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_3_h + window_snap_buffer
                 ) then
-                print('at bottom position 3')
-                print('moving to position 1')
+                -- print('at bottom position 3')
+                -- print('moving to position 1')
                 next_position_x = position_1_x
                 next_position_y = position_1_y
                 next_position_w = position_1_w
                 next_position_h = position_1_h
             -- if at some other position, go to position 1.
             else
-                print('at some other position')
-                print('moving to position 1')
+                -- print('at some other position')
+                -- print('moving to position 1')
                 next_position_x = position_1_x
                 next_position_y = position_1_y
                 next_position_w = position_1_w
@@ -336,19 +336,19 @@ function move_to(dir)
             position_1_y = local_focused_window_screen_coords.y
             position_1_w = one_half_screen_width
             position_1_h = full_screen_height
-            print(string.format('left position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
+            -- print(string.format('left position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
 
             position_2_x = local_focused_window_screen_coords.x
             position_2_y = local_focused_window_screen_coords.y
             position_2_w = one_third_screen_width
             position_2_h = full_screen_height
-            print(string.format('left position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
+            -- print(string.format('left position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
 
             position_3_x = local_focused_window_screen_coords.x
             position_3_y = local_focused_window_screen_coords.y
             position_3_w = two_thirds_screen_width
             position_3_h = full_screen_height
-            print(string.format('left position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
+            -- print(string.format('left position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
 
             -- if at position 1, go to position 2.
             if
@@ -368,8 +368,8 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_1_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_1_h + window_snap_buffer
                 ) then
-                print('at left position 1')
-                print('moving to position 2')
+                -- print('at left position 1')
+                -- print('moving to position 2')
                 next_position_x = position_2_x
                 next_position_y = position_2_y
                 next_position_w = position_2_w
@@ -392,8 +392,8 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_2_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_2_h + window_snap_buffer
                 ) then
-                print('at left position 2')
-                print('moving to position 3')
+                -- print('at left position 2')
+                -- print('moving to position 3')
                 next_position_x = position_3_x
                 next_position_y = position_3_y
                 next_position_w = position_3_w
@@ -416,16 +416,16 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_3_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_3_h + window_snap_buffer
                 ) then
-                print('at left position 3')
-                print('moving to position 1')
+                -- print('at left position 3')
+                -- print('moving to position 1')
                 next_position_x = position_1_x
                 next_position_y = position_1_y
                 next_position_w = position_1_w
                 next_position_h = position_1_h
             -- if at some other position, go to position 1.
             else
-                print('at some other position')
-                print('moving to position 1')
+                -- print('at some other position')
+                -- print('moving to position 1')
                 next_position_x = position_1_x
                 next_position_y = position_1_y
                 next_position_w = position_1_w
@@ -436,19 +436,19 @@ function move_to(dir)
             position_1_y = local_focused_window_screen_coords.y
             position_1_w = one_half_screen_width
             position_1_h = full_screen_height
-            print(string.format('right position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
+            -- print(string.format('right position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
 
             position_2_x = two_thirds_screen_width
             position_2_y = local_focused_window_screen_coords.y
             position_2_w = one_third_screen_width
             position_2_h = full_screen_height
-            print(string.format('right position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
+            -- print(string.format('right position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
 
             position_3_x = one_third_screen_width
             position_3_y = local_focused_window_screen_coords.y
             position_3_w = two_thirds_screen_width
             position_3_h = full_screen_height
-            print(string.format('right position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
+            -- print(string.format('right position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
 
             -- if at position 1, go to position 2.
             if
@@ -468,8 +468,8 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_1_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_1_h + window_snap_buffer
                 ) then
-                print('at right position 1')
-                print('moving to position 2')
+                -- print('at right position 1')
+                -- print('moving to position 2')
                 next_position_x = position_2_x
                 next_position_y = position_2_y
                 next_position_w = position_2_w
@@ -492,8 +492,8 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_2_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_2_h + window_snap_buffer
                 ) then
-                print('at right position 2')
-                print('moving to position 3')
+                -- print('at right position 2')
+                -- print('moving to position 3')
                 next_position_x = position_3_x
                 next_position_y = position_3_y
                 next_position_w = position_3_w
@@ -516,16 +516,16 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_3_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_3_h + window_snap_buffer
                 ) then
-                print('at right position 3')
-                print('moving to position 1')
+                -- print('at right position 3')
+                -- print('moving to position 1')
                 next_position_x = position_1_x
                 next_position_y = position_1_y
                 next_position_w = position_1_w
                 next_position_h = position_1_h
             -- if at some other position, go to position 1.
             else
-                print('at some other position')
-                print('moving to position 1')
+                -- print('at some other position')
+                -- print('moving to position 1')
                 next_position_x = position_1_x
                 next_position_y = position_1_y
                 next_position_w = position_1_w
@@ -536,19 +536,19 @@ function move_to(dir)
             position_1_y = local_focused_window_screen_coords.y
             position_1_w = one_half_screen_width
             position_1_h = one_half_screen_height
-            print(string.format('top-left position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
+            -- print(string.format('top-left position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
 
             position_2_x = local_focused_window_screen_coords.x
             position_2_y = local_focused_window_screen_coords.y
             position_2_w = two_thirds_screen_width
             position_2_h = one_half_screen_height
-            print(string.format('top-left position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
+            -- print(string.format('top-left position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
 
             position_3_x = local_focused_window_screen_coords.x
             position_3_y = local_focused_window_screen_coords.y
             position_3_w = one_third_screen_width
             position_3_h = one_half_screen_height
-            print(string.format('top-left position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
+            -- print(string.format('top-left position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
 
             -- if at position 1, go to position 2.
             if
@@ -572,8 +572,8 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_1_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_1_h + window_snap_buffer
                 ) then
-                print('at top-left position 1')
-                print('moving to position 2')
+                -- print('at top-left position 1')
+                -- print('moving to position 2')
                 next_position_x = position_2_x
                 next_position_y = position_2_y
                 next_position_w = position_2_w
@@ -600,8 +600,8 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_2_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_2_h + window_snap_buffer
                 ) then
-                print('at top-left position 2')
-                print('moving to position 3')
+                -- print('at top-left position 2')
+                -- print('moving to position 3')
                 next_position_x = position_3_x
                 next_position_y = position_3_y
                 next_position_w = position_3_w
@@ -628,16 +628,16 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_3_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_3_h + window_snap_buffer
                 ) then
-                print('at top-left position 3')
-                print('moving to position 1')
+                -- print('at top-left position 3')
+                -- print('moving to position 1')
                 next_position_x = position_1_x
                 next_position_y = position_1_y
                 next_position_w = position_1_w
                 next_position_h = position_1_h
             -- if at some other position, go to position 1.
             else
-                print('at some other position')
-                print('moving to position 1')
+                -- print('at some other position')
+                -- print('moving to position 1')
                 next_position_x = position_1_x
                 next_position_y = position_1_y
                 next_position_w = position_1_w
@@ -648,19 +648,19 @@ function move_to(dir)
             position_1_y = local_focused_window_screen_coords.y
             position_1_w = one_half_screen_width
             position_1_h = one_half_screen_height
-            print(string.format('top-right position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
+            -- print(string.format('top-right position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
 
             position_2_x = one_third_screen_width
             position_2_y = local_focused_window_screen_coords.y
             position_2_w = two_thirds_screen_width
             position_2_h = one_half_screen_height
-            print(string.format('top-right position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
+            -- print(string.format('top-right position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
 
             position_3_x = two_thirds_screen_width
             position_3_y = local_focused_window_screen_coords.y
             position_3_w = one_third_screen_width
             position_3_h = one_half_screen_height
-            print(string.format('top-right position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
+            -- print(string.format('top-right position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
 
             -- if at position 1, go to position 2.
             if
@@ -684,8 +684,8 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_1_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_1_h + window_snap_buffer
                 ) then
-                print('at top-right position 1')
-                print('moving to position 2')
+                -- print('at top-right position 1')
+                -- print('moving to position 2')
                 next_position_x = position_2_x
                 next_position_y = position_2_y
                 next_position_w = position_2_w
@@ -712,8 +712,8 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_2_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_2_h + window_snap_buffer
                 ) then
-                print('at top-right position 2')
-                print('moving to position 3')
+                -- print('at top-right position 2')
+                -- print('moving to position 3')
                 next_position_x = position_3_x
                 next_position_y = position_3_y
                 next_position_w = position_3_w
@@ -740,16 +740,16 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_3_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_3_h + window_snap_buffer
                 ) then
-                print('at top-right position 3')
-                print('moving to position 1')
+                -- print('at top-right position 3')
+                -- print('moving to position 1')
                 next_position_x = position_1_x
                 next_position_y = position_1_y
                 next_position_w = position_1_w
                 next_position_h = position_1_h
             -- if at some other position, go to position 1.
             else
-                print('at some other position')
-                print('moving to position 1')
+                -- print('at some other position')
+                -- print('moving to position 1')
                 next_position_x = position_1_x
                 next_position_y = position_1_y
                 next_position_w = position_1_w
@@ -760,19 +760,19 @@ function move_to(dir)
             position_1_y = local_focused_window_screen_coords.y + one_half_screen_height
             position_1_w = one_half_screen_width
             position_1_h = one_half_screen_height
-            print(string.format('bottom-left position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
+            -- print(string.format('bottom-left position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
 
             position_2_x = local_focused_window_screen_coords.x
             position_2_y = local_focused_window_screen_coords.y + one_half_screen_height
             position_2_w = two_thirds_screen_width
             position_2_h = one_half_screen_height
-            print(string.format('bottom-left position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
+            -- print(string.format('bottom-left position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
 
             position_3_x = local_focused_window_screen_coords.x
             position_3_y = local_focused_window_screen_coords.y + one_half_screen_height
             position_3_w = one_third_screen_width
             position_3_h = one_half_screen_height
-            print(string.format('bottom-left position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
+            -- print(string.format('bottom-left position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
 
             -- if at position 1, go to position 2.
             if
@@ -796,8 +796,8 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_1_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_1_h + window_snap_buffer
                 ) then
-                print('at bottom-left position 1')
-                print('moving to position 2')
+                -- print('at bottom-left position 1')
+                -- print('moving to position 2')
                 next_position_x = position_2_x
                 next_position_y = position_2_y
                 next_position_w = position_2_w
@@ -824,8 +824,8 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_2_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_2_h + window_snap_buffer
                 ) then
-                print('at bottom-left position 2')
-                print('moving to position 3')
+                -- print('at bottom-left position 2')
+                -- print('moving to position 3')
                 next_position_x = position_3_x
                 next_position_y = position_3_y
                 next_position_w = position_3_w
@@ -852,16 +852,16 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_3_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_3_h + window_snap_buffer
                 ) then
-                print('at bottom-left position 3')
-                print('moving to position 1')
+                -- print('at bottom-left position 3')
+                -- print('moving to position 1')
                 next_position_x = position_1_x
                 next_position_y = position_1_y
                 next_position_w = position_1_w
                 next_position_h = position_1_h
             -- if at some other position, go to position 1.
             else
-                print('at some other position')
-                print('moving to position 1')
+                -- print('at some other position')
+                -- print('moving to position 1')
                 next_position_x = position_1_x
                 next_position_y = position_1_y
                 next_position_w = position_1_w
@@ -872,19 +872,19 @@ function move_to(dir)
             position_1_y = local_focused_window_screen_coords.y + one_half_screen_height
             position_1_w = one_half_screen_width
             position_1_h = one_half_screen_height
-            print(string.format('bottom-right position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
+            -- print(string.format('bottom-right position 1 x:%s y:%s w:%s h:%s', position_1_x, position_1_y, position_1_w, position_1_h))
 
             position_2_x = one_third_screen_width
             position_2_y = local_focused_window_screen_coords.y + one_half_screen_height
             position_2_w = two_thirds_screen_width
             position_2_h = one_half_screen_height
-            print(string.format('bottom-right position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
+            -- print(string.format('bottom-right position 2 x:%s y:%s w:%s h:%s', position_2_x, position_2_y, position_2_w, position_2_h))
 
             position_3_x = two_thirds_screen_width
             position_3_y = local_focused_window_screen_coords.y + one_half_screen_height
             position_3_w = one_third_screen_width
             position_3_h = one_half_screen_height
-            print(string.format('bottom-right position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
+            -- print(string.format('bottom-right position 3 x:%s y:%s w:%s h:%s', position_3_x, position_3_y, position_3_w, position_3_h))
 
             -- if at position 1, go to position 2.
             if
@@ -908,8 +908,8 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_1_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_1_h + window_snap_buffer
                 ) then
-                print('at bottom-right position 1')
-                print('moving to position 2')
+                -- print('at bottom-right position 1')
+                -- print('moving to position 2')
                 next_position_x = position_2_x
                 next_position_y = position_2_y
                 next_position_w = position_2_w
@@ -936,8 +936,8 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_2_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_2_h + window_snap_buffer
                 ) then
-                print('at bottom-right position 2')
-                print('moving to position 3')
+                -- print('at bottom-right position 2')
+                -- print('moving to position 3')
                 next_position_x = position_3_x
                 next_position_y = position_3_y
                 next_position_w = position_3_w
@@ -964,16 +964,16 @@ function move_to(dir)
                     local_focused_window_coords.h >= position_3_h - window_snap_buffer and
                     local_focused_window_coords.h <= position_3_h + window_snap_buffer
                 ) then
-                print('at bottom-right position 3')
-                print('moving to position 1')
+                -- print('at bottom-right position 3')
+                -- print('moving to position 1')
                 next_position_x = position_1_x
                 next_position_y = position_1_y
                 next_position_w = position_1_w
                 next_position_h = position_1_h
             -- if at some other position, go to position 1.
             else
-                print('at some other position')
-                print('moving to position 1')
+                -- print('at some other position')
+                -- print('moving to position 1')
                 next_position_x = position_1_x
                 next_position_y = position_1_y
                 next_position_w = position_1_w
@@ -1025,7 +1025,7 @@ function move_to(dir)
             next_position_w = one_third_screen_width
             next_position_h = full_screen_height
         else
-            print(string.format('unknown direction: %s', dir))
+            -- print(string.format('unknown direction: %s', dir))
             return
         end
 
@@ -1033,7 +1033,7 @@ function move_to(dir)
         local_focused_window_coords.y = next_position_y
         local_focused_window_coords.w = next_position_w
         local_focused_window_coords.h = next_position_h
-        print(string.format('moving to position x:%s y:%s w:%s h:%s', next_position_x, next_position_y, next_position_w, next_position_h))
+        -- print(string.format('moving to position x:%s y:%s w:%s h:%s', next_position_x, next_position_y, next_position_w, next_position_h))
 
         absolute_focused_window_coords = focused_window:screen():localToAbsolute(local_focused_window_coords)
         focused_window:setFrame(absolute_focused_window_coords)
@@ -1167,7 +1167,7 @@ function debug_window_dimensions()
     end
 
     local report = table.concat(lines, '\n')
-    print(report)
+    -- print(report)
     hs.pasteboard.setContents(report)
     hs.alert.show('window dims copied to clipboard')
 end
