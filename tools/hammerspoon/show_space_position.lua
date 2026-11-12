@@ -339,6 +339,15 @@ local function newPageDots()
     return dots
 end
 
+-- Hold a row's moving rings above its still row, so an animation frame repaints a few elements rather than the whole row.
+-- Give it no mouse callback, which leaves it click-through to the row beneath.
+local function newPageDotsMotion()
+    local motion = newOverlay({ x = 0, y = 0, w = 1, h = TITLE_BAR_HEIGHT }, EDGE_BAR_BEHAVIOR)
+    -- Stack above the still row, which shares the overlay level.
+    motion:level(hs.canvas.windowLevels.overlay + 1)
+    return motion
+end
+
 -- Right-align the text, so it hugs the dots however long it runs.
 local function newCountdown()
     local countdown = newOverlay({ x = 0, y = 0, w = COUNTDOWN_WIDTH, h = DOT_SIZE }, EDGE_BAR_BEHAVIOR)
@@ -929,23 +938,51 @@ local function pingProgressOf(space, seconds)
     return (seconds - startedAt) / PING_SECONDS
 end
 
--- Return whether any dot in the row moves: an orbit, a decision's beat, a pending pulse or a ping still rippling.
-local function sessionDotsAnimate(spaces, seconds)
-    for _, space in ipairs(spaces) do
-        local state = sessionStateOf(space)
-        if state == 'busy' then
+-- Return whether the Space's dot moves: an orbit, a decision's beat, a pending pulse or a ping still rippling.
+local function dotAnimates(
+    space,
+    seconds
+)
+    local state = sessionStateOf(space)
+    if state == 'busy' then
+        return true
+    elseif state == 'decision' then
+        return true
+    elseif pingProgressOf(space, seconds) ~= nil then
+        return true
+    elseif state == 'pending' then
+        if styleOf('pending_style') == 'pulse' then
             return true
-        elseif state == 'decision' then
-            return true
-        elseif pingProgressOf(space, seconds) ~= nil then
-            return true
-        elseif state == 'pending' then
-            if styleOf('pending_style') == 'pulse' then
-                return true
-            end
         end
     end
     return false
+end
+
+-- Return whether any dot in the row moves.
+local function sessionDotsAnimate(
+    spaces,
+    seconds
+)
+    for _, space in ipairs(spaces) do
+        if dotAnimates(space, seconds) then
+            return true
+        end
+    end
+    return false
+end
+
+-- Return the set of slots whose dot moves, counting the home triangle as slot 1.
+local function movingSlots(
+    spaces,
+    seconds
+)
+    local moving = {}
+    for position, space in ipairs(spaces) do
+        if dotAnimates(space, seconds) then
+            moving[position + 1] = true
+        end
+    end
+    return moving
 end
 
 -- Draw the home Space's triangle, so the row starts where the swipe does without the home Space reading as a session.
@@ -977,7 +1014,64 @@ local function followOrderElement(center, rank)
     }
 end
 
--- Draw the home triangle, then one ring per Space in `spaces` showing its session's state, marking the ring at `index` and badging each ranked in `followOrder`; draw pings only when `animate`, since a still frame would freeze one mid-ripple.
+-- Draw the ring of the Space at `position` in the row showing its session's state, marking it when it's the ring at `index`; draw its ping only when `animate`, since a still frame would freeze one mid-ripple.
+local function sessionDotElements(
+    index,
+    position,
+    space,
+    seconds,
+    animate,
+    slotHotkeys
+)
+    -- Shift each ring one slot past the home triangle.
+    local center = pageDotCenter(position + 1)
+    local state = sessionStateOf(space)
+    local pingProgress = nil
+    if animate then
+        pingProgress = pingProgressOf(space, seconds)
+    end
+    local labeled = slotHotkeys[position + 1] ~= nil
+    if position == index then
+        return focusedElements(state, center, seconds, pingProgress, labeled)
+    end
+    return stateElements(state, center, seconds, pingProgress, labeled)
+end
+
+-- Remove every element from `canvas`, skipping the repaint when it's already empty.
+local function clearCanvas(canvas)
+    while #canvas > 0 do
+        canvas[#canvas] = nil
+    end
+end
+
+-- Draw each moving ring in `moving` with its hotkey label on the row's motion canvas, so an animation frame repaints only those.
+local function layoutSessionDotsMotion(
+    motion,
+    index,
+    spaces,
+    seconds,
+    moving,
+    slotHotkeys
+)
+    local elements = {}
+    for position, space in ipairs(spaces) do
+        if moving[position + 1] then
+            for _, element in ipairs(sessionDotElements(index, position, space, seconds, true, slotHotkeys)) do
+                elements[#elements + 1] = element
+            end
+            -- Label the ring here rather than on the still row, so the digit stays on top of it.
+            appendHotkey(elements, position + 1, slotHotkeys)
+        end
+    end
+    if #elements == 0 then
+        clearCanvas(motion)
+        return
+    end
+    motion:replaceElements(elements)
+end
+
+-- Draw the home triangle, then one ring per Space in `spaces` showing its session's state, marking the ring at `index` and badging each ranked in `followOrder`.
+-- Leave each slot in `moving` empty for the motion canvas to draw.
 -- Frame the slot at `hoverSlot` and label each slot with its key in `slotHotkeys`, counting the home triangle as slot 1.
 local function layoutSessionDots(
     dots,
@@ -986,7 +1080,7 @@ local function layoutSessionDots(
     followOrder,
     pillVisible,
     seconds,
-    animate,
+    moving,
     hoverSlot,
     slotHotkeys
 )
@@ -1004,27 +1098,18 @@ local function layoutSessionDots(
     end
     appendHotkey(elements, 1, slotHotkeys)
     for position, space in ipairs(spaces) do
-        -- Shift each ring one slot past the home triangle.
-        local center = pageDotCenter(position + 1)
-        local state = sessionStateOf(space)
-        local pingProgress = nil
-        if animate then
-            pingProgress = pingProgressOf(space, seconds)
-        end
-        local labeled = slotHotkeys[position + 1] ~= nil
-        local dotElements
-        if position == index then
-            dotElements = focusedElements(state, center, seconds, pingProgress, labeled)
-        else
-            dotElements = stateElements(state, center, seconds, pingProgress, labeled)
-        end
-        for _, element in ipairs(dotElements) do
-            elements[#elements + 1] = element
+        local moves = moving[position + 1] == true
+        if not moves then
+            for _, element in ipairs(sessionDotElements(index, position, space, seconds, false, slotHotkeys)) do
+                elements[#elements + 1] = element
+            end
         end
         if followOrder[space] ~= nil then
-            elements[#elements + 1] = followOrderElement(center, followOrder[space])
+            elements[#elements + 1] = followOrderElement(pageDotCenter(position + 1), followOrder[space])
         end
-        appendHotkey(elements, position + 1, slotHotkeys)
+        if not moves then
+            appendHotkey(elements, position + 1, slotHotkeys)
+        end
     end
     if hoverSlot ~= nil then
         elements[#elements + 1] = hoverFrameElement(pageDotCenter(hoverSlot))
@@ -1038,7 +1123,8 @@ local function sessionDotsKey(
     spaces,
     followOrder,
     pillVisible,
-    hoverSlot
+    hoverSlot,
+    moving
 )
     local parts = {
         index,
@@ -1049,10 +1135,35 @@ local function sessionDotsKey(
         styleOf('focus_marker'),
         tostring(isEnabled('vertical_dots')),
     }
-    for _, space in ipairs(spaces) do
-        parts[#parts + 1] = sessionStateOf(space) .. ':' .. tostring(followOrder[space])
+    for position, space in ipairs(spaces) do
+        parts[#parts + 1] = sessionStateOf(space) .. ':' .. tostring(followOrder[space]) .. ':' .. tostring(moving[position + 1] == true)
     end
     return table.concat(parts, ' ')
+end
+
+-- Redraw a pair's still row only when its key changed, then its moving rings, from what its last placement recorded.
+local function drawSessionDots(
+    pair,
+    pillVisible,
+    seconds
+)
+    local moving = movingSlots(pair.sessionSpaces, seconds)
+    local key = sessionDotsKey(pair.sessionIndex, pair.sessionSpaces, pair.followOrder, pillVisible, pair.hoverSlot, moving)
+    if pair.sessionKey ~= key then
+        layoutSessionDots(
+            pair.dots,
+            pair.sessionIndex,
+            pair.sessionSpaces,
+            pair.followOrder,
+            pillVisible,
+            seconds,
+            moving,
+            pair.hoverSlot,
+            pair.slotHotkeys
+        )
+        pair.sessionKey = key
+    end
+    layoutSessionDotsMotion(pair.dotsMotion, pair.sessionIndex, pair.sessionSpaces, seconds, moving, pair.slotHotkeys)
 end
 
 local function readFile(filePath)
@@ -1401,6 +1512,7 @@ local function deleteEdgeBarPair(pair)
     pair.bottom:delete()
     pair.swipeHint:delete()
     pair.dots:delete()
+    pair.dotsMotion:delete()
     pair.countdown:delete()
 end
 
@@ -1530,28 +1642,14 @@ local function placeEdgeBars(pair, index, count, screen)
         local spaces = sessionDotSpaces(screen)
         local rowIndex = index - 1
         local followOrder = followOrderOf(screenSpaces, screenSpaces[index])
-        local key = sessionDotsKey(rowIndex, spaces, followOrder, pillVisible, pair.hoverSlot)
         pair.sessionIndex = rowIndex
         pair.sessionSpaces = spaces
         pair.followOrder = followOrder
         -- Count the home triangle too.
         dotsCount = #spaces + 1
-        if pair.sessionKey ~= key then
-            layoutSessionDots(
-                pair.dots,
-                rowIndex,
-                spaces,
-                followOrder,
-                pillVisible,
-                hs.timer.secondsSinceEpoch(),
-                false,
-                pair.hoverSlot,
-                pair.slotHotkeys
-            )
-            pair.sessionKey = key
-            -- Forget the plain dots, so turning session_state off redraws them.
-            pair.dotsIndex = nil
-        end
+        drawSessionDots(pair, pillVisible, hs.timer.secondsSinceEpoch())
+        -- Forget the plain dots, so turning session_state off redraws them.
+        pair.dotsIndex = nil
     elseif pair.dotsIndex ~= index or pair.dotsCount ~= count or pair.dotsPill ~= pillVisible or pair.dotsHover ~= pair.hoverSlot or pair.dotsVertical ~= vertical then
         layoutPageDots(pair.dots, index, count, pair.color, pillVisible, pair.hoverSlot, pair.slotHotkeys)
         pair.dotsIndex = index
@@ -1560,6 +1658,8 @@ local function placeEdgeBars(pair, index, count, screen)
         pair.dotsHover = pair.hoverSlot
         pair.dotsVertical = vertical
         pair.sessionKey = nil
+        -- Drop any moving rings left from session_state, which the plain dots replace.
+        clearCanvas(pair.dotsMotion)
     end
     local dotsSize = pageDotsSize(dotsCount)
     -- Sit the dots flush against the screen's right edge, or left of the clock where it holds the corner.
@@ -1570,12 +1670,14 @@ local function placeEdgeBars(pair, index, count, screen)
         topBandWidth = dotsX - frame.x
     end
     pair.top:frame({ x = frame.x, y = frame.y, w = topBandWidth, h = BAND_HEIGHT })
-    pair.dots:frame({
+    local dotsFrame = {
         x = dotsX,
         y = frame.y,
         w = dotsSize.w,
         h = dotsSize.h,
-    })
+    }
+    pair.dots:frame(dotsFrame)
+    pair.dotsMotion:frame(dotsFrame)
     -- Line the countdown up with the first dot's band, so it reads as part of the row.
     local firstBand = pageDotsBandFrame(1)
     pair.countdown:frame({
@@ -1595,19 +1697,7 @@ end
 local function redrawPageDots(pair)
     local pillVisible = isEnabled('page_dots_pill')
     if isEnabled('session_state') then
-        local seconds = hs.timer.secondsSinceEpoch()
-        layoutSessionDots(
-            pair.dots,
-            pair.sessionIndex,
-            pair.sessionSpaces,
-            pair.followOrder,
-            pillVisible,
-            seconds,
-            sessionDotsAnimate(pair.sessionSpaces, seconds),
-            pair.hoverSlot,
-            pair.slotHotkeys
-        )
-        pair.sessionKey = sessionDotsKey(pair.sessionIndex, pair.sessionSpaces, pair.followOrder, pillVisible, pair.hoverSlot)
+        drawSessionDots(pair, pillVisible, hs.timer.secondsSinceEpoch())
         return
     end
     layoutPageDots(pair.dots, pair.dotsIndex, pair.dotsCount, pair.color, pillVisible, pair.hoverSlot, pair.slotHotkeys)
@@ -1704,6 +1794,7 @@ local function renderEdgeBars(index, count, screen, focused)
             bottom = newBand(color),
             swipeHint = newSwipeHint(),
             dots = newPageDots(),
+            dotsMotion = newPageDotsMotion(),
             countdown = newCountdown(),
             color = color,
             cycleColor = cycleColor,
@@ -1726,6 +1817,7 @@ local function renderEdgeBars(index, count, screen, focused)
     setEdgeBarVisible(pair.bottom, showsBottomBar(focused))
     setEdgeBarVisible(pair.swipeHint, showsSwipeHint(focused, index, count))
     setEdgeBarVisible(pair.dots, showsPageDots(focused))
+    setEdgeBarVisible(pair.dotsMotion, showsPageDots(focused))
     setEdgeBarVisible(pair.countdown, showsCountdown(focused))
 end
 
@@ -1774,19 +1866,8 @@ local function animateFrame()
     local pillVisible = isEnabled('page_dots_pill')
     local moving = false
     for _, pair in ipairs(shownSessionPairs()) do
-        local animate = sessionDotsAnimate(pair.sessionSpaces, seconds)
-        layoutSessionDots(
-            pair.dots,
-            pair.sessionIndex,
-            pair.sessionSpaces,
-            pair.followOrder,
-            pillVisible,
-            seconds,
-            animate,
-            pair.hoverSlot,
-            pair.slotHotkeys
-        )
-        if animate then
+        drawSessionDots(pair, pillVisible, seconds)
+        if sessionDotsAnimate(pair.sessionSpaces, seconds) then
             moving = true
         end
     end
