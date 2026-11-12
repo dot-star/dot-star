@@ -18,6 +18,10 @@ Loaded on demand: the Writing style section of `~/.claude/CLAUDE.md` points here
   - Fail: `def render(theme: str = "dark")` called as `render()`
   - Pass: `def render(theme: str)` called as `render(theme="dark")`
   - Keep a default only where it keeps existing call sites unchanged (a new parameter on a widely called function) or a library signature demands one; every new call site still passes the value explicitly.
+- Pass every argument by keyword in each call you write, wherever the callee accepts one. A positional value sends the reader to the signature to learn which slot it fills, and a reordered signature silently rebinds it.
+  - Fail: `send_invoice(account, True)`
+  - Pass: `send_invoice(account=account, dry_run=True)`
+  - Keep a value positional only where the callee refuses a keyword: a positional-only parameter (a builtin like `len(items)`, a `/` in the signature) or a variadic `*args`.
 - Two comment shapes:
   - **Block comments** (TODOs, design notes): blank line above and below.
   - **Line-doc comments** (describing the next line/pipeline): stay flush with the code they describe, no blank line between the comment and that code.

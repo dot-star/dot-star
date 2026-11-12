@@ -18,6 +18,10 @@
   -
   -
   -
+- Lives here rather than in a Python style guide because keyword arguments read the same in every language that has them (Python, Kotlin, Swift, Ruby). Sits beside the no-defaults rule, whose Pass example already called by keyword without saying so; stating it outright makes the habit a rule instead of an inference from an example. "Each call you write" scopes it to new and touched call sites, per touched code self-heals, so untouched callers stay as they are.
+  - A bare `True` is the case that hurts most: nothing at the call site says what it switches on.
+  -
+  - Names only the cases where a keyword is impossible, so "it fits on one line" or "the argument is obvious" never reads as an exemption.
 -
   -
   -
