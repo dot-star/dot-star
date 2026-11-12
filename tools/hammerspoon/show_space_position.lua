@@ -224,6 +224,8 @@ local currentSpace = nil
 local onScreenSpaces = {}
 local catchUpTimer = nil
 local countdownTimer = nil
+-- Remember what every row was last placed from, so a state write that changes nothing on any row skips placing them all again.
+local placedSessionKey = nil
 
 -- Map each setting name to a box holding its saved value, since each read crosses into the defaults store and the frame timer asks for several per frame.
 local settingsCache = {}
@@ -244,6 +246,8 @@ local function writeSetting(
 )
     hs.settings.set(SETTINGS_PREFIX .. name, value)
     settingsCache[name] = nil
+    -- Place every row on the next state write, since a setting can change how each one draws.
+    placedSessionKey = nil
 end
 
 local function isEnabled(name)
@@ -2100,6 +2104,19 @@ local function render()
     updateCountdowns()
 end
 
+-- Return a key that changes whenever the last session read would change a row: each Space's drawn state, and what the follow-order letters rank on.
+local function sessionPlacementKey()
+    local parts = {}
+    for _, space in ipairs(sortedKeys(sessionReading.states)) do
+        parts[#parts + 1] = space .. ':' .. sessionStateOf(space) .. ':' .. sessionReading.states[space] .. ':' .. tostring(sessionReading.windows[space])
+        -- Rank a Space never seen since the reload by its state file's write time, which every rewrite of the same word still moves.
+        if lastSeenAt[space] == nil then
+            parts[#parts + 1] = tostring(sessionReading.changedAt[space])
+        end
+    end
+    return table.concat(parts, ' ')
+end
+
 -- Move every Space's pair onto its screen's current edges; leave visibility to the next visit, since showing an off-Space canvas can pull it onto this one.
 local function placeEveryEdgeBarSet()
     for screenId, spaces in pairs(hs.spaces.allSpaces() or {}) do
@@ -2112,6 +2129,9 @@ local function placeEveryEdgeBarSet()
                 end
             end
         end
+    end
+    if sessionReading ~= nil then
+        placedSessionKey = sessionPlacementKey()
     end
 end
 
@@ -2139,6 +2159,10 @@ local function renderSessionStates(changedPaths)
         return
     end
     refreshSessionStates()
+    -- Skip placing every row when the write changed none, as a busy session's rewrite of the same word on each tool call does.
+    if sessionPlacementKey() == placedSessionKey then
+        return
+    end
     placeEveryEdgeBarSet()
     updateAnimation()
 end
