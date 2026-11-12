@@ -1848,6 +1848,18 @@ rc_push() {
     # Push the HEAD `s` stamped, not HEAD looked up again, so a merge landing
     # after the guard can't ship. Accept only the shapes that push the current
     # branch under its own name: none, <remote>, or <remote> <current branch>.
+    # Set the lease flag aside first, so the shape check counts only positional words.
+    local push_flags=()
+    local positionals=()
+    for arg in "$@"; do
+        if [[ "${arg}" == "--force-with-lease" ]]; then
+            push_flags+=("${arg}")
+        else
+            positionals+=("${arg}")
+        fi
+    done
+    set -- ${positionals[@]+"${positionals[@]}"}
+
     if [[ "${current_branch}" == "HEAD" ]]; then
         echo "refusing to push a detached HEAD; use plain \`git push\`"
         return 1
@@ -1862,7 +1874,7 @@ rc_push() {
         fi
         push_remote="$1"
     else
-        echo "usage: pus [<remote> [${current_branch}]]; use plain \`git push\` for anything else"
+        echo "usage: pus [--force] [<remote> [${current_branch}]]; use plain \`git push\` for anything else"
         return 1
     fi
 
@@ -1876,7 +1888,7 @@ rc_push() {
         return 1
     fi
 
-    git push "${push_remote}" "${DOTSTAR_STATUS_HEAD}:refs/heads/${current_branch}"
+    git push "${push_remote}" "${DOTSTAR_STATUS_HEAD}:refs/heads/${current_branch}" ${push_flags[@]+"${push_flags[@]}"}
     push_status="${?}"
     if [[ "${push_status}" -eq 0 ]]; then
         return 0

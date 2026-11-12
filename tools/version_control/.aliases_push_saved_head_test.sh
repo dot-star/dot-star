@@ -142,7 +142,9 @@ expect_pushed "no args" origin.git master
 expect_pushed "<remote>" other.git master other
 expect_pushed "<remote> <current branch>" origin.git master origin master
 expect_refused "<remote> <other branch>" origin feature
-expect_refused "flag" --force
+expect_pushed "--force" origin.git master --force
+expect_pushed "<remote> --force" other.git master other --force
+expect_refused "flag" --no-verify
 expect_refused "refspec" origin master:feature
 expect_refused "three args" origin master extra
 expect_refused "unknown remote" nowhere
