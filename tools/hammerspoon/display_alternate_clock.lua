@@ -77,11 +77,11 @@ CLOCK_CANVAS_BEHAVIOR = pinCanvasesToSpaces.BEHAVIOR
 -- Map each Space id to its own { a, b } pair of clock rows.
 clocksBySpace = {}
 
--- Build one clock row at (`rowX`, `rowY`), calling `mouseCallbackFn` as the pointer enters or leaves it.
+-- Build one clock row at (`rowX`, `rowY`).
+-- Give it no mouse callback, which leaves it click-through like CSS `pointer-events: none`; the hover watcher below hides it instead.
 function newClockRow(
     rowX,
-    rowY,
-    mouseCallbackFn
+    rowY
 )
     local row = hs.canvas.new{
         x = rowX,
@@ -112,9 +112,6 @@ function newClockRow(
         textFont = textFont,
     }
     row:behavior(CLOCK_CANVAS_BEHAVIOR)
-    row:canvasMouseEvents(trackMouseEventsDown, trackMouseEventsUp, trackMouseEventsEnterExit, trackMouseEventsMove)
-    -- hs.canvas:mouseCallback(mouseCallbackFn) -> canvasObject
-    row:mouseCallback(mouseCallbackFn)
     return row
 end
 
@@ -163,12 +160,11 @@ function clockLeft(pair)
     return full_screen_width - inset - w
 end
 
-aMouseEnter = false
-bMouseEnter = false
+clockHovered = false
 
 function updateCanvasOnHoverStateChange()
     eachClockPair(function(a, b)
-        if aMouseEnter or bMouseEnter then
+        if clockHovered then
             -- print('yes hovered')
             a[1].fillColor = MOUSEENTER_CANVAS_FILLCOLOR_STATE
             b[1].fillColor = MOUSEENTER_CANVAS_FILLCOLOR_STATE
@@ -186,34 +182,53 @@ function updateCanvasOnHoverStateChange()
     end)
 end
 
-function canvasAMouseCallbackFn(canvasObject, mouseEventMessage, canvasElementId, mouseX, mouseY)
-    -- print('--')
-    -- print(string.format('canvasAMouseCallbackFn (%s, %s, %s)', mouseEventMessage, mouseX, mouseY))
-    if mouseEventMessage == 'mouseEnter' then
-        aMouseEnter = true
-    elseif mouseEventMessage == 'mouseExit' then
-        aMouseEnter = false
+-- Return whether `point` falls inside `frame`.
+local function frameContains(
+    frame,
+    point
+)
+    if point.x < frame.x then
+        return false
+    elseif point.x >= frame.x + frame.w then
+        return false
+    elseif point.y < frame.y then
+        return false
+    elseif point.y >= frame.y + frame.h then
+        return false
     end
-    updateCanvasOnHoverStateChange()
+    return true
 end
 
-function canvasBMouseCallbackFn(canvasObject, mouseEventMessage, canvasElementId, mouseX, mouseY)
-    -- print('--')
-    -- print(string.format('canvasBMouseCallbackFn (%s, %s, %s)', mouseEventMessage, mouseX, mouseY))
-    if mouseEventMessage == 'mouseEnter' then
-        -- print('mouseEnter')
-        bMouseEnter = true
-    elseif mouseEventMessage == 'mouseExit' then
-        -- print('mouseExit')
-        bMouseEnter = false
+-- Remember the focused Space, so the hover watcher finds its rows without asking on every pointer move.
+local clockFocusedSpace = nil
+
+-- Return whether `point` sits over either of the focused Space's clock rows.
+local function clockContains(point)
+    local pair = clocksBySpace[clockFocusedSpace]
+    if pair == nil then
+        return false
+    elseif frameContains(pair.a:frame(), point) then
+        return true
+    elseif frameContains(pair.b:frame(), point) then
+        return true
     end
-    updateCanvasOnHoverStateChange()
+    return false
 end
 
-trackMouseEventsDown = false
-trackMouseEventsUp = false
-trackMouseEventsEnterExit = true
-trackMouseEventsMove = false
+-- Hide the clock while the pointer is over it by watching the pointer, since rows with their own mouse events would swallow clicks meant for what's behind them.
+-- Hold the tap in a global so garbage collection can't stop it.
+clockHoverWatcher = hs.eventtap.new({
+    hs.eventtap.event.types.mouseMoved,
+    hs.eventtap.event.types.leftMouseDragged,
+}, function(event)
+    local hovered = clockContains(event:location())
+    if hovered ~= clockHovered then
+        clockHovered = hovered
+        updateCanvasOnHoverStateChange()
+    end
+    -- Pass the event on untouched.
+    return false
+end):start()
 
 pst_text = ''
 est_text = ''
@@ -275,14 +290,15 @@ function showClockOnFocusedSpace()
     end)
 
     local focused = hs.spaces.focusedSpace()
+    clockFocusedSpace = focused
     if clocksBySpace[focused] ~= nil then
         return
     end
     local pair = {
         fullScreen = hs.spaces.spaceType(focused) == 'fullscreen',
     }
-    pair.a = newClockRow(clockLeft(pair), clockTop(pair), canvasAMouseCallbackFn)
-    pair.b = newClockRow(clockLeft(pair), clockTop(pair) + h, canvasBMouseCallbackFn)
+    pair.a = newClockRow(clockLeft(pair), clockTop(pair))
+    pair.b = newClockRow(clockLeft(pair), clockTop(pair) + h)
     pair.a[2].text = pst_text
     pair.b[2].text = est_text
     pair.a:show()
