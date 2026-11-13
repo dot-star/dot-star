@@ -13,6 +13,7 @@
 --   Switch to a Space whose session turned ready, once you've been idle a while (follow_ready, needs session_state).
 --   Show a countdown left of the dots to when follow_ready arms, for debugging (follow_countdown, needs follow_ready).
 --   Mark the dots with letters in the order a closing session hops to them, by state then last seen, so they don't read as the Ctrl+number Space keys; for debugging (follow_order, needs session_state).
+--   Lead each dot's Ctrl+number digit with a ⌃, so it reads as a key to press rather than a page number (hotkey_caret, needs page_dots).
 -- Hand follow_closed_full_screen_space the ranked Spaces with hopOrder, so a closing session hops to the one most in need of you.
 -- Toggle from the shell with `space_position_experiment`; each flag persists across reloads.
 -- Pick the session dots' decision style, pending style and focus marker the same way; each style persists too.
@@ -29,6 +30,7 @@ local DEFAULT_ENABLED = {
     follow_countdown = true,
     follow_order = true,
     follow_ready = true,
+    hotkey_caret = true,
     page_dots = true,
     page_dots_pill = false,
     session_state = true,
@@ -606,10 +608,14 @@ local function appendHotkey(
     if digit == nil then
         return
     end
+    local text = tostring(digit)
+    if isEnabled('hotkey_caret') then
+        text = '⌃' .. text
+    end
     local center = pageDotCenter(slot)
     elements[#elements + 1] = {
         type = 'text',
-        text = tostring(digit),
+        text = text,
         textColor = HOTKEY_COLOR,
         textFont = 'Menlo',
         textSize = HOTKEY_TEXT_SIZE,
@@ -1287,6 +1293,7 @@ local function sessionDotsKey(
         styleOf('pending_style'),
         styleOf('focus_marker'),
         tostring(isEnabled('vertical_dots')),
+        tostring(isEnabled('hotkey_caret')),
     }
     for position, space in ipairs(spaces) do
         parts[#parts + 1] = sessionStateOf(space) .. ':' .. tostring(followOrder[space]) .. ':' .. tostring(moving[position + 1] == true)
@@ -1817,6 +1824,7 @@ local function placeEdgeBars(
     -- Redraw the dots only when the Space moved, the count changed or the pill or column was toggled, the same as the bars' height check.
     local pillVisible = isEnabled('page_dots_pill')
     local vertical = isEnabled('vertical_dots')
+    local caret = isEnabled('hotkey_caret')
     local dotsCount = count
     -- Map each dot slot to its Space for a click; both rows run in swipe order, the session row's home triangle standing in for the first Space.
     pair.dotSpaces = screenSpaces
@@ -1838,12 +1846,13 @@ local function placeEdgeBars(
         drawSessionDots(pair, pillVisible, hs.timer.secondsSinceEpoch())
         -- Forget the plain dots, so turning session_state off redraws them.
         pair.dotsIndex = nil
-    elseif pair.dotsIndex ~= index or pair.dotsCount ~= count or pair.dotsPill ~= pillVisible or pair.dotsVertical ~= vertical then
+    elseif pair.dotsIndex ~= index or pair.dotsCount ~= count or pair.dotsPill ~= pillVisible or pair.dotsVertical ~= vertical or pair.dotsCaret ~= caret then
         layoutPageDots(pair.dots, index, count, pair.color, pillVisible, pair.slotHotkeys)
         pair.dotsIndex = index
         pair.dotsCount = count
         pair.dotsPill = pillVisible
         pair.dotsVertical = vertical
+        pair.dotsCaret = caret
         pair.sessionKey = nil
         -- Drop any moving rings left from session_state, which the plain dots replace.
         clearCanvas(pair.dotsMotion)
