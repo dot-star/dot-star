@@ -1,7 +1,8 @@
--- Open a new Ghostty window and type a command into its shell, so quitting Claude
--- leaves a prompt behind rather than closing the window.
+-- Open a new Ghostty window and type a command into its shell, so a failed launch
+-- leaves its message at a prompt rather than closing the window.
+-- Type cl (claude_run) rather than bare claude, so a clean finish or an x close still shuts the window.
 -- Set new_claude_session_input in init.lua above the dot-star bootstrap block to type a different command.
-new_claude_session_input = new_claude_session_input or 'claude'
+new_claude_session_input = new_claude_session_input or 'cl'
 
 -- Return the ids of Ghostty's current windows, so the new window can be told apart from them.
 local function ghosttyWindowIds()
