@@ -58,7 +58,8 @@ local function makeNewGhosttyWindowFullScreen(existingIds)
     )
 end
 
-function newClaudeSession()
+-- Take options as a table so each call site names fullScreen rather than passing a bare boolean.
+function newClaudeSession(options)
     return function()
         print('newClaudeSession')
         local existingIds = ghosttyWindowIds()
@@ -73,7 +74,10 @@ function newClaudeSession()
             activate
         end tell
         ]])
-        makeNewGhosttyWindowFullScreen(existingIds)
+        if options.fullScreen then
+            makeNewGhosttyWindowFullScreen(existingIds)
+        end
     end
 end
-hs.hotkey.bind({'option'}, 'd', newClaudeSession())
+hs.hotkey.bind({'option'}, 'd', newClaudeSession({fullScreen = true}))
+hs.hotkey.bind({'option', 'shift'}, 'd', newClaudeSession({fullScreen = false}))
