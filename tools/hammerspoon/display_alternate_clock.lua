@@ -255,6 +255,10 @@ local function showClockTimes(
     pst_text = newPstText
     est_text = newEstText
 
+    -- Leave a hidden clock blank; the pointer leaving it writes the new times back.
+    if clockHovered then
+        return
+    end
     eachClockPair(function(a, b)
         a[2].text = pst_text
         b[2].text = est_text
