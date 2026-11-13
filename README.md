@@ -75,6 +75,8 @@ These call the `claude` CLI.
 
 Drafts five one-line messages for the staged diff and opens them in fzf; the one you pick becomes the commit. An optional note steers the drafts. The model runs with no tools and gets the diff as data, so text inside the diff can't make it do anything. `aic`, `cgc`, `clc`, `clcm` and `cma` do the same.
 
+`cmc` lists the drafts numbered instead and takes single keys: a digit picks one, `r` sends feedback for a fresh set, `q` quits. After a pick, `y` commits it and `n` returns to the list.
+
 ### Stash with a summary
 
     $ cstash
