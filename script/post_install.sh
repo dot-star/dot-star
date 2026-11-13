@@ -341,6 +341,7 @@ require('add_window_movement_hotkeys')
 require('add_wrapping_space_hotkeys')
 require('display_alternate_clock')
 require('follow_closed_full_screen_space')
+require('notify_claude_session_windows')
 require('show_space_position')
 -- Open the port the hs command-line client talks to; the Claude window hooks run Lua through it.
 require('hs.ipc')" '--'

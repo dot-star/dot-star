@@ -491,17 +491,7 @@ def raise_window_lua(
     :return: Lua source whose `return` reports what got raised.
     """
     return f"""
-        local window = hs.window.get({window_id})
-        if window ~= nil then
-            window:focus()
-            return "raised window {window_id}"
-        end
-        local app = hs.application.get("{bundle_id}")
-        if app == nil then
-            return "window {window_id} gone and app {bundle_id} not running; nothing raised"
-        end
-        app:activate()
-        return "window {window_id} not visible (background tab?); activated {bundle_id} instead"
+        return require("notify_claude_session_windows").raise({window_id}, {lua_quote(bundle_id)})
         """
 
 
@@ -616,24 +606,12 @@ def post_clickable_notification(
     bundle_id = record[1] if len(record) > 1 else ""
     outcome = run_hammerspoon(
         f"""
-        -- Hold each notification in a global keyed by window, so its click callback outlives this call.
-        claudeSessionNotifications = claudeSessionNotifications or {{}}
-        local previous = claudeSessionNotifications[{window_id}]
-        if previous ~= nil then
-            previous:withdraw()
-        end
-        local notification = hs.notify.new(function()
-            claudeSessionNotifications[{window_id}] = nil
-            {raise_window_lua(window_id=window_id, bundle_id=bundle_id)}
-        end, {{
-            title = {lua_quote(title)},
-            informativeText = {lua_quote(message)},
-            -- Keep it in Notification Center until clicked; hs.notify withdraws it after 5 seconds by default.
-            withdrawAfter = 0,
-        }})
-        claudeSessionNotifications[{window_id}] = notification
-        notification:send()
-        return "notification dispatched for window {window_id}; if invisible, allow Hammerspoon in System Settings > Notifications"
+        return require("notify_claude_session_windows").post(
+            {window_id},
+            {lua_quote(bundle_id)},
+            {lua_quote(title)},
+            {lua_quote(message)}
+        )
         """,
         "post clickable notification",
         session_id,
