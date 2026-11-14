@@ -213,7 +213,7 @@ local lastFollowAt = nil
 local missedReadyAt = {}
 -- Map each Space id to when its session's ready was first read, so the dot shows it only once it has settled.
 local readySince = {}
-local readySettleTimer = nil
+local readyRedrawTimer = nil
 -- Redraw every Space's session dots; assigned once the drawing functions below exist.
 local redrawSessionDots
 -- Map each Space id to the window of its most urgent session, from the last read.
@@ -1553,10 +1553,10 @@ local function settleReadyStates(
 end
 
 -- Redraw when the soonest held-back ready settles, since no state file write marks that moment.
-local function scheduleReadySettle(now)
-    if readySettleTimer then
-        readySettleTimer:stop()
-        readySettleTimer = nil
+local function scheduleReadyRedraw(now)
+    if readyRedrawTimer then
+        readyRedrawTimer:stop()
+        readyRedrawTimer = nil
     end
     local soonest = nil
     for _, since in pairs(readySince) do
@@ -1570,8 +1570,8 @@ local function scheduleReadySettle(now)
         end
     end
     if soonest ~= nil then
-        readySettleTimer = hs.timer.doAfter(soonest, function()
-            readySettleTimer = nil
+        readyRedrawTimer = hs.timer.doAfter(soonest, function()
+            readyRedrawTimer = nil
             redrawSessionDots()
         end)
     end
@@ -1608,7 +1608,7 @@ local function refreshSessionStates()
     sessionStates = states
     sessionWindows = windows
     updateCatchUpTimer()
-    scheduleReadySettle(now)
+    scheduleReadyRedraw(now)
 end
 
 local function setEdgeBarVisible(bar, visible)
