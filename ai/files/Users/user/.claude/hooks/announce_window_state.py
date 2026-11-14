@@ -55,7 +55,9 @@ import subprocess
 import sys
 from collections.abc import Generator
 from contextlib import contextmanager
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from claude_session_dir import claude_session_dir
 from terminal_tty import IN_TERMINAL_APP
@@ -78,6 +80,57 @@ NOTIFICATION_STATES = {
     "idle_prompt": "ready",
     "permission_prompt": "decision",
 }
+
+
+@dataclass(frozen=True)
+class Session:
+    """A Claude session's id and the records filed under it in `STATE_DIR`."""
+
+    id: str
+
+    def record_file(self, suffix: str) -> Path:
+        """
+        Returns the session's record file with the given suffix.
+
+        :param suffix: Extension naming the record (e.g. "state").
+        :return: Path under `STATE_DIR` named for the session id.
+        """
+        return STATE_DIR / f"{self.id}.{suffix}"
+
+    @property
+    def hammerspoon_alerted_file(self) -> Path:
+        """Returns the marker that the Hammerspoon-unreachable alert already fired."""
+        return self.record_file(suffix="hammerspoon_alerted")
+
+    @property
+    def lock_file(self) -> Path:
+        """Returns the file the session's state writes lock on."""
+        return self.record_file(suffix="lock")
+
+    @property
+    def notified_file(self) -> Path:
+        """Returns the marker that Hammerspoon posted a notification for the session."""
+        return self.record_file(suffix="notified")
+
+    @property
+    def state_file(self) -> Path:
+        """Returns the file holding the session's state word for Hammerspoon's page dots."""
+        return self.record_file(suffix="state")
+
+    @property
+    def stop_blocked_file(self) -> Path:
+        """Returns the file fingerprinting the last stop a sibling Stop hook blocked."""
+        return self.record_file(suffix="stop_blocked")
+
+    @property
+    def waiting_tool_file(self) -> Path:
+        """Returns the file naming the tool whose prompt waits on the user."""
+        return self.record_file(suffix="waiting_tool")
+
+    @property
+    def window_file(self) -> Path:
+        """Returns the file holding the window captured at session launch."""
+        return self.record_file(suffix="window")
 
 
 def log(message: str) -> None:
@@ -109,13 +162,13 @@ def run_osascript(script: str, action: str) -> subprocess.CompletedProcess[str]:
     return result
 
 
-def alert_hammerspoon_unreachable(session_id: str) -> None:
+def alert_hammerspoon_unreachable(session: Session) -> None:
     """
     Post a desktop notification that Hammerspoon's client can't reach the app, once per session.
 
-    :param session_id: Claude session id the once-only marker is filed under.
+    :param session: Claude session the once-only marker is filed under.
     """
-    marker = STATE_DIR / f"{session_id}.hammerspoon_alerted"
+    marker = session.hammerspoon_alerted_file
 
     if marker.exists():
         return
@@ -127,13 +180,17 @@ def alert_hammerspoon_unreachable(session_id: str) -> None:
     )
 
 
-def run_hammerspoon(lua: str, action: str, session_id: str) -> str | None:
+def run_hammerspoon(
+    lua: str,
+    action: str,
+    session: Session,
+) -> str | None:
     """
     Run a Lua snippet inside Hammerspoon, returning its printed result or None on failure.
 
     :param lua: Lua source for `hs -c`; its `return` value comes back as text.
     :param action: Short label for the log line (e.g. "capture window id").
-    :param session_id: Claude session id whose once-only failure alert this may fire.
+    :param session: Claude session whose once-only failure alert this may fire.
     :return: The snippet's return value, stripped, or None when the client is
         missing or the snippet errored.
     """
@@ -152,7 +209,7 @@ def run_hammerspoon(lua: str, action: str, session_id: str) -> str | None:
         log(f"{action} failed (hs exit {result.returncode}): {result.stderr.strip()}")
         log("  fix: Hammerspoon must be running with `require('hs.ipc')` in its init.lua")
         # Alert only here, not on a missing client above: an installed client that can't connect is a misconfiguration.
-        alert_hammerspoon_unreachable(session_id)
+        alert_hammerspoon_unreachable(session=session)
         return None
 
     return result.stdout.strip()
@@ -176,7 +233,7 @@ def write_to_own_tab(payload: str) -> None:
         log(f"write to {dev} failed: {error}")
 
 
-def objective(session_id: str) -> str:
+def objective(session: Session) -> str:
     """
     Returns the objective to label this session's window with.
 
@@ -185,10 +242,10 @@ def objective(session_id: str) -> str:
     window-scoped `WINDOW_OBJECTIVE` before the marker exists (SessionStart, the
     first prompt) or when the session id is missing.
 
-    :param session_id: Claude session id whose marker to read.
+    :param session: Claude session whose marker to read.
     :return: First line of the objective marker, else `WINDOW_OBJECTIVE`.
     """
-    session_dir = claude_session_dir(session_id)
+    session_dir = claude_session_dir(session.id)
 
     if session_dir is None:
         return WINDOW_OBJECTIVE
@@ -201,31 +258,23 @@ def objective(session_id: str) -> str:
     return first_line or WINDOW_OBJECTIVE
 
 
-def set_title(state: str, session_id: str) -> None:
+def set_title(
+    state: str,
+    session: Session,
+) -> None:
     """
     Set the tab/window title to `[STATE] <Objective>` via an OSC escape.
 
     :param state: Label for the bracket (e.g. "RUNNING", "READY").
-    :param session_id: Claude session id whose objective fills the title.
+    :param session: Claude session whose objective fills the title.
     """
-    write_to_own_tab(f"\033]0;[{state}] {objective(session_id)}\007")
+    write_to_own_tab(f"\033]0;[{state}] {objective(session=session)}\007")
 
 
-def window_file(session_id: str) -> Path:
-    return STATE_DIR / f"{session_id}.window"
-
-
-def session_state_file(session_id: str) -> Path:
-    """
-    Returns the file holding the session's state word for Hammerspoon's page dots.
-
-    :param session_id: Claude session id the state is filed under.
-    :return: Path beside the session's `.window` record.
-    """
-    return STATE_DIR / f"{session_id}.state"
-
-
-def record_session_state(session_id: str, state: str) -> None:
+def record_session_state(
+    session: Session,
+    state: str,
+) -> None:
     """
     Record the session's state word for Hammerspoon's page dots to read.
 
@@ -233,14 +282,14 @@ def record_session_state(session_id: str, state: str) -> None:
     a half-written word. Skips the write when the file already holds the word,
     since every write sets off a full page-dots refresh in Hammerspoon.
 
-    :param session_id: Claude session id the state is filed under.
+    :param session: Claude session the state is filed under.
     :param state: One of "busy", "decision" or "ready".
     """
-    if not session_id:
+    if not session.id:
         return
 
     STATE_DIR.mkdir(parents=True, exist_ok=True)
-    path = session_state_file(session_id)
+    path = session.state_file
 
     try:
         recorded = path.read_text()
@@ -255,20 +304,10 @@ def record_session_state(session_id: str, state: str) -> None:
     temporary.replace(path)
 
     if state != "decision":
-        withdraw_notification(session_id=session_id)
+        withdraw_notification(session=session)
 
 
-def notified_file(session_id: str) -> Path:
-    """
-    Returns the file marking that Hammerspoon posted a notification for the session.
-
-    :param session_id: Claude session id the marker is filed under.
-    :return: Path beside the session's `.state` record.
-    """
-    return STATE_DIR / f"{session_id}.notified"
-
-
-def withdraw_notification(session_id: str) -> None:
+def withdraw_notification(session: Session) -> None:
     """
     Withdraw the session's Hammerspoon notification once nothing waits on the user.
 
@@ -276,15 +315,15 @@ def withdraw_notification(session_id: str) -> None:
     state changes on every turn. An `osascript` notification can't be
     withdrawn, so a Terminal.app session never records one.
 
-    :param session_id: Claude session id whose notification to withdraw.
+    :param session: Claude session whose notification to withdraw.
     """
-    marker = notified_file(session_id)
+    marker = session.notified_file
 
     if not marker.exists():
         return
 
     marker.unlink(missing_ok=True)
-    record = recorded_window(session_id=session_id)
+    record = recorded_window(session=session)
 
     if not record:
         return
@@ -292,44 +331,39 @@ def withdraw_notification(session_id: str) -> None:
     window_id = record[0]
     bundle_id = record[1] if len(record) > 1 else ""
     outcome = run_hammerspoon(
-        f"""
+        lua=f"""
         return require("notify_claude_session_windows").withdraw({window_id}, {lua_quote(bundle_id)})
         """,
-        "withdraw notification",
-        session_id,
+        action="withdraw notification",
+        session=session,
     )
 
     if outcome:
         log(outcome)
 
 
-def waiting_tool_file(session_id: str) -> Path:
-    """
-    Returns the file naming the tool whose prompt waits on the user.
-
-    :param session_id: Claude session id the record is filed under.
-    :return: Path beside the session's `.state` record.
-    """
-    return STATE_DIR / f"{session_id}.waiting_tool"
-
-
-def record_waiting_tool(event: dict) -> None:
+def record_waiting_tool(
+    session: Session,
+    event: dict[str, Any],
+) -> None:
     """
     Mark the session as waiting on the user to answer a prompt for the event's tool.
 
+    :param session: Claude session the record is filed under.
     :param event: PermissionRequest or PreToolUse payload naming the tool.
     """
-    session_id = event.get("session_id", "")
-
-    if not session_id:
+    if not session.id:
         return
 
     STATE_DIR.mkdir(parents=True, exist_ok=True)
-    waiting_tool_file(session_id).write_text(event.get("tool_name", ""))
-    record_session_state(session_id, "decision")
+    session.waiting_tool_file.write_text(event.get("tool_name", ""))
+    record_session_state(session=session, state="decision")
 
 
-def record_tool_finished(event: dict) -> None:
+def record_tool_finished(
+    session: Session,
+    event: dict[str, Any],
+) -> None:
     """
     Mark the session busy once a tool finishes, unless another tool's prompt still waits.
 
@@ -337,72 +371,54 @@ def record_tool_finished(event: dict) -> None:
     waiting tool's own result ends the decision. Its name stands in for the
     call, since its input can change once answered (e.g. `AskUserQuestion`).
 
+    :param session: Claude session the record is filed under.
     :param event: PostToolUse or PostToolUseFailure payload naming the tool.
     """
-    session_id = event.get("session_id", "")
-
     try:
-        waiting_tool = waiting_tool_file(session_id).read_text()
+        waiting_tool = session.waiting_tool_file.read_text()
     except OSError:
-        record_session_state(session_id, "busy")
+        record_session_state(session=session, state="busy")
         return
 
     if waiting_tool != event.get("tool_name", ""):
         return
 
-    waiting_tool_file(session_id).unlink(missing_ok=True)
-    record_session_state(session_id, "busy")
+    session.waiting_tool_file.unlink(missing_ok=True)
+    record_session_state(session=session, state="busy")
 
 
-def record_turn_state(session_id: str, state: str) -> None:
+def record_turn_state(
+    session: Session,
+    state: str,
+) -> None:
     """
     Record a state that ends any prompt the session was waiting on.
 
-    :param session_id: Claude session id the state is filed under.
+    :param session: Claude session the state is filed under.
     :param state: "busy" on a new prompt, "ready" once the turn ends.
     """
-    if not session_id:
+    if not session.id:
         return
 
-    waiting_tool_file(session_id).unlink(missing_ok=True)
-    record_session_state(session_id, state)
-
-
-def stop_blocked_file(session_id: str) -> Path:
-    """
-    Returns the file fingerprinting the last stop a sibling Stop hook blocked.
-
-    :param session_id: Claude session id the record is filed under.
-    :return: Path beside the session's `.state` record.
-    """
-    return STATE_DIR / f"{session_id}.stop_blocked"
-
-
-def session_lock_file(session_id: str) -> Path:
-    """
-    Returns the file the session's state writes lock on.
-
-    :param session_id: Claude session id the lock is filed under.
-    :return: Path beside the session's `.state` record.
-    """
-    return STATE_DIR / f"{session_id}.lock"
+    session.waiting_tool_file.unlink(missing_ok=True)
+    record_session_state(session=session, state=state)
 
 
 @contextmanager
-def session_lock(session_id: str) -> Generator[None]:
+def session_lock(session: Session) -> Generator[None]:
     """
     Hold the session's lock, so Stop hooks running in parallel can't interleave their state writes.
 
-    :param session_id: Claude session id whose lock to hold.
+    :param session: Claude session whose lock to hold.
     """
     STATE_DIR.mkdir(parents=True, exist_ok=True)
 
-    with open(session_lock_file(session_id), "w") as handle:
+    with open(session.lock_file, "w") as handle:
         fcntl.flock(handle, fcntl.LOCK_EX)
         yield
 
 
-def stop_fingerprint(event: dict) -> str:
+def stop_fingerprint(event: dict[str, Any]) -> str:
     """
     Returns a fingerprint of the stop, the same for every Stop hook that sees it.
 
@@ -412,30 +428,35 @@ def stop_fingerprint(event: dict) -> str:
     return hashlib.sha256((event.get("last_assistant_message") or "").encode()).hexdigest()
 
 
-def record_stop(event: dict) -> None:
+def record_stop(
+    session: Session,
+    event: dict[str, Any],
+) -> None:
     """
     Mark the session ready once its turn ends, unless a sibling Stop hook blocked this stop.
 
+    :param session: Claude session the state is filed under.
     :param event: Stop hook payload.
     """
-    session_id = event.get("session_id", "")
-
-    if not session_id:
+    if not session.id:
         return
 
-    with session_lock(session_id):
+    with session_lock(session=session):
         try:
-            blocked = stop_blocked_file(session_id).read_text()
+            blocked = session.stop_blocked_file.read_text()
         except OSError:
             blocked = ""
 
-        if blocked == stop_fingerprint(event):
+        if blocked == stop_fingerprint(event=event):
             return
 
-        record_turn_state(session_id, "ready")
+        record_turn_state(session=session, state="ready")
 
 
-def record_stop_blocked(event: dict) -> None:
+def record_stop_blocked(
+    session: Session,
+    event: dict[str, Any],
+) -> None:
     """
     Mark the session busy again when a Stop hook sends Claude back to work.
 
@@ -443,36 +464,35 @@ def record_stop_blocked(event: dict) -> None:
     event fires when Claude resumes. The fingerprint stops this session's own
     Stop handler, running in parallel, from writing "ready" after it.
 
+    :param session: Claude session the state is filed under.
     :param event: The Stop hook payload the blocking hook received.
     """
-    session_id = event.get("session_id", "")
-
-    if not session_id:
+    if not session.id:
         return
 
-    with session_lock(session_id):
-        stop_blocked_file(session_id).write_text(stop_fingerprint(event))
-        record_session_state(session_id, "busy")
+    with session_lock(session=session):
+        session.stop_blocked_file.write_text(stop_fingerprint(event=event))
+        record_session_state(session=session, state="busy")
 
 
-def forget_session(session_id: str) -> None:
+def forget_session(session: Session) -> None:
     """
     Delete the session's state and window records, so its page dot goes back to no session.
 
-    :param session_id: Claude session id whose records to delete.
+    :param session: Claude session whose records to delete.
     """
-    if not session_id:
+    if not session.id:
         return
 
-    withdraw_notification(session_id=session_id)
-    session_state_file(session_id).unlink(missing_ok=True)
-    waiting_tool_file(session_id).unlink(missing_ok=True)
-    stop_blocked_file(session_id).unlink(missing_ok=True)
-    session_lock_file(session_id).unlink(missing_ok=True)
-    window_file(session_id).unlink(missing_ok=True)
+    withdraw_notification(session=session)
+    session.state_file.unlink(missing_ok=True)
+    session.waiting_tool_file.unlink(missing_ok=True)
+    session.stop_blocked_file.unlink(missing_ok=True)
+    session.lock_file.unlink(missing_ok=True)
+    session.window_file.unlink(missing_ok=True)
 
 
-def capture_window_id(session_id: str) -> None:
+def capture_window_id(session: Session) -> None:
     """
     Record the frontmost window at session launch.
 
@@ -480,7 +500,7 @@ def capture_window_id(session_id: str) -> None:
     the owning app's bundle id, space-separated, so the raise can fall back to
     activating the app when the window has slipped behind another tab.
 
-    :param session_id: Claude session id the record is filed under.
+    :param session: Claude session the record is filed under.
     """
     if IN_TERMINAL_APP:
         result = run_osascript(
@@ -494,34 +514,34 @@ def capture_window_id(session_id: str) -> None:
         record = result.stdout.strip()
     else:
         record = run_hammerspoon(
-            """
+            lua="""
             local window = hs.window.focusedWindow()
             if window == nil or window:id() == nil then
                 return ""
             end
             return string.format("%d %s", window:id(), window:application():bundleID() or "")
             """,
-            "capture window id",
-            session_id,
+            action="capture window id",
+            session=session,
         )
 
         if not record:
-            log(f"no focused window at launch; cannot record one for session {session_id}")
+            log(f"no focused window at launch; cannot record one for session {session.id}")
             return
 
-    window_file(session_id).write_text(record)
-    log(f"captured window {record} for session {session_id}")
+    session.window_file.write_text(record)
+    log(f"captured window {record} for session {session.id}")
 
 
-def recorded_window(session_id: str) -> list[str] | None:
+def recorded_window(session: Session) -> list[str] | None:
     """
     Returns the session's window record split into its fields.
 
-    :param session_id: Claude session id whose window record to read.
+    :param session: Claude session whose window record to read.
     :return: Window id, then the owning app's bundle id under Hammerspoon
         (e.g. `["12345", "com.mitchellh.ghostty"]`), or None when no record is on file.
     """
-    path = window_file(session_id)
+    path = session.window_file
 
     if not path.exists():
         return None
@@ -546,16 +566,16 @@ def raise_window_lua(
         """
 
 
-def focus_window(session_id: str) -> None:
+def focus_window(session: Session) -> None:
     """
     Force the recorded window to the frontmost layer.
 
-    :param session_id: Claude session id whose window record to raise.
+    :param session: Claude session whose window record to raise.
     """
-    record = recorded_window(session_id=session_id)
+    record = recorded_window(session=session)
 
     if record is None:
-        log(f"no window id on file for session {session_id}; cannot raise (was SessionStart blocked?)")
+        log(f"no window id on file for session {session.id}; cannot raise (was SessionStart blocked?)")
         return
     elif not record:
         return
@@ -583,15 +603,15 @@ def focus_window(session_id: str) -> None:
 
     bundle_id = record[1] if len(record) > 1 else ""
     outcome = run_hammerspoon(
-        f"""
+        lua=f"""
         local focused = hs.window.focusedWindow()
         if focused ~= nil and focused:application():bundleID() == "{bundle_id}" then
             return "{bundle_id} is frontmost (typing?); window {window_id} left alone"
         end
         {raise_window_lua(window_id=window_id, bundle_id=bundle_id)}
         """,
-        f"raise window {window_id}",
-        session_id,
+        action=f"raise window {window_id}",
+        session=session,
     )
 
     if outcome:
@@ -636,18 +656,18 @@ def post_osascript_notification(
 def post_clickable_notification(
     message: str,
     title: str,
-    session_id: str,
+    session: Session,
 ) -> bool:
     """
     Post a notification through Hammerspoon that raises the session's window when clicked.
 
     :param message: Notification body (e.g. the hook payload's message).
     :param title: Notification title (e.g. the session's objective).
-    :param session_id: Claude session id whose recorded window the click raises.
+    :param session: Claude session whose recorded window the click raises.
     :return: True once Hammerspoon posted it; False when no window is on file
         or Hammerspoon can't be reached, so the caller can fall back.
     """
-    record = recorded_window(session_id=session_id)
+    record = recorded_window(session=session)
 
     # Fall back when no window is on file (None) or the record is empty.
     if not record:
@@ -656,7 +676,7 @@ def post_clickable_notification(
     window_id = record[0]
     bundle_id = record[1] if len(record) > 1 else ""
     outcome = run_hammerspoon(
-        f"""
+        lua=f"""
         return require("notify_claude_session_windows").post(
             {window_id},
             {lua_quote(bundle_id)},
@@ -664,19 +684,22 @@ def post_clickable_notification(
             {lua_quote(message)}
         )
         """,
-        "post clickable notification",
-        session_id,
+        action="post clickable notification",
+        session=session,
     )
 
     if outcome is None:
         return False
 
-    notified_file(session_id).write_text("")
+    session.notified_file.write_text("")
     log(outcome)
     return True
 
 
-def notify(message: str, session_id: str) -> None:
+def notify(
+    message: str,
+    session: Session,
+) -> None:
     """
     Fire a silent native desktop notification.
 
@@ -687,96 +710,106 @@ def notify(message: str, session_id: str) -> None:
     session's window; clicking an `osascript` notification opens Script Editor.
 
     :param message: Notification body (e.g. the hook payload's message).
-    :param session_id: Claude session id whose objective titles the notification.
+    :param session: Claude session whose objective titles the notification.
     """
-    title = objective(session_id)
+    title = objective(session=session)
 
     if IN_TERMINAL_APP:
         post_osascript_notification(message=message, title=title)
         return
-    elif post_clickable_notification(message=message, title=title, session_id=session_id):
+    elif post_clickable_notification(message=message, title=title, session=session):
         return
 
     post_osascript_notification(message=message, title=title)
 
 
-def on_waiting(event: dict) -> None:
-    """React to a wait-state: title, Dock bounce, notification, focus."""
-    session_id = event.get("session_id", "")
-    set_title("READY", session_id)
+def on_waiting(
+    session: Session,
+    event: dict[str, Any],
+) -> None:
+    """
+    React to a wait-state: title, Dock bounce, notification, focus.
+
+    :param session: Claude session waiting on the user.
+    :param event: Notification hook payload.
+    """
+    set_title(state="READY", session=session)
 
     # Emit the bell straight to the terminal to bounce the Dock icon.
     write_to_own_tab("\a")
 
     message = event.get("message") or "Awaiting your approval"
-    notify(message, session_id)
-    focus_window(session_id)
+    notify(message=message, session=session)
+    focus_window(session=session)
 
 
-def record_notification_state(event: dict) -> None:
+def record_notification_state(
+    session: Session,
+    event: dict[str, Any],
+) -> None:
     """
     Record the state a notification puts the session in, by its `notification_type`.
 
     A prompt the user has to answer is a decision; the idle notice only means
     the turn is over. Other notifications (e.g. "auth_success") leave the state alone.
 
+    :param session: Claude session the state is filed under.
     :param event: Notification hook payload.
     """
-    session_id = event.get("session_id", "")
     state = NOTIFICATION_STATES.get(event.get("notification_type", ""))
 
     if state is None:
         return
     elif state == "ready":
-        record_turn_state(session_id, state)
+        record_turn_state(session=session, state=state)
         return
 
-    record_session_state(session_id, state)
+    record_session_state(session=session, state=state)
 
 
 def main() -> None:
     event_name = sys.argv[1] if len(sys.argv) > 1 else ""
 
     try:
-        event = json.load(sys.stdin)
+        event: dict[str, Any] = json.load(sys.stdin)
     except (json.JSONDecodeError, ValueError):
         event = {}
 
-    session_id = event.get("session_id", "")
+    session = Session(id=event.get("session_id", ""))
 
     if event_name == "SessionStart":
-        log(f"SessionStart: objective={objective(session_id)!r}")
-        capture_window_id(session_id)
-        set_title("RUNNING", session_id)
+        log(f"SessionStart: objective={objective(session=session)!r}")
+        capture_window_id(session=session)
+        set_title(state="RUNNING", session=session)
         # Skip a compaction's restart, which can land mid-turn while the session is still busy.
         if event.get("source") != "compact":
-            record_session_state(session_id, "ready")
+            record_session_state(session=session, state="ready")
     elif event_name == "Notification":
         log(
             "Notification: objective={!r} type={!r} message={!r}".format(
-                objective(session_id), event.get("notification_type"), event.get("message")
+                objective(session=session), event.get("notification_type"), event.get("message")
             )
         )
-        record_notification_state(event)
-        on_waiting(event)
+        record_notification_state(session=session, event=event)
+        on_waiting(session=session, event=event)
     elif event_name == "PermissionRequest":
-        record_waiting_tool(event)
+        record_waiting_tool(session=session, event=event)
     elif event_name == "PreToolUse":
         # Mark a tool that waits on the user's answer (wired by matcher in settings.json).
-        record_waiting_tool(event)
+        record_waiting_tool(session=session, event=event)
     elif event_name == "PostToolUse":
-        set_title("RUNNING", session_id)
-        record_tool_finished(event)
+        set_title(state="RUNNING", session=session)
+        record_tool_finished(session=session, event=event)
     elif event_name == "PostToolUseFailure":
-        record_tool_finished(event)
+        record_tool_finished(session=session, event=event)
     elif event_name == "SessionEnd":
-        forget_session(session_id)
+        forget_session(session=session)
     elif event_name == "Stop":
-        record_stop(event)
+        record_stop(session=session, event=event)
     elif event_name == "StopBlocked":
-        record_stop_blocked(event)
+        record_stop_blocked(session=session, event=event)
     elif event_name == "UserPromptSubmit":
-        record_turn_state(session_id, "busy")
+        record_turn_state(session=session, state="busy")
 
 
 if __name__ == "__main__":
