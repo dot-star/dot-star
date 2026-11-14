@@ -14,7 +14,9 @@ argv[1] and the event's JSON payload on stdin:
 
 Each event also records the session's state word (busy, decision or ready) to
 /tmp/claude-state-hook/<session_id>.state for Hammerspoon's page dots, which
-watch that folder; SessionEnd deletes it along with the window record.
+watch that folder; SessionEnd deletes it along with the window record. Once the
+state moves off "decision" (a prompt answered, a new turn, the turn ending),
+nothing waits on the user anymore, so the Hammerspoon notification is withdrawn.
 
 No wrapper process sits in the I/O path. The script reaches the Terminal tab by
 writing OSC/bell bytes straight to the claude process's controlling tty, and
@@ -252,6 +254,54 @@ def record_session_state(session_id: str, state: str) -> None:
     temporary.write_text(state)
     temporary.replace(path)
 
+    if state != "decision":
+        withdraw_notification(session_id=session_id)
+
+
+def notified_file(session_id: str) -> Path:
+    """
+    Returns the file marking that Hammerspoon posted a notification for the session.
+
+    :param session_id: Claude session id the marker is filed under.
+    :return: Path beside the session's `.state` record.
+    """
+    return STATE_DIR / f"{session_id}.notified"
+
+
+def withdraw_notification(session_id: str) -> None:
+    """
+    Withdraw the session's Hammerspoon notification once nothing waits on the user.
+
+    Skips the Hammerspoon call unless a notification was posted, since the
+    state changes on every turn. An `osascript` notification can't be
+    withdrawn, so a Terminal.app session never records one.
+
+    :param session_id: Claude session id whose notification to withdraw.
+    """
+    marker = notified_file(session_id)
+
+    if not marker.exists():
+        return
+
+    marker.unlink(missing_ok=True)
+    record = recorded_window(session_id=session_id)
+
+    if not record:
+        return
+
+    window_id = record[0]
+    bundle_id = record[1] if len(record) > 1 else ""
+    outcome = run_hammerspoon(
+        f"""
+        return require("notify_claude_session_windows").withdraw({window_id}, {lua_quote(bundle_id)})
+        """,
+        "withdraw notification",
+        session_id,
+    )
+
+    if outcome:
+        log(outcome)
+
 
 def waiting_tool_file(session_id: str) -> Path:
     """
@@ -414,6 +464,7 @@ def forget_session(session_id: str) -> None:
     if not session_id:
         return
 
+    withdraw_notification(session_id=session_id)
     session_state_file(session_id).unlink(missing_ok=True)
     waiting_tool_file(session_id).unlink(missing_ok=True)
     stop_blocked_file(session_id).unlink(missing_ok=True)
@@ -620,6 +671,7 @@ def post_clickable_notification(
     if outcome is None:
         return False
 
+    notified_file(session_id).write_text("")
     log(outcome)
     return True
 
