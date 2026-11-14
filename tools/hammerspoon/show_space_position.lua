@@ -188,8 +188,15 @@ local FOLLOW_ORDER_MIDLINE = followOrderFontInfo.ascender - followOrderFontInfo.
 -- Size the Ctrl+N digits to read at a glance inside a dot without touching its ring.
 local HOTKEY_TEXT_SIZE = 14
 local HOTKEY_TEXT_HEIGHT = HOTKEY_TEXT_SIZE + 2
--- Grow a row of dots below the title bar to fit the follow-order letters, overlapping the window's top edge there.
-local HORIZONTAL_DOTS_HEIGHT = DOT_SIZE + BADGE_TEXT_HEIGHT
+-- Write how long each dot has held its state a line under the follow-order letters, smaller and dimmer so it reads as a footnote to them.
+local STATE_AGE = {
+    TEXT_SIZE = 10,
+    FONT = 'Menlo',
+    COLOR = { white = 0.6, alpha = 1 },
+}
+STATE_AGE.TEXT_HEIGHT = STATE_AGE.TEXT_SIZE + 2
+-- Grow a row of dots below the title bar to fit the follow-order letters and state ages, overlapping the window's top edge there.
+local HORIZONTAL_DOTS_HEIGHT = DOT_SIZE + BADGE_TEXT_HEIGHT + STATE_AGE.TEXT_HEIGHT
 local HOTKEY_COLOR = { white = 1, alpha = 1 }
 -- Mark only the first few picks in the follow order, so the row shows where a close lands next without badging every dot.
 local FOLLOW_ORDER_LIMIT = 3
@@ -214,6 +221,9 @@ local settleTimer = nil
 local sessionStates = nil
 -- Map each Space id to when its dot turned ready, to ripple its one ping.
 local pingStartedAt = {}
+-- Map each Space id to when its dot took on the state it shows, for the age under it; a busy session's rewrite of the same word leaves it alone.
+local stateSince = {}
+local stateAgeTimer = nil
 local frameTimer = nil
 -- Remember when follow_ready last switched Spaces, so a second session turning ready in the same idle stretch leaves you on the first.
 local lastFollowAt = nil
@@ -475,10 +485,13 @@ local function pageDotsBandFrame(count)
     }
 end
 
--- Return the frame of the dots' band plus the strip under it, where the focus underline and follow-order letters sit.
+-- Return the frame of the dots' band plus the strip under it, where the focus underline, follow-order letters and, in a row, state ages sit.
 local function pageDotsBadgeFrame(count)
     local frame = pageDotsBandFrame(count)
     frame.h = frame.h + BADGE_TEXT_HEIGHT
+    if not isEnabled('vertical_dots') then
+        frame.h = frame.h + STATE_AGE.TEXT_HEIGHT
+    end
     return frame
 end
 
@@ -1001,6 +1014,36 @@ local function sessionStateOf(space)
     return sessionStates[space] or 'none'
 end
 
+-- Return how long the Space's dot has held its state at `seconds`, spelled compactly, and the seconds until that text next changes; nil for a dot with no session state to age, or in a column, which has no line for it.
+-- Count whole seconds only through the first minute, so the row redraws every second only while an age is that fresh.
+local function stateAgeLabelOf(
+    space,
+    seconds
+)
+    local since = stateSince[space]
+    local state = sessionStateOf(space)
+    if since == nil then
+        return nil, nil
+    elseif isEnabled('vertical_dots') then
+        return nil, nil
+    elseif state == 'none' then
+        return nil, nil
+    elseif state == 'pending' then
+        return nil, nil
+    end
+    -- Floor a start a moment ahead of the clock, as a ready rounded up to its write's next second can be.
+    local age = math.max(0, seconds - since)
+    local whole = math.floor(age)
+    if whole < 60 then
+        return string.format('%ds', whole), 1 - (age - whole)
+    elseif whole < 3600 then
+        return string.format('%dm', whole // 60), 60 - age % 60
+    elseif whole < 86400 then
+        return string.format('%dh%dm', whole // 3600, whole % 3600 // 60), 60 - age % 60
+    end
+    return string.format('%dd%dh', whole // 86400, whole % 86400 // 3600), 3600 - age % 3600
+end
+
 -- Return how far the Space's ready ping has rippled, from 0 to 1, or nil once it's done.
 local function pingProgressOf(space, seconds)
     local startedAt = pingStartedAt[space]
@@ -1310,6 +1353,25 @@ local function layoutSessionDots(
         if followOrder[space] ~= nil then
             elements[#elements + 1] = followOrderElement(pageDotCenter(position + 1), followOrder[space])
         end
+        local ageText = stateAgeLabelOf(space, seconds)
+        if ageText ~= nil then
+            local center = pageDotCenter(position + 1)
+            -- Widen the text to the dot's whole slot, so an age wider than the dot still fits on one line.
+            elements[#elements + 1] = {
+                type = 'text',
+                text = ageText,
+                textColor = STATE_AGE.COLOR,
+                textFont = STATE_AGE.FONT,
+                textSize = STATE_AGE.TEXT_SIZE,
+                textAlignment = 'center',
+                frame = {
+                    x = center.x - (DOT_SIZE + DOT_GAP) / 2,
+                    y = center.y + DOT_SIZE / 2 + BADGE_TEXT_HEIGHT,
+                    w = DOT_SIZE + DOT_GAP,
+                    h = STATE_AGE.TEXT_HEIGHT,
+                },
+            }
+        end
         if not moves then
             appendHotkey(elements, position + 1, slotHotkeys)
         elseif busyMoves then
@@ -1325,7 +1387,8 @@ local function sessionDotsKey(
     spaces,
     followOrder,
     pillVisible,
-    moving
+    moving,
+    seconds
 )
     local parts = {
         index,
@@ -1337,7 +1400,7 @@ local function sessionDotsKey(
         tostring(isEnabled('hotkey_caret')),
     }
     for position, space in ipairs(spaces) do
-        parts[#parts + 1] = sessionStateOf(space) .. ':' .. tostring(followOrder[space]) .. ':' .. tostring(moving[position + 1] == true) .. ':' .. readyAlphaOf(space)
+        parts[#parts + 1] = sessionStateOf(space) .. ':' .. tostring(followOrder[space]) .. ':' .. tostring(moving[position + 1] == true) .. ':' .. readyAlphaOf(space) .. ':' .. tostring(stateAgeLabelOf(space, seconds))
     end
     return table.concat(parts, ' ')
 end
@@ -1349,7 +1412,7 @@ local function drawSessionDots(
     seconds
 )
     local moving = movingSlots(pair.sessionSpaces, seconds)
-    local key = sessionDotsKey(pair.sessionIndex, pair.sessionSpaces, pair.followOrder, pillVisible, moving)
+    local key = sessionDotsKey(pair.sessionIndex, pair.sessionSpaces, pair.followOrder, pillVisible, moving, seconds)
     if pair.sessionKey ~= key then
         layoutSessionDots(
             pair.dots,
@@ -1615,6 +1678,25 @@ local function refreshSessionStates()
     for space in pairs(missedReadyAt) do
         if states[space] ~= 'ready' then
             missedReadyAt[space] = nil
+        end
+    end
+    -- Start a Space's state clock when its drawn state changes; start the first read's at the state file's write, the best guess a reload has.
+    for space, state in pairs(states) do
+        if sessionStates == nil then
+            stateSince[space] = changedAt[space] or now
+        elseif sessionStates[space] == state then
+            -- Keep the clock of a state that held.
+        elseif state == 'ready' then
+            -- Count a ready from when it was first read, not from when it settled.
+            stateSince[space] = readySince[space]
+        else
+            stateSince[space] = now
+        end
+    end
+    -- Forget the Spaces whose session went away.
+    for space in pairs(stateSince) do
+        if states[space] == nil then
+            stateSince[space] = nil
         end
     end
     sessionStates = states
@@ -2118,6 +2200,40 @@ local function animateFrame()
     end
 end
 
+-- Redraw the shown rows when the soonest state age's text changes, then wait for the next; the frame timer may redraw them sooner, which only skips a redraw here.
+local function scheduleStateAgeRedraw()
+    if stateAgeTimer then
+        stateAgeTimer:stop()
+        stateAgeTimer = nil
+    end
+    local seconds = hs.timer.secondsSinceEpoch()
+    local sessionPairs = shownSessionPairs()
+    local soonest = nil
+    for _, pair in ipairs(sessionPairs) do
+        for _, space in ipairs(pair.sessionSpaces) do
+            local _, untilChange = stateAgeLabelOf(space, seconds)
+            if untilChange == nil then
+                -- Skip a dot with no age shown.
+            elseif soonest == nil then
+                soonest = untilChange
+            elseif untilChange < soonest then
+                soonest = untilChange
+            end
+        end
+    end
+    if soonest ~= nil then
+        -- Land just past the change, so a timer firing a hair early doesn't redraw the old text.
+        stateAgeTimer = hs.timer.doAfter(soonest + 0.01, function()
+            stateAgeTimer = nil
+            local pillVisible = isEnabled('page_dots_pill')
+            for _, pair in ipairs(shownSessionPairs()) do
+                drawSessionDots(pair, pillVisible, hs.timer.secondsSinceEpoch())
+            end
+            scheduleStateAgeRedraw()
+        end)
+    end
+end
+
 -- Run the frame timer while any shown row of session dots has something moving, and only then.
 local function updateAnimation()
     if not anySessionDotsAnimate(shownSessionPairs(), hs.timer.secondsSinceEpoch()) then
@@ -2215,6 +2331,7 @@ local function render()
     missedReadyAt[focused] = nil
     renderEdgeBars(index, count, screen, focused, screenSpaces)
     updateAnimation()
+    scheduleStateAgeRedraw()
     updateCountdownTimer()
     updateCountdowns()
 end
@@ -2257,6 +2374,7 @@ redrawSessionDots = function()
     refreshSessionStates()
     placeEveryEdgeBarSet()
     updateAnimation()
+    scheduleStateAgeRedraw()
 end
 
 -- Redraw every Space's session dots after a hook records a state, so each row is current before it's next seen.
@@ -2280,6 +2398,7 @@ local function renderSessionStates(changedPaths)
     end
     placeEveryEdgeBarSet()
     updateAnimation()
+    scheduleStateAgeRedraw()
 end
 
 -- Redraw the bars once macOS settles; restart the wait on each event, so a burst of them redraws once.
