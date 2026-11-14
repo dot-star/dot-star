@@ -1038,17 +1038,19 @@ local function stateAgeLabelOf(
     elseif state == 'pending' then
         return nil, nil
     end
+    -- Count whole wall-clock seconds, so every dot's age ticks on the same beat rather than at its own start's fraction.
+    local tick = math.floor(seconds)
+    local untilTick = 1 - (seconds - tick)
     -- Floor a start a moment ahead of the clock, as a ready rounded up to its write's next second can be.
-    local age = math.max(0, seconds - since)
-    local whole = math.floor(age)
+    local whole = math.max(0, tick - math.floor(since))
     if whole < 60 then
-        return string.format('%ds', whole), 1 - (age - whole)
+        return string.format('%ds', whole), untilTick
     elseif whole < 3600 then
-        return string.format('%dm', whole // 60), 60 - age % 60
+        return string.format('%dm', whole // 60), 59 - whole % 60 + untilTick
     elseif whole < 86400 then
-        return string.format('%dh%dm', whole // 3600, whole % 3600 // 60), 60 - age % 60
+        return string.format('%dh%dm', whole // 3600, whole % 3600 // 60), 59 - whole % 60 + untilTick
     end
-    return string.format('%dd%dh', whole // 86400, whole % 86400 // 3600), 3600 - age % 3600
+    return string.format('%dd%dh', whole // 86400, whole % 86400 // 3600), 3599 - whole % 3600 + untilTick
 end
 
 -- Return how far the Space's ready ping has rippled, from 0 to 1, or nil once it's done.
