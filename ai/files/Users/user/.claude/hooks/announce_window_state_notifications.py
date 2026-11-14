@@ -33,16 +33,14 @@ def withdraw_notification(session: Session) -> None:
         return
 
     marker.unlink(missing_ok=True)
-    record = recorded_window(session=session)
+    window = recorded_window(session=session)
 
-    if not record:
+    if window is None:
         return
 
-    window_id = record[0]
-    bundle_id = record[1] if len(record) > 1 else ""
     outcome = run_hammerspoon(
         lua=f"""
-        return require("notify_claude_session_windows").withdraw({window_id}, {lua_quote(bundle_id)})
+        return require("notify_claude_session_windows").withdraw({window.lua_args()})
         """,
         action="withdraw notification",
         session=session,
@@ -84,19 +82,16 @@ def post_clickable_notification(
     :return: True once Hammerspoon posted it; False when no window is on file
         or Hammerspoon can't be reached, so the caller can fall back.
     """
-    record = recorded_window(session=session)
+    window = recorded_window(session=session)
 
-    # Fall back when no window is on file (None) or the record is empty.
-    if not record:
+    # Fall back when no window is on file or the record is empty.
+    if window is None:
         return False
 
-    window_id = record[0]
-    bundle_id = record[1] if len(record) > 1 else ""
     outcome = run_hammerspoon(
         lua=f"""
         return require("notify_claude_session_windows").post(
-            {window_id},
-            {lua_quote(bundle_id)},
+            {window.lua_args()},
             {lua_quote(title)},
             {lua_quote(message)}
         )

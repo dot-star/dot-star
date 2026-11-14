@@ -6,12 +6,40 @@ import it from the hooks directory, which Python puts on `sys.path` when it runs
 a script there.
 """
 
+from dataclasses import dataclass
+
 from announce_window_state_models import Session
 from announce_window_state_scripting import log
 from announce_window_state_scripting import lua_quote
 from announce_window_state_scripting import run_hammerspoon
 from announce_window_state_scripting import run_osascript
 from terminal_tty import IN_TERMINAL_APP
+
+
+@dataclass(frozen=True)
+class Window:
+    """A terminal window captured at session launch, as Terminal.app or Hammerspoon identifies it."""
+
+    id: str
+    bundle_id: str
+
+    def lua_args(self) -> str:
+        """
+        Returns the window as the leading Lua arguments `notify_claude_session_windows` functions take.
+
+        :return: Window id, then the bundle id as a Lua string literal.
+        """
+        return f"{self.id}, {lua_quote(self.bundle_id)}"
+
+    def raise_lua(self) -> str:
+        """
+        Returns Lua statements that focus the window, falling back to activating its app.
+
+        :return: Lua source whose `return` reports what got raised.
+        """
+        return f"""
+        return require("notify_claude_session_windows").raise({self.lua_args()})
+        """
 
 
 def capture_window_id(session: Session) -> None:
@@ -55,37 +83,25 @@ def capture_window_id(session: Session) -> None:
     log(f"captured window {record} for session {session.id}")
 
 
-def recorded_window(session: Session) -> list[str] | None:
+def recorded_window(session: Session) -> Window | None:
     """
-    Returns the session's window record split into its fields.
+    Returns the window recorded for the session at launch.
 
     :param session: Claude session whose window record to read.
-    :return: Window id, then the owning app's bundle id under Hammerspoon
-        (e.g. `["12345", "com.mitchellh.ghostty"]`), or None when no record is on file.
+    :return: The window, with an empty bundle id under Terminal.app, or None
+        when no record is on file or the record is empty.
     """
     path = session.window_file
 
     if not path.exists():
         return None
 
-    return path.read_text().strip().split()
+    fields = path.read_text().strip().split()
 
+    if not fields:
+        return None
 
-def raise_window_lua(
-    window_id: str,
-    bundle_id: str,
-) -> str:
-    """
-    Returns Lua statements that focus a window, falling back to activating its app.
-
-    :param window_id: Hammerspoon window id to focus (e.g. "12345").
-    :param bundle_id: Bundle id of the app to activate when the window is gone
-        or sits in a background tab (e.g. "com.mitchellh.ghostty").
-    :return: Lua source whose `return` reports what got raised.
-    """
-    return f"""
-        return require("notify_claude_session_windows").raise({window_id}, {lua_quote(bundle_id)})
-        """
+    return Window(id=fields[0], bundle_id=fields[1] if len(fields) > 1 else "")
 
 
 def focus_window(session: Session) -> None:
@@ -94,15 +110,16 @@ def focus_window(session: Session) -> None:
 
     :param session: Claude session whose window record to raise.
     """
-    record = recorded_window(session=session)
-
-    if record is None:
+    if not session.window_file.exists():
         log(f"no window id on file for session {session.id}; cannot raise (was SessionStart blocked?)")
         return
-    elif not record:
+
+    window = recorded_window(session=session)
+
+    if window is None:
         return
 
-    window_id = record[0]
+    window_id = window.id
 
     # Leave focus alone while a window of the session's own terminal app is
     # frontmost: the user may be mid-keystroke in another session, and a raise
@@ -123,14 +140,14 @@ def focus_window(session: Session) -> None:
         )
         return
 
-    bundle_id = record[1] if len(record) > 1 else ""
+    bundle_id = window.bundle_id
     outcome = run_hammerspoon(
         lua=f"""
         local focused = hs.window.focusedWindow()
         if focused ~= nil and focused:application():bundleID() == "{bundle_id}" then
             return "{bundle_id} is frontmost (typing?); window {window_id} left alone"
         end
-        {raise_window_lua(window_id=window_id, bundle_id=bundle_id)}
+        {window.raise_lua()}
         """,
         action=f"raise window {window_id}",
         session=session,
