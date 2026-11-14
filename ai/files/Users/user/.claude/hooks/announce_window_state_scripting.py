@@ -7,6 +7,7 @@ a script there.
 """
 
 import subprocess
+import time
 
 from announce_window_state_models import Session
 from terminal_tty import STATE_DIR
@@ -17,6 +18,15 @@ LOG_FILE = STATE_DIR / "announce_window_state.log"
 # Reach Hammerspoon through the client shipped inside its bundle rather than a
 # PATH lookup, since hooks run with claude's environment, not the login shell's.
 HAMMERSPOON_CLI = "/Applications/Hammerspoon.app/Contents/Frameworks/hs/hs"
+
+# Give up on a Hammerspoon that stopped answering (e.g. wedged mid-reload)
+# rather than holding Claude until its own hook timeout. A healthy call takes
+# a few milliseconds, so this only fires on a stuck app.
+HAMMERSPOON_TIMEOUT_SECONDS = 2
+
+# Log a call that finished but took long enough to suggest Hammerspoon is
+# struggling, so a creep toward the timeout shows up before it fires.
+HAMMERSPOON_SLOW_SECONDS = 0.5
 
 
 def log(message: str) -> None:
@@ -78,18 +88,30 @@ def run_hammerspoon(
     :param action: Short label for the log line (e.g. "capture window id").
     :param session: Claude session whose once-only failure alert this may fire.
     :return: The snippet's return value, stripped, or None when the client is
-        missing or the snippet errored.
+        missing, the snippet errored or Hammerspoon didn't answer in time.
     """
+    started = time.monotonic()
+
     try:
         result = subprocess.run(
             [HAMMERSPOON_CLI, "-c", lua],
             capture_output=True,
             text=True,
             check=False,
+            timeout=HAMMERSPOON_TIMEOUT_SECONDS,
         )
     except OSError as error:
         log(f"{action} failed (no Hammerspoon client at {HAMMERSPOON_CLI}): {error}")
         return None
+    except subprocess.TimeoutExpired:
+        log(f"{action} timed out after {HAMMERSPOON_TIMEOUT_SECONDS}s; Hammerspoon stopped answering")
+        log("  fix: reload Hammerspoon, or quit and reopen it if the reload hangs too")
+        return None
+
+    elapsed = time.monotonic() - started
+
+    if elapsed >= HAMMERSPOON_SLOW_SECONDS:
+        log(f"{action} slow: Hammerspoon took {elapsed:.2f}s (timeout {HAMMERSPOON_TIMEOUT_SECONDS}s)")
 
     if result.returncode != 0:
         log(f"{action} failed (hs exit {result.returncode}): {result.stderr.strip()}")
