@@ -109,18 +109,21 @@ local TITLE_BAR_HEIGHT = require('ghostty_title_bar').HEIGHT
 local DOT_SIZE = (TITLE_BAR_HEIGHT + require('ghostty_title_bar').TAB_STRIP_HEIGHT) / 2
 -- Pad a column's ends as much as its sides, so the first and last dots sit evenly in it.
 local DOTS_PADDING = (TITLE_BAR_HEIGHT - DOT_SIZE) / 2
--- Leave room for the countdown's longest text, so it never clips against the dots.
-local COUNTDOWN_WIDTH = 60
-local COUNTDOWN_TEXT_SIZE = 22
--- Stroke the countdown's debug outline green, apart from the dots' red, yellow and cyan boxes beside it.
-local COUNTDOWN_OUTLINE_COLOR = { red = 0, green = 1, blue = 0, alpha = 1 }
-local COUNTDOWN_OUTLINE_HIDDEN_COLOR = { red = 0, green = 1, blue = 0, alpha = 0 }
--- Heat the countdown from dim gray up to white a third of the way in, then hold white until follow_ready arms.
--- Keep the early seconds dim, so a countdown that resets on every keystroke stays out of the way.
-local COUNTDOWN_COLOR_STOPS = {
-    { heat = 0, color = { red = 0.3, green = 0.3, blue = 0.3, alpha = 1 } },
-    { heat = 1 / 3, color = { red = 1, green = 1, blue = 1, alpha = 1 } },
-    { heat = 1, color = { red = 1, green = 1, blue = 1, alpha = 1 } },
+-- Group the countdown's sizes and colors in one table, keeping the chunk under Lua's limit of 200 locals.
+local COUNTDOWN = {
+    -- Leave room for the countdown's longest text, so it never clips against the dots.
+    WIDTH = 60,
+    TEXT_SIZE = 22,
+    -- Stroke the countdown's debug outline green, apart from the dots' red, yellow and cyan boxes beside it.
+    OUTLINE_COLOR = { red = 0, green = 1, blue = 0, alpha = 1 },
+    OUTLINE_HIDDEN_COLOR = { red = 0, green = 1, blue = 0, alpha = 0 },
+    -- Heat the countdown from dim gray up to white a third of the way in, then hold white until follow_ready arms.
+    -- Keep the early seconds dim, so a countdown that resets on every keystroke stays out of the way.
+    COLOR_STOPS = {
+        { heat = 0, color = { red = 0.3, green = 0.3, blue = 0.3, alpha = 1 } },
+        { heat = 1 / 3, color = { red = 1, green = 1, blue = 1, alpha = 1 } },
+        { heat = 1, color = { red = 1, green = 1, blue = 1, alpha = 1 } },
+    },
 }
 -- Read each Claude session's state word and window record from where `announce_window_state.py` writes them.
 local SESSION_STATE_DIR = '/tmp/claude-state-hook/'
@@ -165,13 +168,16 @@ local HOP_STATE_PRIORITY = {
     busy = 4,
 }
 local FOCUS_MARK_COLOR = { white = 1, alpha = 1 }
--- Frame the dot under the pointer, so a click's target shows before you commit to it.
-local HOVER_FRAME_COLOR = { white = 1, alpha = 0.8 }
-local HOVER_FRAME_WIDTH = 2.5
+-- Group the hover frame's sizes and color in one table, keeping the chunk under Lua's limit of 200 locals.
+local HOVER_FRAME = {
+    -- Frame the dot under the pointer, so a click's target shows before you commit to it.
+    COLOR = { white = 1, alpha = 0.8 },
+    WIDTH = 2.5,
+    -- Keep the frame off the title bar's edges, tall enough to take in the focus underline and follow-order letter.
+    MARGIN = 2,
+}
 -- Reach the stroke's outer edge to the dot's click zone, half the gap on each side, so the frame shows exactly what a click hits.
-local HOVER_FRAME_SIDE_PADDING = DOT_GAP / 2 - HOVER_FRAME_WIDTH / 2
--- Keep the frame off the title bar's edges, tall enough to take in the focus underline and follow-order letter.
-local HOVER_FRAME_MARGIN = 2
+HOVER_FRAME.SIDE_PADDING = DOT_GAP / 2 - HOVER_FRAME.WIDTH / 2
 -- Size the follow-order letter to read at a glance under its dot.
 local FOLLOW_ORDER_TEXT_SIZE = 13
 local FOLLOW_ORDER_FONT = 'Menlo-Bold'
@@ -391,8 +397,8 @@ end
 
 -- Right-align the text, so it hugs the dots however long it runs.
 local function newCountdown()
-    local countdown = newOverlay({ x = 0, y = 0, w = COUNTDOWN_WIDTH, h = DOT_SIZE }, EDGE_BAR_BEHAVIOR)
-    local textHeight = COUNTDOWN_TEXT_SIZE + 4
+    local countdown = newOverlay({ x = 0, y = 0, w = COUNTDOWN.WIDTH, h = DOT_SIZE }, EDGE_BAR_BEHAVIOR)
+    local textHeight = COUNTDOWN.TEXT_SIZE + 4
     countdown[1] = {
         type = 'text',
         text = '',
@@ -400,14 +406,14 @@ local function newCountdown()
         textColor = COUNTDOWN_CALM_COLOR,
         -- Use fixed-width digits, so the text doesn't shift as each second ticks.
         textFont = 'Menlo',
-        textSize = COUNTDOWN_TEXT_SIZE,
-        frame = { x = 0, y = (DOT_SIZE - textHeight) / 2, w = COUNTDOWN_WIDTH, h = textHeight },
+        textSize = COUNTDOWN.TEXT_SIZE,
+        frame = { x = 0, y = (DOT_SIZE - textHeight) / 2, w = COUNTDOWN.WIDTH, h = textHeight },
     }
     -- Trace the whole canvas for debugging; placement shows it only while page_dots_pill is on.
     countdown[2] = {
         type = 'rectangle',
         action = 'stroke',
-        strokeColor = COUNTDOWN_OUTLINE_HIDDEN_COLOR,
+        strokeColor = COUNTDOWN.OUTLINE_HIDDEN_COLOR,
         strokeWidth = 1,
     }
     return countdown
@@ -576,16 +582,16 @@ local function hoverFrameElement(center)
     if isEnabled('vertical_dots') then
         -- Take in the strip beneath the dot, where its underline and follow-order letter sit.
         frame = {
-            x = HOVER_FRAME_MARGIN,
-            y = center.y - DOT_SIZE / 2 - HOVER_FRAME_MARGIN,
-            w = TITLE_BAR_HEIGHT - 2 * HOVER_FRAME_MARGIN,
+            x = HOVER_FRAME.MARGIN,
+            y = center.y - DOT_SIZE / 2 - HOVER_FRAME.MARGIN,
+            w = TITLE_BAR_HEIGHT - 2 * HOVER_FRAME.MARGIN,
             h = DOT_SIZE + DOT_GAP,
         }
     else
-        local halfWidth = DOT_SIZE / 2 + HOVER_FRAME_SIDE_PADDING
+        local halfWidth = DOT_SIZE / 2 + HOVER_FRAME.SIDE_PADDING
         -- Run the frame from the screen's top to the row's bottom, since the dots already touch the top and leave no room above them.
         -- Inset each edge by half the stroke, which straddles its line.
-        local inset = HOVER_FRAME_WIDTH / 2
+        local inset = HOVER_FRAME.WIDTH / 2
         frame = {
             x = center.x - halfWidth,
             y = inset,
@@ -596,8 +602,8 @@ local function hoverFrameElement(center)
     return {
         type = 'rectangle',
         action = 'stroke',
-        strokeColor = HOVER_FRAME_COLOR,
-        strokeWidth = HOVER_FRAME_WIDTH,
+        strokeColor = HOVER_FRAME.COLOR,
+        strokeWidth = HOVER_FRAME.WIDTH,
         frame = frame,
     }
 end
@@ -1731,7 +1737,7 @@ local function layoutHoverFrame(
     else
         local element = hoverFrameElement(pageDotCenter(hoverSlot))
         -- Trim an end slot's frame to the canvas, so the stroke stays inside the clickable row like a CSS border; the stroke straddles its line, so inset by half of it.
-        local inset = HOVER_FRAME_WIDTH / 2
+        local inset = HOVER_FRAME.WIDTH / 2
         local size = hover:frame()
         local left = math.max(element.frame.x, inset)
         local top = math.max(element.frame.y, inset)
@@ -1921,15 +1927,15 @@ local function placeEdgeBars(
     -- Line the countdown up with the first dot's band, so it reads as part of the row.
     local firstBand = pageDotsBandFrame(1)
     pair.countdown:frame({
-        x = dotsX - COUNTDOWN_WIDTH,
+        x = dotsX - COUNTDOWN.WIDTH,
         y = frame.y + firstBand.y,
-        w = COUNTDOWN_WIDTH,
+        w = COUNTDOWN.WIDTH,
         h = firstBand.h,
     })
     if pillVisible then
-        pair.countdown[2].strokeColor = COUNTDOWN_OUTLINE_COLOR
+        pair.countdown[2].strokeColor = COUNTDOWN.OUTLINE_COLOR
     else
-        pair.countdown[2].strokeColor = COUNTDOWN_OUTLINE_HIDDEN_COLOR
+        pair.countdown[2].strokeColor = COUNTDOWN.OUTLINE_HIDDEN_COLOR
     end
 end
 
@@ -2148,8 +2154,8 @@ local function countdownColor(now)
     else
         error('unknown follow phase: ' .. phase)
     end
-    for i = 2, #COUNTDOWN_COLOR_STOPS do
-        local from, to = COUNTDOWN_COLOR_STOPS[i - 1], COUNTDOWN_COLOR_STOPS[i]
+    for i = 2, #COUNTDOWN.COLOR_STOPS do
+        local from, to = COUNTDOWN.COLOR_STOPS[i - 1], COUNTDOWN.COLOR_STOPS[i]
         if heat <= to.heat then
             local progress = (heat - from.heat) / (to.heat - from.heat)
             local color = {}
@@ -2298,7 +2304,7 @@ function showSpacePosition.clockRightInset(fullScreen)
     elseif not fullScreen then
         return nil
     end
-    return pageDotsSize(1).w + COUNTDOWN_WIDTH
+    return pageDotsSize(1).w + COUNTDOWN.WIDTH
 end
 
 -- Turn an experiment on or off, pick a style or set a number, or report every one's current value when called with no name.
