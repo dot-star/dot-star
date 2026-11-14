@@ -149,6 +149,8 @@ local SESSION_STATE_COLORS = {
 }
 -- Dim the oldest green ring to where it still reads as green against the black band, spreading the rest evenly up to the newest.
 local READY_FADE_FLOOR = 0.35
+-- Hold a green ring at full brightness while its session finished recently enough to still be fresh in your head, fading by rank only after that.
+local READY_FRESH_SECONDS = 5 * 60
 -- Rank the states, so a Space shared by several sessions shows the one most in need of you.
 local SESSION_STATE_URGENCY = {
     busy = 1,
@@ -1004,10 +1006,12 @@ local function pingProgressOf(space, seconds)
     return (seconds - startedAt) / PING_SECONDS
 end
 
--- Return the alpha for the Space's green ring by its rank among the green rings: full for the session that turned ready last, the floor for the oldest.
+-- Return the alpha for the Space's green ring: full while it's fresh, else by its rank among the green rings, from full for the session that turned ready last to the floor for the oldest.
 local function readyAlphaOf(space)
     local since = readySince[space]
     if since == nil then
+        return 1
+    elseif hs.timer.secondsSinceEpoch() - since < READY_FRESH_SECONDS then
         return 1
     end
     local greens = 0
@@ -1552,7 +1556,7 @@ local function settleReadyStates(
     end
 end
 
--- Redraw when the soonest held-back ready settles, since no state file write marks that moment.
+-- Redraw when the soonest held-back ready settles or a fresh green ring goes stale and starts fading, since no state file write marks either moment.
 local function scheduleReadyRedraw(now)
     if readyRedrawTimer then
         readyRedrawTimer:stop()
@@ -1560,13 +1564,15 @@ local function scheduleReadyRedraw(now)
     end
     local soonest = nil
     for _, since in pairs(readySince) do
-        local remaining = since + READY_SETTLE_SECONDS - now
-        if remaining <= 0 then
-            -- Skip a ready that already settled.
-        elseif soonest == nil then
-            soonest = remaining
-        elseif remaining < soonest then
-            soonest = remaining
+        for _, delay in ipairs({ READY_SETTLE_SECONDS, READY_FRESH_SECONDS }) do
+            local remaining = since + delay - now
+            if remaining <= 0 then
+                -- Skip a moment already passed.
+            elseif soonest == nil then
+                soonest = remaining
+            elseif remaining < soonest then
+                soonest = remaining
+            end
         end
     end
     if soonest ~= nil then
