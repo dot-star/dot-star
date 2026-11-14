@@ -147,6 +147,8 @@ local SESSION_STATE_COLORS = {
     pending = { white = 0.55, alpha = 1 },
     none = { white = 0.55, alpha = 1 },
 }
+-- Dim the oldest green ring to where it still reads as green against the black band, spreading the rest evenly up to the newest.
+local READY_FADE_FLOOR = 0.35
 -- Rank the states, so a Space shared by several sessions shows the one most in need of you.
 local SESSION_STATE_URGENCY = {
     busy = 1,
@@ -865,12 +867,14 @@ local function decisionElements(style, center, seconds)
 end
 
 -- Draw a check inside the ring unless `labeled`, whose hotkey digit takes the middle, rippling a ping out from it while `pingProgress` runs from 0 to 1.
+-- Draw the ring and check at `readyAlpha`, so an older ready fades behind a newer one.
 local function readyElements(
     center,
     pingProgress,
-    labeled
+    labeled,
+    readyAlpha
 )
-    local color = SESSION_STATE_COLORS.ready
+    local color = withAlpha(SESSION_STATE_COLORS.ready, readyAlpha)
     local elements = { ring(center, RING_RADIUS, color, RING_WIDTH) }
     if not labeled then
         -- Grow the check with the dot; its points were drawn for a 20-point dot.
@@ -915,14 +919,15 @@ local function stateElements(
     center,
     seconds,
     pingProgress,
-    labeled
+    labeled,
+    readyAlpha
 )
     if state == 'busy' then
         return busyElements(center, seconds)
     elseif state == 'decision' then
         return decisionElements(styleOf('decision_style'), center, seconds)
     elseif state == 'ready' then
-        return readyElements(center, pingProgress, labeled)
+        return readyElements(center, pingProgress, labeled, readyAlpha)
     elseif state == 'pending' then
         return pendingElements(styleOf('pending_style'), center, seconds)
     elseif state == 'none' then
@@ -973,9 +978,10 @@ local function focusedElements(
     center,
     seconds,
     pingProgress,
-    labeled
+    labeled,
+    readyAlpha
 )
-    local elements = stateElements(state, center, seconds, pingProgress, labeled)
+    local elements = stateElements(state, center, seconds, pingProgress, labeled, readyAlpha)
     addFocusMarker(elements, center)
     return elements
 end
@@ -996,6 +1002,30 @@ local function pingProgressOf(space, seconds)
         return nil
     end
     return (seconds - startedAt) / PING_SECONDS
+end
+
+-- Return the alpha for the Space's green ring by its rank among the green rings: full for the session that turned ready last, the floor for the oldest.
+local function readyAlphaOf(space)
+    local since = readySince[space]
+    if since == nil then
+        return 1
+    end
+    local greens = 0
+    local newer = 0
+    for other, otherSince in pairs(readySince) do
+        if sessionStateOf(other) ~= 'ready' then
+            -- Skip a ready still settling, which draws no green ring yet.
+        elseif otherSince > since then
+            greens = greens + 1
+            newer = newer + 1
+        else
+            greens = greens + 1
+        end
+    end
+    if greens <= 1 then
+        return 1
+    end
+    return 1 - (1 - READY_FADE_FLOOR) * newer / (greens - 1)
 end
 
 -- Return whether the Space's dot moves: an orbit, a decision's beat, a pending pulse or a ping still rippling.
@@ -1091,10 +1121,11 @@ local function sessionDotElements(
         pingProgress = pingProgressOf(space, seconds)
     end
     local labeled = slotHotkeys[position + 1] ~= nil
+    local readyAlpha = readyAlphaOf(space)
     if position == index then
-        return focusedElements(state, center, seconds, pingProgress, labeled)
+        return focusedElements(state, center, seconds, pingProgress, labeled, readyAlpha)
     end
-    return stateElements(state, center, seconds, pingProgress, labeled)
+    return stateElements(state, center, seconds, pingProgress, labeled, readyAlpha)
 end
 
 -- Remove every element from `canvas`, skipping the repaint when it's already empty.
@@ -1296,7 +1327,7 @@ local function sessionDotsKey(
         tostring(isEnabled('hotkey_caret')),
     }
     for position, space in ipairs(spaces) do
-        parts[#parts + 1] = sessionStateOf(space) .. ':' .. tostring(followOrder[space]) .. ':' .. tostring(moving[position + 1] == true)
+        parts[#parts + 1] = sessionStateOf(space) .. ':' .. tostring(followOrder[space]) .. ':' .. tostring(moving[position + 1] == true) .. ':' .. readyAlphaOf(space)
     end
     return table.concat(parts, ' ')
 end
