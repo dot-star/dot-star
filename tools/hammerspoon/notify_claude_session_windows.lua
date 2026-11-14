@@ -33,14 +33,25 @@ local function registerTag(tag)
     end)
 end
 
--- Replace the window's notification with a new one that stays in Notification Center until clicked.
-function claudeSessionNotifications.post(windowId, bundleId, title, message)
-    local tag = TAG_PREFIX .. windowId .. ':' .. bundleId
+local function tagFor(windowId, bundleId)
+    return TAG_PREFIX .. windowId .. ':' .. bundleId
+end
+
+-- Remove the window's notification from Notification Center, if one is still showing.
+function claudeSessionNotifications.withdraw(windowId, bundleId)
+    local tag = tagFor(windowId, bundleId)
     for _, delivered in ipairs(hs.notify.deliveredNotifications()) do
         if delivered:getFunctionTag() == tag then
             delivered:withdraw()
         end
     end
+    return 'notification withdrawn for window ' .. windowId
+end
+
+-- Replace the window's notification with a new one that stays in Notification Center until clicked.
+function claudeSessionNotifications.post(windowId, bundleId, title, message)
+    local tag = tagFor(windowId, bundleId)
+    claudeSessionNotifications.withdraw(windowId, bundleId)
     registerTag(tag)
     hs.notify.new(tag, {
         title = title,
