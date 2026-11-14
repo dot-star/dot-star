@@ -21,6 +21,8 @@ space_position_experiment() {
         "${hammerspoon_cli}" -c "return showSpacePosition.set('${name}', false)"
     elif [[ "${name}" == "decision_style" && -n "${state}" ]]; then
         "${hammerspoon_cli}" -c "return showSpacePosition.set('${name}', '${state}')"
+    elif [[ "${name}" == "desktop_dots_size" && -n "${state}" ]]; then
+        "${hammerspoon_cli}" -c "return showSpacePosition.set('${name}', '${state}')"
     elif [[ "${name}" == "desktop_dots_style" && -n "${state}" ]]; then
         "${hammerspoon_cli}" -c "return showSpacePosition.set('${name}', '${state}')"
     elif [[ "${name}" == "focus_marker" && -n "${state}" ]]; then
@@ -34,6 +36,7 @@ space_position_experiment() {
     else
         echo "Usage: space_position_experiment [<bottom_bar|cycle_colors|desktop_dots|edge_bars|follow_countdown|follow_order|follow_ready|hotkey_caret|page_dots|page_dots_pill|session_state|swipe_hint|top_bar|vertical_dots> <on|off>]"
         echo "       space_position_experiment decision_style <blink|flash|heartbeat|nudge>"
+        echo "       space_position_experiment desktop_dots_size <full|small>"
         echo "       space_position_experiment desktop_dots_style <center|corner>"
         echo "       space_position_experiment focus_marker <center|underline>"
         echo "       space_position_experiment pending_style <dashed|dot|pulse>"

@@ -5,7 +5,8 @@
 --   Add a matching band along the top edge of every full-screen Space (top_bar, needs edge_bars).
 --   Paint each Space's bars the next color in a cycle rather than one shared color (cycle_colors, needs edge_bars).
 --   Add a row of dots in the title bar's upper-right corner of every full-screen Space, the focused Space filled; click a dot to jump to its Space (page_dots, needs edge_bars).
---   Show the dots on a desktop too, shrunk into the middle of the menu bar or placed as on a full-screen Space, left of the clock in the corner (desktop_dots, needs page_dots).
+--   Show the dots on a desktop too, centered in the menu bar or placed as on a full-screen Space, left of the clock in the corner (desktop_dots, needs page_dots).
+--   Size the centered desktop dots small, shrunk to fit the menu bar, or full, the size a full-screen Space shows (desktop_dots_size, needs desktop_dots).
 --   Add a hint at the middle of a desktop's right edge while a Space lies beyond it, so swiping right reads as possible; a chevron, a large chevron, a double chevron, a block or a chevron on a dark tab (swipe_hint, needs edge_bars).
 --   Show the dark pill behind the dots, to check where their canvas sits (page_dots_pill, needs page_dots).
 --   Stack the dots in a column down the upper-right corner, in swipe order from the top (vertical_dots, needs page_dots).
@@ -41,6 +42,7 @@ local DEFAULT_ENABLED = {
 -- Apply each style's default until it's set; a saved choice wins after that.
 local DEFAULT_STYLES = {
     decision_style = 'heartbeat',
+    desktop_dots_size = 'small',
     desktop_dots_style = 'center',
     focus_marker = 'underline',
     pending_style = 'pulse',
@@ -48,6 +50,7 @@ local DEFAULT_STYLES = {
 }
 local STYLE_CHOICES = {
     decision_style = { 'blink', 'flash', 'heartbeat', 'nudge' },
+    desktop_dots_size = { 'full', 'small' },
     desktop_dots_style = { 'center', 'corner' },
     focus_marker = { 'center', 'underline' },
     pending_style = { 'dashed', 'dot', 'pulse' },
@@ -2013,8 +2016,11 @@ local function placeEdgeBars(
     local dotsX
     local dotsY = frame.y
     if centersDots(pair) then
-        local inset
-        scale, inset = menuBarDotsFit(screen)
+        -- Hang full-size dots from the screen's top, as a full-screen Space does.
+        local inset = 0
+        if styleOf('desktop_dots_size') == 'small' then
+            scale, inset = menuBarDotsFit(screen)
+        end
         -- Center the row between the menus on the left and the clock and status icons on the right.
         dotsX = frame.x + (frame.w - scale * dotsSize.w) / 2
         dotsY = frame.y + inset
