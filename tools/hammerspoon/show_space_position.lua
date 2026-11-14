@@ -190,7 +190,7 @@ local HOTKEY_TEXT_SIZE = 14
 local HOTKEY_TEXT_HEIGHT = HOTKEY_TEXT_SIZE + 2
 -- Write how long each dot has held its state a line under the follow-order letters, smaller and dimmer so it reads as a footnote to them.
 local STATE_AGE = {
-    TEXT_SIZE = 10,
+    TEXT_SIZE = 12,
     FONT = 'Menlo',
     COLOR = { white = 0.6, alpha = 1 },
 }
