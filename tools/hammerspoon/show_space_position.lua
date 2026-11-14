@@ -5,7 +5,7 @@
 --   Add a matching band along the top edge of every full-screen Space (top_bar, needs edge_bars).
 --   Paint each Space's bars the next color in a cycle rather than one shared color (cycle_colors, needs edge_bars).
 --   Add a row of dots in the title bar's upper-right corner of every full-screen Space, the focused Space filled; click a dot to jump to its Space (page_dots, needs edge_bars).
---   Show the dots on a desktop too, placed as on a full-screen Space over the menu bar, left of the clock in the corner (desktop_dots, needs page_dots).
+--   Show the dots on a desktop too, shrunk into the middle of the menu bar or placed as on a full-screen Space, left of the clock in the corner (desktop_dots, needs page_dots).
 --   Add a hint at the middle of a desktop's right edge while a Space lies beyond it, so swiping right reads as possible; a chevron, a large chevron, a double chevron, a block or a chevron on a dark tab (swipe_hint, needs edge_bars).
 --   Show the dark pill behind the dots, to check where their canvas sits (page_dots_pill, needs page_dots).
 --   Stack the dots in a column down the upper-right corner, in swipe order from the top (vertical_dots, needs page_dots).
@@ -41,12 +41,14 @@ local DEFAULT_ENABLED = {
 -- Apply each style's default until it's set; a saved choice wins after that.
 local DEFAULT_STYLES = {
     decision_style = 'heartbeat',
+    desktop_dots_style = 'center',
     focus_marker = 'underline',
     pending_style = 'pulse',
     swipe_hint_style = 'double',
 }
 local STYLE_CHOICES = {
     decision_style = { 'blink', 'flash', 'heartbeat', 'nudge' },
+    desktop_dots_style = { 'center', 'corner' },
     focus_marker = { 'center', 'underline' },
     pending_style = { 'dashed', 'dot', 'pulse' },
     swipe_hint_style = { 'block', 'chevron', 'double', 'large', 'tab' },
@@ -103,6 +105,8 @@ local EDGE_BAR_COLORS = {
 -- Paint every Space's bars this one color while cycle_colors is off, so the bars read as a single landmark.
 local UNIFORM_EDGE_BAR_COLOR = { red = 1, green = 0.9, blue = 0.1, alpha = 0.9 }
 local DOT_GAP = 14
+-- Inset a desktop's centered dots from the menu bar's edges, so they read as sitting in the bar rather than filling it.
+local MENU_BAR_DOTS_MARGIN = 2
 -- Fill the native title bar Ghostty keeps for its tabs with the dots' pill.
 local TITLE_BAR_HEIGHT = require('ghostty_title_bar').HEIGHT
 -- Run each dot from the screen's top edge down to the bottom of the tab strip centered in the title bar, pushing the underline, letters and hotkeys below it.
@@ -1809,10 +1813,11 @@ local function deleteEdgeBarPair(pair)
     pair.countdown:delete()
 end
 
--- Frame the dot at `hoverSlot` on the hover canvas, or clear the canvas when nil.
+-- Frame the dot at `hoverSlot` on the hover canvas drawn at `scale`, or clear the canvas when nil.
 local function layoutHoverFrame(
     hover,
-    hoverSlot
+    hoverSlot,
+    scale
 )
     if hoverSlot == nil then
         clearCanvas(hover)
@@ -1823,8 +1828,8 @@ local function layoutHoverFrame(
         local size = hover:frame()
         local left = math.max(element.frame.x, inset)
         local top = math.max(element.frame.y, inset)
-        local right = math.min(element.frame.x + element.frame.w, size.w - inset)
-        local bottom = math.min(element.frame.y + element.frame.h, size.h - inset)
+        local right = math.min(element.frame.x + element.frame.w, size.w / scale - inset)
+        local bottom = math.min(element.frame.y + element.frame.h, size.h / scale - inset)
         element.frame = { x = left, y = top, w = right - left, h = bottom - top }
         hover:replaceElements({ element })
     end
@@ -1880,10 +1885,31 @@ local function clockHoldsCorner(fullScreen)
         return false
     elseif fullScreen then
         return true
-    elseif isEnabled('desktop_dots') then
-        return true
+    elseif not isEnabled('desktop_dots') then
+        return false
+    elseif styleOf('desktop_dots_style') == 'center' then
+        return false
     end
-    return false
+    return true
+end
+
+-- Return whether `pair`'s Space centers its dots in the menu bar, clear of the clock and status icons on the right.
+local function centersDots(pair)
+    if pair.fullScreen then
+        return false
+    end
+    return styleOf('desktop_dots_style') == 'center'
+end
+
+-- Return the scale and top inset that fit a row's dots inside `screen`'s menu bar, never growing them past full size.
+local function menuBarDotsFit(screen)
+    local barHeight = screen:frame().y - screen:fullFrame().y
+    local scale = math.min(1, (barHeight - 2 * MENU_BAR_DOTS_MARGIN) / DOT_SIZE)
+    -- Keep full size, hung from the screen's top, where the menu bar hides itself and leaves no height to fit.
+    if scale <= 0 then
+        return 1, 0
+    end
+    return scale, (barHeight - scale * DOT_SIZE) / 2
 end
 
 -- Return the width display_alternate_clock takes in the top-right corner of `pair`'s Space, so the dots can sit left of it.
@@ -1983,8 +2009,28 @@ local function placeEdgeBars(
         clearCanvas(pair.dotsMotion)
     end
     local dotsSize = pageDotsSize(dotsCount)
-    -- Sit the dots flush against the screen's right edge, or left of the clock where it holds the corner.
-    local dotsX = frame.x + frame.w - cornerClockWidth(pair) - dotsSize.w
+    local scale = 1
+    local dotsX
+    local dotsY = frame.y
+    if centersDots(pair) then
+        local inset
+        scale, inset = menuBarDotsFit(screen)
+        -- Center the row between the menus on the left and the clock and status icons on the right.
+        dotsX = frame.x + (frame.w - scale * dotsSize.w) / 2
+        dotsY = frame.y + inset
+    else
+        -- Sit the dots flush against the screen's right edge, or left of the clock where it holds the corner.
+        dotsX = frame.x + frame.w - cornerClockWidth(pair) - dotsSize.w
+    end
+    -- Shrink every dots canvas alike, so drawing, hovering and clicking all keep working in full-size coordinates.
+    if pair.dotsScale ~= scale then
+        local matrix = hs.canvas.matrix.scale(scale)
+        pair.dots:transformation(matrix)
+        pair.dotsMotion:transformation(matrix)
+        pair.dotsHover:transformation(matrix)
+        pair.countdown:transformation(matrix)
+        pair.dotsScale = scale
+    end
     -- Stop the top band where the dots' canvas starts, so it doesn't run across the dots.
     local topBandWidth = frame.w
     if isEnabled('page_dots') then
@@ -1993,26 +2039,27 @@ local function placeEdgeBars(
     pair.top:frame({ x = frame.x, y = frame.y, w = topBandWidth, h = BAND_HEIGHT })
     local dotsFrame = {
         x = dotsX,
-        y = frame.y,
-        w = dotsSize.w,
-        h = dotsSize.h,
+        y = dotsY,
+        w = scale * dotsSize.w,
+        h = scale * dotsSize.h,
     }
     pair.dots:frame(dotsFrame)
     pair.dotsMotion:frame(dotsFrame)
     pair.dotsHover:frame(dotsFrame)
     -- Redraw the frame when the column toggles or the row resizes, which move every slot's center or the end slots' trim.
-    if pair.hoverVertical ~= vertical or pair.hoverCount ~= dotsCount then
-        layoutHoverFrame(pair.dotsHover, pair.hoverSlot)
+    if pair.hoverVertical ~= vertical or pair.hoverCount ~= dotsCount or pair.hoverScale ~= scale then
+        layoutHoverFrame(pair.dotsHover, pair.hoverSlot, scale)
         pair.hoverVertical = vertical
         pair.hoverCount = dotsCount
+        pair.hoverScale = scale
     end
     -- Line the countdown up with the first dot's band, so it reads as part of the row.
     local firstBand = pageDotsBandFrame(1)
     pair.countdown:frame({
-        x = dotsX - COUNTDOWN.WIDTH,
-        y = frame.y + firstBand.y,
-        w = COUNTDOWN.WIDTH,
-        h = firstBand.h,
+        x = dotsX - scale * COUNTDOWN.WIDTH,
+        y = dotsY + scale * firstBand.y,
+        w = scale * COUNTDOWN.WIDTH,
+        h = scale * firstBand.h,
     })
     if pillVisible then
         pair.countdown[2].strokeColor = COUNTDOWN.OUTLINE_COLOR
@@ -2030,7 +2077,7 @@ local function hoverPageDot(
         return
     end
     pair.hoverSlot = slot
-    layoutHoverFrame(pair.dotsHover, slot)
+    layoutHoverFrame(pair.dotsHover, slot, pair.dotsScale)
 end
 
 -- Return the dot slot under the pointer, or nil when the pointer is off the row.
@@ -2046,7 +2093,7 @@ local function pointerPageDotSlot(pair)
     elseif pointer.y >= frame.y + frame.h then
         return nil
     end
-    return dotSlotAt(pointer.x - frame.x, pointer.y - frame.y, #pair.dotSpaces)
+    return dotSlotAt((pointer.x - frame.x) / pair.dotsScale, (pointer.y - frame.y) / pair.dotsScale, #pair.dotSpaces)
 end
 
 -- Frame the dot under the pointer as it moves and jump to the Space of a clicked dot.
@@ -2124,8 +2171,9 @@ local function renderEdgeBars(
             fullScreen = spaceTypes.of(focused) == 'fullscreen',
         }
         pair.dots:canvasMouseEvents(true, true, true, true)
+        -- Map the pointer back to full-size coordinates, since the canvas reports it in its own shrunken ones.
         pair.dots:mouseCallback(function(_, message, _, x, y)
-            handlePageDotsMouse(pair, message, x, y)
+            handlePageDotsMouse(pair, message, x / pair.dotsScale, y / pair.dotsScale)
         end)
         edgeBarsBySpace[focused] = pair
     end
@@ -2454,6 +2502,8 @@ function showSpacePosition.set(name, value)
         end
         writeSetting(name, value)
         render()
+        -- Re-place the alternate clock, whose spot follows desktop_dots_style.
+        update_clock_position()
         return name .. ' ' .. value
     elseif DEFAULT_ENABLED[name] == nil then
         local names = experimentNames()
