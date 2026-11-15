@@ -882,6 +882,7 @@ alias s="conditional_s"
 watch_status() {
     local current
     local frame
+    local key
     local previous=""
     local spinner_frames=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
 
@@ -901,7 +902,25 @@ watch_status() {
         # Spin one lap of frames as the wait between polls, so the screen shows it's live.
         for frame in "${spinner_frames[@]}"; do
             printf '\r\033[2m%s\033[0m' "${frame}"
-            sleep 0.1
+
+            # Wait out each frame on a keypress read, so `q` quits without Ctrl-C.
+            key=""
+            if [[ -n "${ZSH_VERSION}" ]]; then
+                read -k 1 -s -t 0.1 key
+            elif [[ "${BASH_VERSINFO[0]}" -ge 4 ]]; then
+                read -n 1 -s -t 0.1 key
+            else
+                # Sleep instead on macOS's bash 3.2, whose `read` rejects a fractional timeout.
+                sleep 0.1
+            fi
+
+            case "${key}" in
+            "q" | "Q")
+                # Erase the spinner so the prompt lands on a clean line.
+                printf '\r\033[K'
+                return
+                ;;
+            esac
         done
     done
 }
