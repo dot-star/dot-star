@@ -33,6 +33,7 @@
   -
   -
   -
+  - A mapping list is scanned by key: a reader hunting for what one key does runs an eye down the key column, which a verb-first entry buries mid-line.
 -
 -
   -
