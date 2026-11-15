@@ -200,6 +200,8 @@ local STATE_AGE = {
     TEXT_SIZE = 12,
     FONT = 'Menlo',
     COLOR = { white = 0.6, alpha = 1 },
+    -- Drop the minutes once the hours alone tell you how long the session has sat; past that, the minutes are noise that widens the label.
+    HOURS_ONLY_SECONDS = 10 * 3600,
 }
 STATE_AGE.TEXT_HEIGHT = STATE_AGE.TEXT_SIZE + 2
 -- Grow a row of dots below the title bar to fit the follow-order letters and state ages, overlapping the window's top edge there.
@@ -1047,8 +1049,10 @@ local function stateAgeLabelOf(
         return string.format('%ds', whole), untilTick
     elseif whole < 3600 then
         return string.format('%dm', whole // 60), 59 - whole % 60 + untilTick
-    elseif whole < 86400 then
+    elseif whole < STATE_AGE.HOURS_ONLY_SECONDS then
         return string.format('%dh%dm', whole // 3600, whole % 3600 // 60), 59 - whole % 60 + untilTick
+    elseif whole < 86400 then
+        return string.format('%dh', whole // 3600), 3599 - whole % 3600 + untilTick
     end
     return string.format('%dd%dh', whole // 86400, whole % 86400 // 3600), 3599 - whole % 3600 + untilTick
 end
