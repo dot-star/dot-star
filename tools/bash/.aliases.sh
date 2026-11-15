@@ -881,7 +881,9 @@ alias s="conditional_s"
 # never reports.
 watch_status() {
     local current
+    local frame
     local previous=""
+    local spinner_frames=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
 
     while :; do
         # Skip git's optional index lock so polling never collides with a commit.
@@ -890,11 +892,17 @@ watch_status() {
             conditional_s 2>&1
         )"
         if [[ "${current}" != "${previous}" ]]; then
+            # Erase the spinner before redrawing.
+            printf '\r\033[K'
             printf '%s\n' "${current}"
             previous="${current}"
         fi
 
-        sleep 1
+        # Spin one lap of frames as the wait between polls, so the screen shows it's live.
+        for frame in "${spinner_frames[@]}"; do
+            printf '\r\033[2m%s\033[0m' "${frame}"
+            sleep 0.1
+        done
     done
 }
 alias ws="watch_status"
