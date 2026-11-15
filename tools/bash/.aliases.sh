@@ -876,6 +876,29 @@ conditional_s() {
 }
 alias s="conditional_s"
 
+# Rerun `s` each second and redraw only when its output changes. Poll rather
+# than watch files: staging and commits touch only `.git/`, which watchman
+# never reports.
+watch_status() {
+    local current
+    local previous=""
+
+    while :; do
+        # Skip git's optional index lock so polling never collides with a commit.
+        current="$(
+            export GIT_OPTIONAL_LOCKS=0
+            conditional_s 2>&1
+        )"
+        if [[ "${current}" != "${previous}" ]]; then
+            printf '%s\n' "${current}"
+            previous="${current}"
+        fi
+
+        sleep 1
+    done
+}
+alias ws="watch_status"
+
 case_insensitive_search_edit() {
     param_count="${#}"
     if [[ "${param_count}" -eq 0 ]]; then
