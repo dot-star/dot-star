@@ -23,6 +23,7 @@
   - Deriving that one from a nearby constant that happened to be in scope is worse than a magic number: it reads as principled, so nobody re-examines it.
 - Fix at the source (the cause), not the symptom, whether a bug, a checker warning or bad generated output.
   - When a bug traces back to a fragile approach (parsing output meant for people, special-casing the input that broke), replace the approach; a patch fixes today's input and leaves the next one waiting.
+  - When a rule's wording let the miss through, widen or reword that wording; never bolt on a narrower rule for the case that slipped, which leaves the old wording still excluding it.
   - Answer "is this the right fix?" against the cause: a symptom patch is "works, but a patch", then name the real fix.
   - Count a bigger diff or an output change as the fix's price, never a reason to keep the patch; flag an output change for sign-off per the refactor rule.
   - Patch only as a stopgap when the real fix can't land now, marked with a `TODO: Replace ...` naming the cause and the fix.

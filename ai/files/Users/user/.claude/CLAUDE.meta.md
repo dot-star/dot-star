@@ -23,6 +23,7 @@
   -
 - Naming the source carries the rule past bugs: a warning silenced in config or output corrected by hand is the same patch in another form; the problem returns on the next run.
   -
+  - A special-case rule is the same patch applied to instructions: the rule that let the miss through keeps its wording, so the two now disagree and a reader who trusts the original still misses the case. Fixing the original wording covers the case and every case like it.
   -
   -
   -
