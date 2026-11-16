@@ -38,6 +38,9 @@
 -
 -
 -
+- A hand-built render looks finished, so its gaps show only when the reader holds it against the real output. A preview of a `foo` report that ships only the changed `bar` section drops every other section, can list entries in an order the code wouldn't and fills a `[name]` slot with a guess where the code would put the real value. Running the code is usually one script and gets all of it right the first time.
+  - The changed part is what the reader came to check, so pointing at it saves them a hunt; but they check it in place, and cut out of its surroundings it can't be judged.
+  - A mock is sometimes the only option, and a labeled one is honest; an unlabeled one passes as the real output.
 -
   -
   - An empty `grep --recursive` over `ai/contexts/` once reported a term appeared nowhere, so the reply said the docs needed no change, while the symlinked personal docs used it in a dozen places. That miss is silent: its output looks like a true absence, so only a scope check catches it.
