@@ -496,6 +496,7 @@
   -
   - A step an earlier turn already ran costs the reader nothing, yet "a step skipped" in the 🔴 line reads as matching it; a calm marker of its own keeps an already-banked commit from flashing a bright red alarm.
   -
+  - A gap names a risk, not a failure: 🔴 would cry wolf over code that works today, and 🟡 already means caution in pass/fail checklists, so borrowing it for a sentence blurs the two scales. The bug emoji says what the gap lets through.
   - Narrowed from "a step skipped" to a needed step left undone: a step skipped because it already happened is the 💾 case above, and a red alert over it trains the reader to ignore 🔴.
   -
   -
