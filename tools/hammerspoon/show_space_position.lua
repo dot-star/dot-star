@@ -145,7 +145,8 @@ local ORBIT_SECONDS = 2
 local PING_SECONDS = 1
 -- Hold a session's ready back until it lasts this long, outlasting a Stop hook that blocks the stop and sends Claude back to work.
 local READY_SETTLE_SECONDS = 3
-local FRAMES_PER_SECOND = 30
+-- Tick at the slowest rate that still reads as smooth, picked by eye with the demo's toggleFrameRates() panel.
+local FRAMES_PER_SECOND = 24
 -- Hand each moving ring and line a numeric frame it never draws with, since the canvas otherwise parses the frame's percentage default with a new number formatter on every repaint.
 local UNDRAWN_FRAME = { x = 0, y = 0, w = 0, h = 0 }
 -- Color each state like a traffic light: amber busy, red decision, green ready.
