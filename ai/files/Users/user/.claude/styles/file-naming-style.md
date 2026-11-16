@@ -4,7 +4,7 @@ When creating a file, the name should be both **hierarchical** (shared prefix so
 
 ## Shapes by extension
 
-- Executable scripts (`.sh`, `.py`, anything run rather than sourced): name says what running it accomplishes, verb-first. E.g. `install.sh`, `post_install.sh`, `update.sh`, `safer_rm_test.sh`. Read the first token alone: if it can open a noun phrase (`session_color`, `statusline`, `worktree_marker`), it names a thing, not an action; rename until it reads as an instruction (`color_tab_per_session`, `render_statusline`, `record_worktree_for_statusline`).
+- Executable scripts and behavior modules (`.sh`, `.py`, anything that does something when run or loaded, like a Hammerspoon `require` or a bootstrap `source`): name says what running or loading it accomplishes, verb-first. E.g. `install.sh`, `post_install.sh`, `update.sh`, `safer_rm_test.sh`, `show_space_position.lua`. Read the first token alone: if it can open a noun phrase (`session_color`, `statusline`, `worktree_marker`), it names a thing, not an action; rename until it reads as an instruction (`color_tab_per_session`, `render_statusline`, `record_worktree_for_statusline`). A helper that only holds shapes or data for its siblings keeps a noun name (`space_types.lua`).
 - Hook scripts (anything fired by an event, not invoked by hand): name the trigger and the outcome, not just the verb, since the reader has to work out when it fires and what it wants from them. E.g. `chime_when_reply_ready_to_review.sh`, `chime_when_waiting_on_user_to_answer.sh`. Shape: `<verb>_when_<trigger>_to_<outcome>`, with `when_` and `to_` dropped only when the verb's object already carries them (`enforce_executable_bit.sh`, `block_hidden_characters.py`).
 - `.txt`: name says the topic of the notes inside.
 - `CLAUDE_<slug>.md`: slug says what aspect of `CLAUDE.md` it supplements. E.g. `CLAUDE_slack-style.md`.
@@ -70,7 +70,7 @@ More patterns from `php-curl-class/examples/` and `tests/`:
 
 ## When creating any new file
 
-1. Is there an existing group it belongs in? If yes, match the prefix.
+1. List the siblings before picking a name: the target directory, plus any load list that will name the file (an `init.lua` `require` block, a bootstrap `source` list). Is there an existing group it belongs in? If yes, match its prefix and its shape (verb-first when the siblings are).
 2. Name the second file before settling on the first. If the next sibling can't slot in without renaming this one, the variable part sits in the wrong position: `private-todo.md` forces a second repo's list to become `private-todo-<repo>.md`, while `private-dot-star-todo.md` leaves `private-<repo>-todo.md` free.
 3. Does a sibling name its end of a paired axis (`pre`, `before`, `old`)? Then this file names its own end (`post`, `after`, `new`) instead of taking the bare name.
 4. Does the remainder of the name tell a reader what the file does/contains/supplements? If no, rename until it does.
