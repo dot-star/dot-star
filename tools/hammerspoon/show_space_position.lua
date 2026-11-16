@@ -185,16 +185,23 @@ local HOVER_FRAME = {
 }
 -- Reach the stroke's outer edge to the dot's click zone, half the gap on each side, so the frame shows exactly what a click hits.
 HOVER_FRAME.SIDE_PADDING = DOT_GAP / 2 - HOVER_FRAME.WIDTH / 2
--- Size the follow-order letter to read at a glance under its dot.
-local FOLLOW_ORDER_TEXT_SIZE = 13
-local FOLLOW_ORDER_FONT = 'Menlo-Bold'
-local BADGE_TEXT_HEIGHT = FOLLOW_ORDER_TEXT_SIZE + 2
+local FOLLOW_ORDER = {
+    -- Size the follow-order letter to read at a glance under its dot.
+    TEXT_SIZE = 13,
+    FONT = 'Menlo-Bold',
+    -- Mark only the first few picks in the follow order, so the row shows where a close lands next without badging every dot.
+    LIMIT = 3,
+}
+local BADGE_TEXT_HEIGHT = FOLLOW_ORDER.TEXT_SIZE + 2
 -- Find the follow-order letters' cap midline below their frame's top, so the focus underline lines up with them; text hangs from the frame's top by the font's ascender.
-local followOrderFontInfo = hs.styledtext.fontInfo({ name = FOLLOW_ORDER_FONT, size = FOLLOW_ORDER_TEXT_SIZE })
-local FOLLOW_ORDER_MIDLINE = followOrderFontInfo.ascender - followOrderFontInfo.capHeight / 2
--- Size the Ctrl+N digits to read at a glance inside a dot without touching its ring.
-local HOTKEY_TEXT_SIZE = 14
-local HOTKEY_TEXT_HEIGHT = HOTKEY_TEXT_SIZE + 2
+local followOrderFontInfo = hs.styledtext.fontInfo({ name = FOLLOW_ORDER.FONT, size = FOLLOW_ORDER.TEXT_SIZE })
+FOLLOW_ORDER.MIDLINE = followOrderFontInfo.ascender - followOrderFontInfo.capHeight / 2
+local HOTKEY = {
+    -- Size the Ctrl+N digits to read at a glance inside a dot without touching its ring.
+    TEXT_SIZE = 14,
+    COLOR = { white = 1, alpha = 1 },
+}
+HOTKEY.TEXT_HEIGHT = HOTKEY.TEXT_SIZE + 2
 -- Write how long each dot has held its state a line under the follow-order letters, smaller and dimmer so it reads as a footnote to them.
 local STATE_AGE = {
     TEXT_SIZE = 12,
@@ -206,9 +213,6 @@ local STATE_AGE = {
 STATE_AGE.TEXT_HEIGHT = STATE_AGE.TEXT_SIZE + 2
 -- Grow a row of dots below the title bar to fit the follow-order letters and state ages, overlapping the window's top edge there.
 local HORIZONTAL_DOTS_HEIGHT = DOT_SIZE + BADGE_TEXT_HEIGHT + STATE_AGE.TEXT_HEIGHT
-local HOTKEY_COLOR = { white = 1, alpha = 1 }
--- Mark only the first few picks in the follow order, so the row shows where a close lands next without badging every dot.
-local FOLLOW_ORDER_LIMIT = 3
 -- Wait out macOS rearranging Spaces after a display change, a wake or a Space closing, which often runs on past the event reporting it.
 local SETTLE_SECONDS = 1
 
@@ -648,11 +652,11 @@ local function appendHotkey(
     elements[#elements + 1] = {
         type = 'text',
         text = text,
-        textColor = HOTKEY_COLOR,
+        textColor = HOTKEY.COLOR,
         textFont = 'Menlo',
-        textSize = HOTKEY_TEXT_SIZE,
+        textSize = HOTKEY.TEXT_SIZE,
         textAlignment = 'center',
-        frame = { x = center.x - DOT_SIZE / 2, y = center.y - HOTKEY_TEXT_HEIGHT / 2, w = DOT_SIZE, h = HOTKEY_TEXT_HEIGHT },
+        frame = { x = center.x - DOT_SIZE / 2, y = center.y - HOTKEY.TEXT_HEIGHT / 2, w = DOT_SIZE, h = HOTKEY.TEXT_HEIGHT },
     }
 end
 
@@ -994,7 +998,7 @@ local function addFocusMarker(elements, center)
                 fillColor = FOCUS_MARK_COLOR,
             }
         else
-            local y = center.y + DOT_SIZE / 2 + FOLLOW_ORDER_MIDLINE
+            local y = center.y + DOT_SIZE / 2 + FOLLOW_ORDER.MIDLINE
             elements[#elements + 1] = line({ { x = center.x - 9, y = y }, { x = center.x + 9, y = y } }, FOCUS_MARK_COLOR, 2.5)
         end
     else
@@ -1163,8 +1167,8 @@ local function followOrderElement(center, rank)
         type = 'text',
         text = string.char(string.byte('A') + rank - 1),
         textColor = FOCUS_MARK_COLOR,
-        textFont = FOLLOW_ORDER_FONT,
-        textSize = FOLLOW_ORDER_TEXT_SIZE,
+        textFont = FOLLOW_ORDER.FONT,
+        textSize = FOLLOW_ORDER.TEXT_SIZE,
         textAlignment = 'center',
         frame = { x = center.x - DOT_SIZE / 2, y = center.y + DOT_SIZE / 2, w = DOT_SIZE, h = textHeight },
     }
@@ -1877,7 +1881,7 @@ local function followOrderOf(spaces, closing)
         reading = { states = states, windows = windows, changedAt = changedAt }
     end
     for rank, next in ipairs(hopOrderFrom(reading, spaces, closing)) do
-        if rank > FOLLOW_ORDER_LIMIT then
+        if rank > FOLLOW_ORDER.LIMIT then
             break
         end
         order[next.space] = rank
