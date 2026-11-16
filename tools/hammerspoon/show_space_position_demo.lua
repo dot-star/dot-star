@@ -1,18 +1,19 @@
 -- Demo candidate treatments for Claude session-state page dots, drawn at the real dot size on the real title bar height.
 -- Show or hide the panel, reloading this file first:
 --   hs -c "package.loaded['show_space_position_demo'] = nil; require('show_space_position_demo'); return showSpacePositionDemo.toggle()"
+-- Compare frame rates on the default set the same way, calling toggleFrameRates() instead.
 -- Close it with a click on the panel or Escape.
 
-local DOT_SIZE = 20
 local DOT_GAP = 14
 local TITLE_BAR_HEIGHT = require('ghostty_title_bar').HEIGHT
+-- Size each dot as show_space_position.lua does, from the screen's top edge down to the bottom of the tab strip.
+local DOT_SIZE = (TITLE_BAR_HEIGHT + require('ghostty_title_bar').TAB_STRIP_HEIGHT) / 2
 local DOTS_PADDING = (TITLE_BAR_HEIGHT - DOT_SIZE) / 2
 -- Thicken the ring past the page dots' hairline stroke, so its color reads at a glance.
 local RING_WIDTH = 3.5
 local RING_RADIUS = DOT_SIZE / 2 - RING_WIDTH / 2
 -- Keep the orbit slow, so a long run of tool calls doesn't tug at the eye.
 local ORBIT_SECONDS = 2
-local FRAMES_PER_SECOND = 30
 
 local ROW_HEIGHT = TITLE_BAR_HEIGHT + 8
 local HEADING_HEIGHT = 32
@@ -39,6 +40,8 @@ local BASE_VARIANT = {
     decision = 'heartbeat',
     focus = 'underline',
     focusOn = 1,
+    -- Match FRAMES_PER_SECOND in show_space_position.lua, so a treatment row moves like the live dots.
+    framesPerSecond = 24,
     none = 'thin',
     ready = 'check_ping',
 }
@@ -60,9 +63,18 @@ local COLUMNS = {
     },
 }
 
+-- Step the default set down through frame rates, to find the slowest that still reads as smooth.
+local FRAME_RATE_COLUMNS = {
+    {
+        { heading = 'Frame rates' },
+        { label = '30 fps', description = '', framesPerSecond = 30 },
+        { label = '24 fps', description = 'what the dots run at now', framesPerSecond = 24 },    },
+}
+
 showSpacePositionDemo = {}
 
 local panel = nil
+local shownColumns = nil
 local frameTimer = nil
 local escapeHotkey = nil
 
@@ -316,6 +328,14 @@ local function pillElements(origin, variant, seconds)
     return elements
 end
 
+-- Hold the clock at the last frame boundary, so a row steps as a timer ticking at `framesPerSecond` would.
+local function frameSeconds(
+    seconds,
+    framesPerSecond
+)
+    return math.floor(seconds * framesPerSecond) / framesPerSecond
+end
+
 -- Return the base treatments with the row's own choice swapped in.
 local function rowVariant(row)
     local variant = {}
@@ -350,11 +370,11 @@ end
 
 local function panelSize()
     local tallest = 0
-    for _, column in ipairs(COLUMNS) do
+    for _, column in ipairs(shownColumns) do
         tallest = math.max(tallest, columnHeight(column))
     end
     return {
-        w = 2 * PANEL_PADDING + #COLUMNS * COLUMN_WIDTH + (#COLUMNS - 1) * COLUMN_GAP,
+        w = 2 * PANEL_PADDING + #shownColumns * COLUMN_WIDTH + (#shownColumns - 1) * COLUMN_GAP,
         h = 2 * PANEL_PADDING + 40 + tallest + 24,
     }
 end
@@ -371,12 +391,13 @@ local function draw()
         },
         text(
             'Dots, left to right: busy, busy, needs a decision, ready, no session. The marked dot is the Space you\'re on.',
-            { x = PANEL_PADDING, y = PANEL_PADDING, w = size.w - 2 * PANEL_PADDING, h = 20 },
+            -- Leave room for a second line, since a one-column panel wraps the intro.
+            { x = PANEL_PADDING, y = PANEL_PADDING, w = size.w - 2 * PANEL_PADDING, h = 36 },
             13,
             0.75
         ),
     }
-    for columnIndex, column in ipairs(COLUMNS) do
+    for columnIndex, column in ipairs(shownColumns) do
         local x = PANEL_PADDING + (columnIndex - 1) * (COLUMN_WIDTH + COLUMN_GAP)
         local pillX = x + LABEL_WIDTH
         local y = PANEL_PADDING + 40
@@ -387,7 +408,9 @@ local function draw()
             else
                 local textY = y + (TITLE_BAR_HEIGHT - 18) / 2
                 elements[#elements + 1] = text(row.label, { x = x, y = textY, w = LABEL_WIDTH, h = 20 }, 14, 0.9)
-                for _, element in ipairs(pillElements({ x = pillX, y = y }, rowVariant(row), seconds)) do
+                local variant = rowVariant(row)
+                local rowSeconds = frameSeconds(seconds, variant.framesPerSecond)
+                for _, element in ipairs(pillElements({ x = pillX, y = y }, variant, rowSeconds)) do
                     elements[#elements + 1] = element
                 end
                 elements[#elements + 1] = text(
@@ -422,10 +445,23 @@ local function hide()
         panel:delete()
         panel = nil
     end
+    shownColumns = nil
 end
 
-local function show()
-    local screenFrame = hs.screen.mainScreen():frame()
+-- Return how many times a second `screen` refreshes, so the panel ticks on every refresh and each row's own rate decides when it steps.
+local function refreshRate(screen)
+    local rate = screen:currentMode().freq
+    if rate > 0 then
+        return rate
+    end
+    -- Assume 60 Hz for a display that reports no rate.
+    return 60
+end
+
+local function show(columns)
+    shownColumns = columns
+    local screen = hs.screen.mainScreen()
+    local screenFrame = screen:frame()
     local size = panelSize()
     panel = hs.canvas.new({
         x = screenFrame.x + (screenFrame.w - size.w) / 2,
@@ -440,18 +476,28 @@ local function show()
     end)
     draw()
     panel:show()
-    frameTimer = hs.timer.doEvery(1 / FRAMES_PER_SECOND, draw)
+    frameTimer = hs.timer.doEvery(1 / refreshRate(screen), draw)
     escapeHotkey = hs.hotkey.bind({}, 'escape', hide)
 end
 
--- Show the panel, or hide it when it's already up.
-function showSpacePositionDemo.toggle()
+-- Show a panel of `columns`, or hide whichever panel is already up.
+local function togglePanel(columns)
     if panel then
         hide()
         return 'hidden'
     end
-    show()
+    show(columns)
     return 'shown'
+end
+
+-- Show the treatments panel, or hide it when it's already up.
+function showSpacePositionDemo.toggle()
+    return togglePanel(COLUMNS)
+end
+
+-- Show the frame-rate panel, or hide it when it's already up.
+function showSpacePositionDemo.toggleFrameRates()
+    return togglePanel(FRAME_RATE_COLUMNS)
 end
 
 -- Hide a panel left up by the copy of this file a reload replaces, so its timer stops drawing.
