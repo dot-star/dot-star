@@ -381,6 +381,9 @@ better_cd() {
 
             better_cd "${actual_directory}"
         fi
+    else
+        # Hand flags and zsh's two-argument form (`cd -P dir`, `cd old new`) to the builtin as is.
+        builtin cd "${@}"
     fi
 }
 
