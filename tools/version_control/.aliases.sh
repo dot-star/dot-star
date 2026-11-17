@@ -790,9 +790,10 @@ git_diff_paged_with_banner() {
 
 git_diff_changed_bytes() {
     # Count the bytes on the removed and added lines of a diff read from stdin,
-    # skipping the ---/+++ file headers.
-    grep --extended-regexp '^[-+]' |
-        grep --extended-regexp --invert-match '^(\+\+\+|---) ' |
+    # skipping the ---/+++ file headers. Bypass the grep alias, whose
+    # --line-number prefix would hide the headers from the second filter.
+    command grep --extended-regexp '^[-+]' |
+        command grep --extended-regexp --invert-match '^(\+\+\+|---) ' |
         wc -c |
         tr -d ' '
 }
