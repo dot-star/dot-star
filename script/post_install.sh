@@ -280,7 +280,7 @@ git config --global delta.navigate true
 # Show the file path in every hunk header box, so the file being read stays visible while scrolling a long diff; less can't pin a per-file header.
 git config --global delta.hunk-header-style "file line-number syntax"
 
-# Install a Monokai variant that lightens only the comment color. delta reads syntax themes from bat's cache; stock Monokai comments are a dim olive that the bright `+`/`-` backgrounds below swallow whole. Ubuntu ships the binary as `batcat`.
+# Install a Monokai variant that lightens its dim grays (comments, markdown list and fence markers, diff headers). delta reads syntax themes from bat's cache; stock Monokai draws these in a dim olive or gray that the bright `+`/`-` backgrounds below swallow whole. Ubuntu ships the binary as `batcat`.
 bat_bin="bat"
 if ! command -v bat >/dev/null 2>&1; then
     bat_bin="batcat"
@@ -293,7 +293,7 @@ rm -f "${bat_themes_dir}/monokai-extended-readable-comments.tmTheme"
 ensure_symlink "${DOT_STAR_ROOT}/tools/version_control/monokai-extended-modified.tmTheme" "${bat_themes_dir}/monokai-extended-modified.tmTheme"
 "${bat_bin}" cache --build
 
-# Bright added/removed-line backgrounds so `+`/`-` lines stand apart from context; the modified theme keeps the syntax-highlighted comment text legible on them.
+# Bright added/removed-line backgrounds so `+`/`-` lines stand apart from context; the modified theme keeps its dimmest syntax colors legible on them.
 git config --global delta.syntax-theme "monokai-extended-modified"
 git config --global delta.minus-style "syntax #800000"
 git config --global delta.plus-style "syntax #008000"
