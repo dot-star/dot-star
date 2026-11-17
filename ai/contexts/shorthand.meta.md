@@ -114,6 +114,10 @@ Generated from this file, so the index can't drift from it; one parse per sessio
   -
   -
   -
+- A first-draft PR title and body rarely land without edits, and an edit after creation means retyping in the browser while reviewers may already be notified; previewing first moves the edit to where it's free.
+  - The branches show where the PR goes, catching a wrong base before any text gets polished.
+  - A fenced body keeps its markdown as source: rendered, the headings and bullets lose the characters that need editing.
+  - Re-drafting at creation time would discard the edits the preview existed to collect.
 -
 -
 -

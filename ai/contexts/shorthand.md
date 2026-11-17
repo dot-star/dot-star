@@ -114,6 +114,10 @@ Interpret a bare one-token reply or a short fixed phrase as shorthand. Fires onl
   - Carry each option's totals on its summary line, summed over its PRs and aligned in the same columns.
   - Mark my pick with `❯` and say why in one line.
   - Prefer standalone: pick a cut whose PRs are all `standalone` whenever one keeps each PR to one intent. When only a stack does, name the dependency that forces it.
+- `ppr` means "show me the prospective PR": render the title and body exactly as `gh pr create` would receive them, so I can edit them before the PR exists. It's a preview, so don't push or create the PR until I approve the text.
+  - Name the head and base branches in a lead line.
+  - Render the title on its own line and the body in a fenced `markdown` block, so the body shows as source I can copy and edit.
+  - Create the PR from the approved text verbatim (`--title`, `--body-file`), never a fresh draft.
 - `<N> iter` means "option N is the front-runner, but iterate on it": treat N as the starting point and propose refinements rather than committing it as-is. E.g. `2 iter` → improve on option 2.
 - `<x> vs <y>` or `<x> v <y>`, as a whole message, means `w <x> vs <y>`. Treat a `vs` or `v` inside an ordinary question or sentence as prose; it fires only when the candidates and their separator make up the entire message.
 - `exp <x>` means "explain `<x>`" without acting on it; re-offer any menu it came from.
