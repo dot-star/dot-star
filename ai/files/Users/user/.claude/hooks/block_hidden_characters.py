@@ -118,8 +118,8 @@ def main() -> None:
 
     index, character = found
 
-    # Print the deny decision. Exit code 2 is only a non-blocking error for this
-    # event, so the decision object is what actually stops the call.
+    # Print the deny decision rather than exiting 2, so the block carries a
+    # structured permission decision and its reason.
     json.dump(
         build_deny(index, character),
         sys.stdout,
