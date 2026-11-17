@@ -6,6 +6,10 @@
 # model, since it lands the worktree first. So does an `x` or `xx` sent while a turn is still
 # running, so the close waits for that turn's work. Writes the prune mark the
 # model would have, so prune.sh still sweeps the session.
+#
+# A bare `z` closes the same way from anywhere, worktree included, but writes
+# no prune mark, so the worktree and the session both stay for a later resume.
+# Closing here also skips the keep-or-remove worktree dialog `/exit` shows.
 
 set -euo pipefail
 
@@ -70,6 +74,8 @@ is_close_owing_no_work() {
         return 1
     elif [[ "${reply}" == "xx" ]]; then
         return 0
+    elif [[ "${reply}" == "z" ]]; then
+        return 0
     elif [[ "${reply}" != "x" ]]; then
         return 1
     elif is_inside_worktree; then
@@ -108,8 +114,12 @@ if [[ -z "${claude_pid}" ]]; then
     exit 0
 fi
 
-mkdir --parents -- "${prune_marks_dir}"
-: >"${prune_marks_dir}/${session_id}"
+# Skip the prune mark for `z`, which keeps the session for a later resume.
+if [[ "${reply}" != "z" ]]; then
+    mkdir --parents -- "${prune_marks_dir}"
+    : >"${prune_marks_dir}/${session_id}"
+fi
+
 log_session_close "bare ${prompt}" "${session_id}" "${cwd}" "${transcript_path}" "${turn_before}"
 mark_close_requested
 leave_full_screen_space "${session_id}" "${claude_pid}"

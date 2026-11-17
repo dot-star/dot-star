@@ -2,7 +2,8 @@
 
 # Check that a bare `x` or `xx` closes the session at once, marking it for
 # prune and leaving its Space, except an `x` from a session holding a
-# worktree, which still reaches the model to land first.
+# worktree, which still reaches the model to land first. Check that a bare `z`
+# closes the same way from anywhere but leaves the session unmarked.
 #
 # Run: bash ai/files/Users/user/.claude/hooks/exit_session_when_close_reply_submitted_test.sh
 
@@ -169,6 +170,12 @@ assert_close "x mid-turn in a main checkout reaches the model" \
     "x" "${REPO}" "mid-turn" "${NO_TRANSCRIPT}" "exit 0, unmarked, stayed"
 assert_close "xx mid-turn reaches the model" \
     "xx" "${PLAIN_DIR}" "mid-turn" "${NO_TRANSCRIPT}" "exit 0, unmarked, stayed"
+assert_close "z outside a repo closes at once without a mark" \
+    "z" "${PLAIN_DIR}" "idle" "${NO_TRANSCRIPT}" "exit 143, unmarked, hopped"
+assert_close "padded uppercase Z inside a worktree closes at once without a mark" \
+    $' Z \n' "${WORKTREE}" "idle" "${NO_TRANSCRIPT}" "exit 143, unmarked, hopped"
+assert_close "z mid-turn reaches the model" \
+    "z" "${PLAIN_DIR}" "mid-turn" "${NO_TRANSCRIPT}" "exit 0, unmarked, stayed"
 
 # Expect a prompt that reaches the model to leave its turn open for the Stop hook to close.
 if [[ -e "${OPEN_TURN}" && ! -s "${OPEN_TURN}" ]]; then
