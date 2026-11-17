@@ -224,6 +224,13 @@ is_gh_read_subcommand() {
 # no decision to make. Each entry covers the bare form and the args form.
 is_read_only_command() {
     case "${1}" in
+    # Refuse --output ahead of the git log entry: it writes the log to a file.
+    "git log "*" --output "* | \
+        "git log "*" --output="* | \
+        "git log --output "* | \
+        "git log --output="*)
+        return 1
+        ;;
     "git log" | \
         "git log "*)
         is_metacharacter_free "${1}"

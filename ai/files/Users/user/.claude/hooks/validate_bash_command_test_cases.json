@@ -110,6 +110,8 @@
     {"cmd": "gitlog", "expected": "fall-through", "name": "gitlog (no space)"},
     {"cmd": "git", "expected": "fall-through", "name": "bare git"},
     {"cmd": "git lo", "expected": "fall-through", "name": "git lo (truncated)"},
+    {"cmd": "git log --output /tmp/x", "expected": "fall-through", "name": "git log --output writes a file"},
+    {"cmd": "git log --output=/tmp/x", "expected": "fall-through", "name": "git log --output= writes a file"},
 
     {"cmd": "git log; rm -rf /", "expected": "fall-through", "name": "metachar: semicolon chain"},
     {"cmd": "git log && rm -rf /", "expected": "fall-through", "name": "metachar: && chain"},
