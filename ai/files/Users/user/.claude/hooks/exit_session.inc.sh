@@ -35,6 +35,34 @@ find_claude_pid() {
     done
 }
 
+# Print each `.claude/worktrees/` path a tool call in the transcript touched
+# that's still on disk, NUL-terminated, or nothing when the transcript is gone.
+print_held_worktrees() {
+    local transcript_path="$1"
+    local path
+
+    if [[ ! -f "${transcript_path}" ]]; then
+        return 0
+    fi
+
+    while IFS= read -r -d '' path; do
+        if [[ -d "${path}" ]]; then
+            printf '%s\0' "${path}"
+        fi
+    done < <(
+        command jq \
+            --raw-output0 \
+            'select(.type == "assistant")
+            | .message.content[]?
+            | select(.type == "tool_use")
+            | .input
+            | ..
+            | strings
+            | scan("/[^\\s\"]*/\\.claude/worktrees/[A-Za-z0-9._-]+")' \
+            -- "${transcript_path}" 2>/dev/null
+    )
+}
+
 # Print the session's turn: "open" while running, "blocked" once a Stop hook
 # sent Claude back to work, "closed" once it ended, "none" before any prompt.
 # Compare at prompt time, after every parallel Stop hook has written its record.

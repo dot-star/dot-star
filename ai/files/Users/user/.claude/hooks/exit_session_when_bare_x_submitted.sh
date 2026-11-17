@@ -55,26 +55,9 @@ is_inside_worktree() {
 is_holding_worktree() {
     local path
 
-    if [[ ! -f "${transcript_path}" ]]; then
-        return 1
-    fi
-
     while IFS= read -r -d '' path; do
-        if [[ -d "${path}" ]]; then
-            return 0
-        fi
-    done < <(
-        command jq \
-            --raw-output0 \
-            'select(.type == "assistant")
-            | .message.content[]?
-            | select(.type == "tool_use")
-            | .input
-            | ..
-            | strings
-            | scan("/[^\\s\"]*/\\.claude/worktrees/[A-Za-z0-9._-]+")' \
-            -- "${transcript_path}" 2>/dev/null
-    )
+        return 0
+    done < <(print_held_worktrees "${transcript_path}")
 
     return 1
 }
