@@ -313,7 +313,7 @@ def build_context(prompt: str, transcript_path: str, path: str) -> str:
         else:
             header = f"Shorthand: the whole prompt `{prompt}` matches this entry in {path}; apply it:"
             return "\n\n".join([header] + [entry.text for entry in whole])
-    elif " " not in prompt:
+    elif " " not in prompt and ";" not in prompt:
         return ""
 
     sections = []

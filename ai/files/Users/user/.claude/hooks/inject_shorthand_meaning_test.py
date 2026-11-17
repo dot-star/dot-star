@@ -145,6 +145,7 @@ class BuildContextTest(unittest.TestCase):
             "undo; gen rendered example; look it up": "`gen`, `gen <x>`,",
             "fix the typo; play": "`play` means",
             "play ;": "`play` means",
+            "undo;play": "`play` means",
         }
         for prompt, lead in cases.items():
             with self.subTest(prompt=prompt):
