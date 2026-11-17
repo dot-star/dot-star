@@ -246,6 +246,8 @@ delete_commit() {
 
     git show HEAD
 
+    local subject
+    local response
     subject="$(git log --max-count=1 --format="%h %s" HEAD)"
     response="$(display_confirm_prompt_destructive "Delete commit ${subject}? [y/n]")"
     echo
