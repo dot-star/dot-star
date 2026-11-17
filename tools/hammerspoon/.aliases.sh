@@ -6,6 +6,7 @@ space_position_experiment() {
     #   $ space_position_experiment edge_bars off
     #   $ space_position_experiment page_dots on
     #   $ space_position_experiment decision_style blink
+    #   $ space_position_experiment page_dots_side left
     #   $ space_position_experiment follow_idle_seconds 60
 
     local name="${1}"
@@ -27,6 +28,8 @@ space_position_experiment() {
         "${hammerspoon_cli}" -c "return showSpacePosition.set('${name}', '${state}')"
     elif [[ "${name}" == "focus_marker" && -n "${state}" ]]; then
         "${hammerspoon_cli}" -c "return showSpacePosition.set('${name}', '${state}')"
+    elif [[ "${name}" == "page_dots_side" && -n "${state}" ]]; then
+        "${hammerspoon_cli}" -c "return showSpacePosition.set('${name}', '${state}')"
     elif [[ "${name}" == "pending_style" && -n "${state}" ]]; then
         "${hammerspoon_cli}" -c "return showSpacePosition.set('${name}', '${state}')"
     elif [[ "${name}" == "swipe_hint_style" && -n "${state}" ]]; then
@@ -39,6 +42,7 @@ space_position_experiment() {
         echo "       space_position_experiment desktop_dots_size <full|small>"
         echo "       space_position_experiment desktop_dots_style <center|corner>"
         echo "       space_position_experiment focus_marker <center|underline>"
+        echo "       space_position_experiment page_dots_side <left|right>"
         echo "       space_position_experiment pending_style <dashed|dot|pulse>"
         echo "       space_position_experiment swipe_hint_style <block|chevron|double|large|tab>"
         echo "       space_position_experiment follow_idle_seconds <seconds>"

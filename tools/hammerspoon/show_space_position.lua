@@ -6,6 +6,7 @@
 --   Paint each Space's bars the next color in a cycle rather than one shared color (cycle_colors, needs edge_bars).
 --   Add a row of dots in the title bar's upper-right corner of every full-screen Space, the focused Space filled; click a dot to jump to its Space (page_dots, needs edge_bars).
 --   Show the dots on a desktop too, centered in the menu bar or placed as on a full-screen Space, left of the clock in the corner (desktop_dots, needs page_dots).
+--   Move the dots on a full-screen Space to the title bar's upper-left corner, leaving the upper right to the clock (page_dots_side, needs page_dots).
 --   Size the centered desktop dots small, shrunk to fit the menu bar, or full, the size a full-screen Space shows (desktop_dots_size, needs desktop_dots).
 --   Add a hint at the middle of a desktop's right edge while a Space lies beyond it, so swiping right reads as possible; a chevron, a large chevron, a double chevron, a block or a chevron on a dark tab (swipe_hint, needs edge_bars).
 --   Show the dark pill behind the dots, to check where their canvas sits (page_dots_pill, needs page_dots).
@@ -45,6 +46,7 @@ local DEFAULT_STYLES = {
     desktop_dots_size = 'small',
     desktop_dots_style = 'center',
     focus_marker = 'underline',
+    page_dots_side = 'right',
     pending_style = 'pulse',
     swipe_hint_style = 'double',
 }
@@ -53,6 +55,7 @@ local STYLE_CHOICES = {
     desktop_dots_size = { 'full', 'small' },
     desktop_dots_style = { 'center', 'corner' },
     focus_marker = { 'center', 'underline' },
+    page_dots_side = { 'left', 'right' },
     pending_style = { 'dashed', 'dot', 'pulse' },
     swipe_hint_style = { 'block', 'chevron', 'double', 'large', 'tab' },
 }
@@ -1891,10 +1894,12 @@ local function followOrderOf(spaces, closing)
 end
 
 -- Fit a pair's bars, hint and dots flush to the edges of `screen`, for the Space at `index` of `count` on it.
--- Return whether display_alternate_clock holds the top-right corner of a full-screen Space or, unless `fullScreen`, a desktop, which it does beside a row of dots there.
+-- Return whether display_alternate_clock holds the top-right corner of a full-screen Space or, unless `fullScreen`, a desktop, which it does beside a row of dots there or alone once the dots move left.
 local function clockHoldsCorner(fullScreen)
     if not isEnabled('page_dots') then
         return false
+    elseif fullScreen and styleOf('page_dots_side') == 'left' then
+        return true
     elseif isEnabled('vertical_dots') then
         return false
     elseif fullScreen then
@@ -1913,6 +1918,14 @@ local function centersDots(pair)
         return false
     end
     return styleOf('desktop_dots_style') == 'center'
+end
+
+-- Return whether `pair`'s Space puts its dots in the upper-left corner; a desktop never does, since the Apple menu sits there.
+local function dotsOnLeft(pair)
+    if not pair.fullScreen then
+        return false
+    end
+    return styleOf('page_dots_side') == 'left'
 end
 
 -- Return the scale and top inset that fit a row's dots inside `screen`'s menu bar, never growing them past full size.
@@ -1947,6 +1960,9 @@ local function placeEdgeBars(
     local barTop
     if index == 1 then
         barTop = screen:frame().y
+    elseif dotsOnLeft(pair) then
+        -- Start the left bar below the title bar too, where the dots sit in the upper-left corner, the same as the right bar.
+        barTop = frame.y + TITLE_BAR_HEIGHT
     else
         barTop = frame.y
     end
@@ -2035,6 +2051,9 @@ local function placeEdgeBars(
         -- Center the row between the menus on the left and the clock and status icons on the right.
         dotsX = frame.x + (frame.w - scale * dotsSize.w) / 2
         dotsY = frame.y + inset
+    elseif dotsOnLeft(pair) then
+        -- Sit the dots flush against the screen's left edge, leaving the right corner to the clock.
+        dotsX = frame.x
     else
         -- Sit the dots flush against the screen's right edge, or left of the clock where it holds the corner.
         dotsX = frame.x + frame.w - cornerClockWidth(pair) - dotsSize.w
@@ -2049,11 +2068,18 @@ local function placeEdgeBars(
         pair.dotsScale = scale
     end
     -- Stop the top band where the dots' canvas starts, so it doesn't run across the dots.
+    local topBandX = frame.x
     local topBandWidth = frame.w
-    if isEnabled('page_dots') then
+    if not isEnabled('page_dots') then
+        topBandWidth = frame.w
+    elseif dotsOnLeft(pair) then
+        -- Run the band from the dots' right end to the clock, which keeps the upper-right corner.
+        topBandX = dotsX + scale * dotsSize.w
+        topBandWidth = frame.x + frame.w - cornerClockWidth(pair) - topBandX
+    else
         topBandWidth = dotsX - frame.x
     end
-    pair.top:frame({ x = frame.x, y = frame.y, w = topBandWidth, h = BAND_HEIGHT })
+    pair.top:frame({ x = topBandX, y = frame.y, w = topBandWidth, h = BAND_HEIGHT })
     local dotsFrame = {
         x = dotsX,
         y = dotsY,
@@ -2072,8 +2098,15 @@ local function placeEdgeBars(
     end
     -- Line the countdown up with the first dot's band, so it reads as part of the row.
     local firstBand = pageDotsBandFrame(1)
+    -- Put the countdown on the dots' inner side, away from the screen edge they sit against.
+    local countdownX
+    if dotsOnLeft(pair) then
+        countdownX = dotsX + scale * dotsSize.w
+    else
+        countdownX = dotsX - scale * COUNTDOWN.WIDTH
+    end
     pair.countdown:frame({
-        x = dotsX - scale * COUNTDOWN.WIDTH,
+        x = countdownX,
         y = dotsY + scale * firstBand.y,
         w = scale * COUNTDOWN.WIDTH,
         h = scale * firstBand.h,
