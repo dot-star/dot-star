@@ -24,15 +24,15 @@ source "$(dirname -- "${BASH_SOURCE[0]}")/fork_session_window.inc.sh"
         '.prompt // "", .session_id // "", .transcript_path // "", .cwd // ""'
 )
 
-# Stop the prompt with a message shown to the user, never to the model. Use
-# `continue: false` over `decision: "block"`, since a block puts the typed
-# prompt back in the input field.
+# Block the prompt with a message shown to the user, never to the model. Use
+# `decision: "block"` over `continue: false`, which keeps the prompt in the
+# transcript; the cost is the typed prompt returning to the input field.
 block() {
     command jq \
         --null-input \
         --compact-output \
         --arg reason "$1" \
-        '{continue: false, stopReason: $reason}'
+        '{decision: "block", reason: $reason}'
     exit 0
 }
 
