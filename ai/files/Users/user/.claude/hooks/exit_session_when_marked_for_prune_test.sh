@@ -153,7 +153,7 @@ assert_turn "stop closes the open turn" "closed"
 python_fingerprint="$(python3 -c '
 import sys
 sys.path.insert(0, sys.argv[1])
-from announce_window_state import stop_fingerprint
+from announce_window_state_records import stop_fingerprint
 print(stop_fingerprint({"last_assistant_message": sys.argv[2]}), end="")
 ' "$(dirname -- "${HOOK}")" "${LAST_MESSAGE}")"
 printf '%s' "${python_fingerprint}" >"${STOP_BLOCKED}"

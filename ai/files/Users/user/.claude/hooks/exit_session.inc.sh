@@ -92,7 +92,7 @@ describe_turn() {
     fi
 }
 
-# Print the stop's fingerprint exactly as announce_window_state.py's
+# Print the stop's fingerprint exactly as announce_window_state_records.py's
 # stop_fingerprint does, so it matches that hook's blocked-stop record.
 stop_fingerprint() {
     local last_message="$1"
