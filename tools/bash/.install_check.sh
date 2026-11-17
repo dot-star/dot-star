@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
-# Re-install if script/install.sh or script/post_install.sh has changed since
-# the last `./install.sh` run, since the cheap re-source on shell startup misses
-# those two.
+# Re-install if an installer file has changed since the last `./install.sh`
+# run, since the cheap re-source on shell startup misses those files.
 dot_star_check_install_stale() {
     local stamp_file="${HOME}/.dot-star-installed-commit"
     local checked_file="${HOME}/.dot-star-install-checked-commit"
@@ -27,8 +26,8 @@ dot_star_check_install_stale() {
         return 0
     fi
 
-    # Cheap re-source covers everything except these two; only prompt when one of them changed.
-    # Count both installer files as changed when no stamp exists. A host installed before the stamp was added has nothing to diff against, and skipping it would hide every later post-install change (a git pager swap, say) from that host for good.
+    # Prompt only when one of these files changed; the cheap re-source covers everything else.
+    # Count every installer file as changed when no stamp exists. A host installed before the stamp was added has nothing to diff against, and skipping it would hide every later post-install change (a git pager swap, say) from that host for good.
     local installer_files=(
         script/install.sh
         script/install_sudo_checks.sh
