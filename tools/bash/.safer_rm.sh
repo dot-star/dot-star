@@ -1,4 +1,8 @@
 safer_rm() {
+    # Turn filename expansion (globbing) back on before any return. The alias
+    # turned it off only so the arguments arrive unexpanded, and they already have.
+    set +f
+
     # Prohibited: rm *
     # Prohibited: rm * foo.txt
     # Prohibited: rm foo.txt *
@@ -50,9 +54,6 @@ safer_rm() {
         echo "cowardly refusing to run \`rm' with a dangerous wildcard"
         return 1
     fi
-
-    # Turn on filename expansion (globbing).
-    set +f
 
     args=()
     for arg in "${@}"; do
