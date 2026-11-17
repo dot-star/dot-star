@@ -27,7 +27,7 @@
 local DEFAULT_ENABLED = {
     bottom_bar = true,
     cycle_colors = false,
-    desktop_dots = false,
+    desktop_dots = true,
     edge_bars = true,
     follow_countdown = true,
     follow_order = true,
@@ -46,7 +46,7 @@ local DEFAULT_STYLES = {
     desktop_dots_size = 'small',
     desktop_dots_style = 'center',
     focus_marker = 'underline',
-    page_dots_side = 'right',
+    page_dots_side = 'left',
     pending_style = 'pulse',
     swipe_hint_style = 'double',
 }
