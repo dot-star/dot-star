@@ -63,20 +63,22 @@ alias pub="public"
 alias tmp="cd /tmp"
 
 trash() {
-    array=("$HOME/.Trash/" "$HOME/.local/share/Trash/")
-    for path in "${array[@]}"; do
-        if [ -d "${path}" ]; then
-            cd "${path}"
+    local array=("$HOME/.Trash/" "$HOME/.local/share/Trash/")
+    local dir
+    for dir in "${array[@]}"; do
+        if [ -d "${dir}" ]; then
+            cd "${dir}"
             break
         fi
     done
 }
 
 www() {
-    array=("/Library/WebServer/Documents/" "/var/www/")
-    for path in "${array[@]}"; do
-        if [ -d "${path}" ]; then
-            cd "${path}"
+    local array=("/Library/WebServer/Documents/" "/var/www/")
+    local dir
+    for dir in "${array[@]}"; do
+        if [ -d "${dir}" ]; then
+            cd "${dir}"
             break
         fi
     done
