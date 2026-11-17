@@ -25,7 +25,9 @@ Compatibility targets: macOS and Ubuntu (`script/post_install.sh` branches on `$
 
 ## Commands
 
-- Install / update: `./install.sh`. `./update.sh` is a symlink to the same script and detects the invocation name to decide whether to also `git pull` and `brew upgrade` (see `script/update.sh`). Inside an installed shell, the alias `dotstar` runs the update.
+- Install / update: `./install.sh`.
+  - `./update.sh` is a symlink to the same script and detects the invocation name to decide whether to also `git pull` and `brew upgrade` (see `script/update.sh`).
+  - Inside an installed shell, the alias `dotstar` runs the update.
 - Lint (matches CI in `.github/workflows/lint.yml`): `pre-commit run --all-files`. The hooks (see `.pre-commit-config.yaml`):
   - `black` over Python
   - `pyright` for the one rule `ty` lacks: reject bare generics (`dict`, `list`) that strict Pylance flags
