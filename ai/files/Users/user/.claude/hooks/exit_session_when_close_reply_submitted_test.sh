@@ -12,6 +12,7 @@ HOOK="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/exit_session_when_close_repl
 SANDBOX="$(cd "$(mktemp -d)" && pwd -P)"
 SESSION_ID="test-bare-x-$$"
 MARK="/tmp/claude/prune_marks/${SESSION_ID}"
+CLOSE_MARK="/tmp/claude/close_marks/${SESSION_ID}"
 OPEN_TURN="/tmp/claude/open_turns/${SESSION_ID}"
 STOP_BLOCKED="/tmp/claude-state-hook/${SESSION_ID}.stop_blocked"
 export CLAUDE_RUN_CLOSE_REQUESTED_MARKER="${SANDBOX}/close_requested"
@@ -177,6 +178,34 @@ assert_close "padded uppercase Z inside a worktree closes at once without a mark
 assert_close "z mid-turn reaches the model" \
     "z" "${PLAIN_DIR}" "mid-turn" "${NO_TRANSCRIPT}" "exit 0, unmarked, stayed"
 
+assert_close_mark() {
+    # Compare whether the close mark exists against <expected> (present, absent).
+    local label="$1"
+    local expected="$2"
+
+    local actual="absent"
+    if [[ -e "${CLOSE_MARK}" ]]; then
+        actual="present"
+    fi
+
+    if [[ "${actual}" == "${expected}" ]]; then
+        echo "✓ ${label}"
+    else
+        echo "✗ ${label}"
+        echo "    expected: ${expected}"
+        echo "    actual:   ${actual}"
+        failures=$((failures + 1))
+    fi
+}
+
+assert_close_mark "z mid-turn leaves a close mark for the turn's end" "present"
+assert_close "z after a blocked stop reaches the model" \
+    "z" "${PLAIN_DIR}" "blocked" "${NO_TRANSCRIPT}" "exit 0, unmarked, stayed"
+assert_close_mark "z after a blocked stop leaves a close mark" "present"
+assert_close "sentence after a mid-turn z reaches the model" \
+    "keep going" "${PLAIN_DIR}" "mid-turn" "${NO_TRANSCRIPT}" "exit 0, unmarked, stayed"
+assert_close_mark "sentence after a mid-turn z clears its close mark" "absent"
+
 # Expect a prompt that reaches the model to leave its turn open for the Stop hook to close.
 if [[ -e "${OPEN_TURN}" && ! -s "${OPEN_TURN}" ]]; then
     echo "✓ prompt reaching the model opens a turn"
@@ -185,7 +214,7 @@ else
     failures=$((failures + 1))
 fi
 
-rm --force -- "${MARK}" "${OPEN_TURN}" "${STOP_BLOCKED}"
+rm --force -- "${MARK}" "${CLOSE_MARK}" "${OPEN_TURN}" "${STOP_BLOCKED}"
 rm -r -- "${SANDBOX}"
 
 if [[ "${failures}" -eq 0 ]]; then

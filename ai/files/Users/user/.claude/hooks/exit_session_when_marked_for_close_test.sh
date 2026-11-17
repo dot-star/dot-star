@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 # Check that the hook signals its claude ancestor and touches claude_run's
-# close-requested marker only when the session carries a prune mark.
+# close-requested marker only when the session carries a prune or close mark,
+# leaving the Space and deleting the mark only for a close mark.
 #
 # Run: bash ai/files/Users/user/.claude/hooks/exit_session_when_marked_for_close_test.sh
 
@@ -10,6 +11,7 @@ HOOK="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/exit_session_when_marked_for
 SANDBOX="$(cd "$(mktemp -d)" && pwd -P)"
 SESSION_ID="test-exit-session-$$"
 MARK="/tmp/claude/prune_marks/${SESSION_ID}"
+CLOSE_MARK="/tmp/claude/close_marks/${SESSION_ID}"
 OPEN_TURN="/tmp/claude/open_turns/${SESSION_ID}"
 STATE="/tmp/claude-state-hook/${SESSION_ID}.state"
 STOP_BLOCKED="/tmp/claude-state-hook/${SESSION_ID}.stop_blocked"
@@ -184,7 +186,21 @@ else
     failures=$((failures + 1))
 fi
 
-rm --force -- "${MARK}" "${OPEN_TURN}" "${STATE}" "${STOP_BLOCKED}"
+rm --force -- "${MARK}" "${STOP_BLOCKED}"
+mkdir --parents "$(dirname -- "${CLOSE_MARK}")"
+touch -- "${CLOSE_MARK}"
+: >"${OPEN_TURN}"
+assert_exit "close-marked session leaves its Space and gets SIGTERM" \
+    "exit 143, close requested, hopped"
+
+if [[ ! -e "${CLOSE_MARK}" ]]; then
+    echo "✓ close deletes the close mark, so a resumed session stays open"
+else
+    echo "✗ close deletes the close mark, so a resumed session stays open"
+    failures=$((failures + 1))
+fi
+
+rm --force -- "${MARK}" "${CLOSE_MARK}" "${OPEN_TURN}" "${STATE}" "${STOP_BLOCKED}"
 rm -r -- "${SANDBOX}"
 
 if [[ "${failures}" -eq 0 ]]; then

@@ -4,6 +4,9 @@
 # don't execute it.
 
 prune_marks_dir="/tmp/claude/prune_marks"
+# Hold one file per session a mid-turn `z` asked to close at turn end without
+# pruning; the close Stop hook deletes it as it closes the session.
+close_marks_dir="/tmp/claude/close_marks"
 # Hold one file per session whose turn is still running, so a bare `x` sent
 # mid-turn waits for that turn's work instead of killing it.
 open_turns_dir="/tmp/claude/open_turns"

@@ -9,7 +9,9 @@
 #
 # A bare `z` closes the same way from anywhere, worktree included, but writes
 # no prune mark, so the worktree and the session both stay for a later resume.
-# Closing here also skips the keep-or-remove worktree dialog `/exit` shows.
+# Closing here also skips the keep-or-remove worktree dialog `/exit` shows. A
+# `z` sent mid-turn writes a close mark instead, which the close Stop hook
+# honors once the turn ends; any other prompt clears that mark.
 
 set -euo pipefail
 
@@ -102,6 +104,20 @@ turn_before=$(describe_turn "${session_id}")
 
 mkdir --parents -- "${open_turns_dir}"
 : >"${open_turns_dir}/${session_id}"
+
+# Clear any close mark first, so a later prompt cancels a mid-turn `z` and a
+# resumed session never inherits one.
+close_mark="${close_marks_dir}/${session_id}"
+rm --force -- "${close_mark}"
+
+# Defer a mid-turn `z` to the turn's end, since closing now would cut its work short.
+if [[ "${reply}" == "z" ]]; then
+    if [[ "${turn_before}" == "open" || "${turn_before}" == "blocked" ]]; then
+        mkdir --parents -- "${close_marks_dir}"
+        : >"${close_mark}"
+        exit 0
+    fi
+fi
 
 if ! is_close_owing_no_work; then
     exit 0

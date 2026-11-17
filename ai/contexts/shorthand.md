@@ -106,7 +106,7 @@ Interpret a bare one-token reply or a short fixed phrase as shorthand. Fires onl
 - `cs` means "commit only the already-staged changes": like `c` (the `commit` skill), but never auto-stage; if nothing is staged, stop.
 - `sc` means "separate commit(s)": split the pending changes into one commit per logical change, staging each by path and running the `commit` skill once per commit.
 - `🚢` means "ship it" (land the work)
-- `z` means "close this session, keeping its worktree and transcript": `exit_session_when_close_reply_submitted.sh` closes it before you see it. Sent mid-turn it reaches you instead; finish the turn and ask me to resend `z`, since nothing closes an unmarked session at turn end.
+- `z` means "close this session, keeping its worktree and transcript": `exit_session_when_close_reply_submitted.sh` closes it before you see it. Sent mid-turn it reaches you with a close mark already written; finish the turn and the session closes when it ends.
 - `split`, `sp`, `prs` mean "propose splitting the current change into separate PRs": offer the unsplit PR first, then a split into 2, into 3 and so on while each PR still carries one intent, with line counts beside every PR. It's a plan, so don't branch, commit or push.
   - Count from `git diff --numstat <merge-base>`, summing each file's adds and deletes into the PR that would carry it.
   - Write each option as a numbered choice: a one-line summary of the cut, then one indented line per PR with its subject, base, file count, `+adds` and `-deletes`.
