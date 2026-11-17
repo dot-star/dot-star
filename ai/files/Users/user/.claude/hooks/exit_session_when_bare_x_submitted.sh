@@ -2,8 +2,8 @@
 #
 # UserPromptSubmit hook: close the session the moment a bare `x` or `xx` is
 # submitted, when the close owes no work, so the window goes without waiting on
-# a model reply. An `x` inside a git worktree still reaches the model, since it
-# lands the worktree first. So does an `x` or `xx` sent while a turn is still
+# a model reply. An `x` from a session holding a git worktree still reaches the
+# model, since it lands the worktree first. So does an `x` or `xx` sent while a turn is still
 # running, so the close waits for that turn's work. Writes the prune mark the
 # model would have, so prune.sh still sweeps the session.
 
@@ -49,6 +49,36 @@ is_inside_worktree() {
     [[ "${git_dir}" != "${common_dir}" ]]
 }
 
+# Succeed when a tool call in this session touched a `.claude/worktrees/` path
+# that's still on disk. Catch a worktree made in another repo than the cwd's,
+# which the cwd check can't see.
+is_holding_worktree() {
+    local path
+
+    if [[ ! -f "${transcript_path}" ]]; then
+        return 1
+    fi
+
+    while IFS= read -r -d '' path; do
+        if [[ -d "${path}" ]]; then
+            return 0
+        fi
+    done < <(
+        command jq \
+            --raw-output0 \
+            'select(.type == "assistant")
+            | .message.content[]?
+            | select(.type == "tool_use")
+            | .input
+            | ..
+            | strings
+            | scan("/[^\\s\"]*/\\.claude/worktrees/[A-Za-z0-9._-]+")' \
+            -- "${transcript_path}" 2>/dev/null
+    )
+
+    return 1
+}
+
 # Succeed when the prompt closes the session without any work left for the model.
 is_close_owing_no_work() {
     local reply
@@ -67,6 +97,8 @@ is_close_owing_no_work() {
     elif [[ "${reply}" != "x" ]]; then
         return 1
     elif is_inside_worktree; then
+        return 1
+    elif is_holding_worktree; then
         return 1
     else
         return 0

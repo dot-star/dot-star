@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # Check that a bare `x` or `xx` closes the session at once, marking it for
-# prune and leaving its Space, except an `x` inside a worktree, which still
-# reaches the model to land first.
+# prune and leaving its Space, except an `x` from a session holding a
+# worktree, which still reaches the model to land first.
 #
 # Run: bash ai/files/Users/user/.claude/hooks/exit_session_when_bare_x_submitted_test.sh
 
@@ -53,18 +53,41 @@ git -C "${REPO}" \
     --message="init"
 git -C "${REPO}" worktree add --quiet "${WORKTREE}"
 
+# Build transcripts whose tool calls touched a worktree under another repo,
+# one still on disk and one already torn down.
+HELD_WORKTREE="${SANDBOX}/other/.claude/worktrees/held"
+mkdir --parents "${HELD_WORKTREE}"
+NO_TRANSCRIPT=""
+HELD_TRANSCRIPT="${SANDBOX}/held.jsonl"
+GONE_TRANSCRIPT="${SANDBOX}/gone.jsonl"
+write_transcript() {
+    # Write <path> as one assistant turn running a command that names <dir>.
+    local path="$1"
+    local dir="$2"
+
+    jq \
+        --null-input \
+        --compact-output \
+        --arg command "git -C \"${dir}\" status" \
+        '{type: "assistant", message: {content: [{type: "tool_use", input: {command: $command}}]}}' \
+        >"${path}"
+}
+write_transcript "${HELD_TRANSCRIPT}" "${HELD_WORKTREE}"
+write_transcript "${GONE_TRANSCRIPT}" "${SANDBOX}/other/.claude/worktrees/gone"
+
 failures=0
 
 assert_close() {
     # Submit <prompt> from <cwd> under the stand-in claude, which outlives the
     # hook unless signaled, with the turn left per <turn> (idle, mid-turn,
-    # blocked, closed), and compare "<exit status>, <mark>, <hop>" against
-    # <expected>.
+    # blocked, closed) and <transcript> as the session's history, and compare
+    # "<exit status>, <mark>, <hop>" against <expected>.
     local label="$1"
     local prompt="$2"
     local cwd="$3"
     local turn="$4"
-    local expected="$5"
+    local transcript="$5"
+    local expected="$6"
 
     rm --force -- "${CLAUDE_RUN_CLOSE_REQUESTED_MARKER}" "${HOP_RECORD}" "${MARK}" "${OPEN_TURN}" "${STOP_BLOCKED}"
     mkdir --parents -- "$(dirname -- "${OPEN_TURN}")" "$(dirname -- "${STOP_BLOCKED}")"
@@ -87,7 +110,8 @@ assert_close() {
         --arg sid "${SESSION_ID}" \
         --arg prompt "${prompt}" \
         --arg cwd "${cwd}" \
-        '{session_id: $sid, prompt: $prompt, cwd: $cwd, hook_event_name: "UserPromptSubmit"}')"
+        --arg transcript "${transcript}" \
+        '{session_id: $sid, prompt: $prompt, cwd: $cwd, transcript_path: $transcript, hook_event_name: "UserPromptSubmit"}')"
 
     # Silence bash's "Terminated" notice for the signaled case.
     {
@@ -118,29 +142,33 @@ assert_close() {
 }
 
 assert_close "x outside a repo closes at once" \
-    "x" "${PLAIN_DIR}" "idle" "exit 143, marked, hopped"
+    "x" "${PLAIN_DIR}" "idle" "${NO_TRANSCRIPT}" "exit 143, marked, hopped"
 assert_close "x in a main checkout closes at once" \
-    "x" "${REPO}" "idle" "exit 143, marked, hopped"
+    "x" "${REPO}" "idle" "${NO_TRANSCRIPT}" "exit 143, marked, hopped"
 assert_close "x from a torn-down worktree closes at once" \
-    "x" "${SANDBOX}/gone" "idle" "exit 143, marked, hopped"
+    "x" "${SANDBOX}/gone" "idle" "${NO_TRANSCRIPT}" "exit 143, marked, hopped"
 assert_close "padded uppercase X closes at once" \
-    $' X \n' "${PLAIN_DIR}" "idle" "exit 143, marked, hopped"
+    $' X \n' "${PLAIN_DIR}" "idle" "${NO_TRANSCRIPT}" "exit 143, marked, hopped"
 assert_close "xx inside a worktree closes at once" \
-    "xx" "${WORKTREE}" "idle" "exit 143, marked, hopped"
+    "xx" "${WORKTREE}" "idle" "${NO_TRANSCRIPT}" "exit 143, marked, hopped"
 assert_close "x inside a worktree reaches the model" \
-    "x" "${WORKTREE}" "idle" "exit 0, unmarked, stayed"
+    "x" "${WORKTREE}" "idle" "${NO_TRANSCRIPT}" "exit 0, unmarked, stayed"
 assert_close "drafted pick x2 reaches the model" \
-    "x2" "${PLAIN_DIR}" "idle" "exit 0, unmarked, stayed"
+    "x2" "${PLAIN_DIR}" "idle" "${NO_TRANSCRIPT}" "exit 0, unmarked, stayed"
 assert_close "sentence carrying x reaches the model" \
-    "fix x" "${PLAIN_DIR}" "idle" "exit 0, unmarked, stayed"
+    "fix x" "${PLAIN_DIR}" "idle" "${NO_TRANSCRIPT}" "exit 0, unmarked, stayed"
 assert_close "x after a finished turn closes at once" \
-    "x" "${REPO}" "closed" "exit 143, marked, hopped"
+    "x" "${REPO}" "closed" "${NO_TRANSCRIPT}" "exit 143, marked, hopped"
 assert_close "x after a blocked stop reaches the model" \
-    "x" "${REPO}" "blocked" "exit 0, unmarked, stayed"
+    "x" "${REPO}" "blocked" "${NO_TRANSCRIPT}" "exit 0, unmarked, stayed"
+assert_close "x holding a worktree in another repo reaches the model" \
+    "x" "${REPO}" "idle" "${HELD_TRANSCRIPT}" "exit 0, unmarked, stayed"
+assert_close "x after its other-repo worktree was torn down closes at once" \
+    "x" "${REPO}" "idle" "${GONE_TRANSCRIPT}" "exit 143, marked, hopped"
 assert_close "x mid-turn in a main checkout reaches the model" \
-    "x" "${REPO}" "mid-turn" "exit 0, unmarked, stayed"
+    "x" "${REPO}" "mid-turn" "${NO_TRANSCRIPT}" "exit 0, unmarked, stayed"
 assert_close "xx mid-turn reaches the model" \
-    "xx" "${PLAIN_DIR}" "mid-turn" "exit 0, unmarked, stayed"
+    "xx" "${PLAIN_DIR}" "mid-turn" "${NO_TRANSCRIPT}" "exit 0, unmarked, stayed"
 
 # Expect a prompt that reaches the model to leave its turn open for the Stop hook to close.
 if [[ -e "${OPEN_TURN}" && ! -s "${OPEN_TURN}" ]]; then
