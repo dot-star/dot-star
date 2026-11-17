@@ -281,12 +281,18 @@ hs.hotkey.bind({'option'}, '9', move_to('right-third'))
 
 function send_current_window_to_previous_monitor()
     local focused_window = hs.window.focusedWindow()
+    if focused_window == nil then
+        return
+    end
     local next_screen = focused_window:screen():previous()
     focused_window:moveToScreen(next_screen)
 end
 
 function send_current_window_to_next_monitor()
     local focused_window = hs.window.focusedWindow()
+    if focused_window == nil then
+        return
+    end
     local next_screen = focused_window:screen():next()
     focused_window:moveToScreen(next_screen)
 end
@@ -358,7 +364,9 @@ function debug_window_dimensions()
             local columns, rows = string.match(dims, '(%d+),(%d+)')
             columns = tonumber(columns)
             rows = tonumber(rows)
-            lines[#lines + 1] = string.format('cells:    %dx%d  (approx cell w=%.1f h=%.1f)', columns, rows, frame.w / columns, frame.h / rows)
+            if columns ~= nil and rows ~= nil then
+                lines[#lines + 1] = string.format('cells:    %dx%d  (approx cell w=%.1f h=%.1f)', columns, rows, frame.w / columns, frame.h / rows)
+            end
         end
     end
 
