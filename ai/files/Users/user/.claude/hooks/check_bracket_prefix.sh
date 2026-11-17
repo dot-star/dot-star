@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Stop hook: enforce the bracket-prefix rule for inline-prose alternative
-# questions (per ~/.claude/CLAUDE.md, Output > inline binary/ternary asks).
+# questions (per ~/.claude/CLAUDE.md, Output > bracket-prefix choice asks).
 # Block when the last assistant message contains a ?-terminated sentence
 # that offers alternatives (` or `) or pitches a commit/land/promote/push
 # follow-up but lacks any `[x]remainder` accept-prefix token, and feed the
@@ -148,7 +148,7 @@ if [ "${#violations[@]}" -eq 0 ]; then
     exit 0
 fi
 
-reason=$'Your last message has question(s) offering alternatives without bracket-prefix accept tokens (per ~/.claude/CLAUDE.md Output > inline binary/ternary asks):\n\n'
+reason=$'Your last message has question(s) offering alternatives without bracket-prefix accept tokens (per ~/.claude/CLAUDE.md Output > bracket-prefix choice asks):\n\n'
 for v in "${violations[@]}"; do
     reason+="- ${v}"$'\n'
 done
