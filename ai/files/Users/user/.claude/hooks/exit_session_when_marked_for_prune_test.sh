@@ -44,11 +44,32 @@ fi
 # waits on the user, the shape of a close that fired mid-task.
 REPO="${SANDBOX}/repo"
 git init --quiet "${REPO}"
+
+# Hold a worktree one commit ahead of the main checkout's branch, touched only
+# through the transcript, the shape of a close that strands unlanded work.
+git -C "${REPO}" \
+    -c user.name="test" \
+    -c user.email="test@example.com" \
+    commit \
+    --quiet \
+    --allow-empty \
+    --message="init"
+HELD_WORKTREE="${SANDBOX}/elsewhere/.claude/worktrees/held"
+git -C "${REPO}" worktree add --quiet -b "held" "${HELD_WORKTREE}"
+git -C "${HELD_WORKTREE}" \
+    -c user.name="test" \
+    -c user.email="test@example.com" \
+    commit \
+    --quiet \
+    --allow-empty \
+    --message="unlanded"
+
 touch -- "${REPO}/staged.txt"
 git -C "${REPO}" add -- "staged.txt"
 TRANSCRIPT="${SANDBOX}/transcript.jsonl"
 {
     jq --null-input --compact-output '{type: "user", message: {content: "x"}}'
+    jq --null-input --compact-output --arg command "git -C ${HELD_WORKTREE} status" '{type: "assistant", message: {content: [{type: "tool_use", input: {command: $command}}]}}'
     jq --null-input --compact-output '{type: "assistant", message: {content: [{type: "text", text: "Pick a subject: 1. Fix foo"}]}}'
 } >"${TRANSCRIPT}"
 CLOSE_LOG="${HOME}/.claude/session_close.jsonl"
@@ -148,16 +169,16 @@ assert_exit "marked session gets SIGTERM after asking claude_run to close" \
 
 # Expect one entry, from the marked run only, carrying the evidence a
 # premature close leaves behind.
-expected_entry='1 stop hook | open busy | A  staged.txt | x | Pick a subject: 1. Fix foo'
+expected_entry="1 stop hook | open busy | A  staged.txt | ${HELD_WORKTREE} 1 | x | Pick a subject: 1. Fix foo"
 actual_entry="$(jq \
     --slurp \
     --raw-output \
-    '"\(length) \(.[0].trigger) | \(.[0].turn) \(.[0].state) | \(.[0].uncommitted | join(",")) | \(.[0].last_prompt) | \(.[0].last_reply_tail)"' \
+    '"\(length) \(.[0].trigger) | \(.[0].turn) \(.[0].state) | \(.[0].uncommitted | join(",")) | \(.[0].held_worktrees | map("\(.path) \(.ahead)") | join(",")) | \(.[0].last_prompt) | \(.[0].last_reply_tail)"' \
     "${CLOSE_LOG}" 2>&1)"
 if [[ "${actual_entry}" == "${expected_entry}" ]]; then
-    echo "✓ close log records trigger, turn, state, dirty tree and last exchange"
+    echo "✓ close log records trigger, turn, state, dirty tree, held worktree and last exchange"
 else
-    echo "✗ close log records trigger, turn, state, dirty tree and last exchange"
+    echo "✗ close log records trigger, turn, state, dirty tree, held worktree and last exchange"
     echo "    expected: ${expected_entry}"
     echo "    actual:   ${actual_entry}"
     failures=$((failures + 1))

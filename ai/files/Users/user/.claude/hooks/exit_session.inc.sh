@@ -114,8 +114,9 @@ mark_close_requested() {
 }
 
 # Append one JSON line per close: what closed it, when the mark landed, the
-# tree's uncommitted paths and the last exchange. A dirty tree beside a reply
-# still waiting on the user marks a close that came too early.
+# tree's uncommitted paths, each worktree the session still holds and the last
+# exchange. A dirty tree or an unlanded worktree beside a reply still waiting
+# on the user marks a close that came too early.
 log_session_close() {
     local trigger="$1"
     local session_id="$2"
@@ -139,6 +140,7 @@ write_session_close_entry() {
     local mark_written=""
     local state=""
     local uncommitted=""
+    local held_worktrees
     local filter
     local size
 
@@ -156,6 +158,8 @@ write_session_close_entry() {
             uncommitted=""
         fi
     fi
+
+    held_worktrees=$(describe_held_worktrees "${transcript_path}")
 
     if [[ -f "${close_log}" ]]; then
         size=$(wc -c <"${close_log}")
@@ -180,6 +184,7 @@ def text_of: .message.content
     turn: $turn,
     state: $state,
     uncommitted: ($uncommitted | split("\n") | map(select(. != ""))),
+    held_worktrees: $held_worktrees,
     last_prompt: ([$events[] | select(.type == "user") | text_of | select(. != "")] | last // "" | .[:300]),
     last_reply_tail: ([$events[] | select(.type == "assistant") | text_of | select(. != "")] | last // "" | .[-600:])
 }
@@ -201,8 +206,40 @@ JQ
             --arg "turn" "${turn}" \
             --arg "state" "${state}" \
             --arg "uncommitted" "${uncommitted}" \
+            --argjson "held_worktrees" "${held_worktrees}" \
             "${filter}" \
             >>"${close_log}"
+}
+
+# Print a JSON array with one entry per worktree the session still holds: its
+# path, its commits not yet on the main checkout's branch and its uncommitted
+# paths. Record the other-repo worktree a close in this repo's cwd can't see.
+describe_held_worktrees() {
+    local transcript_path="$1"
+    local entries="[]"
+    local path
+    local main_checkout
+    local main_branch
+    local ahead
+    local uncommitted
+
+    while IFS= read -r -d '' path; do
+        main_checkout="$(git -C "${path}" rev-parse --path-format="absolute" --git-common-dir)/.."
+        main_branch=$(git -C "${main_checkout}" branch --show-current)
+        ahead=$(git -C "${path}" rev-list --count "${main_branch}..HEAD")
+        uncommitted=$(git -C "${path}" status --porcelain)
+        entries=$(
+            command jq \
+                --compact-output \
+                --arg "path" "${path}" \
+                --argjson "ahead" "${ahead:-null}" \
+                --arg "uncommitted" "${uncommitted}" \
+                '. + [{path: $path, ahead: $ahead, uncommitted: ($uncommitted | split("\n") | map(select(. != "")))}]' \
+                <<<"${entries}"
+        )
+    done < <(print_held_worktrees "${transcript_path}")
+
+    echo "${entries}"
 }
 
 # Print the transcript's last lines, or nothing when it's gone.
