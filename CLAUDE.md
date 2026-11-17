@@ -11,7 +11,7 @@ There are two `CLAUDE.md` files in this repo with different scopes:
 
 There is no project-scoped `.claude/settings.json` here on purpose (`.claude/` is gitignored). The user's global config at `~/.claude/settings.json` is itself a symlink into this repo at `ai/files/Users/user/.claude/settings.json` (set up by `script/install.sh`), so editing that file is how you change Claude Code behavior, both inside this checkout and everywhere else on the machine.
 
-`script/install.sh` also symlinks the parent dirs `ai/files/Users/user/.claude/skills`, `commands`, and `hooks` into `~/.claude/`, so new files under any of them are picked up automatically after install. To alias a slash command, symlink the new name to the existing one (e.g. `cm.md -> commit.md`); the same trick works for skills and hooks.
+`script/install.sh` also symlinks the parent dirs `ai/files/Users/user/.claude/skills`, `commands`, `hooks` and `styles` into `~/.claude/`, so new files under any of them are picked up automatically after install. To alias a slash command, symlink the new name to the existing one (e.g. `cm.md -> commit.md`); the same trick works for skills and hooks.
 
 ## Objective
 
@@ -26,11 +26,13 @@ Compatibility targets: macOS and Ubuntu (`script/post_install.sh` branches on `$
 ## Commands
 
 - Install / update: `./install.sh`.
-  - `./update.sh` is a symlink to the same script and detects the invocation name to decide whether to also `git pull` and `brew upgrade` (see `script/update.sh`).
-  - Inside an installed shell, the alias `dotstar` runs the update.
+  - `./update.sh` is a symlink to the same script and detects the invocation name to run `script/update.sh` (`git pull`, plus `brew upgrade` on macOS) instead of the install.
+  - Inside an installed shell, the alias `dotstar` changes into `~/.dot-star`, where `./update.sh` runs the update.
 - Lint (matches CI in `.github/workflows/lint.yml`): `pre-commit run --all-files`. The hooks (see `.pre-commit-config.yaml`):
   - `black` over Python
+  - doc pointers check (`script/check_doc_pointers_resolve.sh`): every on-demand doc a tracked markdown file points at exists
   - `pyright` for the one rule `ty` lacks: reject bare generics (`dict`, `list`) that strict Pylance flags
+  - `remind_style_guide` hook test suite
   - `ruff-check` over Python
   - settings test suite
   - `shfmt` over shell files
