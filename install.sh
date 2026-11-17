@@ -9,6 +9,12 @@
 set -o nounset
 set -o pipefail
 
+# Run from the checkout holding this script, so the relative paths below resolve
+# from any cwd and a worktree's copy never sources the main checkout's installer.
+if ! cd "$(dirname "${BASH_SOURCE[0]}")"; then
+    exit 1
+fi
+
 # Mark the run as live, so a shell opened meanwhile skips the slow-start investigation.
 install_marker="${XDG_STATE_HOME:-${HOME}/.local/state}/dot-star/install.pid"
 mkdir -p "$(dirname "${install_marker}")"
