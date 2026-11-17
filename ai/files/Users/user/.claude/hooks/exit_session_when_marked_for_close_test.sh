@@ -3,9 +3,9 @@
 # Check that the hook signals its claude ancestor and touches claude_run's
 # close-requested marker only when the session carries a prune mark.
 #
-# Run: bash ai/files/Users/user/.claude/hooks/exit_session_when_marked_for_prune_test.sh
+# Run: bash ai/files/Users/user/.claude/hooks/exit_session_when_marked_for_close_test.sh
 
-HOOK="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/exit_session_when_marked_for_prune.sh"
+HOOK="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/exit_session_when_marked_for_close.sh"
 
 SANDBOX="$(cd "$(mktemp -d)" && pwd -P)"
 SESSION_ID="test-exit-session-$$"

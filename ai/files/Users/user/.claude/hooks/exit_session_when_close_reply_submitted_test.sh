@@ -93,7 +93,7 @@ assert_close() {
     rm --force -- "${CLAUDE_RUN_CLOSE_REQUESTED_MARKER}" "${HOP_RECORD}" "${MARK}" "${OPEN_TURN}" "${STOP_BLOCKED}"
     mkdir --parents -- "$(dirname -- "${OPEN_TURN}")" "$(dirname -- "${STOP_BLOCKED}")"
 
-    # Record a stop the way the prune Stop hook does, and a block the way announce_window_state.py does.
+    # Record a stop the way the close Stop hook does, and a block the way announce_window_state.py does.
     if [[ "${turn}" == "mid-turn" ]]; then
         touch -- "${OPEN_TURN}"
     elif [[ "${turn}" == "blocked" ]]; then

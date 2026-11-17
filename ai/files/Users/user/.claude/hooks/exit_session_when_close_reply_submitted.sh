@@ -96,7 +96,7 @@ reply=$(printf '%s' "${prompt}" | tr '[:upper:]' '[:lower:]')
 reply="${reply#"${reply%%[![:space:]]*}"}"
 reply="${reply%"${reply##*[![:space:]]}"}"
 
-# Check for a running turn before opening this prompt's own; the prune Stop
+# Check for a running turn before opening this prompt's own; the close Stop
 # hook closes it. Any prompt arriving mid-turn joins that turn.
 turn_before=$(describe_turn "${session_id}")
 

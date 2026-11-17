@@ -2,7 +2,7 @@
 #
 # PostToolUse hook: leave the full-screen Space the moment the model writes this
 # session's prune mark, rather than once its reply ends, so the window drops out
-# of view while the recap still renders. exit_session_when_marked_for_prune.sh
+# of view while the recap still renders. exit_session_when_marked_for_close.sh
 # closes the session after the reply.
 
 set -euo pipefail
