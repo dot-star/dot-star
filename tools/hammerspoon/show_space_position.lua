@@ -2098,12 +2098,14 @@ local function placeEdgeBars(
     end
     -- Line the countdown up with the first dot's band, so it reads as part of the row.
     local firstBand = pageDotsBandFrame(1)
-    -- Put the countdown on the dots' inner side, away from the screen edge they sit against.
+    -- Put the countdown on the dots' inner side, away from the screen edge they sit against, its text hugging the dots.
     local countdownX
     if dotsOnLeft(pair) then
         countdownX = dotsX + scale * dotsSize.w
+        pair.countdown[1].textAlignment = 'left'
     else
         countdownX = dotsX - scale * COUNTDOWN.WIDTH
+        pair.countdown[1].textAlignment = 'right'
     end
     pair.countdown:frame({
         x = countdownX,
