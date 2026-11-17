@@ -336,7 +336,7 @@
             "type": "command"
           },
           {
-            "command": "${HOME}/.claude/hooks/exit_session_when_bare_x_submitted.sh",
+            "command": "${HOME}/.claude/hooks/exit_session_when_close_reply_submitted.sh",
             "type": "command"
           }
         ]

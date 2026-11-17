@@ -30,7 +30,7 @@ if [[ -z "${session_id}" ]]; then
     exit 0
 fi
 
-# Close the turn the bare-x hook opened by recording this stop, so a sibling
+# Close the turn the close-reply hook opened by recording this stop, so a sibling
 # Stop hook blocking it in parallel still reads as a running turn.
 turn_before=$(describe_turn "${session_id}")
 mkdir --parents -- "${open_turns_dir}"

@@ -4,9 +4,9 @@
 # prune and leaving its Space, except an `x` from a session holding a
 # worktree, which still reaches the model to land first.
 #
-# Run: bash ai/files/Users/user/.claude/hooks/exit_session_when_bare_x_submitted_test.sh
+# Run: bash ai/files/Users/user/.claude/hooks/exit_session_when_close_reply_submitted_test.sh
 
-HOOK="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/exit_session_when_bare_x_submitted.sh"
+HOOK="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/exit_session_when_close_reply_submitted.sh"
 
 SANDBOX="$(cd "$(mktemp -d)" && pwd -P)"
 SESSION_ID="test-bare-x-$$"

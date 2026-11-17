@@ -64,13 +64,6 @@ is_holding_worktree() {
 
 # Succeed when the prompt closes the session without any work left for the model.
 is_close_owing_no_work() {
-    local reply
-
-    # Trim surrounding whitespace and fold case, since a dictated prompt capitalizes at will.
-    reply=$(printf '%s' "${prompt}" | tr '[:upper:]' '[:lower:]')
-    reply="${reply#"${reply%%[![:space:]]*}"}"
-    reply="${reply%"${reply##*[![:space:]]}"}"
-
     if [[ "${turn_before}" == "open" ]]; then
         return 1
     elif [[ "${turn_before}" == "blocked" ]]; then
@@ -91,6 +84,11 @@ is_close_owing_no_work() {
 if [[ -z "${session_id}" ]]; then
     exit 0
 fi
+
+# Trim surrounding whitespace and fold case, since a dictated prompt capitalizes at will.
+reply=$(printf '%s' "${prompt}" | tr '[:upper:]' '[:lower:]')
+reply="${reply#"${reply%%[![:space:]]*}"}"
+reply="${reply%"${reply##*[![:space:]]}"}"
 
 # Check for a running turn before opening this prompt's own; the prune Stop
 # hook closes it. Any prompt arriving mid-turn joins that turn.
