@@ -288,11 +288,13 @@ fi
 
 bat_themes_dir="$("${bat_bin}" --config-dir)/themes"
 mkdir -p "${bat_themes_dir}"
-ensure_symlink "${DOT_STAR_ROOT}/tools/version_control/monokai-extended-readable-comments.tmTheme" "${bat_themes_dir}/monokai-extended-readable-comments.tmTheme"
+# Remove the link the theme's old name left behind: one broken link makes `bat cache --build` skip every custom theme, so delta would quietly fall back to stock colors.
+rm -f "${bat_themes_dir}/monokai-extended-readable-comments.tmTheme"
+ensure_symlink "${DOT_STAR_ROOT}/tools/version_control/monokai-extended-modified.tmTheme" "${bat_themes_dir}/monokai-extended-modified.tmTheme"
 "${bat_bin}" cache --build
 
-# Bright added/removed-line backgrounds so `+`/`-` lines stand apart from context; the readable-comments theme keeps the syntax-highlighted comment text legible on them.
-git config --global delta.syntax-theme "monokai-extended-readable-comments"
+# Bright added/removed-line backgrounds so `+`/`-` lines stand apart from context; the modified theme keeps the syntax-highlighted comment text legible on them.
+git config --global delta.syntax-theme "monokai-extended-modified"
 git config --global delta.minus-style "syntax #800000"
 git config --global delta.plus-style "syntax #008000"
 bt_pop
