@@ -1088,14 +1088,10 @@ alias_open() {
     fi
 }
 
-alias_ip() {
-    if [[ -x /sbin/ifconfig ]]; then
-        /sbin/ifconfig
-    else
-        ifconfig -a | grep -o 'inet6\? \(\([0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\)\|[a-fA-F0-9:]\+\)' | sed -e 's/inet6* //' | sort | sed 's/\('$(ipconfig getifaddr en1)'\)/\1 [LOCAL]/'
-    fi
-}
-alias ip="alias_ip"
+# List network interfaces on macOS, which has no `ip`; Linux keeps its own `ip`.
+if [[ "${OSTYPE}" == "darwin"* ]]; then
+    alias ip="/sbin/ifconfig"
+fi
 
 alias dotfiles="dotstar"
 alias dotstar="cd ${HOME}/.dot-star && l"
