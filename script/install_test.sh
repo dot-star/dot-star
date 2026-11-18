@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for setup_bootstrap, drop_requires_shadowing_block, ensure_symlink and the run lock in install.sh.
+# Tests for setup_bootstrap, drop_requires_shadowing_block, ensure_symlink, the run lock in install.sh and the run marker in the top-level install.sh.
 #
 # Sources just those pieces out of install.sh (the rest of the
 # script touches the real home directory) and runs them against fixtures.
@@ -292,6 +292,25 @@ echo "$$" >"${marker}"
 } >"${marker_install}"
 HOME="${lock_home}" bash "${marker_install}" 2>/dev/null
 check "clears the caller's run marker on exit" "$([[ -e "${marker}" ]] && echo kept || echo cleared)" "cleared"
+
+# Build a fake top-level run from the real marker and lock blocks, so a run that loses the lock meets a live marker.
+TOP_INSTALL="${SCRIPT_DIR}/../install.sh"
+state_home="${work}/state_home"
+race_marker="${state_home}/dot-star/install.pid"
+race_install="${work}/race_install.sh"
+{
+    awk '/^install_marker=/,/^trap clear_install_marker EXIT$/' "${TOP_INSTALL}"
+    cat "${fake_install}"
+} >"${race_install}"
+
+# Keep the lock holder's marker when a second run loses the lock and exits.
+XDG_STATE_HOME="${state_home}" HOME="${lock_home}" bash "${race_install}" 2>/dev/null &
+first=$!
+sleep 0.5
+XDG_STATE_HOME="${state_home}" HOME="${lock_home}" bash "${race_install}" 2>/dev/null
+check "keeps the lock holder's marker when a second run loses the lock" "$(cat "${race_marker}" 2>/dev/null)" "${first}"
+wait "${first}"
+check "clears the lock holder's marker on exit" "$([[ -e "${race_marker}" ]] && echo kept || echo cleared)" "cleared"
 
 echo ""
 echo "${passes} passed, ${fails} failed"

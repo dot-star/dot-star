@@ -18,9 +18,40 @@ fi
 # Mark the run as live, so a shell opened meanwhile skips the slow-start investigation.
 install_marker="${XDG_STATE_HOME:-${HOME}/.local/state}/dot-star/install.pid"
 mkdir -p "$(dirname "${install_marker}")"
-echo "$$" >"${install_marker}"
+
+# Print the process ID the marker names, or nothing when there is no marker.
+read_install_marker() {
+    local holder=""
+
+    if [[ -r "${install_marker}" ]]; then
+        read -r holder <"${install_marker}"
+    fi
+
+    echo "${holder}"
+}
+
+# Report whether the marker names a run that is still alive.
+install_marker_is_live() {
+    local holder
+    holder="$(read_install_marker)"
+
+    if [[ -z "${holder}" ]]; then
+        return 1
+    fi
+
+    kill -0 "${holder}" 2>/dev/null
+}
+
+# Leave a live run's marker in place, so a run that loses the install lock can't unmark the one holding it.
+if ! install_marker_is_live; then
+    echo "$$" >"${install_marker}"
+fi
+
+# Clear only this run's own marker.
 clear_install_marker() {
-    rm -f "${install_marker}"
+    if [[ "$(read_install_marker)" == "$$" ]]; then
+        rm -f "${install_marker}"
+    fi
 }
 trap clear_install_marker EXIT
 
