@@ -141,6 +141,8 @@ def record_window(session_id: str) -> None:
     if not window_id:
         return
 
+    # Create the state dir first, since this write can come before any log line creates it.
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
     window_file(session_id).write_text(window_id)
     log(f"captured window {window_id} for session {session_id}")
 

@@ -7,6 +7,10 @@ end; the Ghostty split and resize run through osascript against a live window,
 so they stay out of the suite.
 """
 
+import io
+import json
+import os
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -70,6 +74,37 @@ class ForgetWindowTest(unittest.TestCase):
         """Ensure forget_window returns quietly when the session never recorded a window."""
         forget_window(self.session_id)
         self.assertFalse(window_file(self.session_id).exists())
+
+
+class SessionStartTest(unittest.TestCase):
+    """Test the SessionStart branch, which records the session's window."""
+
+    def setUp(self) -> None:
+        state_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(state_dir.cleanup)
+        self.state_dir = Path(state_dir.name) / "state"
+        for patcher in [
+            mock.patch.object(open_status_on_commit_menu, "STATE_DIR", self.state_dir),
+            mock.patch.object(open_status_on_commit_menu, "LOG_FILE", self.state_dir / "open_status.log"),
+            # Stand in for Ghostty, which answers the front-window query.
+            mock.patch.object(open_status_on_commit_menu, "run_osascript", return_value="5678"),
+            mock.patch.dict(os.environ, {"TERM_PROGRAM": "ghostty"}),
+            mock.patch.object(sys, "argv", ["open_status_on_commit_menu.py", "SessionStart"]),
+        ]:
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        self.session_id = "12345678-90ab-cdef-1234-567890abcdef"
+
+    def run_session_start(self, source: str) -> None:
+        """Run the hook on a SessionStart event from the given source."""
+        event = json.dumps({"session_id": self.session_id, "source": source})
+        with mock.patch.object(sys, "stdin", io.StringIO(event)):
+            open_status_on_commit_menu.main()
+
+    def test_creates_a_missing_state_dir(self) -> None:
+        """Ensure a startup records the window even before any log line created the state dir."""
+        self.run_session_start(source="startup")
+        self.assertEqual(window_file(self.session_id).read_text(), "5678")
 
 
 if __name__ == "__main__":
