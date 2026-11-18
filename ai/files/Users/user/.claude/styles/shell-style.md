@@ -167,9 +167,7 @@ session_id=$(command jq --raw-output '.session_id // empty' <<<"${input}")
 
 ## Self-documenting command variables
 
-When a command's or test's intent isn't obvious from its literal text, bind it to a descriptively-named local variable or predicate function so the call site reads as prose.
+Shell mechanics for the naming rule in `~/.dot-star/ai/contexts/code-style.md` (name a multi-line or opaque value before using it).
 
 - `local is_valid_json="jq empty"` lets the conditional read `if $is_valid_json "${file}"; then`.
-- A `has_shebang() { ... }` helper lets `if has_shebang; then` replace an inline `if [ "$(head -c2 "${f}")" = '#!' ]; then`.
 - Prefer the prose-reading predicate even when it costs a small helper function: the "never single-line `if`" rule governs `if` bodies only and never argues against defining such a helper (give it a normal multi-line body).
-- Skip when the literal command or test is already clear on its own.

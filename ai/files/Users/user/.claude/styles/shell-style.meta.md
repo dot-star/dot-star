@@ -167,9 +167,7 @@ Every `jq` call spawns a process and re-parses the whole payload, about 8 ms api
 
 ## Self-documenting command variables
 
+The general rule and its triggers live in the code-style context; this section keeps only what's shell-specific.
 
-
--
--
 -
 -

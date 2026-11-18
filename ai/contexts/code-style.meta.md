@@ -44,6 +44,7 @@
   -
   -
 -
+- A multi-line computation nested in a string, argument or test hides the outer line's shape: the reader has to find where it closes to see what the line does. The line-count trigger needs no judgment, so the common case can't be argued away as obvious; the opaque trigger catches one-liners that still need decoding. Clear one-line nesting is exempt because naming it adds a line and no meaning.
 - Generalizes the trailing-comma rules below to any sequence, string concatenation included, where no formatter adds the terminator. The extra `""` line makes a reorder diff as a pure move.
 
   ```
