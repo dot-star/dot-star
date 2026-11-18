@@ -12,8 +12,11 @@ checkout="${1:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 version_control_aliases="${checkout}/tools/version_control/.aliases.sh"
 
 repo="$(command mktemp -d)"
-series_dir="/tmp/claude/series-diff-test-$$/series"
-trap 'rm -rf "${repo}" "$(dirname "${series_dir}")"' EXIT
+# Search a private root, so a series a real session queued never answers for this one.
+DOT_STAR_SERIES_ROOT="$(command mktemp -d)"
+export DOT_STAR_SERIES_ROOT
+series_dir="${DOT_STAR_SERIES_ROOT}/session/series"
+trap 'rm -rf "${repo}" "${DOT_STAR_SERIES_ROOT}"' EXIT
 
 cd "${repo}"
 git init \

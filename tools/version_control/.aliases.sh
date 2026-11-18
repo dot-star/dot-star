@@ -1535,8 +1535,10 @@ git_series_diff() {
     # Show commit N of the series a Claude commit menu queued, from any
     # directory. The menu writes /tmp/claude/<session_id>/series/<N> as a mode
     # line (staged or unstaged), the worktree path, then one path per line; the
-    # newest file for N wins.
+    # newest file for N wins. DOT_STAR_SERIES_ROOT overrides /tmp/claude, so a
+    # test reads only its own series.
     local commit_number="${1}"
+    local series_root="${DOT_STAR_SERIES_ROOT:-/tmp/claude}"
     local series_file=""
     local candidate
     local mode
@@ -1552,7 +1554,7 @@ git_series_diff() {
         fi
     done < <(
         find \
-            /tmp/claude \
+            "${series_root}" \
             -mindepth 3 \
             -maxdepth 3 \
             -path "*/series/${commit_number}" \
@@ -1560,7 +1562,7 @@ git_series_diff() {
     )
 
     if [[ -z "${series_file}" ]]; then
-        echo "No commit ${commit_number} in any queued series under /tmp/claude." >&2
+        echo "No commit ${commit_number} in any queued series under ${series_root}." >&2
         return 1
     fi
 
