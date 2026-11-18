@@ -228,6 +228,8 @@
 -
   -
   -
+- A comma every three digits lets the reader take in the magnitude at a glance; a bare `3725` is a run of digits they have to count before they know whether it's an hour or a day. Formatting at render time keeps the stored value a plain number, so math and comparisons never trip over a string. Pinning the locale keeps the separator a comma on a device set to a locale that groups with periods or spaces.
+  - A comma turns an identifier into a quantity: `2,026` reads as a count rather than a year, and a grouped port or id no longer pastes back into the place it came from. A parser expecting a bare integer rejects or misreads the grouped form.
 - A reader counts the keys in a chord by counting the names, so every extra name adds a phantom key. The spelled-out word lands fastest, since not every reader knows the key glyphs by sight. A glyph printed on the keycap helps the reader find the key, so it rides along in parentheses without counting as a key of its own; a glyph the keyboard never shows (Shift, Return, the arrows) gives them nothing to match.
   - Parentheses mark the glyph as a gloss on the word; set side by side with only a space, the glyph and the word parse as two keys.
   -
