@@ -53,6 +53,7 @@ from typing import Any
 
 from announce_window_state_models import Session
 from announce_window_state_notifications import notify
+from announce_window_state_records import NOTIFICATION_STATES
 from announce_window_state_records import forget_session
 from announce_window_state_records import record_notification_state
 from announce_window_state_records import record_session_state
@@ -114,7 +115,9 @@ def main() -> None:
             )
         )
         record_notification_state(session=session, event=event)
-        on_waiting(session=session, event=event)
+        # Announce only a notice that leaves the user something to do, never one like "auth_success".
+        if event.get("notification_type", "") in NOTIFICATION_STATES:
+            on_waiting(session=session, event=event)
     elif event_name == "PermissionRequest":
         record_waiting_tool(session=session, event=event)
     elif event_name == "PreToolUse":
