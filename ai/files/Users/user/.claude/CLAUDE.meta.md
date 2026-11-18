@@ -144,6 +144,7 @@
   -
 -
 -
+  - A packed bullet makes the reader find where each fact ends before they can weigh any of them; a sub-bullet hands them that boundary.
 -
   -
   -
