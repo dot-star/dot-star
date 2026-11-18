@@ -431,7 +431,9 @@ def main() -> None:
         event = {}
 
     if event_name == "SessionStart":
-        record_window(event.get("session_id", ""))
+        # Skip a compaction's restart, which can land mid-turn while another window has focus.
+        if event.get("source") != "compact":
+            record_window(event.get("session_id", ""))
     elif event_name == "Stop":
         open_status_view(event)
     elif event_name == "SessionEnd":

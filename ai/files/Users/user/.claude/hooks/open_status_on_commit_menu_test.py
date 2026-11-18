@@ -106,6 +106,13 @@ class SessionStartTest(unittest.TestCase):
         self.run_session_start(source="startup")
         self.assertEqual(window_file(self.session_id).read_text(), "5678")
 
+    def test_keeps_the_window_across_a_compaction(self) -> None:
+        """Ensure a compaction keeps the launch window rather than recording whichever one has focus."""
+        self.state_dir.mkdir(parents=True)
+        window_file(self.session_id).write_text("1234")
+        self.run_session_start(source="compact")
+        self.assertEqual(window_file(self.session_id).read_text(), "1234")
+
 
 if __name__ == "__main__":
     unittest.main()

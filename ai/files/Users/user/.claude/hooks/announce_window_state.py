@@ -101,10 +101,11 @@ def main() -> None:
 
     if event_name == "SessionStart":
         log(f"SessionStart: objective={objective(session=session)!r}")
-        capture_window_id(session=session)
         set_title(state="RUNNING", session=session)
-        # Skip a compaction's restart, which can land mid-turn while the session is still busy.
+        # Skip a compaction's restart, which can land mid-turn while the session is
+        # still busy and another window has focus.
         if event.get("source") != "compact":
+            capture_window_id(session=session)
             record_session_state(session=session, state="ready")
     elif event_name == "Notification":
         log(
