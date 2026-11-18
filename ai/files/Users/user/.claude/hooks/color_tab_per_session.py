@@ -56,6 +56,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 from claude_session_dir import claude_session_dir
 from terminal_tty import IN_TERMINAL_APP
@@ -154,6 +155,19 @@ def state_file(session_id: str) -> Path | None:
         return None
 
     return session_dir / "color.json"
+
+
+def read_state(path: Path) -> dict[str, Any]:
+    """Return the state an earlier SessionStart wrote, or an empty one when there is none."""
+    try:
+        state = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return {}
+
+    if not isinstance(state, dict):
+        return {}
+
+    return state
 
 
 def selected_modes() -> set[str]:
@@ -260,8 +274,16 @@ def on_session_start(event: dict) -> None:
             log(f"no controlling tty for ppid {os.getppid()}; tab left alone")
         elif IN_TERMINAL_APP:
             state["tty"] = tty
-            state["saved_profile"] = read_tab(tty, "name of current settings of candidate_tab")
-            state["saved_background"] = read_tab(tty, "background color of candidate_tab")
+            previous = read_state(path)
+
+            # Keep the look the session's first SessionStart saved: a later one
+            # (a compaction) finds the tab already wearing the session's color.
+            if previous.get("tty") == tty and "saved_profile" in previous:
+                state["saved_profile"] = previous["saved_profile"]
+                state["saved_background"] = previous.get("saved_background")
+            else:
+                state["saved_profile"] = read_tab(tty, "name of current settings of candidate_tab")
+                state["saved_background"] = read_tab(tty, "background color of candidate_tab")
 
             # Land the profile first: it carries its own background, which the
             # tint below is meant to override when both modes are on.
