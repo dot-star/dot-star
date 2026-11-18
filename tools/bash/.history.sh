@@ -10,4 +10,8 @@ export HISTFILESIZE="${HISTSIZE}"
 # PROMPT_COMMAND to avoid breaking PROMPT_COMMAND. Without doing this, new tabs
 # won't retrain the current directory even with the Preferences > General > New
 # tabs open with: Same Working Directory setting set.
-PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+#
+# Prepend it only once, so reloading the profile doesn't stack another copy.
+if [[ "${PROMPT_COMMAND}" != *"history -a;"* ]]; then
+    PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+fi
