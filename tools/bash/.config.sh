@@ -34,7 +34,8 @@ if which diff-highlight &>/dev/null; then
 else
     compgen &>/dev/null
     if [[ $? -ne 127 ]]; then
-        compgen -G "/usr/local/Cellar/git/*/share/git-core/contrib/diff-highlight/diff-highlight" >/dev/null
+        # Look where diff_highlight runs it from, so an Apple silicon Homebrew counts too.
+        compgen -G "${HOMEBREW_PREFIX:-/usr/local}/Cellar/git/*/share/git-core/contrib/diff-highlight/diff-highlight" >/dev/null
         if [ $? -eq 0 ]; then
             DIFF_HIGHLIGHT_INSTALLED=true
         fi
