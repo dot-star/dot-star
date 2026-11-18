@@ -317,7 +317,7 @@ conditional_g() {
     elif [[ "${#}" -eq 1 ]] && is_commit_hash "${1}"; then
         git_browser --select-commit="${1}"
     else
-        git ${@}
+        git "${@}"
     fi
 
 }
@@ -1358,7 +1358,7 @@ rc_checkout() {
 
         git checkout "${branch_name}"
     else
-        git checkout $@
+        git checkout "$@"
     fi
 }
 
@@ -1495,11 +1495,11 @@ rc_diff() {
         # Arguments passed to `git diff'.
         else
             # Display staged diff (cached) when available.
-            result="$(git diff --cached $@)"
+            result="$(git diff --cached "$@")"
             if [[ ! -z "${result}" ]] && [[ "${result}" != "* Unmerged path"* ]]; then
-                git_diff_announced "${full_diff}" diff --cached $@
+                git_diff_announced "${full_diff}" diff --cached "$@"
             else
-                git_diff_announced "${full_diff}" diff $@
+                git_diff_announced "${full_diff}" diff "$@"
             fi
         fi
     else
@@ -1602,7 +1602,7 @@ git_series_pick() {
 alias cpick="git_series_pick"
 
 rc_fetch_tags() {
-    git fetch --tags $@
+    git fetch --tags "$@"
 }
 
 rc_log() {
@@ -1621,9 +1621,9 @@ rc_checkout_default_branch() {
 
 rc_merge() {
     if is_git; then
-        git merge $@
+        git merge "$@"
     else
-        \merge $@
+        \merge "$@"
     fi
 }
 
@@ -1632,7 +1632,7 @@ rc_pull() {
         refspec="$(git rev-parse --abbrev-ref HEAD)"
         git pull "origin" "${refspec}"
     else
-        git pull $@
+        git pull "$@"
     fi
 
     if [[ $? -ne 0 ]]; then
@@ -1641,7 +1641,7 @@ rc_pull() {
 }
 
 rc_pull_with_rebase() {
-    git pull --rebase $@
+    git pull --rebase "$@"
 }
 
 # Print where HEAD's history meets the local default branch when HEAD is off it,
@@ -3139,7 +3139,7 @@ conditional_gh() {
             github_repositories
         fi
     else
-        command gh ${@}
+        command gh "${@}"
     fi
 }
 alias gh="conditional_gh"
@@ -3154,6 +3154,6 @@ open_repository() {
     # >> gh browse src/main.py
     # $ repo src/main.py:100
     # >> gh browse src/main.py:100
-    command gh browse ${@}
+    command gh browse "${@}"
 }
 alias repo="open_repository"

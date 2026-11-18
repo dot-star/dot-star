@@ -986,7 +986,7 @@ alias_tree() {
         -I ".git" \
         -I "__pycache__" \
         -I "node_modules" \
-        $@
+        "$@"
 }
 alias tree="alias_tree"
 alias t="alias_tree"
@@ -1824,7 +1824,7 @@ conditional_d() {
 
     # Run version control diff when no parameters are specified.
     elif is_git; then
-        rc_diff $@
+        rc_diff "$@"
 
     # Otherwise, run Docker.
     else
@@ -2144,7 +2144,7 @@ if [[ $- == *i* ]]; then
 
         # Run regular `type' command.
         else
-            builtin type $@
+            builtin type "$@"
         fi
     }
     alias type="_type"
@@ -2978,7 +2978,7 @@ conditional_a() {
 
     # Handle a -> `git add'.
     else
-        git add $@
+        git add "$@"
     fi
 }
 
@@ -2991,7 +2991,7 @@ conditional_hs() {
     if [[ ${#} -eq 0 ]]; then
         cd ~/.hammerspoon/ && l
     else
-        "$(which hs)" $@
+        "$(which hs)" "$@"
     fi
 }
 alias .hs="conditional_hs"

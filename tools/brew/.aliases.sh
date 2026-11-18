@@ -26,7 +26,7 @@ if [[ $? -eq 0 ]]; then
     alias_brew() {
         set -x
         command brew \
-            $@ \
+            "$@" \
             --debug \
             --verbose
         set +x

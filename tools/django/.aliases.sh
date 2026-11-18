@@ -1,15 +1,15 @@
 # Django Aliases
 
 makemigrations() {
-    python manage.py makemigrations $@
+    python manage.py makemigrations "$@"
 }
 
 migrate() {
-    python manage.py migrate $@
+    python manage.py migrate "$@"
 }
 
 createsuperuser() {
-    python manage.py createsuperuser $@
+    python manage.py createsuperuser "$@"
 }
 
 django_runserver() {
