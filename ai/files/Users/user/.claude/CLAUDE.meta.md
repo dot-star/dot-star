@@ -245,6 +245,7 @@
 -
   -
   - A direction word is a pronoun for a place: it binds to whichever party the reader stands in. It bites wherever something moves between two parties, since the same flow is incoming to one and outgoing to the other.
+  - A branch name is a category noun with two members once a remote exists: the local branch and its remote-tracking copy drift apart between pushes. Lands and promotes move only the local branch, yet "on master" commonly reads as "pushed", so a bare `master` costs the reader a turn asking which one.
   -
   -
   -

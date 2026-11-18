@@ -123,7 +123,7 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
 
   - **Empty** (clean tree): drop `[c]ommit`, `[f]old` and `[xx]`, reframe `[i]terate` from "defer the commit" to "keep tuning", and narrow the menu to `[i]terate`/`[p]romote`/`[L]and`/`[x]` (they act on the already-committed work, or leave it where it is). `[xx]` goes because the work it guards is already in a commit, per the close rows above.
 
-    - **Nothing ahead of the default branch** (`git rev-list --count master..HEAD` prints `0`): drop `[p]romote` too, since it would fast-forward by zero commits, and cut `✅ promote to master` from the `[L]and` and `[x]` parentheticals, leaving the teardown they still do.
+    - **Nothing ahead of the default branch** (`git rev-list --count master..HEAD` prints `0`): drop `[p]romote` too, since it would fast-forward by zero commits, and cut `✅ promote to local master` from the `[L]and` and `[x]` parentheticals, leaving the teardown they still do.
 
   Pick the menu shape from a `git status --porcelain` run in the same turn, never from a mental model of the tree. The model goes stale both ways:
   - **Offering a commit on a clean tree:** edits that net back to the committed value leave nothing to commit.
@@ -158,11 +158,11 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   > 　　 ├─ **`[f4]`** Add search box that stays usable under long title
   > 　　 ├─ **`[f5]`** Add toolbar search box that survives long title
   > 　　 └─ **`[f6]`** Add search box that yields to title
-  >   ⬆️ **`[p]romote`** (commit + ✅ promote to master)
+  >   ⬆️ **`[p]romote`** (commit + ✅ promote to local master)
   > 　　 └─ **`[pN]`** ... or **`[pu]`**
-  >   🏁 **`[L]and`**    (commit + ✅ promote to master + 🪓 tear down worktree)
+  >   🏁 **`[L]and`**    (commit + ✅ promote to local master + 🪓 tear down worktree)
   > 　　 └─ **`[LN]`** ... or **`[Lu]`**
-  >   🧨 **`[x]`**       (commit + ✅ promote to master + 🪓 tear down worktree + 🧨 close session)
+  >   🧨 **`[x]`**       (commit + ✅ promote to local master + 🪓 tear down worktree + 🧨 close session)
   > 　　 └─ **`[xN]`** ... or **`[xu]`**
   >   🧨🧨 **`[xx]`**    (no commit + worktree left as-is + 🧨🧨 close session)
 
@@ -197,29 +197,29 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   >    │    │  ├─ **`[c5]`** Add toolbar search box
   >    │    │  └─ **`[c6]`** Show search box in toolbar
   >    │    └─ **`[cu]`** you pick, one subject per commit
-  >    │ ⬆️ **`[p]romote`** (commit 1 of 2, or both + ✅ promote to master)
+  >    │ ⬆️ **`[p]romote`** (commit 1 of 2, or both + ✅ promote to local master)
   >    │    └─ **`[pN pN]`** ... or **`[pu]`**
-  >    │ 🏁 **`[L]and`**    (commit both + ✅ promote to master + 🪓 tear down worktree)
+  >    │ 🏁 **`[L]and`**    (commit both + ✅ promote to local master + 🪓 tear down worktree)
   >    │    └─ **`[LN LN]`** ... or **`[Lu]`**
-  >    │ 🧨 **`[x]`**       (commit both + ✅ promote to master + 🪓 tear down worktree + 🧨 close session)
+  >    │ 🧨 **`[x]`**       (commit both + ✅ promote to local master + 🪓 tear down worktree + 🧨 close session)
   >    │    └─ **`[xN xN]`** ... or **`[xu]`**
   >    └─🧨🧨 **`[xx]`**    (no commit + worktree left as-is + 🧨🧨 close session)
 
   Subset (e.g. nothing worth keeping uncommitted, so no iterate slot):
 
   > 👉 How do you want to proceed?
-  >   ⬆️ **`[p]romote`** (commit + ✅ promote to master)
-  >   🏁 **`[L]and`**    (commit + ✅ promote to master + 🪓 tear down worktree)
-  >   🧨 **`[x]`**       (commit + ✅ promote to master + 🪓 tear down worktree + 🧨 close session)
+  >   ⬆️ **`[p]romote`** (commit + ✅ promote to local master)
+  >   🏁 **`[L]and`**    (commit + ✅ promote to local master + 🪓 tear down worktree)
+  >   🧨 **`[x]`**       (commit + ✅ promote to local master + 🪓 tear down worktree + 🧨 close session)
   >   🧨🧨 **`[xx]`**    (no commit + worktree left as-is + 🧨🧨 close session)
 
   Subset (clean tree, so no commit, fold or close-as-is slot; iterate reframed to keep tuning):
 
   > 👉 How do you want to wrap up?
   >   🛠️ **`[i]terate`** (keep tuning in the worktree)
-  >   ⬆️ **`[p]romote`** (✅ promote to master)
-  >   🏁 **`[L]and`**    (✅ promote to master + 🪓 tear down worktree)
-  >   🧨 **`[x]`**       (✅ promote to master + 🪓 tear down worktree + 🧨 close session)
+  >   ⬆️ **`[p]romote`** (✅ promote to local master)
+  >   🏁 **`[L]and`**    (✅ promote to local master + 🪓 tear down worktree)
+  >   🧨 **`[x]`**       (✅ promote to local master + 🪓 tear down worktree + 🧨 close session)
 
   Subset (clean tree just promoted, so nothing ahead of master and no promote slot):
 
@@ -234,9 +234,9 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
   >   🛠️ **`[i]terate`** (no commit + keep iterating)
   >   💾 **`[c]ommit`**  (commit + keep iterating)
   >   📦 **`[f]old`**    (amend into HEAD + keep iterating)
-  >   ⬆️ **`[p]romote`** (commit + ✅ promote to master)
-  >   🏁 **`[L]and`**    (commit + ✅ promote to master + 🪓 tear down worktree)
-  >   🧨 **`[x]`**       (commit + ✅ promote to master + 🪓 tear down worktree + 🧨 close session)
+  >   ⬆️ **`[p]romote`** (commit + ✅ promote to local master)
+  >   🏁 **`[L]and`**    (commit + ✅ promote to local master + 🪓 tear down worktree)
+  >   🧨 **`[x]`**       (commit + ✅ promote to local master + 🪓 tear down worktree + 🧨 close session)
   >   🧨🧨 **`[xx]`**    (no commit + worktree left as-is + 🧨🧨 close session)
 
   The doubled emoji pushes the 🧨🧨 row's open-paren two cells right of the column; leave it, since widening every other row's padding costs more than the offset, which also marks the row as the odd one out.
@@ -254,11 +254,11 @@ Loaded on demand: the Output section of `~/.claude/CLAUDE.md` points here before
     - ✅ Committed N commits, then list each subject beneath as a tree sub-list (newest-first); a lone commit is a single `└─`. Wrap each subject in inline-code backticks so it renders in the inline-code accent and indent each glyph with 2 ideographic full-width spaces (U+3000) + 1 regular space, landing the `├`/`└` under the first letter of the step text (the `C` of `Committed`), not under the `✅` (plain leading spaces collapse in rendered markdown, so the wide U+3000s hold the indent):
 　　 ├─ `<newer commit subject>`
 　　 └─ `<older commit subject>`
-    - ✅ Promoted to master (on land too: a land is a promote plus a teardown, and the row matches the ⬆️ menu wording rather than naming the fast-forward underneath)
+    - ✅ Promoted to local master (on land too: a land is a promote plus a teardown, and the row matches the ⬆️ menu wording rather than naming the fast-forward underneath)
     - ✅ Pushed to `<remote>` (only when the user asked for the push in words; land and promote are local, so this line is absent by default and is never a step to run, and a configured upstream doesn't earn it or a ⏸️)
     - 🪓 Worktree removed (land) or `⏸️ Worktree kept (<name>); promote keeps it, land tears it down` (promote). The kept line always names why it survived, since a bare "kept" reads as an oversight and prompts a "why not tear down?" round trip.
     - 🧨 Session marked for prune (close only)
 
-    Fired means over the whole objective, not the latest turn: a land after a promote renders the promote's rows again (the `✅ Committed` tree, then `✅ Promoted to master`) ahead of the 🪓, so the recap reads the same whether the promote happened a turn earlier or never. A free-form `master already carried N commits` row hides the subjects and invites a hash.
+    Fired means over the whole objective, not the latest turn: a land after a promote renders the promote's rows again (the `✅ Committed` tree, then `✅ Promoted to local master`) ahead of the 🪓, so the recap reads the same whether the promote happened a turn earlier or never. A free-form `master already carried N commits` row hides the subjects and invites a hash.
 
     Order the rows by clock, except 🪓, which stays the last git row however things unfolded: a commit that lands after the teardown (a follow-up in another repo) still slots above it as its own `✅ Committed N commits (<repo>)` row. A 🪓 above a commit list reads as torn down before the work was banked. 🧨 is the one row allowed beneath it, mirroring the menu, where the close rows are the only ones beneath 🏁 **`[L]and`**.

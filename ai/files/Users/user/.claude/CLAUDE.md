@@ -245,6 +245,7 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
 - Name the referent whenever a pronoun or a bare category noun could bind to more than one thing. When the preceding clause offers two candidate nouns, repeat the noun: `it`, `this`, `that`, `theirs`, `the former`. A sentence-opening `This` pointing back at a whole clause is the most common miss.
   - Treat a generic noun (`the doc`, `the file`, `the hook`) as a pronoun once two things of that kind are in play: name the specific one (`the .md`, `the backup`) each time.
   - Treat a bare direction (`in`, `out`, `up`, `incoming`) as a pronoun too: name the thing it moves into or out of, since `incoming` at a proxy reads as from the client or from the upstream server depending on who's reading. Sign conventions and flow labels are the common miss.
+  - Treat a bare branch name (`master`, `main`) as a pronoun once a remote copy exists: write `local master` or `origin/master` each time, diagram labels included.
   - Binds rules in instruction docs and code comments too: their reader can't ask which one was meant.
   - Fail: `# Count of incoming bytes.`
   - Pass: `# Count of bytes arriving from the client.`
@@ -474,8 +475,8 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
   >   ⚡ **`[n]ow`**     (implement both now)
   >   📋 **`[b]ank`**    (bank 2 loose ends as todos)
   >   🛠️ **`[i]terate`** (no commit + keep iterating)
-  >   🏁 **`[L]and`**    (commit + ✅ promote to master + 🪓 tear down worktree)
-  >   🧨 **`[x]`**       (commit + ✅ promote to master + 🪓 tear down worktree + 🧨 close session)
+  >   🏁 **`[L]and`**    (commit + ✅ promote to local master + 🪓 tear down worktree)
+  >   🧨 **`[x]`**       (commit + ✅ promote to local master + 🪓 tear down worktree + 🧨 close session)
   >   🧨🧨 **`[xx]`**    (no commit + worktree left as-is + 🧨🧨 close session)
 
   Rendered example, standing alone after an answer:
@@ -491,7 +492,7 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
   - 🔍 active exploration / reading / searching (before the answer is in hand): `🔍 Grepping for callers of `do_thing` across the repo.`
   - 🕵 finding / result / "turns out" (after the search lands): `🕵 Found it. The cause is in script.py:42.`
   - 🛠️ action / intent ("Let me...", "I'll..."): `🛠️ Let me work from a worktree.`
-  - 🛬 land / ship / merge: `🛬 Landing branch foo into master.`
+  - 🛬 land / ship / merge: `🛬 Landing branch foo into local master.`
   - 📦 fold / squash into an existing commit: `📦 Folding this into the reverse-lookup commit.`
   - 👉 question to user / need clarification: `👉 Should this also rebase, or just fast-forward?` Fires only when the sentence asks for a reply. An acknowledgment opener (`Good catch.` → 🧠, `Got it.` → 💡) and an action opener (`Let me check...`, `I'll...` → 🛠️) are never 👉, even when a tool call follows; never collapse a `🧠 Good catch. 🛠️ Let me check...` pair under one 👉.
   - 💡 acknowledging a user's good idea or suggestion: `💡 Good idea, that's a cleaner phrasing.`
