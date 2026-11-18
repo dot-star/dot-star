@@ -41,6 +41,7 @@ alias bump="commit_bump"
 
 git_cd_into() {
     # Change into the deepest directory holding every added, changed, and untracked file.
+    # Fall back to the files the latest non-merge commit touched when the tree is clean.
     #
     # $ git status --short
     # >>  M tools/foo/bar/one.txt
@@ -63,8 +64,30 @@ git_cd_into() {
     )"
 
     if [[ -z "${changed_paths}" ]]; then
-        echo "Error: No changed files."
-        return 1
+        # Skip merges: their diff lists no files under `--name-only`.
+        changed_paths="$(
+            git \
+                -c core.quotePath=false \
+                log \
+                --format="" \
+                --max-count=1 \
+                --name-only \
+                --no-merges \
+                2>/dev/null
+        )"
+        if [[ -z "${changed_paths}" ]]; then
+            echo "Error: No changed files and no commits."
+            return 1
+        fi
+
+        local latest_commit
+        latest_commit="$(
+            git log \
+                --format="%s (%h)" \
+                --max-count=1 \
+                --no-merges
+        )"
+        echo "No changed files; using ${latest_commit}"
     fi
 
     # Shrink the common directory until it holds every changed path.
@@ -83,6 +106,11 @@ git_cd_into() {
             common_directory="$(dirname "${common_directory}")"
         done
     done <<<"${changed_paths}"
+
+    # Climb past directories a deletion removed.
+    while [[ ! -d "${repository_root}/${common_directory}" ]]; do
+        common_directory="$(dirname "${common_directory}")"
+    done
 
     cd "${repository_root}/${common_directory}" &&
         l
