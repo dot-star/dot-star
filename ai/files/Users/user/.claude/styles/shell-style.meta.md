@@ -171,3 +171,17 @@ The general rule and its triggers live in the code-style context; this section k
 
 -
 -
+
+## `curl` user agent
+
+The request a server sees is part of what the script does, so the script states it rather than inheriting whatever curl's build happens to send; a reader then sees the choice was made on purpose.
+
+```
+
+
+
+
+
+```
+
+- An empty value tells curl to omit the header entirely; matching the existing calls keeps every script presenting the same way.

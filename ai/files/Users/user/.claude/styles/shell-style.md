@@ -171,3 +171,17 @@ Shell mechanics for the naming rule in `~/.dot-star/ai/contexts/code-style.md` (
 
 - `local is_valid_json="jq empty"` lets the conditional read `if $is_valid_json "${file}"; then`.
 - Prefer the prose-reading predicate even when it costs a small helper function: the "never single-line `if`" rule governs `if` bodies only and never argues against defining such a helper (give it a normal multi-line body).
+
+## `curl` user agent
+
+Set `--user-agent` explicitly on every `curl` a committed script runs, never leaving curl to send its default `curl/<version>` header.
+
+```
+curl \
+    --fail \
+    --silent \
+    --user-agent "" \
+    "${url}"
+```
+
+- Pass `""` to drop the header, the form existing scripts already use.
