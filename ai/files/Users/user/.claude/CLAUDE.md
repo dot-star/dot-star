@@ -143,8 +143,10 @@
   - **The test:** read the first word alone, with no context. If it could open a noun phrase, pick another verb. `Baseline the new lint errors` reads as "the lint baseline"; `Silence` or `Ignore` reads as an instruction.
   - **TODOs specifically:** give every entry its own `TODO: `, never one comment governing several sibling entries. Entries get deleted one at a time, so a shared TODO strands the survivors' rationale when the first one goes.
 - Match the file's existing line-wrapping convention; don't hard-wrap prose or markdown to a column. If the surrounding bullets/paragraphs each run one line, keep yours on one line too. Only wrap where the existing lines already wrap. For a new file with no convention to match, default to no wrapping: one line per paragraph and per bullet.
-- Instruction docs (`CLAUDE.md`, `CLAUDE_*.md`, READMEs) are read by humans too, not just the AI; whenever a rule is best served by structure (a long clause-dense line is the common trigger, not the only one), spend whatever improves readability: whitespace, nested sub-bullets, a table, even an ASCII diagram. These aids serve the human reader and don't count as the column-wrapping the previous rule forbids.
-  - Give each fact its own bullet: a second fact nests as a sub-bullet, never spliced onto the first with a comma or semicolon.
+- Write markdown for the human reader, not just the AI (instruction docs, READMEs, PR descriptions, PR comments and replies, chat replies).
+  - Give each fact its own bullet: a second fact nests as a sub-bullet, never spliced on with a comma or semicolon.
+  - Test each bullet before writing it: two independent clauses joined by `,` `;` `while` or `which also` mean two bullets.
+  - Spend whatever else helps that reader (whitespace, a table, an ASCII diagram); these aids don't count as the column-wrapping the previous rule forbids.
 - Write an absolute rule in an instruction or context doc with `always` or `never`, never `MUST`. Shouting costs both readers: a model over-applies the rule and a human learns to skim caps, so the one rule needing emphasis can't get it.
   - Reserve caps for the rare rule outranking its neighbors (`NEVER force-push`).
   - Fail: `Each option MUST include a rendered sample.`

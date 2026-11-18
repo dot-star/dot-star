@@ -143,8 +143,10 @@
   -
   -
 -
--
-  - A packed bullet makes the reader find where each fact ends before they can weigh any of them; a sub-bullet hands them that boundary.
+- A person reads every one of these surfaces, so the rules beneath serve that reader. Instruction docs were the old scope, but the cost is the same in a README, a PR or a chat reply; scoping the rule to one surface let the others slip through.
+  - A packed bullet makes the reader find where each fact ends before they can weigh any of them.
+  - The joining words are where a second fact hides, so scanning for them catches the splice at write time instead of in review.
+  - Whitespace, tables and diagrams are the aids the old instruction-docs rule offered; they still apply, now as optional extras beside the one-fact rule.
 -
   -
   -
