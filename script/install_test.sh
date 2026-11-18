@@ -282,6 +282,17 @@ ln -s 999999 "${lock}"
 HOME="${lock_home}" bash "${fake_install}" 2>/dev/null
 check "takes over a lock from a dead process" "$?" "0"
 
+# Run the caller's marker cleanup, which the lock's trap replaces.
+marker="${lock_home}/install.pid"
+marker_install="${work}/marker_install.sh"
+echo "$$" >"${marker}"
+{
+    printf 'clear_install_marker() {\n    rm -f "%s"\n}\n' "${marker}"
+    cat "${fake_install}"
+} >"${marker_install}"
+HOME="${lock_home}" bash "${marker_install}" 2>/dev/null
+check "clears the caller's run marker on exit" "$([[ -e "${marker}" ]] && echo kept || echo cleared)" "cleared"
+
 echo ""
 echo "${passes} passed, ${fails} failed"
 

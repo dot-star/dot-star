@@ -157,7 +157,15 @@ if ! ln -s "$$" "${install_lock}" 2>/dev/null; then
         exit 1
     fi
 fi
-trap 'unlink "${install_lock}"' EXIT
+release_install_lock() {
+    unlink "${install_lock}"
+
+    # Clear install.sh's run marker too, since this trap replaces the one install.sh set.
+    if declare -F clear_install_marker >/dev/null; then
+        clear_install_marker
+    fi
+}
+trap release_install_lock EXIT
 
 # Source the timer helper when profiling, else stub it out.
 if [[ -n "${DOT_STAR_PROFILE:-}" ]]; then

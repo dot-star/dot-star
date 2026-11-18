@@ -19,7 +19,10 @@ fi
 install_marker="${XDG_STATE_HOME:-${HOME}/.local/state}/dot-star/install.pid"
 mkdir -p "$(dirname "${install_marker}")"
 echo "$$" >"${install_marker}"
-trap 'rm -f "${install_marker}"' EXIT
+clear_install_marker() {
+    rm -f "${install_marker}"
+}
+trap clear_install_marker EXIT
 
 [[ $(basename "${BASH_SOURCE}") = "install.sh" ]] && install=true || install=false
 [[ "${install}" = true ]] && update=false || update=true
