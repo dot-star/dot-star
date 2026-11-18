@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Check that the hook records the worktree a Bash command creates or works in,
+# Check that the hook records the worktree EnterWorktree enters or a Bash command creates or works in,
 # skipping paths that don't exist (an unexpanded "$R/..." among them), and the
 # repo an edited file sits in or a Bash command clones or works in, worktree or
 # not.
@@ -87,6 +87,49 @@ assert_last_repo() {
         failures=$((failures + 1))
     fi
 }
+
+assert_enter_worktree() {
+    # Feed the hook an EnterWorktree <tool_input> and <tool_response> and compare the marker against <expected>.
+    local label="$1"
+    local tool_input="$2"
+    local tool_response="$3"
+    local expected="$4"
+
+    rm --force -- "${MARKER}"
+    jq --null-input --compact-output \
+        --argjson tool_input "${tool_input}" \
+        --argjson tool_response "${tool_response}" \
+        --arg sid "${SESSION_ID}" \
+        '{session_id: $sid, tool_name: "EnterWorktree", tool_input: $tool_input, tool_response: $tool_response}' |
+        bash "${HOOK}"
+
+    local actual=""
+    if [[ -f "${MARKER}" ]]; then
+        actual="$(cat -- "${MARKER}")"
+    fi
+
+    if [[ "${actual}" == "${expected}" ]]; then
+        echo "✓ ${label}"
+    else
+        echo "✗ ${label}"
+        echo "    expected: ${expected}"
+        echo "    actual:   ${actual}"
+        failures=$((failures + 1))
+    fi
+}
+
+assert_enter_worktree "EnterWorktree create records the response path" \
+    '{"name": "first"}' \
+    "{\"worktreePath\": \"${SANDBOX}/repo/worktrees/first\", \"message\": \"Created worktree at “${SANDBOX}/repo/worktrees/first” on branch “first”.\"}" \
+    "${SANDBOX}/repo/worktrees/first"
+assert_enter_worktree "EnterWorktree switch without a response path records the input path" \
+    "{\"path\": \"${SANDBOX}/repo/worktrees/second\"}" \
+    '"Switched to worktree"' \
+    "${SANDBOX}/repo/worktrees/second"
+assert_enter_worktree "EnterWorktree to a missing path records nothing" \
+    '{"name": "gone"}' \
+    "{\"worktreePath\": \"${SANDBOX}/repo/worktrees/gone\"}" \
+    ""
 
 assert_recorded "worktree add records the new worktree" \
     "git worktree add ${SANDBOX}/repo/worktrees/first" "${SANDBOX}/repo/worktrees/first"

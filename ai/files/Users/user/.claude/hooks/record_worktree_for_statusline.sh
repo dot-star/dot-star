@@ -187,11 +187,10 @@ Edit | Write)
     record_last_repo "$(repo_root_of "${file_path}")"
     ;;
 EnterWorktree)
-    # Extract the new worktree path from the tool response text
-    # ("Created worktree at <path> on branch ..." or "Switched ...").
-    response=$(printf '%s' "${data}" |
-        command jq --raw-output '.tool_response | tostring')
-    path=$(worktree_path_in "${response}")
+    # Take the worktree path from the response, else from a switch's input
+    # `path`, never from the response message, which is worded for people.
+    path=$(printf '%s' "${data}" |
+        command jq --raw-output '.tool_response.worktreePath? // .tool_input.path // ""')
     record_worktree "${path}"
     record_last_repo "${path}"
     ;;
