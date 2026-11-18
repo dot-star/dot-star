@@ -76,6 +76,10 @@
           {
             "command": "${HOME}/.claude/hooks/fast_forward_new_worktree_to_local_default.sh",
             "type": "command"
+          },
+          {
+            "command": "${HOME}/.claude/hooks/link_session_dir_into_worktree.sh",
+            "type": "command"
           }
         ],
         "matcher": "EnterWorktree"
