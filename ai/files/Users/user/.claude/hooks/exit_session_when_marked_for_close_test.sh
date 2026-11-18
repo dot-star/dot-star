@@ -163,6 +163,17 @@ assert_turn "stop a sibling hook blocked keeps the turn running" "blocked"
 
 mkdir --parents "$(dirname -- "${MARK}")"
 touch -- "${MARK}"
+assert_exit "marked session a sibling hook blocked keeps running" \
+    "exit 0, close not requested, stayed"
+
+if [[ -e "${MARK}" ]]; then
+    echo "✓ blocked stop keeps the mark for the stop that ends the turn"
+else
+    echo "✗ blocked stop keeps the mark for the stop that ends the turn"
+    failures=$((failures + 1))
+fi
+
+rm --force -- "${STOP_BLOCKED}"
 : >"${OPEN_TURN}"
 mkdir --parents -- "$(dirname -- "${STATE}")"
 printf '%s' "busy" >"${STATE}"
