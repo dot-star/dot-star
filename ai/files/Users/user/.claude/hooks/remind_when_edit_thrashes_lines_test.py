@@ -22,6 +22,7 @@ from remind_when_edit_thrashes_lines import changed_lines
 from remind_when_edit_thrashes_lines import is_thrashing
 from remind_when_edit_thrashes_lines import lines_around_edit
 from remind_when_edit_thrashes_lines import measure_churn
+from remind_when_edit_thrashes_lines import rebuild_original
 
 HOOK_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "remind_when_edit_thrashes_lines.py")
 
@@ -48,21 +49,38 @@ class LinesAroundEditTest(unittest.TestCase):
 
     def test_widens_a_fragment_to_its_whole_line(self) -> None:
         """Ensure lines_around_edit returns the full line when the edit swapped a word mid-line."""
-        current = "first\nalpha NEW gamma\nlast\n"
-        self.assertEqual(lines_around_edit(current, "OLD", "NEW"), ("alpha OLD gamma", "alpha NEW gamma"))
+        original = "first\nalpha OLD gamma\nlast\n"
+        self.assertEqual(lines_around_edit(original, "OLD", "NEW"), ("alpha OLD gamma", "alpha NEW gamma"))
 
     def test_keeps_multi_line_edits_whole(self) -> None:
         """Ensure lines_around_edit returns every line a multi-line edit spans."""
-        current = "head\none\ntwo\ntail"
-        self.assertEqual(lines_around_edit(current, "uno\ndos", "one\ntwo"), ("uno\ndos", "one\ntwo"))
+        original = "head\nuno\ndos\ntail"
+        self.assertEqual(lines_around_edit(original, "uno\ndos", "one\ntwo"), ("uno\ndos", "one\ntwo"))
+
+    def test_finds_the_edit_past_an_earlier_copy_of_the_new_text(self) -> None:
+        """Ensure lines_around_edit measures the edited line, not an earlier line already holding the new text."""
+        original = "intro NEW here\nalpha OLD gamma\n"
+        self.assertEqual(lines_around_edit(original, "OLD", "NEW"), ("alpha OLD gamma", "alpha NEW gamma"))
 
     def test_returns_none_for_an_empty_replacement(self) -> None:
         """Ensure lines_around_edit returns None when the edit deleted its text outright."""
-        self.assertIsNone(lines_around_edit("kept\n", "gone", ""))
+        self.assertIsNone(lines_around_edit("kept\ngone\n", "gone", ""))
+
+    def test_returns_none_when_the_old_text_is_missing(self) -> None:
+        """Ensure lines_around_edit returns None when the pre-edit file never held the old text."""
+        self.assertIsNone(lines_around_edit("unrelated\n", "old", "new"))
+
+
+class RebuildOriginalTest(unittest.TestCase):
+    """Test the `rebuild_original` function."""
+
+    def test_undoes_the_edit_at_the_first_match(self) -> None:
+        """Ensure rebuild_original swaps the old text back in where the new text sits."""
+        self.assertEqual(rebuild_original("first\nalpha NEW gamma\n", "OLD", "NEW"), "first\nalpha OLD gamma\n")
 
     def test_returns_none_when_the_new_text_is_missing(self) -> None:
-        """Ensure lines_around_edit returns None when the file no longer holds the new text."""
-        self.assertIsNone(lines_around_edit("unrelated\n", "old", "new"))
+        """Ensure rebuild_original returns None when the file no longer holds the new text."""
+        self.assertIsNone(rebuild_original("unrelated\n", "old", "new"))
 
 
 class ChangedLinesTest(unittest.TestCase):
@@ -153,6 +171,18 @@ class MainReminderTest(unittest.TestCase):
         new_string = "clause7 now carries"
         with edited_file(PARAGRAPH.replace("clause7 carries", new_string) + "\n") as path:
             result = run_hook(edit_payload(path, "clause7 carries", new_string))
+        output = json.loads(result.stdout)
+        self.assertEqual(output["hookSpecificOutput"]["hookEventName"], "PostToolUse")
+
+    def test_reminds_when_a_short_line_already_held_the_new_text(self) -> None:
+        """Ensure main measures the edited long line, read from originalFile, not an earlier short match."""
+        new_string = "clause7 now carries"
+        original = f"- {new_string}\n{PARAGRAPH}\n"
+        current = original.replace("clause7 carries", new_string)
+        with edited_file(current) as path:
+            payload = edit_payload(path, "clause7 carries", new_string)
+            payload["tool_response"] = {"originalFile": original}
+            result = run_hook(payload)
         output = json.loads(result.stdout)
         self.assertEqual(output["hookSpecificOutput"]["hookEventName"], "PostToolUse")
 

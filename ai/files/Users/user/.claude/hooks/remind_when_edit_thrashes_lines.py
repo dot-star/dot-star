@@ -38,18 +38,53 @@ MIN_LONG_LINE_LENGTH = 300
 MIN_KEPT_WIDTH = 0.75
 
 
-def lines_around_edit(current: str, old_string: str, new_string: str) -> tuple[str, str] | None:
+def lines_around_edit(original: str, old_string: str, new_string: str) -> tuple[str, str] | None:
     """
     Returns the full lines an edit touched, as they read before and after it.
+
+    Locates the edit by its old text in the file as it read before the edit:
+    Edit requires that text to be unique there, or with `replace_all` changes
+    every match the same way. The new text is no anchor, since it may also
+    appear earlier in the file.
 
     Widens the replaced span to line boundaries, since the diff shows whole
     lines even when the edit swapped a fragment mid-line.
 
-    :param current: File content after the edit.
+    :param original: File content before the edit.
     :param old_string: Text the edit replaced.
     :param new_string: Text the edit wrote in its place.
     :return: The touched lines before and after the edit, or None when the new
-        text is empty or no longer in the file.
+        text is empty or the old text isn't in the file.
+    """
+    if not new_string or not old_string:
+        return None
+
+    start = original.find(old_string)
+    if start == -1:
+        return None
+
+    end = start + len(old_string)
+    line_start = original.rfind("\n", 0, start) + 1
+    line_end = original.find("\n", end)
+    if line_end == -1:
+        line_end = len(original)
+
+    before = original[line_start:line_end]
+    after = original[line_start:start] + new_string + original[end:line_end]
+    return before, after
+
+
+def rebuild_original(current: str, old_string: str, new_string: str) -> str | None:
+    """
+    Returns the file as it read before the edit, undoing the edit at the new text's first match.
+
+    A fallback for a payload whose `tool_response` lacks `originalFile`: the
+    first match is the edit only when the new text appears nowhere earlier.
+
+    :param current: File content after the edit.
+    :param old_string: Text the edit replaced.
+    :param new_string: Text the edit wrote in its place.
+    :return: The rebuilt content, or None when the new text is empty or missing.
     """
     if not new_string:
         return None
@@ -58,15 +93,7 @@ def lines_around_edit(current: str, old_string: str, new_string: str) -> tuple[s
     if start == -1:
         return None
 
-    end = start + len(new_string)
-    line_start = current.rfind("\n", 0, start) + 1
-    line_end = current.find("\n", end)
-    if line_end == -1:
-        line_end = len(current)
-
-    after = current[line_start:line_end]
-    before = current[line_start:start] + old_string + current[end:line_end]
-    return before, after
+    return current[:start] + old_string + current[start + len(new_string) :]
 
 
 def changed_lines(before: str, after: str) -> tuple[list[str], list[str]]:
@@ -220,13 +247,23 @@ def main() -> None:
     if not isinstance(file_path, str) or not isinstance(old_string, str) or not isinstance(new_string, str):
         return
 
-    try:
-        with open(os.path.expanduser(file_path), encoding="utf-8") as handle:
-            current = handle.read()
-    except (OSError, UnicodeDecodeError):
-        return
+    original = None
+    tool_response = payload.get("tool_response")
+    if isinstance(tool_response, dict):
+        original = tool_response.get("originalFile")
 
-    touched = lines_around_edit(current, old_string, new_string)
+    if not isinstance(original, str):
+        try:
+            with open(os.path.expanduser(file_path), encoding="utf-8") as handle:
+                current = handle.read()
+        except (OSError, UnicodeDecodeError):
+            return
+
+        original = rebuild_original(current, old_string, new_string)
+        if original is None:
+            return
+
+    touched = lines_around_edit(original, old_string, new_string)
     if touched is None:
         return
 
