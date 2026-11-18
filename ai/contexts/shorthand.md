@@ -84,7 +84,7 @@ Interpret a bare one-token reply or a short fixed phrase as shorthand. Fires onl
 - `defend`, `prove` mean "defend/prove the prior reply" (justify each claim or item in it)
 - `w`, `weigh` mean "weigh the options the previous message numbered and pick one": a table with one row per criterion and one column per option, each cell led by `✓` or `✗` plus a few-word qualifier, then a `❯` on the pick with the deciding reason. The grid lets the reader compare options across a row at a glance, where a gains/costs paragraph per option makes them diff two blocks of prose. It's a judgment, so don't edit anything. Trailing numbers narrow the field (`w 2 4` weighs only options 2 and 4).
   <!-- shorthand-match: ^w( \d+)+$ -->
-- `harden`, `bake`, `firm` mean "strengthen the rule i just hit" by tightening it in `CLAUDE.md` or the matching `CLAUDE_*.md` sibling, or promoting it there from memory if that's where it lives. Memory isn't durable enough to harden into.
+- `harden`, `bake`, `firm` mean "strengthen the rule i just hit" by tightening it in the doc that holds it: `CLAUDE.md`, a `CLAUDE_*.md` sibling or a personal context doc. Promote it into the matching one if it lives in memory. Memory isn't durable enough to harden into.
 - `cod`, `codify` mean "codify the rule" (invoke the `codify` skill): promote a saved memory into a mechanism that fires on its own (a hook, `settings.json` entry, `CLAUDE_*.md` line, shell alias, or skill).
 - `wl`, `wl <x>`, `whitelist`, `whitelist <x>` mean "whitelist the acronyms `check_acronyms.py` just flagged": add each to its `WHITELIST`, then run `check_acronyms_test.sh`. A trailing `<x>` names which ones (`wl FOO BAR`).
   - Remove a mixed-case one (`IaC`) from `MIXED_CASE_FLAG` instead.

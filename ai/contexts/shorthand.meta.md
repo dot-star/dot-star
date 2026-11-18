@@ -84,7 +84,7 @@ Generated from this file, so the index can't drift from it; one parse per sessio
 -
 -
 
--
+- A channel rule (texting, hosting, recruiting) lives in a personal context doc that loads on mention rather than through a `CLAUDE_*.md` sibling, so naming only the always-loaded files sent its hardening to the wrong place; targeting whichever doc holds the rule also makes a separate personal-doc token unnecessary.
 -
 -
   -
