@@ -90,15 +90,25 @@ add_worktree() {
     printf '%s\n' "${worktree}"
 }
 
-# Run the hook on an EnterWorktree response and print its stdout.
+# Run the hook on an EnterWorktree payload and print its stdout. Pass "create"
+# for a new worktree (input `name`) or "switch" for an existing one (input `path`).
 run_hook() {
-    local response="$1"
+    local mode="$1"
+    local worktree="$2"
 
     command jq \
         --null-input \
         --compact-output \
-        --arg response "${response}" \
-        '{tool_name: "EnterWorktree", tool_response: $response}' |
+        --arg mode "${mode}" \
+        --arg worktree "${worktree}" \
+        '{
+            tool_name: "EnterWorktree",
+            tool_input: (if $mode == "switch" then {path: $worktree} else {name: ($worktree | split("/") | last)} end),
+            tool_response: {
+                worktreePath: $worktree,
+                message: "Created worktree at “\($worktree)” on branch “worktree-\($worktree | split("/") | last)”."
+            }
+        }' |
         "${HOOK}" 2>/dev/null
 }
 
@@ -138,12 +148,12 @@ new_case() {
 new_case
 commit_empty "${dir}/repo" landed
 worktree=$(add_worktree "${dir}" ahead)
-out=$(run_hook "Created worktree at ${worktree} on branch worktree-ahead. The session is now working in the worktree.")
+out=$(run_hook "create" "${worktree}")
 check "local master ahead of origin: fast-forward" "${worktree}" "$(git -C "${dir}/repo" rev-parse master)" "${out}" fires
 
 new_case
 worktree=$(add_worktree "${dir}" even)
-out=$(run_hook "Created worktree at ${worktree} on branch worktree-even. The session is now working in the worktree.")
+out=$(run_hook "create" "${worktree}")
 check "local master equals origin: leave alone" "${worktree}" "$(git -C "${dir}/repo" rev-parse origin/master)" "${out}" silent
 
 new_case
@@ -153,13 +163,13 @@ commit_empty "${dir}/other" from-elsewhere
 push_master "${dir}/other"
 git -C "${dir}/repo" fetch --quiet origin
 worktree=$(add_worktree "${dir}" diverged)
-out=$(run_hook "Created worktree at ${worktree} on branch worktree-diverged. The session is now working in the worktree.")
+out=$(run_hook "create" "${worktree}")
 check "local master diverged from origin: leave alone" "${worktree}" "$(git -C "${dir}/repo" rev-parse origin/master)" "${out}" silent
 
 new_case
 commit_empty "${dir}/repo" landed
 worktree=$(add_worktree "${dir}" switched)
-out=$(run_hook "Switched to worktree at ${worktree} on branch worktree-switched.")
+out=$(run_hook "switch" "${worktree}")
 check "switch into existing worktree: leave alone" "${worktree}" "$(git -C "${dir}/repo" rev-parse origin/master)" "${out}" silent
 
 new_case
@@ -167,7 +177,7 @@ commit_empty "${dir}/repo" landed
 worktree=$(add_worktree "${dir}" busy)
 commit_empty "${worktree}" in-progress
 busy_head=$(git -C "${worktree}" rev-parse HEAD)
-out=$(run_hook "Created worktree at ${worktree} on branch worktree-busy. The session is now working in the worktree.")
+out=$(run_hook "create" "${worktree}")
 check "worktree already moved off origin: leave alone" "${worktree}" "${busy_head}" "${out}" silent
 
 echo

@@ -12,16 +12,22 @@
 
 set -euo pipefail
 
-data=$(cat)
+{
+    IFS= read -r -d '' switch_path
+    IFS= read -r -d '' worktree
+} < <(
+    command jq \
+        --raw-output0 \
+        '.tool_input.path // "", .tool_response.worktreePath? // ""'
+)
 
-# Act only on a new worktree ("Created worktree at <path> on branch ..."),
-# never on a switch into an existing one, which may hold work.
-response=$(printf '%s' "${data}" |
-    command jq --raw-output '.tool_response | tostring')
-worktree=$(printf '%s' "${response}" |
-    sed -n 's/.*Created worktree at \([^ ]*\) on branch.*/\1/p' |
-    head -n 1)
-if [ -z "${worktree}" ] || [ ! -d "${worktree}" ]; then
+# Act only on a new worktree, never on a switch into an existing one (input
+# `path`), which may hold work.
+if [ -n "${switch_path}" ]; then
+    exit 0
+elif [ -z "${worktree}" ]; then
+    exit 0
+elif [ ! -d "${worktree}" ]; then
     exit 0
 fi
 
