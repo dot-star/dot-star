@@ -22,7 +22,7 @@ alias_node() {
     # ...because this is slow:
     load_nvm
 
-    node "${@}"
+    command node "${@}"
 }
 
 alias_npm() {
@@ -32,7 +32,7 @@ alias_npm() {
     # ...because this is slow:
     load_nvm
 
-    npm "${@}"
+    command npm "${@}"
 }
 
 alias_npx() {
@@ -42,7 +42,7 @@ alias_npx() {
     # ...because this is slow:
     load_nvm
 
-    npx "${@}"
+    command npx "${@}"
 }
 
 alias_nvm() {
@@ -52,7 +52,8 @@ alias_nvm() {
     # ...because this is slow:
     load_nvm
 
-    nvm "${@}"
+    # Skip only the alias: nvm is a shell function, which `command` would skip too.
+    \nvm "${@}"
 }
 
 alias node="alias_node"

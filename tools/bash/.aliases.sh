@@ -706,7 +706,7 @@ alias_grep() {
     if [[ -t 0 ]]; then
         # Run grep with line numbers when shell is interactive (e.g.
         # "$ grep ...").
-        grep \
+        command grep \
             --binary-files="without-match" \
             --color \
             --exclude-dir=".git" \
@@ -723,7 +723,7 @@ alias_grep() {
     else
         # Run grep with line numbers even when shell is non-interactive (e.g.
         # "$ my_command | grep ...").
-        grep \
+        command grep \
             --binary-files="without-match" \
             --color \
             --exclude-dir=".git" \
@@ -980,7 +980,7 @@ alias sipy="case_insensitive_search_python"
 
 # Print hidden files.
 alias_tree() {
-    tree \
+    command tree \
         -a \
         -F \
         -I ".git" \
@@ -1003,9 +1003,9 @@ alias_top() {
     if which htop &>/dev/null; then
         htop --sort-key=PERCENT_MEM
     else
-        top -o cpu
+        command top -o cpu
         if [[ $? -ne 0 ]]; then
-            top
+            command top
         fi
     fi
 }
@@ -2086,7 +2086,7 @@ alias_man() {
 
     # Open man pages regularly on all others.
     else
-        man "${@}"
+        command man "${@}"
 
         # TODO: Support opening man pages in pdf viewer on other systems.
         # Hint: f=$(mktemp); man -t "$@" > "$f" && ( {some-pdf-viewer} "$f" ; rm "$f" )
@@ -2837,7 +2837,7 @@ conditional_w() {
         git_worktree_cd "${@}"
     elif [[ "${#}" -eq 0 ]]; then
         # Outside a repo, no args: list who's logged in.
-        w
+        command w
     else
         # Outside a repo, with args: download via wget.
         wget "${@}"

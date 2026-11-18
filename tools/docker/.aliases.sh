@@ -88,13 +88,13 @@ alias_docker() {
     require_docker
 
     # Run docker only if is not already running.
-    if (! docker stats --no-stream &>/dev/null); then
+    if (! command docker stats --no-stream &>/dev/null); then
         if [[ "${OSTYPE}" == "darwin"* ]]; then
             open "/Applications/Docker.app"
 
             # Wait until docker daemon is running and has completed initialization.
             echo -n "Waiting for docker."
-            while (! docker stats --no-stream &>/dev/null); do
+            while (! command docker stats --no-stream &>/dev/null); do
                 echo -n "."
                 sleep 1
             done
@@ -105,7 +105,7 @@ alias_docker() {
         fi
     fi
 
-    docker "${@}"
+    command docker "${@}"
 }
 
 alias attach="docker attach"

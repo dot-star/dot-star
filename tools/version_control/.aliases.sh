@@ -346,7 +346,7 @@ git_browser() {
     # Reclaim the config after direct `gitk` invocations that bypassed this wrapper.
     gitk_restore_symlink
     gitk_strip_geometry
-    gitk "${@}"
+    command gitk "${@}"
     # Reclaim the config gitk just wrote on exit.
     gitk_restore_symlink
     gitk_strip_geometry
@@ -3139,7 +3139,7 @@ conditional_gh() {
             github_repositories
         fi
     else
-        gh ${@}
+        command gh ${@}
     fi
 }
 alias gh="conditional_gh"

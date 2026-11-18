@@ -45,14 +45,16 @@ alias_pyenv() {
         command pyenv virtualenv "${2}"
     fi
 
-    pyenv "${@}"
+    # Skip only the alias: pyenv init defines a shell function, which `command` would skip too.
+    \pyenv "${@}"
 }
 
 alias pyenv="alias_pyenv"
 
 pyenv_deactivate() {
     if [[ -n "${VIRTUAL_ENV}" ]]; then
-        deactivate
+        # Skip only the alias: deactivate is the virtualenv's shell function.
+        \deactivate
     fi
 }
 
