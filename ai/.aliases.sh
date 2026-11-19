@@ -1106,17 +1106,9 @@ EOF
             subject="$(sed -n "${key}p" <<<"${subjects}")"
         fi
 
-        if [[ -z "${subject}" ]]; then
-            continue
-        fi
-
-        answer="$(display_confirm_prompt_info "Commit \"${subject}\"? [y/n]")"
-        echo
-        if [[ "${answer}" == "y" ]]; then
+        if [[ -n "${subject}" ]]; then
             break
         fi
-
-        subject=""
     done
 
     # Mark the throwaway chat for prune; its transcript opens like a real session, so prune can't tell.
