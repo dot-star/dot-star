@@ -220,13 +220,13 @@ alias create_patch_from_changes="patch_changes"
 alias create_patch_from_last="patch_last"
 alias d.="rc_diff ."
 
-# Define `d1`..`dN` as cumulative diffs (`d3` = `git diff HEAD~3`); `git status` lists as many unpushed commits as there are aliases.
+# Define `d1`..`dN` as cumulative diffs on a cleared screen (`d3` = `clear && git diff HEAD~3`); `git status` lists as many unpushed commits as there are aliases.
 DIFF_ALIAS_COUNT=20
 define_cumulative_diff_aliases() {
     local i
 
     for ((i = 1; i <= DIFF_ALIAS_COUNT; i++)); do
-        alias "d${i}=git diff HEAD~${i}"
+        alias "d${i}=clear && git diff HEAD~${i}"
     done
 }
 define_cumulative_diff_aliases
@@ -2813,7 +2813,7 @@ rc_status() {
                     local hash
                     i=1
                     while IFS= read -r hash; do
-                        alias "d${i}=git show ${hash}"
+                        alias "d${i}=clear && git show ${hash}"
                         i=$((i + 1))
                     done < <(git log -n "${listing_cap}" --format="%h" HEAD --not "${exclude_refs[@]}")
                 fi
