@@ -119,6 +119,10 @@ Generated from this file, so the index can't drift from it; one parse per sessio
   - The branches show where the PR goes, catching a wrong base before any text gets polished.
   - A fenced body keeps its markdown as source: rendered, the headings and bullets lose the characters that need editing.
   - Re-drafting at creation time would discard the edits the preview existed to collect.
+- The `ppr` preview applied to tickets: a filed ticket notifies watchers and lands in triage before an edit can catch up, so the text gets settled first. Worded tracker-neutral so one entry covers GitHub issues and Jira alike.
+  - The destination catches a ticket headed for the wrong repo or project before any text gets polished, the same job the branch line does for `ppr`. The other fields ride along because a tracker like Jira requires some (issue type) that a title-and-body preview would silently pick for me.
+  - The tracker's markup, not markdown by default: Jira's description syntax differs, so a markdown preview could show text the filed ticket won't.
+  - Re-drafting at filing time would discard the edits the preview existed to collect.
 -
 -
 -

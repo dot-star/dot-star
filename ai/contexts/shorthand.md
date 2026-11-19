@@ -119,6 +119,10 @@ Interpret a bare one-token reply or a short fixed phrase as shorthand. Fires onl
   - Name the head and base branches in a lead line.
   - Render the title on its own line and the body in a fenced `markdown` block, so the body shows as source I can copy and edit.
   - Create the PR from the approved text verbatim (`--title`, `--body-file`), never a fresh draft.
+- `pt`, `ptic`, `ptix` mean "show me the prospective ticket": render it exactly as the tracker will receive it, so I can edit it before filing. It's a preview: don't file until I approve the text.
+  - Name the tracker, the destination (repo or project) and every other field the ticket sets (issue type, labels) in a lead line.
+  - Render the title on its own line and the body in a fenced block in the tracker's markup, so the body shows as source I can copy and edit.
+  - File from the approved text verbatim, never a fresh draft.
 - `<N> iter` means "option N is the front-runner, but iterate on it": treat N as the starting point and propose refinements rather than committing it as-is. E.g. `2 iter` → improve on option 2.
 - `<x> vs <y>` or `<x> v <y>`, as a whole message, means `w <x> vs <y>`. Treat a `vs` or `v` inside an ordinary question or sentence as prose; it fires only when the candidates and their separator make up the entire message.
 - `exp <x>` means "explain `<x>`" without acting on it; re-offer any menu it came from.
