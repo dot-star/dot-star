@@ -5,6 +5,11 @@ Play a macOS system sound unless any Claude session chimed moments ago.
 Sessions often finish or go idle together and each one's hook chimes, so a
 shared stamp under a lock collapses near-simultaneous chimes into one.
 
+Each chime, played or debounced, gets a timestamped line in the window-state
+log beside the Notification events, so a missed ping can be traced:
+
+  tail -f /tmp/claude-state-hook/announce_window_state.log
+
 Usage: play_chime_unless_recent.py <sound>  (a name in /System/Library/Sounds, e.g. Glass)
 """
 
@@ -13,6 +18,7 @@ import subprocess
 import sys
 import time
 
+from announce_window_state_scripting import log
 from terminal_tty import STATE_DIR
 
 # Treat chimes this close together as one alert; past it, a second chime is news.
@@ -56,9 +62,11 @@ def main() -> None:
     sound = sys.argv[1]
 
     if not claim_chime():
+        log(f"chime {sound} skipped: another chime played within {DEBOUNCE_SECONDS}s")
         return
 
-    subprocess.run(["afplay", f"/System/Library/Sounds/{sound}.aiff"], check=False)
+    result = subprocess.run(args=["afplay", f"/System/Library/Sounds/{sound}.aiff"], check=False)
+    log(f"chime {sound} played (afplay exit {result.returncode})")
 
 
 if __name__ == "__main__":
