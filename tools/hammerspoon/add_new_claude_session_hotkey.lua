@@ -86,3 +86,31 @@ function newClaudeSession(options)
 end
 hs.hotkey.bind({'option'}, 'd', newClaudeSession({fullScreen = true}))
 hs.hotkey.bind({'option', 'shift'}, 'd', newClaudeSession({fullScreen = false}))
+
+-- Drop the characters that would end the shell's single quotes or the AppleScript string the prompt rides in.
+local function promptSafe(text)
+    return (text:gsub('[\'"\\%c]', ''))
+end
+
+-- Describe the focused window, so the session knows where focus landed after the switch.
+local function focusedWindowDescription()
+    local window = hs.window.focusedWindow()
+    if window == nil then
+        return 'no focused window'
+    end
+    return promptSafe(window:application():name()) .. ' window ' .. window:id() .. ' titled ' .. promptSafe(window:title())
+end
+
+-- Start a session that investigates an unasked-for focus switch, noting focus before the new window steals it.
+local function investigateFocusSwitch()
+    print('investigateFocusSwitch')
+    local prompt = 'I was just switched away from a tab, Claude session or terminal session I was working in, without asking for it. Investigate what happened. '
+        .. 'When I pressed the hotkey at ' .. os.date('%Y-%m-%d %H:%M:%S') .. ', focus was on ' .. focusedWindowDescription()
+        .. ' on Space ' .. tostring(hs.spaces.focusedSpace()) .. '. '
+        .. 'Start with the logs in /tmp/claude-state-hook/ and the Hammerspoon console.'
+    openClaudeWindow({
+        input = "cd ~/.dot-star && cl --obj 'investigate focus switch' '" .. prompt .. "'",
+        fullScreen = true,
+    })
+end
+hs.hotkey.bind({'option'}, 'e', investigateFocusSwitch)
