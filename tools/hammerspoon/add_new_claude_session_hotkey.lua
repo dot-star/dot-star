@@ -107,7 +107,7 @@ local function investigateFocusSwitch()
     local prompt = 'I was just switched away from a tab, Claude session or terminal session I was working in, without asking for it. Investigate what happened. '
         .. 'When I pressed the hotkey at ' .. os.date('%Y-%m-%d %H:%M:%S') .. ', focus was on ' .. focusedWindowDescription()
         .. ' on Space ' .. tostring(hs.spaces.focusedSpace()) .. '. '
-        .. 'Start with the logs in /tmp/claude-state-hook/ and the Hammerspoon console.'
+        .. 'Start with window_focus_changes.log beside the other logs in /tmp/claude-state-hook/, then the Hammerspoon console.'
     openClaudeWindow({
         input = "cd ~/.dot-star && cl --obj 'investigate focus switch' '" .. prompt .. "'",
         fullScreen = true,
