@@ -528,6 +528,34 @@ meta_pair_base() {
     echo "${base_path}"
 }
 
+git_status_paths() {
+    # Print each path whose two-letter "git status" code matches the extended
+    # regex in "${1}", one per line. Read the NUL-separated form, which never
+    # quotes a path, so names with spaces or non-ASCII characters stay whole.
+    local status_pattern="${1}"
+    local record
+    local status_code
+    local is_rename_source=false
+
+    git status --porcelain -z |
+        while IFS= read -r -d '' record; do
+            # Skip a rename or copy's old path, which follows as its own field.
+            if $is_rename_source; then
+                is_rename_source=false
+                continue
+            fi
+
+            status_code="${record:0:2}"
+            if [[ "${status_code}" == "R"? ]] || [[ "${status_code}" == "C"? ]]; then
+                is_rename_source=true
+            fi
+
+            if [[ "${status_code}" =~ ${status_pattern} ]]; then
+                echo "${record:3}"
+            fi
+        done
+}
+
 edit() {
     # Display an interface for selecting from a list of files to edit when no
     # file has been specified. Automatically select file when there's only one
@@ -540,11 +568,7 @@ edit() {
         #  Added - "^A "
         #  Modified - "^M "
         #  Staged and modified - "^MM ".
-        staged_files_result=$(
-            git status --porcelain |
-                \grep --extended-regexp "^(A |M |MM )" |
-                awk '{print $2}'
-        )
+        staged_files_result="$(git_status_paths "^(A |M |MM)$")"
 
         if [[ ! -z "${staged_files_result}" ]]; then
             files_to_edit+=("${staged_files_result}")
@@ -552,22 +576,14 @@ edit() {
 
         # Look for renamed files.
         #  Renamed - "^R ".
-        renamed_files_result=$(
-            git status --porcelain |
-                \grep --extended-regexp "^(R )" |
-                awk '{print $4}'
-        )
+        renamed_files_result="$(git_status_paths "^R $")"
         if [[ ! -z "${renamed_files_result}" ]]; then
             files_to_edit+=("${renamed_files_result}")
         fi
 
         # Look for modified files.
         if should_collect_more_files "${#files_to_edit[*]}"; then
-            modified_files_result=$(
-                git status --porcelain |
-                    \grep "^ M " |
-                    awk '{print $2}'
-            )
+            modified_files_result="$(git_status_paths "^ M$")"
 
             if [[ ! -z "${modified_files_result}" ]]; then
                 files_to_edit+=("${modified_files_result}")
@@ -576,11 +592,7 @@ edit() {
 
         # Look for files with unmerged changes.
         if should_collect_more_files "${#files_to_edit[*]}"; then
-            unmerged_files_result=$(
-                git status --porcelain |
-                    \grep "^UU " |
-                    awk '{print $2}'
-            )
+            unmerged_files_result="$(git_status_paths "^UU$")"
 
             if [[ ! -z "${unmerged_files_result}" ]]; then
                 files_to_edit+=("${unmerged_files_result}")
@@ -589,11 +601,7 @@ edit() {
 
         # Lastly, look for untracked files.
         if should_collect_more_files "${#files_to_edit[*]}"; then
-            untracked_files_result=$(
-                git status --porcelain |
-                    \grep "^?? " |
-                    awk '{print $2}'
-            )
+            untracked_files_result="$(git_status_paths "^\?\?$")"
 
             if [[ ! -z "${untracked_files_result}" ]]; then
                 files_to_edit+=("${untracked_files_result}")
@@ -680,8 +688,12 @@ edit() {
                 fi
             done
         else
-            editor_args="$(echo "${result}" | tr '\n' ' ')"
-            open -a "${MY_OPEN_EDITOR}" $(echo "${editor_args}")
+            # Pass one argument per line, so a path with spaces stays whole.
+            editor_args=()
+            while IFS= read -r file_to_edit; do
+                editor_args+=("${file_to_edit}")
+            done <<<"${result}"
+            open -a "${MY_OPEN_EDITOR}" "${editor_args[@]}"
         fi
 
         if $pushed_dir; then
