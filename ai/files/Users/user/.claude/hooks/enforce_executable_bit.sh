@@ -41,6 +41,11 @@ if [ -z "${file}" ] || [ ! -f "${file}" ] || [ -L "${file}" ]; then
     exit 0
 fi
 
+was_executable=false
+if [ -x "${file}" ]; then
+    was_executable=true
+fi
+
 # Grant +x only to a standalone runnable script: a shebang declares its interpreter
 # and a dot-prefix would mark it sourced. Fragments and data files get -x.
 if has_shebang "${file}" && ! is_sourced_fragment "${file}"; then
@@ -48,3 +53,37 @@ if has_shebang "${file}" && ! is_sourced_fragment "${file}"; then
 else
     chmod -x "${file}"
 fi
+
+is_executable=false
+new_mode="100644"
+if [ -x "${file}" ]; then
+    is_executable=true
+    new_mode="100755"
+fi
+
+if [ "${was_executable}" = "${is_executable}" ]; then
+    exit 0
+fi
+
+# Report a flip away from the mode git tracks, so it lands as its own commit
+# instead of riding silently inside whatever change touched the file.
+tracked_mode=$(
+    git \
+        -C "$(dirname "${file}")" \
+        ls-files \
+        --stage \
+        -- "$(basename "${file}")" 2>/dev/null |
+        cut -d ' ' -f 1
+)
+if [ -z "${tracked_mode}" ] || [ "${tracked_mode}" = "${new_mode}" ]; then
+    exit 0
+fi
+
+context="enforce_executable_bit.sh changed the mode of ${file} to ${new_mode}; git tracks it as ${tracked_mode},"
+context+=" so the next commit touching it carries a mode change."
+context+=" If the file is run directly, add a shebang."
+command jq \
+    --null-input \
+    --compact-output \
+    --arg context "${context}" \
+    '{hookSpecificOutput: {hookEventName: "PostToolUse", additionalContext: $context}}'
