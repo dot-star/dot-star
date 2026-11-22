@@ -125,6 +125,8 @@ Generated from this file, so the index can't drift from it; one parse per sessio
   - Re-drafting at filing time would discard the edits the preview existed to collect.
 -
 -
+- The armed tab is the only thing the bridge can reach, so its own `location.href` answers which site faster and more reliably than asking. The server runs only while debugging so nothing listens on the port between sessions; a leftover background task also keeps the Claude daemon running. The marker catches the spelled-out phrasing (started site debugging) that the token alone misses.
+
 -
 -
 - `o <x>` cuts text from the thing being worked on; this token drops a whole objective, the work toward it included.

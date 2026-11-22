@@ -125,6 +125,8 @@ Interpret a bare one-token reply or a short fixed phrase as shorthand. Fires onl
   - File from the approved text verbatim, never a fresh draft.
 - `<N> iter` means "option N is the front-runner, but iterate on it": treat N as the starting point and propose refinements rather than committing it as-is. E.g. `2 iter` → improve on option 2.
 - `<x> vs <y>` or `<x> v <y>`, as a whole message, means `w <x> vs <y>`. Treat a `vs` or `v` inside an ordinary question or sentence as prose; it fires only when the candidates and their separator make up the entire message.
+- `dbg`, `dbg site` mean "I armed a tab with Debug Bridge, so connect to it": start `~/Projects/util/extensions/debug_bridge/start_server.sh` in the background, then run `eval.sh` beside it on `document.title` and report the armed tab's title and the URL its result carries. Never ask which site; the result names it. Stop the server once I'm done debugging.
+  <!-- shorthand-match: \bstart(ed|ing)? (a )?(site )?debugging\b -->
 - `exp <x>` means "explain `<x>`" without acting on it; re-offer any menu it came from.
 - `h <x>` means "how do I `<x>`?": answer with the steps to do `<x>` without doing it yourself. The question is the request, so `u` is how to hand the doing over.
 - `nvm <x>`, `ab <x>`, `abandon <x>` mean "stop pursuing the `<x>` objective": drop the work toward it and its pending menu rows, then carry on with the objectives left. Any prefix of `abandon` from `ab` up counts.
