@@ -58,25 +58,30 @@ local function makeNewGhosttyWindowFullScreen(existingIds)
     )
 end
 
+-- Open a Ghostty window typing options.input into its shell, so each caller picks the command that starts its session.
+function openClaudeWindow(options)
+    local existingIds = ghosttyWindowIds()
+    hs.osascript.applescript([[
+    tell application "Ghostty"
+        set surfaceConfiguration to new surface configuration
+        set initial input of surfaceConfiguration to "]] .. options.input .. [[" & linefeed
+        -- Clear the child-session marker so the window starts a top-level Claude session
+        -- even when Ghostty itself was launched from inside one.
+        set environment variables of surfaceConfiguration to {"CLAUDE_CODE_CHILD_SESSION="}
+        new window with configuration surfaceConfiguration
+        activate
+    end tell
+    ]])
+    if options.fullScreen then
+        makeNewGhosttyWindowFullScreen(existingIds)
+    end
+end
+
 -- Take options as a table so each call site names fullScreen rather than passing a bare boolean.
 function newClaudeSession(options)
     return function()
         print('newClaudeSession')
-        local existingIds = ghosttyWindowIds()
-        hs.osascript.applescript([[
-        tell application "Ghostty"
-            set surfaceConfiguration to new surface configuration
-            set initial input of surfaceConfiguration to "]] .. new_claude_session_input .. [[" & linefeed
-            -- Clear the child-session marker so the window starts a top-level Claude session
-            -- even when Ghostty itself was launched from inside one.
-            set environment variables of surfaceConfiguration to {"CLAUDE_CODE_CHILD_SESSION="}
-            new window with configuration surfaceConfiguration
-            activate
-        end tell
-        ]])
-        if options.fullScreen then
-            makeNewGhosttyWindowFullScreen(existingIds)
-        end
+        openClaudeWindow({input = new_claude_session_input, fullScreen = options.fullScreen})
     end
 end
 hs.hotkey.bind({'option'}, 'd', newClaudeSession({fullScreen = true}))
