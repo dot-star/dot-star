@@ -51,6 +51,7 @@ WHITELIST = {
     "CSV",
     "CWS",
     "DM",
+    "DNS",
     "EDT",
     "EST",
     "ET",
