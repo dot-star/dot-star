@@ -98,7 +98,7 @@
 
 -
 -
--
+- A repo's checked-in `CLAUDE.md` (a team's shared instructions) reads as more specific than a personal style guide, so without the explicit override a session follows the repo's trailer line and the commit goes out with it anyway.
 -
 -
 -

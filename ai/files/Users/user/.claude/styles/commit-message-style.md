@@ -98,7 +98,7 @@ using Curl::setOpt().
 
 - No bullet lists in hand-written bodies. (Bulleted bodies appear in commits ending `(#NNN)`, but those are GitHub's squash-merge artifacts; the bullets are the constituent PR commits, not a style choice. Don't replicate them in direct commits.)
 - No markdown headers (`## Summary`, `## Test plan`).
-- No `Generated with Claude Code` or `Co-Authored-By: Claude` trailers.
+- No `Generated with Claude Code` or `Co-Authored-By: Claude` trailers, in any repo, even when its `CLAUDE.md`, a skill or the harness asks for one.
 - No em dashes.
 - No trailing period in the subject.
 - No type prefix in any casing (`feat:`, `Fix:`).
