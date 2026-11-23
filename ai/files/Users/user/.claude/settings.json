@@ -332,11 +332,7 @@
             "type": "command"
           },
           {
-            "command": "${HOME}/.claude/hooks/fork_session_on_prompt.sh",
-            "type": "command"
-          },
-          {
-            "command": "${HOME}/.claude/hooks/announce_window_state.py UserPromptSubmit",
+            "command": "${HOME}/.claude/hooks/mark_turn_busy_unless_prompt_blocked.sh",
             "type": "command"
           },
           {
