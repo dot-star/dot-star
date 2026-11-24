@@ -71,6 +71,7 @@ WHITELIST = {
     "IV",
     "IX",
     "JPEG",
+    "JS",
     "JSON",
     "JSONL",
     "KB",
