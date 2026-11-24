@@ -93,7 +93,7 @@
   -
   -
 -
-  -
+  - Covers the clipboard too: a 📎 notice once went out with no `pbcopy` behind it, so the user would have pasted whatever the clipboard held before.
   -
 -
 -
