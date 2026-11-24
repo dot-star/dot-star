@@ -43,6 +43,7 @@
   - The changed part is what the reader came to check, so pointing at it saves them a hunt; but they check it in place, and cut out of its surroundings it can't be judged.
   - A mock is sometimes the only option, and a labeled one is honest; an unlabeled one passes as the real output.
 -
+  - A no-alternative claim reads as settled, so the reader stops looking too. Thinking of two routes was enough to break "the only way to preview a backend change is to deploy": a local server routing to the checkout's own fetch script showed it within minutes.
   -
   - An empty `grep --recursive` over `ai/contexts/` once reported a term appeared nowhere, so the reply said the docs needed no change, while the symlinked personal docs used it in a dozen places. That miss is silent: its output looks like a true absence, so only a scope check catches it.
   - A follow-up offer once said an edit to a personal context doc needed no commit because dot-star gitignores the path, while the file was a symlink into the personal repo, where the edit sat uncommitted. "Gitignored here" answers for one repo only; the target's own repo still owes the commit, and nothing flags the miss until the edit goes stale.
