@@ -12,6 +12,7 @@ hooks_dir="$(dirname -- "${BASH_SOURCE[0]}")"
 # List every UserPromptSubmit hook that can answer `decision: "block"`. Each
 # prints a block decision or nothing, since only one JSON answer reaches Claude.
 blocking_hooks=(
+    "block_yubikey_otp.py"
     "fork_session_on_prompt.sh"
 )
 
