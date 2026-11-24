@@ -221,11 +221,16 @@ alias create_patch_from_last="patch_last"
 alias d.="rc_diff ."
 
 # Define `d1`..`dN` as cumulative diffs on a cleared screen (`d3` = `clear && git diff HEAD~3`); `git status` lists as many unpushed commits as there are aliases.
-DIFF_ALIAS_COUNT=20
+# A function rather than a global: Claude Code's shell snapshot keeps functions but drops plain variables.
+diff_alias_count() {
+    echo 20
+}
 define_cumulative_diff_aliases() {
+    local count
     local i
 
-    for ((i = 1; i <= DIFF_ALIAS_COUNT; i++)); do
+    count="$(diff_alias_count)"
+    for ((i = 1; i <= count; i++)); do
         alias "d${i}=clear && git diff HEAD~${i}"
     done
 }
@@ -2781,7 +2786,8 @@ rc_status() {
                 if [[ "${unpushed}" -gt 0 ]]; then
                     echo -e "\n\033[30;48;5;214m Warning \033[0m\033[38;5;214m:\033[0m There are unpushed commits: \033[1;36m${unpushed}\033[0m"
                     # Cap at the highest `dN` diff alias so every listed commit gets one.
-                    local listing_cap="${DIFF_ALIAS_COUNT}"
+                    local listing_cap
+                    listing_cap="$(diff_alias_count)"
                     # Prefix each line with `[dN]` so the user knows which diff alias shows that commit (d1=HEAD~1, d2=HEAD~2, ...).
                     # `--color=always` keeps `%C(auto)` codes when piping into awk (git drops them when stdout isn't a TTY).
                     # Give the relative date its own tab-delimited column so awk can tint it by recency, the way `wt`'s worktree table does.
