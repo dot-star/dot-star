@@ -60,6 +60,7 @@ WHITELIST = {
     "FINRA",
     "GNU",
     "GPU",
+    "HN",
     "HTML",
     "HTTP",
     "HTTPS",
