@@ -352,7 +352,8 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
      - Only failure among the last 12 runs
   3. 📋 Weak test still open
   ```
-- Give every numbered item one address: nest a numbered sub-list under its parent item, indented beneath it, so a reply like `2c` names exactly one item. Never restart at `1.` flush beside the parent's numbers, and never number a section in a bold heading (`**2. Write output**`) with its items numbered flush beneath it; both put two schemes at one indent, so a bare `2` could mean either level.
+- Give every numbered item one address: any number a reply could carry (`2`, `2c`) names exactly one item, so the message never shows a second numbering it could be read against. Nest a numbered sub-list under its parent item, indented beneath it. Never restart at `1.` flush beside the parent's numbers or number a section in a bold heading (`**2. Write output**`) with its items numbered flush beneath it; both put two schemes at one indent, so a bare `2` could mean either level.
+  - Strip a leading number from every label in a numbered list (a file `7_foo`, a step `3-bar`, a ticket `#5`): list it by the rest of its name (`foo`) and rename the thing itself when you named it. A label's own digits are a second numbering, so a reply of `7` could pick option 7 or the label starting `7_`.
   - Make each section a top-level list item carrying the bold title (`2. **Write output**`) and indent its items three spaces as `1.`, `2.`; the chat renderer draws that second level as letters (`a.`, `b.`), so refer to an item in prose by the address the reader sees (`check 2c`).
   - Keep plain notes beneath an item as dashes, indented under it, per the rule above; numbers are for items a reply may point at.
 

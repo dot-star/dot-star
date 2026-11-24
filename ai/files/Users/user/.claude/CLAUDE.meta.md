@@ -352,7 +352,8 @@
      -
   3.
   ```
--
+- The principle is one meaning per number, wherever the second numbering comes from; nested lists are only the most common source.
+  - Candidates Claude generates (files, mockups, drafts) get numbered as they're made; those numbers drift from the option order once the list is re-sorted or a later batch starts mid-sequence. Acting on the wrong reading ships the option the user didn't pick. The reply doesn't show which reading Claude took.
   -
   -
 
