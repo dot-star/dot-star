@@ -26,7 +26,9 @@
   -
   -
     -
-    -
+    - Was "fine, and preferred, when it opens a new logical stanza", which left the blank to judgment and let comments land flush. Defaulting to always takes the call away.
+      - Names the misreading the blank prevents, so the rule reads as grouping rather than cosmetics.
+      - A comment opening a block or file has only the opener above it, so a blank there separates nothing.
 -
   -
   -
