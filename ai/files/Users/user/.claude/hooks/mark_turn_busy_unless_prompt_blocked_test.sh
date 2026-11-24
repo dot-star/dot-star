@@ -27,6 +27,18 @@ write_blocking_stub() {
     chmod +x "${stub}"
 }
 
+# Write a silent stub for every blocking hook the wrapper lists, so a hook added
+# to the list never runs for real or goes missing from the stub dir.
+write_silent_blocking_stubs() {
+    local stub_dir="$1"
+    local hook
+
+    while IFS= read -r hook; do
+        printf '#!/usr/bin/env bash\ncat >/dev/null\n' >"${stub_dir}/${hook}"
+        chmod +x "${stub_dir}/${hook}"
+    done < <(sed -n '/^blocking_hooks=(/,/^)/s/^ *"\(.*\)"$/\1/p' "${SCRIPT_DIR}/${HOOK_NAME}")
+}
+
 # Write a stub state hook that records its argument and the payload it read.
 write_state_stub() {
     local stub_dir="$1"
@@ -48,6 +60,7 @@ run_test() {
 
     stub_dir=$(mktemp -d)
     cp "${SCRIPT_DIR}/${HOOK_NAME}" "${stub_dir}/"
+    write_silent_blocking_stubs "${stub_dir}"
     write_blocking_stub "${stub_dir}" "${blocker_answer}" "${blocker_exit_status}"
     write_state_stub "${stub_dir}"
 
