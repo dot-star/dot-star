@@ -359,6 +359,8 @@ def open_status_tab(window_id: str, directory: str) -> None:
                 if (count of tabs of targetWindow) > 1 then
                     return "window " & windowId & " already has a second tab; left alone"
                 end if
+                -- Record what was in front around the new tab, so a window or Space jump shows in the log.
+                set frontBefore to (id of front window) & " (Ghostty frontmost: " & (frontmost as text) & ")"
                 set previousTab to selected tab of targetWindow
                 set surfaceConfig to new surface configuration
                 set initial working directory of surfaceConfig to item 2 of argv
@@ -368,7 +370,8 @@ def open_status_tab(window_id: str, directory: str) -> None:
                 set statusTab to new tab in targetWindow with configuration surfaceConfig
                 -- Hand focus back to the tab the new one took it from.
                 select tab previousTab
-                return "opened background status tab " & (id of statusTab) & " in window " & windowId
+                set frontAfter to (id of front window) & " (Ghostty frontmost: " & (frontmost as text) & ")"
+                return "opened background status tab " & (id of statusTab) & " in window " & windowId & "; front window before: " & frontBefore & ", after: " & frontAfter
             end tell
         end run
         """,
