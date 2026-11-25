@@ -26,7 +26,8 @@ argv[1] and the event's JSON payload on stdin:
   SessionStart -> record the id of Ghostty's front window, the one the session
                   launched in; Ghostty's AppleScript has no tty to match on.
   Stop         -> on a reply carrying commit subject drafts (`[c1]`), open the
-                  second view if missing.
+                  second view if missing. Skipped while the session's window
+                  isn't in front, since opening it there jumps you to it.
   SessionEnd   -> delete the window record, so ended sessions leave none behind.
 
 The view opens in the directory `report_cwd_for_new_tabs.py` reports for new
@@ -383,6 +384,33 @@ def open_status_tab(window_id: str, directory: str) -> None:
         log(outcome)
 
 
+def front_window_id() -> str | None:
+    """
+    Returns the id of Ghostty's front window while Ghostty is the active app.
+
+    :return: The window id (e.g. "tab-group-123456789"), or None when another app is active or osascript failed.
+    """
+    window_id = run_osascript(
+        script="""
+        on run argv
+            tell application "Ghostty"
+                if not frontmost then
+                    return ""
+                end if
+                return id of front window
+            end tell
+        end run
+        """,
+        args=[],
+        action="read front window",
+    )
+
+    if not window_id:
+        return None
+
+    return window_id
+
+
 def forget_window(session_id: str) -> None:
     """
     Delete the session's window record, which nothing reads once the session ends.
@@ -412,6 +440,13 @@ def open_status_view(event: dict[str, Any]) -> None:
         return
 
     window_id = path.read_text().strip()
+    front_window = front_window_id()
+
+    # Skip a window you aren't on: opening a tab or split in it raises it and pulls its Space forward.
+    if front_window != window_id:
+        log(f"window {window_id} not in front (front: {front_window}); status view skipped")
+        return
+
     directory = tab_dir(event) or os.path.expanduser("~")
 
     if STATUS_VIEW == "split":

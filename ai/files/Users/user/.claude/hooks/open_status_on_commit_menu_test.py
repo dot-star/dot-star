@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Tests for open_status_on_commit_menu: how tall the status pane opens and the window record's cleanup.
+Tests for open_status_on_commit_menu: how tall the status pane opens, when it opens and the window record's cleanup.
 
-Covers the row count the pane is fitted to and the record deleted at session
-end; the Ghostty split and resize run through osascript against a live window,
-so they stay out of the suite.
+Covers the row count the pane is fitted to, the skip while the session's window
+isn't in front and the record deleted at session end; the Ghostty split and
+resize run through osascript against a live window, so they stay out of the suite.
 """
 
 import io
@@ -112,6 +112,58 @@ class SessionStartTest(unittest.TestCase):
         window_file(self.session_id).write_text("1234")
         self.run_session_start(source="compact")
         self.assertEqual(window_file(self.session_id).read_text(), "1234")
+
+
+class StopTest(unittest.TestCase):
+    """Test the Stop branch, which opens the status view beside a commit menu."""
+
+    def setUp(self) -> None:
+        state_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(state_dir.cleanup)
+        self.state_dir = Path(state_dir.name)
+        # Stand in for Ghostty, whose tab opens through osascript against a live window.
+        self.open_status_tab = mock.Mock()
+        for patcher in [
+            mock.patch.object(open_status_on_commit_menu, "STATE_DIR", self.state_dir),
+            mock.patch.object(open_status_on_commit_menu, "LOG_FILE", self.state_dir / "open_status.log"),
+            mock.patch.object(open_status_on_commit_menu, "STATUS_VIEW", "tab"),
+            mock.patch.object(open_status_on_commit_menu, "open_status_tab", self.open_status_tab),
+            mock.patch.object(open_status_on_commit_menu, "tab_dir", return_value="/tmp"),
+            mock.patch.dict(os.environ, {"TERM_PROGRAM": "ghostty"}),
+            mock.patch.object(sys, "argv", ["open_status_on_commit_menu.py", "Stop"]),
+        ]:
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        self.session_id = "12345678-90ab-cdef-1234-567890abcdef"
+        window_file(self.session_id).write_text("1234")
+
+    def run_stop(self, front_window: str | None) -> None:
+        """
+        Run the hook on a Stop event whose reply renders a commit menu.
+
+        :param front_window: Window id Ghostty reports in front (e.g. "1234"), or None when another app is active.
+        """
+        event = json.dumps({"session_id": self.session_id, "last_assistant_message": "`[c1]` Fix foo"})
+        with (
+            mock.patch.object(open_status_on_commit_menu, "front_window_id", return_value=front_window),
+            mock.patch.object(sys, "stdin", io.StringIO(event)),
+        ):
+            open_status_on_commit_menu.main()
+
+    def test_opens_the_tab_when_the_sessions_window_is_in_front(self) -> None:
+        """Ensure the Stop branch opens the status tab when the session's window is in front."""
+        self.run_stop(front_window="1234")
+        self.open_status_tab.assert_called_once_with("1234", "/tmp")
+
+    def test_skips_the_tab_when_another_window_is_in_front(self) -> None:
+        """Ensure the Stop branch leaves the window alone when another Ghostty window is in front."""
+        self.run_stop(front_window="5678")
+        self.open_status_tab.assert_not_called()
+
+    def test_skips_the_tab_when_another_app_is_active(self) -> None:
+        """Ensure the Stop branch leaves the window alone when Ghostty isn't the active app."""
+        self.run_stop(front_window=None)
+        self.open_status_tab.assert_not_called()
 
 
 if __name__ == "__main__":
