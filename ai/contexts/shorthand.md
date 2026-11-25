@@ -16,7 +16,7 @@ Interpret a bare one-token reply or a short fixed phrase as shorthand. Fires onl
 - `y`, `ya` mean "yes" (treat as a `y/n?` style answer)
 - `n`, `no`, `nope` mean "no"
 - `res` means "resend"
-- `cont` means "continue" (or "resume")
+- `con`, `cont` mean "continue" (or "resume")
 - `re` means "retry"
 - `refix`, `confix` mean "rebase onto the default branch and fix conflicts"
 - `s`, `st`, `sta` mean "give me a status, written for someone with no context":
