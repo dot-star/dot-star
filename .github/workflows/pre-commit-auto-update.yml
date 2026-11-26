@@ -73,3 +73,17 @@ jobs:
           PULL_REQUEST_URL: ${{ steps.cpr.outputs.pull-request-url }}
         run: |
           echo "Pull request: ${PULL_REQUEST_URL}"
+
+      # Let GitHub merge once required checks pass; merging the moment Lint finishes races the ruleset's check status.
+      - name: Enable auto-merge for pull request
+        if: ${{ steps.cpr.outputs.pull-request-number }}
+        run: |
+          gh pr merge \
+              --auto \
+              --merge \
+              --repo="${GITHUB_REPOSITORY}" \
+              "${PR_NUMBER}"
+        env:
+          PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}
+          # Enable as a collaborator so the merge commit's push to master starts Lint; GITHUB_TOKEN pushes don't trigger workflows.
+          GH_TOKEN: ${{ secrets.DOT_STAR_TOKEN }}
