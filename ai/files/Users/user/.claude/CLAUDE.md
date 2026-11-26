@@ -62,6 +62,7 @@
 
 - Do the work in this session; hand it to the user (a command to paste, a terminal to open) or to another session only when this session can't do it. Every handoff below is a fallback, so try the in-session route first and name what blocked it when handing off.
 - For temporary files, write only to the session-scoped directory `/tmp/claude/<session_id>/` (surfaced via SessionStart). Don't write directly under `/tmp/` or `/tmp/claude/`.
+- Group every file handed over for review (screenshots, rendered output, candidate files) into numbered rounds: name it `<NN>-<n>_<name>` in the session dir, `NN` the two-digit round and `n` its order within the round (`01-1_before.png`, `01-2_after.png`). A message handing files over closes the round; the next review file opens `NN+1`. Working files (scripts, exports) keep plain names.
 - Capture every generated screenshot at full quality: render at the screen's Retina density and save lossless. A 1x capture reads as blurry on the user's display, so a visual comparison built on it can't be judged.
   - Set `deviceScaleFactor: 2` on the viewport in Puppeteer (`page.setViewport`) or Playwright (`browser.newPage`/`newContext`); the default of 1 is the blur.
   - Save PNG, never JPEG or a `quality` below 100, and never downscale afterward (`sips --resampleWidth`, `magick -resize`).

@@ -62,6 +62,7 @@
 
 - A handoff costs the user a context switch: they copy, paste, open a terminal, then relay the result back. This session loses sight of the outcome too. Rules that describe how to hand off read as permission to, so without a stated default sessions reach for the handoff the moment one is described, even when a direct route was open.
 -
+- A flat dir of plainly named files mixes every round, so the user has to work out which files are new. The round prefix sorts each set together and marks the newest. A flat prefix beats a folder per round, since the rounds stay side by side for comparison. Two digits keep `ls` sorting past round 9.
 -
   -
   -
