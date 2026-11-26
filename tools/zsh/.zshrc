@@ -3,6 +3,20 @@
 zmodload zsh/datetime
 typeset -g zsh_startup_start=$EPOCHREALTIME
 
+# Time each named startup phase, so a slow start's investigation opens with a breakdown instead of a guess.
+typeset -ga zsh_startup_phases
+typeset -gi zsh_startup_phases_ms=0
+typeset -g zsh_startup_phase_start=$zsh_startup_start
+zsh_startup_mark() {
+    local label="$1"
+    local now=$EPOCHREALTIME
+    local -i elapsed_ms=$(((now - zsh_startup_phase_start) * 1000))
+
+    zsh_startup_phases+=("${label} ${elapsed_ms} ms")
+    zsh_startup_phases_ms+=elapsed_ms
+    zsh_startup_phase_start=$now
+}
+
 # Update oh-my-zsh in the background; a foreground update holds the first prompt for its network pull.
 zstyle ':omz:update' mode background-alpha
 
@@ -99,6 +113,7 @@ if [[ -r ~/.zshrc.pre.local ]]; then
 fi
 
 source $ZSH/oh-my-zsh.sh
+zsh_startup_mark "oh-my-zsh"
 
 # Drop the hostname from the window title; oh-my-zsh resets it on load, so set it after the source.
 # Drop the user name too when it's the generic "user", which tells tabs nothing.
@@ -173,10 +188,12 @@ source_cached_init() {
 if [[ -f ~/.fzf.zsh ]]; then
     source_cached_init fzf fzf --zsh
 fi
+zsh_startup_mark "fzf"
 
 # Begin dot-star bootstrap.
 [[ -r ~/.dot-star/bootstrap/.bash_profile ]] && source ~/.dot-star/bootstrap/.bash_profile
 # End dot-star bootstrap.
+zsh_startup_mark "dot-star bootstrap"
 
 # Clear claude session variables inherited from a session that has exited.
 # An app launched from inside a session (Hammerspoon, a relaunched terminal) hands them to every shell it opens.
@@ -228,6 +245,8 @@ zsh_startup_investigate() {
     local elapsed_ms="$1"
     local login_shell="no"
     local parent_process
+    local -i rest_ms
+    local load_average
     local task
 
     # Capture how this shell started; the slowest cause so far only hit shells nested in another shell.
@@ -235,13 +254,37 @@ zsh_startup_investigate() {
         login_shell="yes"
     fi
     parent_process="$(ps -o comm= -p "${PPID}")"
+
+    # Count what no mark covers (the rest of .zshrc and the precmd hooks) as one last phase, net of the credited status run.
+    rest_ms=$((elapsed_ms - zsh_startup_phases_ms))
+    zsh_startup_phases+=("rest of .zshrc and precmd hooks ${rest_ms} ms")
+
+    # Capture machine load, since a start slowed by other work looks the same as one slowed by the rc files.
+    load_average="$(zsh_startup_load_average)"
+
     task="zsh startup took ${elapsed_ms} ms before the first prompt."
     task+=" SHLVL=${SHLVL}, login shell: ${login_shell}, parent process: ${parent_process}, cwd: ${PWD}."
+    task+=" Phases: ${(j:, :)zsh_startup_phases}."
+    task+=" Load average: ${load_average}."
     task+=" Find what made this start slow and propose a fix."
     ~/.dot-star/ai/claude/open_investigation_window.sh \
         zsh_startup \
         "Investigate slow zsh startup" \
         "${task}"
+}
+
+# Print the 1, 5 and 15 minute load averages.
+zsh_startup_load_average() {
+    local -a load
+
+    if [[ -r /proc/loadavg ]]; then
+        load=($(</proc/loadavg))
+        print -r -- "${load[1,3]}"
+    else
+        # Drop the braces macOS wraps around the values.
+        load=($(sysctl -n vm.loadavg))
+        print -r -- "${load[2,4]}"
+    fi
 }
 
 # Report whether a dot-star install or update is running; its brew and package work slows any shell it overlaps.
@@ -318,9 +361,14 @@ zsh_startup_report() {
     add-zsh-hook -d precmd zsh_startup_report
     unfunction zsh_startup_report
     unfunction zsh_startup_investigate
+    unfunction zsh_startup_load_average
     unfunction zsh_startup_install_running
     unfunction zsh_startup_compdump_rebuilt
+    unfunction zsh_startup_mark
     unset zsh_startup_start
+    unset zsh_startup_phases
+    unset zsh_startup_phases_ms
+    unset zsh_startup_phase_start
 }
 autoload -Uz add-zsh-hook
 add-zsh-hook precmd zsh_startup_report
