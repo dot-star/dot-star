@@ -3,7 +3,7 @@
 // untouched.
 
 // Pick a hue that pops against the black background.
-const vec3 GLOW_COLOR = vec3(0xff, 0x8c, 0x00) / 255.0;
+const vec3 GLOW_COLOR = vec3(0xff, 0xbf, 0x00) / 255.0;
 
 // Set how far the glow reaches into the pane, in physical pixels (Retina 2x).
 const float GLOW_REACH_PX = 80.0;

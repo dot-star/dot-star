@@ -114,4 +114,4 @@ window-padding-balance = true
 
 # Draw the split divider in the focus glow's hue, so the seam reads as part of
 # the active pane's frame. Keep it in step with GLOW_COLOR in the shader.
-split-divider-color = #ff8c00
+split-divider-color = #ffbf00
