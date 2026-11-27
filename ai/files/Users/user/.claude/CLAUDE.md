@@ -199,6 +199,7 @@ Codify a style rule language-agnostically (in `~/.dot-star/ai/contexts/code-styl
 - Treat the casing of a named identifier as unreliable: a dictated prompt capitalizes short words at will (an alias `foo` arrives as `FOO`).
   - Look up a named alias, function, command or file case-insensitively before calling it missing; `grep --ignore-case`, and `type <name>` on the lowercase form too.
   - Run `type <name>` yourself rather than asking the user to run it; only a lookup that needs their interactive shell state is theirs to run.
+- Treat a prompt word that doesn't fit the target you found as proof the target is wrong: search the other repos `CLAUDE.md` names for one the word does fit before bending the word to match (a `cache` asked of a module with none).
 
 ## Output
 

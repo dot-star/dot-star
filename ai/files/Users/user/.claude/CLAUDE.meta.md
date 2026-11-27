@@ -199,6 +199,7 @@
 -
   -
   -
+- A word left over after the match is the cheapest clue a request carries. Reinterpreting it to fit the first candidate in view throws that clue away and builds a whole answer on the wrong project, while one search across the named repos costs a single tool call.
 
 ## Output
 
