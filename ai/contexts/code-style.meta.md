@@ -24,11 +24,12 @@
   - Names only the cases where a keyword is impossible, so "it fits on one line" or "the argument is obvious" never reads as an exemption.
 -
   -
-  -
-    -
+  - Leads with both gaps: a headline opening on "stay flush" and "no blank line" read as the whole rule, so the blank above got skipped.
     - Was "fine, and preferred, when it opens a new logical stanza", which left the blank to judgment and let comments land flush. Defaulting to always takes the call away.
       - Names the misreading the blank prevents, so the rule reads as grouping rather than cosmetics.
       - A comment opening a block or file has only the opener above it, so a blank there separates nothing.
+      - Replays of a flush-neighbor edit left an untouched comment flush under new code: the blank was treated as part of the comment being written, so only the edit's own comments got one.
+    -
 -
   -
   -

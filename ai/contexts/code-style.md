@@ -24,11 +24,12 @@ Loaded on demand: the Writing style section of `~/.claude/CLAUDE.md` points here
   - Keep a value positional only where the callee refuses a keyword: a positional-only parameter (a builtin like `len(items)`, a `/` in the signature) or a variadic `*args`.
 - Two comment shapes:
   - **Block comments** (TODOs, design notes): blank line above and below.
-  - **Line-doc comments** (describing the next line/pipeline): stay flush with the code they describe, no blank line between the comment and that code.
-    - The "no blank line" applies only to the gap *below* the comment (comment-to-its-code).
+  - **Line-doc comments** (describing the next line/pipeline): blank line above, none below.
     - Always put a blank line *above* a line-doc comment: the blank marks the comment as heading the group of lines beneath it.
       - Flush against the code above, the comment reads as annotating only the one line below it.
       - Skip the blank only where the comment opens a block (the first line inside a function, loop or brace) or the file: nothing sits above it to separate from.
+      - Check the gap above every comment your edit borders, not only the ones you write: a line you add or change above an existing comment touches that comment's gap too.
+    - Keep the comment flush with the code it describes: no blank between the comment and that code.
 - Comments lead with WHAT (imperative verb + object) before WHY.
   - Good: `# Strip geometry lines around each gitk run. The file is symlinked and gitk rewrites them on exit.`
   - Bad (WHY first): `# gitk rewrites geometry lines on exit; strip them around each run so the symlinked config stays clean.`
