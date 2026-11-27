@@ -24,7 +24,7 @@
       {
         "hooks": [
           {
-            "command": "${HOME}/.claude/hooks/chime_when_waiting_on_user_to_answer.sh",
+            "command": "${HOME}/.claude/hooks/alert_when_waiting_on_user_to_answer.sh",
             "type": "command"
           }
         ]

@@ -115,7 +115,7 @@ def notify(
     """
     Fire a silent native desktop notification.
 
-    Silent because `chime_when_waiting_on_user_to_answer.sh` already chimes on
+    Silent because `alert_when_waiting_on_user_to_answer.sh` already chimes on
     this event, debounced across sessions; a sound here would double it.
 
     Hammerspoon posts it when it can, since its click callback raises the
