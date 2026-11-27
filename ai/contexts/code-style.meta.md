@@ -40,6 +40,7 @@
 -
 - The refactor principle's trigger (a name narrower than what the code now does) decides when to rename; this rule decides what to rename to. Widening an inventory name only meets the trigger until the next change, so the trigger fires again and each rename drags its references, symlinks and history along. A role name stops the trigger from refiring, the same way the comment rule above keeps a retune from dragging a comment edit.
   -
+  - Retreating from the contents to a word that groups them passes a quick read of "role", yet it still claims something about every member, so the next misfit renames it again. A name pointing at what decides membership claims nothing about the members, so no addition can make it wrong. The second failure is the one a fresh read misses: a word true of everything in scope reads as a role because nothing contradicts it, yet it can't say which items the thing acts on. Listing the mechanism as one option among categories still lets a category win the pick, so the clause makes the mechanism the default.
   -
   -
 -

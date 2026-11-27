@@ -3,7 +3,7 @@
 When creating a file, the name should be both:
 
 - **Hierarchical:** shared prefix so related files cluster together in a directory listing.
-- **Semantic:** the remainder hints at what the file does, supplements, or contains.
+- **Semantic:** the remainder hints at what the file does or supplements, named by its role per the role-naming rule in `~/.dot-star/ai/contexts/code-style.md`, never by an inventory of what it holds today.
 
 Together they turn `ls` into a table of contents: related files cluster without needing a subdirectory and a reader needn't open a file to know what it does.
 

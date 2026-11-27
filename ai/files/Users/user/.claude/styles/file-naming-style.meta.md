@@ -3,7 +3,7 @@
 
 
 -
--
+- "Contains" asked for the inventory name the role rule forbids, and a file-name review that reads only this guide never reached that rule. The pointer routes every file name through the rule's next-likely-change test.
 
 
 
