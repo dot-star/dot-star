@@ -6,7 +6,7 @@
 const vec3 GLOW_COLOR = vec3(0xff, 0xe6, 0x1a) / 255.0;
 
 // Set how far the glow reaches into the pane, in physical pixels (Retina 2x).
-const float GLOW_REACH_PX = 20.0;
+const float GLOW_REACH_PX = 30.0;
 
 // Cap the glow's brightness at the very edge, so text near the frame stays legible.
 const float GLOW_STRENGTH = 1.0;
