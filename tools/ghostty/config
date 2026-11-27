@@ -60,18 +60,19 @@ resize-overlay = never
 # field that twitches on every trackpad brush.
 mouse-hide-while-typing = true
 
-# Mark the focused split as the darkest pane. Ghostty has no per-pane
-# background, so this paints every pane and the unfocused-split tint below lays
-# over the inactive ones, leaving only the focused split untinted.
 background = #000000
 
-# Tint the inactive split rather than only fading it. Ghostty paints a
-# rectangle over every unfocused split, taking its alpha from the opacity below
-# and its color from the fill, which defaults to the background and so only
-# darkens. A hue shift marks a pane inactive without reading as disabled, which
-# is how the stock 0.7 fade came across.
-unfocused-split-opacity = 0.7
-unfocused-split-fill = #6a5acd
+# Leave unfocused splits unshaded. The focused split's glow already marks which
+# pane is active, so a tint or fade on the others only costs their legibility.
+unfocused-split-opacity = 1
+
+# Ring the focused split with a soft inner glow, so the active pane stands out
+# without dimming the others.
+custom-shader = ~/.dot-star/tools/ghostty/shaders/glow_focused_split.glsl
+
+# Render the shader only when the terminal redraws. The glow never moves, so the
+# default animation loop would spend CPU repainting an unchanged frame.
+custom-shader-animation = false
 
 # Even out every pane after a split. Ghostty lays splits out as a binary tree,
 # so a split halves only the focused pane and a third one leaves the first pane
