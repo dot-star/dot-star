@@ -74,6 +74,10 @@ custom-shader = ~/.dot-star/tools/ghostty/shaders/glow_focused_split.glsl
 # default animation loop would spend CPU repainting an unchanged frame.
 custom-shader-animation = false
 
+# Outline a pane that rings the bell until it is focused, so a background split
+# or tab waiting on input stands out. Spell out every flag to keep the defaults.
+bell-features = no-system,no-audio,attention,title,border
+
 # Even out every pane after a split. Ghostty lays splits out as a binary tree,
 # so a split halves only the focused pane and a third one leaves the first pane
 # twice the width of the other two; equalizing restores the even row editors
