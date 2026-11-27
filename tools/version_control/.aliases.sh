@@ -328,14 +328,6 @@ conditional_g() {
 }
 alias g="conditional_g"
 
-# Strip the geometry lines gitk writes on exit so the config file tracked in dot-star stays clean.
-gitk_strip_geometry() {
-    local config="${HOME}/.config/git/gitk"
-
-    # Edit the symlink's target; BSD sed -i refuses to edit through a symlink.
-    sed -i "" '/set geometry(/d' "$(readlink -f "${config}")"
-}
-
 # Put the gitk config back under dot-star. gitk saves on exit by renaming a temp file over the config path (savestuff), which swaps the symlink for a regular file holding the latest settings.
 gitk_restore_symlink() {
     local config="${HOME}/.config/git/gitk"
@@ -361,12 +353,10 @@ gitk_refresh_index() {
 git_browser() {
     # Reclaim the config after direct `gitk` invocations that bypassed this wrapper.
     gitk_restore_symlink
-    gitk_strip_geometry
     gitk_refresh_index
     command gitk "${@}"
     # Reclaim the config gitk just wrote on exit.
     gitk_restore_symlink
-    gitk_strip_geometry
     gitk_refresh_index
 }
 

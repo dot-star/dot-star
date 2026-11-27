@@ -424,7 +424,7 @@ ensure_symlink "${DOT_STAR}/tools/colordiff/.colordiffrc" "${HOME}/.colordiffrc"
 
 ensure_symlink "${DOT_STAR}/tools/screen/.screenrc" "${HOME}/.screenrc"
 
-# Install gitk config; git_browser() (tools/version_control/.aliases.sh) strips geometry lines around each run and the gitk-ignore-listed filter (.gitattributes) hides UI-changed settings, so the symlink target stays clean.
+# Install gitk config; the gitk-ignore-listed filter (.gitattributes) hides UI-changed settings, so git status stays clean while gitk keeps them.
 mkdir -p "${HOME}/.config/git"
 ensure_symlink "${DOT_STAR}/tools/version_control/gitk" "${HOME}/.config/git/gitk"
 
