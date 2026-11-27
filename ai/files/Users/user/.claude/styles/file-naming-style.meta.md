@@ -2,6 +2,11 @@
 
 
 
+-
+-
+
+
+
 ## Shapes by extension
 
 - The test is whether the file does something, not how it gets invoked: a loaded module never runs on its own, yet its only job is the side effect loading it triggers, so an older "run rather than sourced" wording ruled out the very files that most need an action name. Listed beside its siblings in the load list, a noun-first name breaks the column of verbs a reader scans to see what the entry file turns on. The helper carve-out keeps modules that only serve other modules from being forced into an action they don't perform.

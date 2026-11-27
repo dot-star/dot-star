@@ -39,6 +39,9 @@
   - A mapping list is scanned by key: a reader hunting for what one key does runs an eye down the key column, which a verb-first entry buries mid-line.
 -
 - The refactor principle's trigger (a name narrower than what the code now does) decides when to rename; this rule decides what to rename to. Widening an inventory name only meets the trigger until the next change, so the trigger fires again and each rename drags its references, symlinks and history along. A role name stops the trigger from refiring, the same way the comment rule above keeps a retune from dragging a comment edit.
+  -
+  -
+  -
 -
   -
   -
