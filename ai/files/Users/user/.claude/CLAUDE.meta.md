@@ -292,6 +292,10 @@
   -
   -
   -
+- Box-drawing glyphs misstate spacing, proportion, type and color, so a text sketch of a browser or print layout looks right in chat and is wrong where it ships.
+  - The terminal is where these render for real, so a chat sample of them is exact rather than an approximation.
+  -
+  - The number in the filename keeps the one-address rule intact when the samples live outside chat.
 -
 -
   -
