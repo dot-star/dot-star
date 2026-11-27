@@ -68,7 +68,7 @@ unfocused-split-opacity = 1
 
 # Ring the focused split with a soft inner glow, so the active pane stands out
 # without dimming the others.
-custom-shader = ~/.dot-star/tools/ghostty/shaders/glow_focused_split.glsl
+custom-shader = ~/.dot-star/tools/ghostty/shaders/ring_split_edges.glsl
 
 # Render the shader only when the terminal redraws. The glow never moves, so the
 # default animation loop would spend CPU repainting an unchanged frame.
