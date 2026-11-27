@@ -116,7 +116,7 @@ window-padding-y = 8
 # keeping the text block centered as the window resizes.
 window-padding-balance = true
 
-# Draw the split divider in a neutral gray, so the yellow focus glow and red
-# attention ring are the only colored edges on screen. Match the gray of the
-# Hammerspoon Space dots with no session.
-split-divider-color = #8c8c8c
+# Draw the split divider in a dark neutral gray, so the focus glow and attention
+# ring are the only colored edges on screen. Keep it dim: a lighter gray reads
+# as a white line against the black panes.
+split-divider-color = #3a3a3a
