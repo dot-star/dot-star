@@ -116,6 +116,7 @@ window-padding-y = 8
 # keeping the text block centered as the window resizes.
 window-padding-balance = true
 
-# Draw the split divider in the focus glow's hue, so the seam reads as part of
-# the active pane's frame. Keep it in step with GLOW_COLOR in the shader.
-split-divider-color = #ffe61a
+# Draw the split divider in a neutral gray, so the yellow focus glow and red
+# attention ring are the only colored edges on screen. Match the gray of the
+# Hammerspoon Space dots with no session.
+split-divider-color = #8c8c8c
