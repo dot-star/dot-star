@@ -14,6 +14,7 @@ from typing import Any
 
 from announce_window_state_models import Session
 from announce_window_state_notifications import withdraw_notification
+from announce_window_state_title import flag_attention
 from terminal_tty import STATE_DIR
 
 # Map each notification type to the session state it signals; leave the rest (e.g. "auth_success") unmapped.
@@ -30,7 +31,7 @@ def record_session_state(
     state: str,
 ) -> None:
     """
-    Record the session's state word for Hammerspoon's page dots to read.
+    Record the session's state word for Hammerspoon's page dots to read, and flag the pane while it waits on a decision.
 
     Writes through a temp file and a rename, so the folder watcher never reads
     a half-written word. Skips the write when the file already holds the word,
@@ -56,6 +57,7 @@ def record_session_state(
     temporary = path.with_name(f"{path.name}.tmp")
     temporary.write_text(state)
     temporary.replace(path)
+    flag_attention(needs_attention=state == "decision")
 
     if state != "decision":
         withdraw_notification(session=session)
@@ -204,6 +206,7 @@ def forget_session(session: Session) -> None:
         return
 
     withdraw_notification(session=session)
+    flag_attention(needs_attention=False)
     session.state_file.unlink(missing_ok=True)
     session.waiting_tool_file.unlink(missing_ok=True)
     session.stop_blocked_file.unlink(missing_ok=True)

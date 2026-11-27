@@ -16,6 +16,15 @@ from terminal_tty import write_to_terminal
 
 WINDOW_OBJECTIVE = os.environ.get("CLAUDE_OBJECTIVE", "Claude Code")
 
+# Flag the pane with this background for the Ghostty shader to ring red; it sits
+# one step off black, so nothing else visibly changes. Keep it in step with
+# ATTENTION_BACKGROUND in tools/ghostty/shaders/ring_split_edges.glsl.
+ATTENTION_BACKGROUND = "#010000"
+
+# Send the flag only where the shader reads it; any other emulator would paint
+# the pane's background instead.
+IN_GHOSTTY = os.environ.get("TERM_PROGRAM") == "ghostty"
+
 
 def write_to_own_tab(payload: str) -> None:
     """
@@ -33,6 +42,21 @@ def write_to_own_tab(payload: str) -> None:
 
     if error is not None:
         log(f"write to {dev} failed: {error}")
+
+
+def flag_attention(needs_attention: bool) -> None:
+    """
+    Set or clear the background flag that rings the session's Ghostty pane red.
+
+    :param needs_attention: True while a prompt waits on the user's answer.
+    """
+    if not IN_GHOSTTY:
+        return
+    elif needs_attention:
+        write_to_own_tab(f"\033]11;{ATTENTION_BACKGROUND}\007")
+    else:
+        # Restore the configured background (OSC 111).
+        write_to_own_tab("\033]111\007")
 
 
 def objective(session: Session) -> str:
