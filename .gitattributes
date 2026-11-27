@@ -1,0 +1,2 @@
+# Keep the gitk settings listed in tools/version_control/ignore_listed_gitk_settings.sh out of git status. Needs filter.gitk-ignore-listed.clean, which script/post_install.sh sets in this repo's config.
+tools/version_control/gitk filter=gitk-ignore-listed

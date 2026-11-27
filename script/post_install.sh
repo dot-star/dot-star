@@ -304,6 +304,11 @@ bt_push "git diff drivers"
 git config --global diff.json.xfuncname '^[[:space:]]{0,4}"[^"]*"[[:space:]]*:[[:space:]]*[[{]'
 bt_pop
 
+bt_push "gitk ignored-settings filter"
+# Keep the gitk settings changed from its UI out of git status; .gitattributes binds the tracked gitk config to this filter. Set it in this repo's config only, since no other repo carries the file.
+git -C "${DOT_STAR_ROOT}" config filter.gitk-ignore-listed.clean "${DOT_STAR_ROOT}/tools/version_control/ignore_listed_gitk_settings.sh %f"
+bt_pop
+
 bt_push "vim setup"
 # Create backup and swap directories specified in vimrc.
 mkdir -p "$HOME/.vim/backup/"

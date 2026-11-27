@@ -347,14 +347,27 @@ gitk_restore_symlink() {
     fi
 }
 
+# Refresh git's cached size for the gitk config after a rewrite of ignored settings only. git status reads a size change as an edit without running the gitk-ignore-listed filter (.gitattributes).
+gitk_refresh_index() {
+    local repo="${HOME}/.dot-star"
+    local tracked="tools/version_control/gitk"
+
+    # Re-stage only when the filter leaves no real edit, so a genuine settings change stays unstaged.
+    if git -C "${repo}" diff --quiet -- "${tracked}"; then
+        git -C "${repo}" add -- "${tracked}"
+    fi
+}
+
 git_browser() {
     # Reclaim the config after direct `gitk` invocations that bypassed this wrapper.
     gitk_restore_symlink
     gitk_strip_geometry
+    gitk_refresh_index
     command gitk "${@}"
     # Reclaim the config gitk just wrote on exit.
     gitk_restore_symlink
     gitk_strip_geometry
+    gitk_refresh_index
 }
 
 alias g.="git_browser ."
