@@ -6,10 +6,10 @@
 const vec3 GLOW_COLOR = vec3(0xff, 0xbf, 0x00) / 255.0;
 
 // Set how far the glow reaches into the pane, in physical pixels (Retina 2x).
-const float GLOW_REACH_PX = 80.0;
+const float GLOW_REACH_PX = 20.0;
 
 // Cap the glow's brightness at the very edge, so text near the frame stays legible.
-const float GLOW_STRENGTH = 0.9;
+const float GLOW_STRENGTH = 1.0;
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord / iResolution.xy;
