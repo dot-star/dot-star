@@ -75,4 +75,6 @@ Consequences for changes:
 - Y/n prompts: accept a single keypress; never make the user press Enter after it.
 - `set -x`, `set -euo pipefail`, and noisy `echo`s are common and intentional in installer / pruning scripts; keep them when editing those files.
 - JSON files: alphabetize keys with `jq --sort-keys` when editing. Skip generated files (lockfiles, build artifacts, snapshots).
-- Don't use `path` (or `fpath`/`manpath`/`cdpath`) as shell variable names: zsh ties them to `$PATH`/etc., so assignments silently clobber the real env var.
+- Don't name a shell variable after a zsh special parameter, even under `local`:
+  - Tied names (`path`, `fpath`, `manpath`, `cdpath`) mirror `$PATH`/etc., so an assignment silently clobbers the real env var.
+  - Read-only names (`status`, `zsh_eval_context`) make the assignment fail, which aborts the calling command.
