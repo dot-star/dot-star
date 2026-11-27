@@ -65,9 +65,9 @@ local DEFAULT_NUMBERS = {
     follow_idle_seconds = 30,
 }
 local SETTINGS_PREFIX = 'show_space_position.'
-local EDGE_BAR_WIDTH = 7
+local EDGE_BAR_WIDTH = 5
 -- Keep the top and bottom bands thinner than the edge strips, so they hint at the Space's color without eating into the terminal.
-local BAND_HEIGHT = 5
+local BAND_HEIGHT = 4
 -- Group the swipe hint's sizes and colors in one table, keeping the chunk under Lua's limit of 200 locals.
 local SWIPE_HINT = {
     -- Size the swipe hint to the old last-page bumper, which read at a glance without crowding the desktop.
