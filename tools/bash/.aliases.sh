@@ -881,6 +881,9 @@ alias si="case_insensitive_search"
 conditional_s() {
     param_count="${#}"
     if [[ "${param_count}" -eq 0 ]]; then
+        # Clear a gitk config size change git status would misreport as an edit, whichever way gitk was launched.
+        gitk_refresh_index
+
         # Show version control status when no parameters are passed.
         rc_status
         rc_push_guard_stamp

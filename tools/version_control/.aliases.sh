@@ -343,9 +343,16 @@ gitk_restore_symlink() {
 gitk_refresh_index() {
     local repo="${HOME}/.dot-star"
     local tracked="tools/version_control/gitk"
+    local status
+
+    status="$(git -C "${repo}" status --porcelain -- "${tracked}")"
+
+    # Skip a clean file, so `s` polled by watch_status never takes the index lock.
+    if [[ -z "${status}" ]]; then
+        return
 
     # Re-stage only when the filter leaves no real edit, so a genuine settings change stays unstaged.
-    if git -C "${repo}" diff --quiet -- "${tracked}"; then
+    elif git -C "${repo}" diff --quiet -- "${tracked}"; then
         git -C "${repo}" add -- "${tracked}"
     fi
 }
